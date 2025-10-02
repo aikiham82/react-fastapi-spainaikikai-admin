@@ -37,7 +37,7 @@
         "--rm",
         "-i",
         "-e",
-        "MDB_MCP_CONNECTION_STRING=mongodb://host.docker.internal:27017/boilerplate_db",
+        "MDB_MCP_CONNECTION_STRING=mongodb://host.docker.internal:27017/uptodateai",
         "mongodb/mongodb-mcp-server:latest"
       ]
     }
