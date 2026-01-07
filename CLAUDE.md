@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a full-stack ecommerce application with a FastAPI backend implementing hexagonal architecture and a React TypeScript frontend. The project manages products, users, and orders with OAuth2 authentication.
+This is a full-stack backoffice application with a FastAPI backend implementing hexagonal architecture and a React TypeScript frontend. The project manages clubs, members, payments,seminars and licenses.
 
 ### Tech Stack
 - **Backend**: FastAPI, Motor (MongoDB), OAuth2, Pydantic
