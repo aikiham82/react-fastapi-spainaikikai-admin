@@ -1,1 +1,3 @@
-"""Domain layer tests."""
+"""Domain tests init."""
+
+# Initialize domain tests here

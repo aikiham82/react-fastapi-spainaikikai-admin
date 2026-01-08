@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthRequest, AuthResponse, RegisterRequest } from '../data/auth.schema';
+import type { AuthRequest, AuthResponse, RegisterRequest, CurrentUser, UserRole } from '../data/auth.schema';
 import { jwtDecode } from 'jwt-decode';
 import { useLoginMutation } from './mutations/useLogin.mutation';
 import { useLogoutMutation } from './mutations/useLogout.mutation';
 
 import { appStorage } from '@/core/data/appStorage';
 import { useRegisterMutation } from './mutations/useRegister.mutation';
+import { getCurrentUser } from '../data/auth.service';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -18,6 +20,9 @@ interface AuthContextType {
   login: (data: AuthRequest) => Promise<void>;
   logout: () => void;
   getJwt: () => string | null;
+  currentUser: CurrentUser | null;
+  userRole: UserRole;
+  clubId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,11 +30,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [auth, setAuth] = useState<AuthResponse | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(() => localStorage.getItem('user_email'));
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const { login: loginMutation, isLoading: isLoggingIn, error: loginError } = useLoginMutation();
   const { logout: logoutMutation, isLoading: isLoggingOut } = useLogoutMutation();
   const { registerMutation, isPending: isRegistering, error: registerError } = useRegisterMutation();
-  
 
+  const { data: currentUserData, refetch: refetchCurrentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (currentUserData) {
+      setCurrentUser(currentUserData);
+      localStorage.setItem('user_role', currentUserData.role || '');
+      if (currentUserData.club_id) {
+        localStorage.setItem('club_id', currentUserData.club_id);
+      } else {
+        localStorage.removeItem('club_id');
+      }
+    }
+  }, [currentUserData]);
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     const sessionExpiration = localStorage.getItem('session_expiration');
@@ -39,6 +62,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     return false;
   });
+
+  const userRole: UserRole = currentUser?.role || null;
+  const clubId: string | null = currentUser?.club_id || null;
 
   useEffect(() => {
     const err = registerError || loginError;
@@ -80,6 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           appStorage().local.setString('access_token', access_token);
           setUserEmail(sub || null);
           setIsAuthenticated(true);
+          refetchCurrentUser();
         },
       });
     } catch (error) {
@@ -103,6 +130,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           appStorage().local.setString('access_token', access_token);
           setUserEmail(sub || null);
           setIsAuthenticated(true);
+          refetchCurrentUser();
         },
       });
     } catch (error) {
@@ -112,21 +140,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     try {
-      // Clear state first
       setUserEmail(null);
       setIsAuthenticated(false);
       setAuth(null);
-      
-      // Clear all storage
+      setCurrentUser(null);
+
       const { local, session } = appStorage();
       local.clear();
       session.clear();
-      
-      // Also clear specific localStorage items that were set directly
+
       localStorage.removeItem('session_expiration');
       localStorage.removeItem('user_email');
-      
-      // Clear query cache
+      localStorage.removeItem('user_role');
+      localStorage.removeItem('club_id');
+
       await logoutMutation();
     } catch (error) {
       toast(error instanceof Error ? error.message : 'An error occurred during logout');
@@ -146,12 +173,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           auth,
           login,
           logout,
-          getJwt
+          getJwt,
+          currentUser,
+          userRole,
+          clubId
         }}
       >
         {children}
       </AuthContext.Provider>
-  );
+    );
 };
 
 export const useAuthContext = (): AuthContextType => {

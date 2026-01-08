@@ -20,7 +20,7 @@
       "description": "",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "shadcn@canary", "registry:mcp"],
+      "args": ["-y", "shadcn@canary", "mcp"],
       "env": {
         "REGISTRY_URL": "https://alpine-registry.vercel.app/r/registry.json"
       }
