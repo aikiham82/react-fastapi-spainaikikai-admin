@@ -1,19 +1,22 @@
 import { useState } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
-import { Users, Plus, Search, Edit, Trash2, Eye, Download } from 'lucide-react';
+import type { Member } from '../data/schemas/member.schema';
+import { Users, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import type { Member } from '../data/schemas/member.schema';
+import { MemberForm } from './MemberForm';
 
 export const MemberList = () => {
   const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
   const { canAccess, clubId } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -85,7 +88,7 @@ export const MemberList = () => {
 
         <div className="flex gap-2">
           {canAccess({ resource: 'members', action: 'create' }) && (
-            <Button onClick={() => selectMember(null)}>
+            <Button onClick={() => { setSelectedMemberForEdit(null); setIsFormOpen(true); }}>
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Miembro
             </Button>
@@ -135,7 +138,7 @@ export const MemberList = () => {
                     <div className="flex items-center justify-end gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => selectMember(member)}>
+                          <Button variant="ghost" size="icon" onClick={() => selectMember(member)} aria-label="Ver detalles del miembro">
                             <Eye className="w-4 h-4" />
                           </Button>
                         </DialogTrigger>
@@ -194,7 +197,12 @@ export const MemberList = () => {
                       </Dialog>
 
                       {canAccess({ resource: 'members', action: 'update' }) && (
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
+                          aria-label="Editar miembro"
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
                       )}
@@ -208,6 +216,7 @@ export const MemberList = () => {
                               deleteMember(member.id);
                             }
                           }}
+                          aria-label="Eliminar miembro"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>
@@ -249,6 +258,12 @@ export const MemberList = () => {
           </div>
         </div>
       )}
+
+      <MemberForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        member={selectedMemberForEdit}
+      />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
+import type { Club } from '../data/schemas/club.schema';
 import { Building2, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,11 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePermissions } from '@/core/hooks/usePermissions';
+import { ClubForm } from './ClubForm';
 
 export const ClubList = () => {
-  const { clubs, isLoading, error, filters, setFilters, createClub, deleteClub, selectClub } = useClubContext();
+  const { clubs, isLoading, error, filters, setFilters, deleteClub, selectClub } = useClubContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedClubForEdit, setSelectedClubForEdit] = useState<Club | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -44,7 +48,7 @@ export const ClubList = () => {
           {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay clubs registrados'}
         </p>
         {canAccess({ resource: 'clubs', action: 'create' }) && (
-          <Button onClick={() => createClub({ name: '', address: '', city: '', postal_code: '', phone: '', email: '' })}>
+          <Button onClick={() => { setSelectedClubForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Club
           </Button>
@@ -65,9 +69,8 @@ export const ClubList = () => {
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
-        </div>
         {canAccess({ resource: 'clubs', action: 'create' }) && (
-          <Button onClick={() => createClub({ name: '', address: '', city: '', postal_code: '', phone: '', email: '' })}>
+          <Button onClick={() => { setSelectedClubForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Club
           </Button>
@@ -87,12 +90,12 @@ export const ClubList = () => {
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => selectClub(club)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </DialogTrigger>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => selectClub(club)} aria-label="Ver detalles del club">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>{club.name}</DialogTitle>
@@ -131,7 +134,12 @@ export const ClubList = () => {
                   </Dialog>
 
                   {canAccess({ resource: 'clubs', action: 'update' }) && (
-                    <Button variant="ghost" size="icon">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => { setSelectedClubForEdit(club); setIsFormOpen(true); }}
+                      aria-label="Editar club"
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
                   )}
@@ -145,6 +153,7 @@ export const ClubList = () => {
                           deleteClub(club.id);
                         }
                       }}
+                      aria-label="Eliminar club"
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </Button>
@@ -161,6 +170,12 @@ export const ClubList = () => {
           </Card>
         ))}
       </div>
+
+      <ClubForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        club={selectedClubForEdit}
+      />
     </div>
   );
 };

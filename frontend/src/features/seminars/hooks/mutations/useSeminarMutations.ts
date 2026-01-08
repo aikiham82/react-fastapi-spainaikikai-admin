@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { seminarService } from '../../data/services/seminar.service';
+import type { UpdateSeminarRequest } from '../../data/schemas/seminar.schema';
 import { toast } from 'sonner';
 
 export const useCreateSeminarMutation = () => {
@@ -21,7 +22,7 @@ export const useUpdateSeminarMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateSeminarRequest }) =>
       seminarService.updateSeminar(id, data),
     onSuccess: () => {
       toast.success('Seminario actualizado exitosamente');

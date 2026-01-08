@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clubService } from '../../data/services/club.service';
+import type { UpdateClubRequest } from '../../data/schemas/club.schema';
 import { toast } from 'sonner';
 
 export const useCreateClubMutation = () => {
@@ -21,7 +22,7 @@ export const useUpdateClubMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateClubRequest }) =>
       clubService.updateClub(id, data),
     onSuccess: () => {
       toast.success('Club actualizado exitosamente');

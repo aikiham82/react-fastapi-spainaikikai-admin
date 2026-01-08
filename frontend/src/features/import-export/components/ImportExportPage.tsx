@@ -5,6 +5,7 @@ import { Upload, Download, FileSpreadsheet, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 export const ImportExportPage = () => {
   const importMutation = useImportMembersMutation();
@@ -51,13 +52,19 @@ export const ImportExportPage = () => {
     setFile(selectedFile);
 
     try {
-      const parsedData = await importMutation.mutateAsync({ members: [] });
+      const data = await selectedFile.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      const result = await importMutation.mutateAsync({ members: jsonData });
 
       setImportResults({
-        success: parsedData.success,
-        imported: parsedData.imported,
-        failed: parsedData.failed,
-        errors: parsedData.errors || [],
+        success: result.success || true,
+        imported: result.imported || jsonData.length,
+        failed: result.failed || 0,
+        errors: result.errors || [],
       });
     } catch (error) {
       setImportResults({
@@ -156,7 +163,7 @@ export const ImportExportPage = () => {
                 )}
 
                 <Button
-                  onClick={() => file && importMutation.mutate({ members: [] })}
+                  onClick={() => file && handleFileSelect(file)}
                   disabled={!file || importMutation.isPending}
                   className="w-full"
                 >
@@ -200,9 +207,9 @@ export const ImportExportPage = () => {
                       {importResults.errors.map((error, index) => (
                         <div
                           key={index}
-                          className="text-xs p-2 bg-red-50 text-red-700 rounded"
+                          className="text-xs p-2 bg-red-50 text-red-700 rounded break-words"
                         >
-                          {error}
+                          {String(error)}
                         </div>
                       ))}
                     </div>

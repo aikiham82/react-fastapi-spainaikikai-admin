@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.infrastructure.web.dto.payment_dto import (
     PaymentCreate,
@@ -70,7 +70,7 @@ async def initiate_payment(
 @router.post("/webhook")
 async def redsys_webhook(
     webhook_data: dict,
-    get_process_webhook_use_case = Depends(get_process_redsys_webhook_use_case)
+    get_process_redsys_webhook_use_case = Depends(get_process_redsys_webhook_use_case)
 ):
     """Handle Redsys webhook callback."""
     transaction_id = webhook_data.get("Ds_MerchantParameters", "")
@@ -83,7 +83,7 @@ async def redsys_webhook(
     else:
         status = "failed"
     
-    payment = await get_process_webhook_use_case.execute(transaction_id, status)
+    payment = await get_process_redsys_webhook_use_case.execute(transaction_id, status)
     return PaymentMapper.to_response_dto(payment)
 
 

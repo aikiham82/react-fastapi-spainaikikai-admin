@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { paymentService } from '../../data/services/payment.service';
+import type { UpdatePaymentStatusRequest } from '../../data/schemas/payment.schema';
 import { toast } from 'sonner';
 
 export const useCreatePaymentMutation = () => {
@@ -25,7 +26,7 @@ export const useUpdatePaymentStatusMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdatePaymentStatusRequest }) =>
       paymentService.updatePaymentStatus(id, data),
     onSuccess: () => {
       toast.success('Estado del pago actualizado exitosamente');

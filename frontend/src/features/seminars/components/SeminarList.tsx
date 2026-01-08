@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSeminarContext } from '../hooks/useSeminarContext';
+import type { Seminar } from '../data/schemas/seminar.schema';
 import { Calendar, Plus, Search, Edit, Trash2, Eye, Users, MapPin, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import type { Seminar } from '../data/schemas/seminar.schema';
+import { SeminarForm } from './SeminarForm';
 
 const STATUS_LABELS: Record<string, string> = {
   upcoming: 'Próximo',
@@ -21,6 +22,8 @@ export const SeminarList = () => {
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedSeminarForEdit, setSelectedSeminarForEdit] = useState<Seminar | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -98,7 +101,7 @@ export const SeminarList = () => {
         </Select>
 
         {canAccess({ resource: 'seminars', action: 'create' }) && (
-          <Button onClick={() => selectSeminar(null)}>
+          <Button onClick={() => { setSelectedSeminarForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Seminario
           </Button>
@@ -180,7 +183,7 @@ export const SeminarList = () => {
               <div className="flex gap-2">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="flex-1">
+                    <Button variant="outline" className="flex-1" aria-label="Ver detalles del seminario">
                       <Eye className="w-4 h-4 mr-2" />
                       Ver Detalles
                     </Button>
@@ -256,7 +259,11 @@ export const SeminarList = () => {
                 </Dialog>
 
                 {canAccess({ resource: 'seminars', action: 'update' }) && (
-                  <Button variant="outline">
+                  <Button
+                    variant="outline"
+                    onClick={() => { setSelectedSeminarForEdit(seminar); setIsFormOpen(true); }}
+                    aria-label="Editar seminario"
+                  >
                     <Edit className="w-4 h-4" />
                   </Button>
                 )}
@@ -269,6 +276,7 @@ export const SeminarList = () => {
                         deleteSeminar(seminar.id);
                       }
                     }}
+                    aria-label="Eliminar seminario"
                   >
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </Button>
@@ -307,6 +315,12 @@ export const SeminarList = () => {
           </div>
         </div>
       )}
+
+      <SeminarForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        seminar={selectedSeminarForEdit}
+      />
     </div>
   );
 };

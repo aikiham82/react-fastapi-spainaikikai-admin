@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import type { Payment } from '../data/schemas/payment.schema';
+import { PaymentForm } from './PaymentForm';
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
   license: 'Licencia',
@@ -29,6 +30,7 @@ export const PaymentList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -133,6 +135,13 @@ export const PaymentList = () => {
               <SelectItem value="refunded">Reembolsado</SelectItem>
             </SelectContent>
           </Select>
+
+          {canAccess({ resource: 'payments', action: 'create' }) && (
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Pago
+            </Button>
+          )}
         </div>
       </div>
 
@@ -235,6 +244,12 @@ export const PaymentList = () => {
           </div>
         </div>
       )}
+
+      <PaymentForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        memberOptions={payments.map(p => ({ id: p.member_id, name: p.member_name || '' }))}
+      />
     </div>
   );
 };

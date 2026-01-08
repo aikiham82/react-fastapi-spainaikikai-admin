@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
+import type { Insurance } from '../data/schemas/insurance.schema';
 import { Shield, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import type { Insurance } from '../data/schemas/insurance.schema';
+import { InsuranceForm } from './InsuranceForm';
 
 const INSURANCE_TYPE_LABELS: Record<string, string> = {
   accident: 'Seguro de Accidentes',
@@ -25,6 +26,8 @@ export const InsuranceList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [insuranceTypeFilter, setInsuranceTypeFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedInsuranceForEdit, setSelectedInsuranceForEdit] = useState<Insurance | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -116,6 +119,13 @@ export const InsuranceList = () => {
               <SelectItem value="expired">Expirada</SelectItem>
             </SelectContent>
           </Select>
+
+          {canAccess({ resource: 'insurance', action: 'create' }) && (
+            <Button onClick={() => { setSelectedInsuranceForEdit(null); setIsFormOpen(true); }}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo Seguro
+            </Button>
+          )}
         </div>
       </div>
 
@@ -173,7 +183,7 @@ export const InsuranceList = () => {
                     <div className="flex items-center justify-end gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => selectInsurance(insurance)}>
+                          <Button variant="ghost" size="icon" onClick={() => selectInsurance(insurance)} aria-label="Ver detalles de seguro">
                             <Eye className="w-4 h-4" />
                           </Button>
                         </DialogTrigger>
@@ -225,7 +235,12 @@ export const InsuranceList = () => {
                       </Dialog>
 
                       {canAccess({ resource: 'insurance', action: 'update' }) && (
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => { setSelectedInsuranceForEdit(insurance); setIsFormOpen(true); }}
+                          aria-label="Editar seguro"
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
                       )}
@@ -239,6 +254,7 @@ export const InsuranceList = () => {
                               deleteInsurance(insurance.id);
                             }
                           }}
+                          aria-label="Eliminar seguro"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>
@@ -280,6 +296,13 @@ export const InsuranceList = () => {
           </div>
         </div>
       )}
+
+      <InsuranceForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        insurance={selectedInsuranceForEdit}
+        memberOptions={insuranceList.map(i => ({ id: i.member_id, name: i.member_name || '' }))}
+      />
     </div>
   );
 };

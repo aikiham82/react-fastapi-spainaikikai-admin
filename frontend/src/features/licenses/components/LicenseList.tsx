@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLicenseContext } from '../hooks/useLicenseContext';
+import type { License } from '../data/schemas/license.schema';
 import { IdCard, Plus, Search, Edit, Trash2, Eye, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,13 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import type { License } from '../data/schemas/license.schema';
+import { LicenseForm } from './LicenseForm';
 
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedLicenseForEdit, setSelectedLicenseForEdit] = useState<License | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -91,7 +94,7 @@ export const LicenseList = () => {
         </Select>
 
         {canAccess({ resource: 'licenses', action: 'create' }) && (
-          <Button onClick={() => selectLicense(null)}>
+          <Button onClick={() => { setSelectedLicenseForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
             Nueva Licencia
           </Button>
@@ -153,7 +156,7 @@ export const LicenseList = () => {
                     <div className="flex items-center justify-end gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => selectLicense(license)}>
+                          <Button variant="ghost" size="icon" onClick={() => selectLicense(license)} aria-label="Ver detalles de licencia">
                             <Eye className="w-4 h-4" />
                           </Button>
                         </DialogTrigger>
@@ -202,7 +205,12 @@ export const LicenseList = () => {
                       </Dialog>
 
                       {canAccess({ resource: 'licenses', action: 'update' }) && (
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
+                          aria-label="Editar licencia"
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
                       )}
@@ -216,6 +224,7 @@ export const LicenseList = () => {
                               deleteLicense(license.id);
                             }
                           }}
+                          aria-label="Eliminar licencia"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>
@@ -257,6 +266,12 @@ export const LicenseList = () => {
           </div>
         </div>
       )}
+
+      <LicenseForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        license={selectedLicenseForEdit}
+      />
     </div>
   );
 };

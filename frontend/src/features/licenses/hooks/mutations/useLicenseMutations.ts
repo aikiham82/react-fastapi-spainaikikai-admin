@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { licenseService } from '../../data/services/license.service';
+import type { UpdateLicenseRequest } from '../../data/schemas/license.schema';
 import { toast } from 'sonner';
 
 export const useCreateLicenseMutation = () => {
@@ -22,7 +23,7 @@ export const useUpdateLicenseMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateLicenseRequest }) =>
       licenseService.updateLicense(id, data),
     onSuccess: () => {
       toast.success('Licencia actualizada exitosamente');

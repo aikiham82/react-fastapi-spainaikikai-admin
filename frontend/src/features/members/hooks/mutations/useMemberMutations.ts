@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { memberService } from '../../data/services/member.service';
+import type { UpdateMemberRequest } from '../../data/schemas/member.schema';
 import { toast } from 'sonner';
 
 export const useCreateMemberMutation = () => {
@@ -21,7 +22,7 @@ export const useUpdateMemberMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateMemberRequest }) =>
       memberService.updateMember(id, data),
     onSuccess: () => {
       toast.success('Miembro actualizado exitosamente');
