@@ -31,7 +31,7 @@ class TestSeminarEntity:
             end_date=end_date,
             price=50.0,
             max_participants=50,
-            current_participants=25
+            current_participants=25,
             club_id="club-id",
             association_id="association-id"
         )
@@ -336,7 +336,7 @@ class TestSeminarEntity:
             end_date=datetime.now() + timedelta(days=2),
             price=50.0,
             max_participants=50,
-            current_participants=25
+            current_participants=25,
             club_id="club-id",
             association_id="association-id"
         )
@@ -566,7 +566,7 @@ class TestSeminarEntity:
             title="Test Seminar",
             description="Test description",
             instructor_name="Sensei Smith",
-            venue="Sports "Center",
+            venue='Sports "Center"',
             address="123 Street",
             city="Madrid",
             province="Madrid",

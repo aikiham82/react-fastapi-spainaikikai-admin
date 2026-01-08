@@ -1,5 +1,6 @@
 """Create Club use case."""
 
+from typing import Optional
 from src.domain.entities.club import Club
 from src.domain.exceptions.club import ClubAlreadyExistsError
 from src.application.ports.club_repository import ClubRepositoryPort

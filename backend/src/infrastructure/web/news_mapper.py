@@ -1,7 +1,7 @@
 """Mapper for converting between News DTOs and domain entities."""
 
 from src.domain.entities.news_item import NewsItem, NewsCategory, NewsStatus
-from src.infrastructure.web.dtos.news_dto import (
+from src.infrastructure.web.dto.news_dto import (
     NewsResponseDTO,
     NewsStatusDTO,
     NewsCategoryDTO

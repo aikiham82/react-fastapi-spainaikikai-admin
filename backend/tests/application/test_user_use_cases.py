@@ -1,3 +1,5 @@
+from typing import Optional
+
 """Tests for User use cases."""
 
 import pytest

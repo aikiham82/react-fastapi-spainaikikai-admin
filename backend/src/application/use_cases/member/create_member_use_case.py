@@ -31,8 +31,8 @@ class CreateMemberUseCase:
         city: str,
         province: str,
         postal_code: str,
-        country: str = "Spain",
         federation_number: str,
+        country: str = "Spain",
         club_id: Optional[str] = None,
         birth_date: Optional[datetime] = None
     ) -> Member:

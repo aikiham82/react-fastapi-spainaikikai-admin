@@ -16,7 +16,7 @@ class TestMemberEntity:
     """Test cases for Member domain entity."""
 
     @pytest.fixture
-    def member_fixture():
+    def member_fixture(self):
         """Member fixture."""
         from datetime import datetime
         return Member(

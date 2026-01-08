@@ -19,9 +19,9 @@ class CreateLicenseUseCase:
         license_number: str,
         member_id: str,
         club_id: str,
+        grade: str,
         association_id: Optional[str] = None,
         license_type: str = "kyu",
-        grade: str,
         issue_date: Optional[datetime] = None,
         expiration_date: Optional[datetime] = None
     ) -> License:

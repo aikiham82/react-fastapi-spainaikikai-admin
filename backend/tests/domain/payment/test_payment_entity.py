@@ -291,11 +291,11 @@ class TestPaymentEntity:
             club_id="club-id",
             payment_type=PaymentType.ANNUAL_QUOTA,
             amount=100.0,
-            status=PaymentStatus.COMPLETED
+            status=PaymentStatus.COMPLETED,
             payment_date=datetime.utcnow(),
             transaction_id="TXN-12345",
             redsys_response="Success",
-            refund_amount=150.0,
+            refund_amount=None,
             refund_date=None
         )
         
@@ -313,7 +313,7 @@ class TestPaymentEntity:
             status=PaymentStatus.COMPLETED,
             payment_date=datetime.utcnow(),
             transaction_id="TXN-12345",
-            redsys_response="Success"
+            redsys_response="Success",
             refund_amount=None,
             refund_date=None
         )
@@ -375,7 +375,7 @@ class TestPaymentEntity:
             status=PaymentStatus.COMPLETED,
             payment_date=datetime.utcnow(),
             transaction_id="TXN-12345",
-            redsys_response="Success"
+            redsys_response="Success",
             refund_amount=None,
             refund_date=None
         )

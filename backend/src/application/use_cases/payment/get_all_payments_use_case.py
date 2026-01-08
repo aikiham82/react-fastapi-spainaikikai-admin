@@ -1,4 +1,6 @@
 """Get All Payments use case."""
+from typing import Optional
+
 
 from typing import List, Optional
 

@@ -1,4 +1,6 @@
 """Get public news use case."""
+from typing import Optional
+
 
 from datetime import datetime
 from typing import List, Optional

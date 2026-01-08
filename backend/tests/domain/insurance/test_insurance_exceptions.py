@@ -5,7 +5,7 @@ import pytest
 from src.domain.exceptions.insurance import (
     InsuranceNotFoundError,
     InvalidInsuranceDataError,
-    InsuranceAlreadyExistsError
+    InsuranceAlreadyExistsError,
     ExpiredInsuranceError,
     InvalidInsuranceDatesError,
     InsuranceNotActiveError

@@ -18,11 +18,11 @@ class CreateInsuranceUseCase:
         self,
         member_id: Optional[str],
         club_id: Optional[str],
-        insurance_type: str = "accident",
         policy_number: str,
         insurance_company: str,
         start_date: str,
         end_date: str,
+        insurance_type: str = "accident",
         coverage_amount: Optional[float] = None,
         payment_id: Optional[str] = None
     ) -> Insurance:

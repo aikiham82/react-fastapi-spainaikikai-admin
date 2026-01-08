@@ -18,7 +18,7 @@ from src.domain.exceptions.news_exceptions import (
     UnauthorizedNewsAccessException,
 )
 from src.infrastructure.web.dependencies import get_current_active_user
-from src.infrastructure.web.dtos.news_dto import (
+from src.infrastructure.web.dto.news_dto import (
     CreateNewsRequestDTO,
     NewsCategoryDTO,
     NewsListResponseDTO,

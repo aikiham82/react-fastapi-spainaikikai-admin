@@ -1,4 +1,6 @@
 """Get All Licenses use case."""
+from typing import Optional
+
 
 from typing import List, Optional
 

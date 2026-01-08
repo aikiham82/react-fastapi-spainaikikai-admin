@@ -1,7 +1,7 @@
 """Data Transfer Objects."""
 
 from .user_dto import UserCreate, UserResponse, Token
-from .news_dto import NewsItemCreate, NewsItemUpdate, NewsItemResponse
+from .news_dto import CreateNewsRequestDTO, UpdateNewsStatusRequestDTO, NewsResponseDTO
 from .association_dto import AssociationCreate, AssociationUpdate, AssociationResponse
 from .club_dto import ClubCreate, ClubUpdate, ClubResponse
 from .member_dto import MemberCreate, MemberUpdate, MemberResponse

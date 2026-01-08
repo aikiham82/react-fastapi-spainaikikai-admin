@@ -1,4 +1,6 @@
 """Create Seminar use case."""
+from typing import Optional
+
 
 from src.domain.entities.seminar import Seminar, SeminarStatus
 from src.application.ports.seminar_repository import SeminarRepositoryPort
