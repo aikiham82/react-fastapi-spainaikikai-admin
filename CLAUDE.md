@@ -185,7 +185,6 @@ You have access to 8 subagents:
 - shadcn-ui-architect: all task related to UI building & tweaking HAVE TO consult this agent
 - qa-criteria-validator: all final client UI/UX implementations has to be validated by this subagent to provide feedback an iterate.
 - ui-ux-analyzer: all the task related with UI review, improvements & tweaking HAVE TO consult this agent
-- pydantic-ai-architect: all task related to ai agents using pydantic-ai framework & tweaking HAVE TO consult this agent
 - frontend-developer: all task related to business logic in the client side before create the UI building & tweaking HAVE TO consult this agent
 - frontend-test-engineer: all task related to business logic in the client side after implementation has to consult this agent to get the necesary test cases definitions
 - backend-developer: all task related to business logic in the backend side HAVE TO consult this agent
