@@ -35,12 +35,15 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
   const [formData, setFormData] = useState<CreateMemberRequest>({
     first_name: '',
     last_name: '',
+    dni: '',
     email: '',
     phone: '',
-    date_of_birth: '',
+    birth_date: '',
     address: '',
     city: '',
+    province: '',
     postal_code: '',
+    country: 'España',
     club_id: '',
   });
 
@@ -51,24 +54,30 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
       setFormData({
         first_name: member.first_name || '',
         last_name: member.last_name || '',
+        dni: member.dni || '',
         email: member.email || '',
         phone: member.phone || '',
-        date_of_birth: member.date_of_birth || '',
+        birth_date: member.birth_date || '',
         address: member.address || '',
         city: member.city || '',
+        province: member.province || '',
         postal_code: member.postal_code || '',
+        country: member.country || 'España',
         club_id: member.club_id || '',
       });
     } else {
       setFormData({
         first_name: '',
         last_name: '',
+        dni: '',
         email: '',
         phone: '',
-        date_of_birth: '',
+        birth_date: '',
         address: '',
         city: '',
+        province: '',
         postal_code: '',
+        country: 'España',
         club_id: clubs.length > 0 ? clubs[0].id : '',
       });
     }
@@ -84,6 +93,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     if (!formData.last_name.trim()) {
       newErrors.last_name = 'Los apellidos son obligatorios';
     }
+    if (!formData.dni.trim()) {
+      newErrors.dni = 'El DNI es obligatorio';
+    }
     if (!formData.email.trim()) {
       newErrors.email = 'El email es obligatorio';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -92,14 +104,14 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     if (!formData.phone.trim()) {
       newErrors.phone = 'El teléfono es obligatorio';
     }
-    if (!formData.date_of_birth) {
-      newErrors.date_of_birth = 'La fecha de nacimiento es obligatoria';
+    if (!formData.birth_date) {
+      newErrors.birth_date = 'La fecha de nacimiento es obligatoria';
     } else {
-      const birthDate = new Date(formData.date_of_birth);
+      const birthDate = new Date(formData.birth_date);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       if (age < 0 || age > 120) {
-        newErrors.date_of_birth = 'Fecha de nacimiento inválida';
+        newErrors.birth_date = 'Fecha de nacimiento inválida';
       }
     }
     if (!formData.address.trim()) {
@@ -108,8 +120,14 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     if (!formData.city.trim()) {
       newErrors.city = 'La ciudad es obligatoria';
     }
+    if (!formData.province.trim()) {
+      newErrors.province = 'La provincia es obligatoria';
+    }
     if (!formData.postal_code.trim()) {
       newErrors.postal_code = 'El código postal es obligatorio';
+    }
+    if (!formData.country.trim()) {
+      newErrors.country = 'El país es obligatorio';
     }
     if (!formData.club_id) {
       newErrors.club_id = 'Debes seleccionar un club';
@@ -208,35 +226,49 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date_of_birth">Fecha de Nacimiento *</Label>
+            <Label htmlFor="dni">DNI/NIE *</Label>
             <Input
-              id="date_of_birth"
-              type="date"
-              value={formData.date_of_birth}
-              onChange={(e) => handleChange('date_of_birth', e.target.value)}
-              className={errors.date_of_birth ? 'border-red-500' : ''}
+              id="dni"
+              value={formData.dni}
+              onChange={(e) => handleChange('dni', e.target.value)}
+              placeholder="12345678X"
+              className={errors.dni ? 'border-red-500' : ''}
             />
-            {errors.date_of_birth && <p className="text-sm text-red-500">{errors.date_of_birth}</p>}
+            {errors.dni && <p className="text-sm text-red-500">{errors.dni}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="club_id">Club *</Label>
-            <Select
-              value={formData.club_id}
-              onValueChange={(value) => handleChange('club_id', value)}
-            >
-              <SelectTrigger className={errors.club_id ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Selecciona un club" />
-              </SelectTrigger>
-              <SelectContent>
-                {clubs.map((club) => (
-                  <SelectItem key={club.id} value={club.id}>
-                    {club.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.club_id && <p className="text-sm text-red-500">{errors.club_id}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="birth_date">Fecha de Nacimiento *</Label>
+              <Input
+                id="birth_date"
+                type="date"
+                value={formData.birth_date}
+                onChange={(e) => handleChange('birth_date', e.target.value)}
+                className={errors.birth_date ? 'border-red-500' : ''}
+              />
+              {errors.birth_date && <p className="text-sm text-red-500">{errors.birth_date}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="club_id">Club *</Label>
+              <Select
+                value={formData.club_id}
+                onValueChange={(value) => handleChange('club_id', value)}
+              >
+                <SelectTrigger className={errors.club_id ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Selecciona un club" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clubs.map((club) => (
+                    <SelectItem key={club.id} value={club.id}>
+                      {club.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.club_id && <p className="text-sm text-red-500">{errors.club_id}</p>}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -258,22 +290,48 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleChange('city', e.target.value)}
-                placeholder="Madrid"
+                placeholder="Murcia"
                 className={errors.city ? 'border-red-500' : ''}
               />
               {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="province">Provincia *</Label>
+              <Input
+                id="province"
+                value={formData.province}
+                onChange={(e) => handleChange('province', e.target.value)}
+                placeholder="Murcia"
+                className={errors.province ? 'border-red-500' : ''}
+              />
+              {errors.province && <p className="text-sm text-red-500">{errors.province}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="postal_code">Código Postal *</Label>
               <Input
                 id="postal_code"
                 value={formData.postal_code}
                 onChange={(e) => handleChange('postal_code', e.target.value)}
-                placeholder="28001"
+                placeholder="30011"
                 className={errors.postal_code ? 'border-red-500' : ''}
               />
               {errors.postal_code && <p className="text-sm text-red-500">{errors.postal_code}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="country">País *</Label>
+              <Input
+                id="country"
+                value={formData.country}
+                onChange={(e) => handleChange('country', e.target.value)}
+                placeholder="España"
+                className={errors.country ? 'border-red-500' : ''}
+              />
+              {errors.country && <p className="text-sm text-red-500">{errors.country}</p>}
             </div>
           </div>
 

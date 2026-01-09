@@ -31,15 +31,15 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
   const deleteMutation = useDeleteInsuranceMutation();
 
   const handleCreateInsurance = useCallback((data: CreateInsuranceRequest) => {
-    createMutation(data);
+    createMutation.mutate(data);
   }, [createMutation]);
 
   const handleUpdateInsurance = useCallback((id: string, data: UpdateInsuranceRequest) => {
-    updateMutation({ id, data });
+    updateMutation.mutate({ id, data });
   }, [updateMutation]);
 
   const handleDeleteInsurance = useCallback((id: string) => {
-    deleteMutation(id);
+    deleteMutation.mutate(id);
   }, [deleteMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {

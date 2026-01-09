@@ -27,7 +27,6 @@ class MemberMapper:
             postal_code=dto.postal_code,
             country=dto.country,
             birth_date=dto.birth_date,
-            federation_number=dto.federation_number,
             club_id=dto.club_id,
             status=MemberStatus.ACTIVE,
             registration_date=datetime.utcnow()
@@ -49,7 +48,6 @@ class MemberMapper:
             postal_code=entity.postal_code,
             country=entity.country,
             birth_date=entity.birth_date,
-            federation_number=entity.federation_number,
             club_id=entity.club_id,
             status=entity.status.value,
             registration_date=entity.registration_date,
@@ -80,8 +78,6 @@ class MemberMapper:
             entity.country = dto.country
         if dto.birth_date is not None:
             entity.birth_date = dto.birth_date
-        if dto.federation_number is not None:
-            entity.federation_number = dto.federation_number
         if dto.club_id is not None:
             entity.club_id = dto.club_id
         if dto.status is not None:

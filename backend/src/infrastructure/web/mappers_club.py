@@ -23,7 +23,6 @@ class ClubMapper:
             country=dto.country,
             phone=dto.phone,
             email=dto.email,
-            federation_number=dto.federation_number,
             association_id=dto.association_id,
             is_active=True
         )
@@ -41,7 +40,6 @@ class ClubMapper:
             country=entity.country,
             phone=entity.phone,
             email=entity.email,
-            federation_number=entity.federation_number,
             association_id=entity.association_id,
             is_active=entity.is_active,
             created_at=entity.created_at,
@@ -67,8 +65,6 @@ class ClubMapper:
             entity.phone = dto.phone
         if dto.email is not None:
             entity.email = dto.email
-        if dto.federation_number is not None:
-            entity.federation_number = dto.federation_number
         if dto.association_id is not None:
             entity.association_id = dto.association_id
         if dto.is_active is not None:

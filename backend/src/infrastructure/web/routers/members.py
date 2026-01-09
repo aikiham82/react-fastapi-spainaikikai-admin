@@ -89,7 +89,6 @@ async def create_member(
         province=member_data.province,
         postal_code=member_data.postal_code,
         country=member_data.country,
-        federation_number=member_data.federation_number,
         club_id=member_data.club_id,
         birth_date=member_data.birth_date
     )

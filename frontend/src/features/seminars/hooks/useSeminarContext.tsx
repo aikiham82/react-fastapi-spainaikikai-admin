@@ -33,19 +33,19 @@ export const SeminarProvider: React.FC<{ children: ReactNode }> = ({ children })
   const registerMutation = useRegisterMemberMutation();
 
   const handleCreateSeminar = useCallback((data: CreateSeminarRequest) => {
-    createMutation(data);
+    createMutation.mutate(data);
   }, [createMutation]);
 
   const handleUpdateSeminar = useCallback((id: string, data: UpdateSeminarRequest) => {
-    updateMutation({ id, data });
+    updateMutation.mutate({ id, data });
   }, [updateMutation]);
 
   const handleDeleteSeminar = useCallback((id: string) => {
-    deleteMutation(id);
+    deleteMutation.mutate(id);
   }, [deleteMutation]);
 
   const handleRegisterMember = useCallback((data: RegisterMemberRequest) => {
-    registerMutation(data);
+    registerMutation.mutate(data);
   }, [registerMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {

@@ -27,7 +27,6 @@ class Member:
     postal_code: str = ""
     country: str = "Spain"
     birth_date: Optional[datetime] = None
-    federation_number: str = ""
     club_id: Optional[str] = None
     status: MemberStatus = MemberStatus.ACTIVE
     registration_date: Optional[datetime] = None

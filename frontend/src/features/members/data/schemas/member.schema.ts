@@ -2,12 +2,15 @@ export interface Member {
   id: string;
   first_name: string;
   last_name: string;
+  dni: string;
   email: string;
   phone: string;
-  date_of_birth: string;
+  birth_date: string;
   address: string;
   city: string;
+  province: string;
   postal_code: string;
+  country: string;
   license_number?: string;
   license_status: 'active' | 'expired' | 'pending';
   club_id: string;
@@ -19,16 +22,19 @@ export interface Member {
 export interface CreateMemberRequest {
   first_name: string;
   last_name: string;
+  dni: string;
   email: string;
   phone: string;
-  date_of_birth: string;
+  birth_date: string;
   address: string;
   city: string;
+  province: string;
   postal_code: string;
+  country: string;
   club_id: string;
 }
 
-export interface UpdateMemberRequest extends Partial<CreateMemberRequest> {}
+export interface UpdateMemberRequest extends Partial<CreateMemberRequest> { }
 
 export interface MemberFilters {
   search?: string;

@@ -31,15 +31,15 @@ export const LicenseProvider: React.FC<{ children: ReactNode }> = ({ children })
   const deleteMutation = useDeleteLicenseMutation();
 
   const handleCreateLicense = useCallback((data: CreateLicenseRequest) => {
-    createMutation(data);
+    createMutation.mutate(data);
   }, [createMutation]);
 
   const handleUpdateLicense = useCallback((id: string, data: UpdateLicenseRequest) => {
-    updateMutation({ id, data });
+    updateMutation.mutate({ id, data });
   }, [updateMutation]);
 
   const handleDeleteLicense = useCallback((id: string) => {
-    deleteMutation(id);
+    deleteMutation.mutate(id);
   }, [deleteMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {

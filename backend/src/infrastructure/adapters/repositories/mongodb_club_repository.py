@@ -29,7 +29,6 @@ class MongoDBClubRepository(ClubRepositoryPort):
             country=doc.get("country", ""),
             phone=doc.get("phone", ""),
             email=doc.get("email", ""),
-            federation_number=doc.get("federation_number", ""),
             association_id=doc.get("association_id"),
             is_active=doc.get("is_active", True),
             created_at=doc.get("created_at"),
@@ -46,7 +45,6 @@ class MongoDBClubRepository(ClubRepositoryPort):
             "country": club.country,
             "phone": club.phone,
             "email": club.email,
-            "federation_number": club.federation_number,
             "association_id": club.association_id,
             "is_active": club.is_active,
             "updated_at": datetime.utcnow()
@@ -75,10 +73,6 @@ class MongoDBClubRepository(ClubRepositoryPort):
         cursor = self.collection.find({"association_id": association_id}).limit(limit)
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
-
-    async def find_by_federation_number(self, federation_number: str) -> Optional[Club]:
-        doc = await self.collection.find_one({"federation_number": federation_number})
-        return self._to_domain(doc) if doc else None
 
     async def find_active(self, association_id: Optional[str] = None, limit: int = 100) -> List[Club]:
         query = {"is_active": True}

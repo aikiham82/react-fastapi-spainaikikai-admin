@@ -17,7 +17,6 @@ class MemberBase(BaseModel):
     province: str
     postal_code: str
     country: str = "Spain"
-    federation_number: str
     club_id: Optional[str] = None
 
 
@@ -38,7 +37,6 @@ class MemberUpdate(BaseModel):
     postal_code: Optional[str] = None
     country: Optional[str] = None
     birth_date: Optional[datetime] = None
-    federation_number: Optional[str] = None
     club_id: Optional[str] = None
     status: Optional[str] = None
 

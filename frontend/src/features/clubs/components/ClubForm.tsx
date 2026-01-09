@@ -27,7 +27,9 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
     name: '',
     address: '',
     city: '',
+    province: '',
     postal_code: '',
+    country: 'España',
     phone: '',
     email: '',
     website: '',
@@ -41,7 +43,9 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
         name: club.name || '',
         address: club.address || '',
         city: club.city || '',
+        province: club.province || '',
         postal_code: club.postal_code || '',
+        country: club.country || 'España',
         phone: club.phone || '',
         email: club.email || '',
         website: club.website || '',
@@ -51,7 +55,9 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
         name: '',
         address: '',
         city: '',
+        province: '',
         postal_code: '',
+        country: 'España',
         phone: '',
         email: '',
         website: '',
@@ -72,8 +78,14 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
     if (!formData.city.trim()) {
       newErrors.city = 'La ciudad es obligatoria';
     }
+    if (!formData.province.trim()) {
+      newErrors.province = 'La provincia es obligatoria';
+    }
     if (!formData.postal_code.trim()) {
       newErrors.postal_code = 'El código postal es obligatorio';
+    }
+    if (!formData.country.trim()) {
+      newErrors.country = 'El país es obligatorio';
     }
     if (!formData.phone.trim()) {
       newErrors.phone = 'El teléfono es obligatorio';
@@ -160,6 +172,20 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="province">Provincia *</Label>
+              <Input
+                id="province"
+                value={formData.province}
+                onChange={(e) => handleChange('province', e.target.value)}
+                placeholder="Provincia"
+                className={errors.province ? 'border-red-500' : ''}
+              />
+              {errors.province && <p className="text-sm text-red-500">{errors.province}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="postal_code">Código Postal *</Label>
               <Input
                 id="postal_code"
@@ -169,6 +195,18 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
                 className={errors.postal_code ? 'border-red-500' : ''}
               />
               {errors.postal_code && <p className="text-sm text-red-500">{errors.postal_code}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="country">País *</Label>
+              <Input
+                id="country"
+                value={formData.country}
+                onChange={(e) => handleChange('country', e.target.value)}
+                placeholder="España"
+                className={errors.country ? 'border-red-500' : ''}
+              />
+              {errors.country && <p className="text-sm text-red-500">{errors.country}</p>}
             </div>
           </div>
 

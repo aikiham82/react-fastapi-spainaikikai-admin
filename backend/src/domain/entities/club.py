@@ -15,7 +15,6 @@ class Club:
     country: str = ""
     phone: str = ""
     email: str = ""
-    federation_number: str = ""
     association_id: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
@@ -31,8 +30,6 @@ class Club:
             raise ValueError("Club email cannot be empty")
         if "@" not in self.email:
             raise ValueError("Invalid email format")
-        if not self.federation_number or not self.federation_number.strip():
-            raise ValueError("Federation number cannot be empty")
 
     def deactivate(self) -> None:
         """Deactivate club."""

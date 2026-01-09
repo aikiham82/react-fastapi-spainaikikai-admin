@@ -31,7 +31,6 @@ class CreateMemberUseCase:
         city: str,
         province: str,
         postal_code: str,
-        federation_number: str,
         country: str = "Spain",
         club_id: Optional[str] = None,
         birth_date: Optional[datetime] = None
@@ -63,7 +62,6 @@ class CreateMemberUseCase:
             postal_code=postal_code,
             country=country,
             birth_date=birth_date,
-            federation_number=federation_number,
             club_id=club_id,
             status=MemberStatus.ACTIVE,
             registration_date=datetime.utcnow()

@@ -31,15 +31,15 @@ export const PaymentProvider: React.FC<{ children: ReactNode }> = ({ children })
   const deleteMutation = useDeletePaymentMutation();
 
   const handleCreatePayment = useCallback((data: CreatePaymentRequest) => {
-    createPaymentMutation(data);
+    createPaymentMutation.mutate(data);
   }, [createPaymentMutation]);
 
   const handleUpdatePaymentStatus = useCallback((id: string, data: UpdatePaymentStatusRequest) => {
-    updateStatusMutation({ id, data });
+    updateStatusMutation.mutate({ id, data });
   }, [updateStatusMutation]);
 
   const handleDeletePayment = useCallback((id: string) => {
-    deleteMutation(id);
+    deleteMutation.mutate(id);
   }, [deleteMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {

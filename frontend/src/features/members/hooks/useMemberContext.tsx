@@ -31,15 +31,15 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const deleteMutation = useDeleteMemberMutation();
 
   const handleCreateMember = useCallback((data: CreateMemberRequest) => {
-    createMutation(data);
+    createMutation.mutate(data);
   }, [createMutation]);
 
   const handleUpdateMember = useCallback((id: string, data: UpdateMemberRequest) => {
-    updateMutation({ id, data });
+    updateMutation.mutate({ id, data });
   }, [updateMutation]);
 
   const handleDeleteMember = useCallback((id: string) => {
-    deleteMutation(id);
+    deleteMutation.mutate(id);
   }, [deleteMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {

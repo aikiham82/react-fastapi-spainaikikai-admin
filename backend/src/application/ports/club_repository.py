@@ -25,11 +25,6 @@ class ClubRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_federation_number(self, federation_number: str) -> Optional[Club]:
-        """Find a club by federation number."""
-        pass
-
-    @abstractmethod
     async def find_active(self, association_id: Optional[str] = None, limit: int = 100) -> List[Club]:
         """Find all active clubs optionally filtered by association."""
         pass
