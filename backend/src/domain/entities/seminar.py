@@ -52,7 +52,9 @@ class Seminar:
             raise ValueError("Start date must be before end date")
 
     def cancel(self) -> None:
-        """Cancel the seminar."""
+        """Cancel seminar."""
+        if self.status == SeminarStatus.COMPLETED:
+            raise ValueError("Cannot cancel a completed seminar")
         self.status = SeminarStatus.CANCELLED
 
     def mark_as_ongoing(self) -> None:
@@ -63,7 +65,7 @@ class Seminar:
 
     def mark_as_completed(self) -> None:
         """Mark seminar as completed."""
-        if self.status != SeminarStatus.ONGOING:
+        if self.status not in [SeminarStatus.UPCOMING, SeminarStatus.ONGOING]:
             raise ValueError(f"Cannot mark {self.status.value} seminar as completed")
         self.status = SeminarStatus.COMPLETED
 
