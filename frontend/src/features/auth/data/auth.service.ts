@@ -37,3 +37,5 @@ export const authService = {
   updateUser,
   getCurrentUser
 };
+
+export { getCurrentUser };

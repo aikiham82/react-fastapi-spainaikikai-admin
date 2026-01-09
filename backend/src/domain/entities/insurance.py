@@ -37,6 +37,8 @@ class Insurance:
     updated_at: Optional[datetime] = None
 
     def __post_init__(self):
+        self.created_at = self.created_at or datetime.now()
+        self.updated_at = self.updated_at or datetime.now()
         """Validate insurance entity."""
         if not self.policy_number or not self.policy_number.strip():
             raise ValueError("Policy number cannot be empty")

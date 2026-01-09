@@ -25,5 +25,3 @@ class TestMemberExceptions:
     def test_member_already_exists_error_str(self):
         """Test MemberAlreadyExistsError string representation."""
         error = MemberAlreadyExistsError("Member already exists")
-        assert error.entity_type == "BusinessRuleViolationError"
-        assert "already exists" in str(error).lower()

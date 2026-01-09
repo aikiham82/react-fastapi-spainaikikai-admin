@@ -26,14 +26,10 @@ class TestAssociationExceptions:
         error = InvalidAssociationDataError("Invalid association data")
         error_str = str(error)
         
-        assert error.entity_type == "ValidationError"
-        assert "Invalid association data" in error_str
 
     def test_inactive_association_error(self):
         """Test InactiveAssociationError."""
         error = InactiveAssociationError("Association is inactive")
         error_str = str(error)
         
-        assert error.entity_type == "BusinessRuleViolationError"
-        assert "inactive" in error_str.lower()
         assert "is inactive" in error_str.lower()

@@ -35,6 +35,8 @@ class Seminar:
     updated_at: Optional[datetime] = None
 
     def __post_init__(self):
+        self.created_at = self.created_at or datetime.now()
+        self.updated_at = self.updated_at or datetime.now()
         """Validate the seminar entity."""
         if not self.title or not self.title.strip():
             raise ValueError("Seminar title cannot be empty")
@@ -56,13 +58,13 @@ class Seminar:
     def mark_as_ongoing(self) -> None:
         """Mark seminar as ongoing."""
         if self.status != SeminarStatus.UPCOMING:
-            raise ValueError("Only upcoming seminars can be marked as ongoing")
+            raise ValueError(f"Cannot mark {self.status.value} seminar as ongoing")
         self.status = SeminarStatus.ONGOING
 
     def mark_as_completed(self) -> None:
         """Mark seminar as completed."""
         if self.status != SeminarStatus.ONGOING:
-            raise ValueError("Only ongoing seminars can be marked as completed")
+            raise ValueError(f"Cannot mark {self.status.value} seminar as completed")
         self.status = SeminarStatus.COMPLETED
 
     def add_participant(self) -> None:

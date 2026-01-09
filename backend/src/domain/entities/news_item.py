@@ -39,6 +39,8 @@ class NewsItem:
     updated_at: Optional[datetime] = datetime.utcnow()
 
     def __post_init__(self):
+        self.created_at = self.created_at or datetime.now()
+        self.updated_at = self.updated_at or datetime.now()
         """Validate the news item entity."""
         if not self.source or not self.source.strip():
             raise ValueError("News source cannot be empty")

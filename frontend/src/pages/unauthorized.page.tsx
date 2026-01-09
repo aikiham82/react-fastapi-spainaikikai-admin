@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-export const UnauthorizedPage = () => {
+export default function UnauthorizedPage() {
   const navigate = useNavigate();
 
   return (
@@ -46,4 +46,4 @@ export const UnauthorizedPage = () => {
       </div>
     </div>
   );
-};
+}

@@ -21,6 +21,8 @@ class Association:
     updated_at: Optional[datetime] = None
 
     def __post_init__(self):
+        self.created_at = self.created_at or datetime.now()
+        self.updated_at = self.updated_at or datetime.now()
         """Validate the association entity."""
         if not self.name or not self.name.strip():
             raise ValueError("Association name cannot be empty")

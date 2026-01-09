@@ -38,6 +38,8 @@ class License:
     updated_at: Optional[datetime] = None
 
     def __post_init__(self):
+        self.created_at = self.created_at or datetime.now()
+        self.updated_at = self.updated_at or datetime.now()
         """Validate the license entity."""
         if not self.license_number or not self.license_number.strip():
             raise ValueError("License number cannot be empty")

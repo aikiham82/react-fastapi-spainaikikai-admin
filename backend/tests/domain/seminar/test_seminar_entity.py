@@ -632,5 +632,5 @@ class TestSeminarEntity:
             association_id="association-id"
         )
         
-        with pytest.raises(ValueError, match="Cannot mark ongoing a completed seminar"):
+        with pytest.raises(ValueError, match="Cannot mark completed seminar as ongoing"):
             seminar.mark_as_ongoing()
