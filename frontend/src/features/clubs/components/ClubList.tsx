@@ -69,6 +69,7 @@ export const ClubList = () => {
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
+        </div>
         {canAccess({ resource: 'clubs', action: 'create' }) && (
           <Button onClick={() => { setSelectedClubForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />

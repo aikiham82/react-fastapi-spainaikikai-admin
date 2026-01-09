@@ -31,6 +31,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [auth, setAuth] = useState<AuthResponse | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(() => localStorage.getItem('user_email'));
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const sessionExpiration = localStorage.getItem('session_expiration');
+    if (sessionExpiration) {
+      const expirationDate = new Date(sessionExpiration);
+      return expirationDate > new Date();
+    }
+    return false;
+  });
+
   const { login: loginMutation, isLoading: isLoggingIn, error: loginError } = useLoginMutation();
   const { logout: logoutMutation, isLoading: isLoggingOut } = useLogoutMutation();
   const { registerMutation, isPending: isRegistering, error: registerError } = useRegisterMutation();
@@ -53,15 +63,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
   }, [currentUserData]);
-
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const sessionExpiration = localStorage.getItem('session_expiration');
-    if (sessionExpiration) {
-      const expirationDate = new Date(sessionExpiration);
-      return expirationDate > new Date();
-    }
-    return false;
-  });
 
   const userRole: UserRole = currentUser?.role || null;
   const clubId: string | null = currentUser?.club_id || null;
