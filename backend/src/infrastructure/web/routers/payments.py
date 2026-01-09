@@ -17,7 +17,8 @@ from src.infrastructure.web.dependencies import (
     get_create_payment_use_case,
     get_initiate_redsys_payment_use_case,
     get_refund_payment_use_case,
-    get_delete_payment_use_case
+    get_delete_payment_use_case,
+    get_process_redsys_webhook_use_case
 )
 from src.infrastructure.web.dependencies import get_current_active_user
 from src.domain.entities.user import User
