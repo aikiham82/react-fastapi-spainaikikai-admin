@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import type { Payment } from '../data/schemas/payment.schema';
+
 import { PaymentForm } from './PaymentForm';
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
@@ -90,6 +90,17 @@ export const PaymentList = () => {
         <p className="text-gray-600 mb-4">
           {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay pagos registrados'}
         </p>
+        {canAccess({ resource: 'payments', action: 'create' }) && (
+          <Button onClick={() => setIsFormOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Pago
+          </Button>
+        )}
+        <PaymentForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          memberOptions={[]}
+        />
       </div>
     );
   }
@@ -182,7 +193,7 @@ export const PaymentList = () => {
                       <Badge
                         variant={
                           payment.status === 'completed' ? 'default' :
-                          payment.status === 'failed' ? 'destructive' : 'secondary'
+                            payment.status === 'failed' ? 'destructive' : 'secondary'
                         }
                       >
                         {STATUS_LABELS[payment.status] || payment.status}
@@ -194,7 +205,7 @@ export const PaymentList = () => {
                       <Select
                         value={payment.status}
                         onValueChange={(value) =>
-                          updatePaymentStatus(payment.id, { status: value })
+                          updatePaymentStatus(payment.id, { status: value as any })
                         }
                       >
                         <SelectTrigger className="w-[140px]">

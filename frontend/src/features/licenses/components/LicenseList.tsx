@@ -25,7 +25,7 @@ export const LicenseList = () => {
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
-    setFilters({ ...filters, status: value || undefined, offset: 0 });
+    setFilters({ ...filters, status: value as "active" | "expired" | "pending" | undefined, offset: 0 });
   };
 
   const isExpiringSoon = (expiryDate: string) => {
@@ -63,6 +63,17 @@ export const LicenseList = () => {
         <p className="text-gray-600 mb-4">
           {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay licencias registradas'}
         </p>
+        {canAccess({ resource: 'licenses', action: 'create' }) && (
+          <Button onClick={() => { setSelectedLicenseForEdit(null); setIsFormOpen(true); }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nueva Licencia
+          </Button>
+        )}
+        <LicenseForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          license={selectedLicenseForEdit}
+        />
       </div>
     );
   }
@@ -145,11 +156,11 @@ export const LicenseList = () => {
                     <Badge
                       variant={
                         license.status === 'active' ? 'default' :
-                        license.status === 'expired' ? 'destructive' : 'secondary'
+                          license.status === 'expired' ? 'destructive' : 'secondary'
                       }
                     >
                       {license.status === 'active' ? 'Activa' :
-                       license.status === 'expired' ? 'Expirada' : 'Pendiente'}
+                        license.status === 'expired' ? 'Expirada' : 'Pendiente'}
                     </Badge>
                   </td>
                   <td className="p-4 text-right">
@@ -193,11 +204,11 @@ export const LicenseList = () => {
                               <Badge
                                 variant={
                                   license.status === 'active' ? 'default' :
-                                  license.status === 'expired' ? 'destructive' : 'secondary'
+                                    license.status === 'expired' ? 'destructive' : 'secondary'
                                 }
                               >
                                 {license.status === 'active' ? 'Activa' :
-                                 license.status === 'expired' ? 'Expirada' : 'Pendiente'}
+                                  license.status === 'expired' ? 'Expirada' : 'Pendiente'}
                               </Badge>
                             </div>
                           </div>

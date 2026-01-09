@@ -18,7 +18,7 @@ export const LoginForm = () => {
   
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/home");
+      navigate("/");
       return;
     }
   }, [isAuthenticated, navigate]);

@@ -12,7 +12,7 @@ import { MemberForm } from './MemberForm';
 
 export const MemberList = () => {
   const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
-  const { canAccess, clubId } = usePermissions();
+  const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -25,7 +25,7 @@ export const MemberList = () => {
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
-    setFilters({ ...filters, license_status: value || undefined, offset: 0 });
+    setFilters({ ...filters, license_status: value as "active" | "expired" | "pending" | undefined, offset: 0 });
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -52,10 +52,20 @@ export const MemberList = () => {
     return (
       <div className="text-center py-12">
         <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay miembros</h3>
         <p className="text-gray-600 mb-4">
           {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay miembros registrados'}
         </p>
+        {canAccess({ resource: 'members', action: 'create' }) && (
+          <Button onClick={() => { setSelectedMemberForEdit(null); setIsFormOpen(true); }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Miembro
+          </Button>
+        )}
+        <MemberForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          member={selectedMemberForEdit}
+        />
       </div>
     );
   }
@@ -127,11 +137,11 @@ export const MemberList = () => {
                     <Badge
                       variant={
                         member.license_status === 'active' ? 'default' :
-                        member.license_status === 'expired' ? 'destructive' : 'secondary'
+                          member.license_status === 'expired' ? 'destructive' : 'secondary'
                       }
                     >
                       {member.license_status === 'active' ? 'Activa' :
-                       member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
+                        member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
                     </Badge>
                   </td>
                   <td className="p-4 text-right">
@@ -184,11 +194,11 @@ export const MemberList = () => {
                                 <Badge
                                   variant={
                                     member.license_status === 'active' ? 'default' :
-                                    member.license_status === 'expired' ? 'destructive' : 'secondary'
+                                      member.license_status === 'expired' ? 'destructive' : 'secondary'
                                   }
                                 >
                                   {member.license_status === 'active' ? 'Activa' :
-                                   member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
+                                    member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
                                 </Badge>
                               </div>
                             </div>

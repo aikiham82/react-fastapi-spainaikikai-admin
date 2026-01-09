@@ -11,6 +11,8 @@ class User:
     username: str = ""
     hashed_password: str = ""
     is_active: bool = True
+    role: Optional[str] = None
+    club_id: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

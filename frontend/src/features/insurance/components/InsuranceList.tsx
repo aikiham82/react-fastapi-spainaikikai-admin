@@ -36,12 +36,12 @@ export const InsuranceList = () => {
 
   const handleFilterInsuranceType = (value: string) => {
     setInsuranceTypeFilter(value);
-    setFilters({ ...filters, insurance_type: value || undefined, offset: 0 });
+    setFilters({ ...filters, insurance_type: value as any, offset: 0 });
   };
 
   const handleFilterStatus = (value: string) => {
     setStatusFilter(value);
-    setFilters({ ...filters, status: value || undefined, offset: 0 });
+    setFilters({ ...filters, status: value as any, offset: 0 });
   };
 
   const isExpiringSoon = (endDate: string) => {
@@ -79,6 +79,18 @@ export const InsuranceList = () => {
         <p className="text-gray-600 mb-4">
           {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay seguros registrados'}
         </p>
+        {canAccess({ resource: 'insurance', action: 'create' }) && (
+          <Button onClick={() => { setSelectedInsuranceForEdit(null); setIsFormOpen(true); }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Seguro
+          </Button>
+        )}
+        <InsuranceForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          insurance={selectedInsuranceForEdit}
+          memberOptions={[]}
+        />
       </div>
     );
   }

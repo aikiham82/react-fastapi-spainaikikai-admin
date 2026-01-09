@@ -53,6 +53,11 @@ export const ClubList = () => {
             Crear Club
           </Button>
         )}
+        <ClubForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          club={selectedClubForEdit}
+        />
       </div>
     );
   }
@@ -91,12 +96,12 @@ export const ClubList = () => {
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => selectClub(club)} aria-label="Ver detalles del club">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={() => selectClub(club)} aria-label="Ver detalles del club">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>{club.name}</DialogTitle>

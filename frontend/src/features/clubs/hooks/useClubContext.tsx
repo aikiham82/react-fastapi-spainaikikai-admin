@@ -27,15 +27,15 @@ export const ClubProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deleteMutation = useDeleteClubMutation();
 
   const handleCreateClub = useCallback((data: CreateClubRequest) => {
-    createMutation(data);
+    createMutation.mutate(data);
   }, [createMutation]);
 
   const handleUpdateClub = useCallback((id: string, data: UpdateClubRequest) => {
-    updateMutation({ id, data });
+    updateMutation.mutate({ id, data });
   }, [updateMutation]);
 
   const handleDeleteClub = useCallback((id: string) => {
-    deleteMutation(id);
+    deleteMutation.mutate(id);
   }, [deleteMutation]);
 
   const value: ClubContextType = {

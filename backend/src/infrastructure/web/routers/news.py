@@ -17,6 +17,7 @@ from src.domain.exceptions.news_exceptions import (
     NewsNotFoundException,
     UnauthorizedNewsAccessException,
 )
+from src.domain.entities.user import User
 from src.infrastructure.web.dependencies import get_current_active_user
 from src.infrastructure.web.dto.news_dto import (
     CreateNewsRequestDTO,
@@ -66,7 +67,7 @@ def get_public_news_use_case() -> GetPublicNewsUseCase:
 @router.post("", response_model=NewsResponseDTO, status_code=status.HTTP_201_CREATED)
 async def create_news(
     news_data: CreateNewsRequestDTO,
-    current_user: dict = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),
     use_case: CreateNewsUseCase = Depends(get_create_news_use_case),
 ) -> NewsResponseDTO:
     """Create a new news item."""
@@ -78,7 +79,7 @@ async def create_news(
             link=str(news_data.link),
             image_url=str(news_data.image_url) if news_data.image_url else "",
             category=NewsMapper.category_dto_to_domain(news_data.category),
-            user_id=current_user["id"],
+            user_id=current_user.id,
             is_public=news_data.is_public,
         )
         return NewsMapper.to_response_dto(news_item)
@@ -101,7 +102,7 @@ async def get_user_news(
     is_favorite: Optional[bool] = Query(None),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),
     use_case: GetUserNewsUseCase = Depends(get_user_news_use_case),
 ) -> NewsListResponseDTO:
     """Get news items for the current user."""
@@ -109,7 +110,7 @@ async def get_user_news(
     domain_category = NewsMapper.category_dto_to_domain(category) if category else None
 
     news_items = await use_case.execute(
-        user_id=current_user["id"],
+        user_id=current_user.id,
         status=domain_status,
         category=domain_category,
         is_favorite=is_favorite,
@@ -157,7 +158,7 @@ async def get_public_news(
 async def update_news_status(
     news_id: str,
     status_data: UpdateNewsStatusRequestDTO,
-    current_user: dict = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),
     use_case: UpdateNewsStatusUseCase = Depends(get_update_news_status_use_case),
 ) -> NewsResponseDTO:
     """Update the status of a news item."""
@@ -166,7 +167,7 @@ async def update_news_status(
         news_item = await use_case.execute(
             news_id=news_id,
             status=domain_status,
-            user_id=current_user["id"],
+            user_id=current_user.id,
         )
         return NewsMapper.to_response_dto(news_item)
     except NewsNotFoundException as e:
@@ -184,14 +185,14 @@ async def update_news_status(
 @router.patch("/{news_id}/favorite", response_model=NewsResponseDTO)
 async def toggle_favorite(
     news_id: str,
-    current_user: dict = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),
     use_case: ToggleFavoriteUseCase = Depends(get_toggle_favorite_use_case),
 ) -> NewsResponseDTO:
     """Toggle the favorite status of a news item."""
     try:
         news_item = await use_case.execute(
             news_id=news_id,
-            user_id=current_user["id"],
+            user_id=current_user.id,
         )
         return NewsMapper.to_response_dto(news_item)
     except NewsNotFoundException as e:
@@ -208,13 +209,13 @@ async def toggle_favorite(
 
 @router.get("/stats", response_model=NewsStatsResponseDTO)
 async def get_news_stats(
-    current_user: dict = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),
     use_case: GetUserNewsUseCase = Depends(get_user_news_use_case),
 ) -> NewsStatsResponseDTO:
     """Get news statistics for the current user."""
     # Get all user news
     all_news = await use_case.execute(
-        user_id=current_user["id"],
+        user_id=current_user.id,
         limit=1000,  # Get all items for stats
     )
 

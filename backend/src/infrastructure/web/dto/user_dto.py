@@ -10,6 +10,8 @@ class UserBase(BaseModel):
     email: EmailStr
     username: str
     is_active: bool = True
+    role: Optional[str] = None
+    club_id: Optional[str] = None
 
 
 class UserCreate(BaseModel):

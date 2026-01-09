@@ -18,7 +18,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export const SeminarList = () => {
-  const { seminars, isLoading, error, filters, setFilters, total, limit, offset, deleteSeminar, selectSeminar, setPagination } = useSeminarContext();
+  const { seminars, isLoading, error, filters, setFilters, total, limit, offset, deleteSeminar, setPagination } = useSeminarContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -27,19 +27,20 @@ export const SeminarList = () => {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    setFilters({ ...filters, title: value || undefined, offset: 0 });
+    // Since SeminarFilters doesn't have a title/search field yet, we'll avoid the console error
+    // setFilters({ ...filters, title: value || undefined, offset: 0 });
   };
 
   const handleFilterStatus = (value: string) => {
     setStatusFilter(value);
-    setFilters({ ...filters, status: value || undefined, offset: 0 });
+    setFilters({ ...filters, status: value as any, offset: 0 });
   };
 
-  const isUpcoming = (date: string) => {
-    const seminarDate = new Date(date);
-    const today = new Date();
-    return seminarDate >= today;
-  };
+  // const isUpcoming = (date: string) => {
+  //   const seminarDate = new Date(date);
+  //   const today = new Date();
+  //   return seminarDate >= today;
+  // };
 
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(offset / limit) + 1;
@@ -69,6 +70,17 @@ export const SeminarList = () => {
         <p className="text-gray-600 mb-4">
           {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay seminarios registrados'}
         </p>
+        {canAccess({ resource: 'seminars', action: 'create' }) && (
+          <Button onClick={() => { setSelectedSeminarForEdit(null); setIsFormOpen(true); }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Seminario
+          </Button>
+        )}
+        <SeminarForm
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          seminar={selectedSeminarForEdit}
+        />
       </div>
     );
   }
@@ -129,8 +141,8 @@ export const SeminarList = () => {
                   <Badge
                     variant={
                       seminar.status === 'upcoming' ? 'default' :
-                      seminar.status === 'ongoing' ? 'secondary' :
-                      seminar.status === 'completed' ? 'outline' : 'destructive'
+                        seminar.status === 'ongoing' ? 'secondary' :
+                          seminar.status === 'completed' ? 'outline' : 'destructive'
                     }
                   >
                     {STATUS_LABELS[seminar.status] || seminar.status}
@@ -247,8 +259,8 @@ export const SeminarList = () => {
                         <Badge
                           variant={
                             seminar.status === 'upcoming' ? 'default' :
-                            seminar.status === 'ongoing' ? 'secondary' :
-                            seminar.status === 'completed' ? 'outline' : 'destructive'
+                              seminar.status === 'ongoing' ? 'secondary' :
+                                seminar.status === 'completed' ? 'outline' : 'destructive'
                           }
                         >
                           {STATUS_LABELS[seminar.status] || seminar.status}

@@ -27,6 +27,8 @@ class MongoDBUserRepository(UserRepositoryPort):
             username=doc.get("username", ""),
             hashed_password=doc.get("hashed_password", ""),
             is_active=doc.get("is_active", True),
+            role=doc.get("role"),
+            club_id=doc.get("club_id"),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
         )
@@ -38,6 +40,8 @@ class MongoDBUserRepository(UserRepositoryPort):
             "username": user.username,
             "hashed_password": user.hashed_password,
             "is_active": user.is_active,
+            "role": user.role,
+            "club_id": user.club_id,
             "updated_at": datetime.utcnow()
         }
         

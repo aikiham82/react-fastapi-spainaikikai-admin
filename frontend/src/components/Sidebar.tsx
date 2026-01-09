@@ -12,7 +12,7 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import type { LucideIcon } from 'lucide-react';
@@ -59,11 +59,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }
   );
 
   return (
-    <div className={cn('flex flex-col h-full bg-gray-900 text-white', className)}>
-      <div className="p-6 border-b border-gray-700">
-        <h1 className="text-xl font-bold">Aikido Admin</h1>
+    <div className={cn('flex flex-col h-full bg-slate-900 text-slate-100', className)}>
+      <div className="p-6 border-b border-slate-800">
+        <h1 className="text-xl font-bold tracking-tight text-white leading-none">Aikido Admin</h1>
         {userRole && (
-          <p className="text-sm text-gray-400 mt-1 capitalize">
+          <p className="text-[11px] font-semibold text-slate-400 mt-1.5 uppercase tracking-wider">
             {userRole.replace('_', ' ')}
           </p>
         )}
@@ -81,14 +81,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }
                   to={item.path}
                   onClick={isMobile ? onClose : undefined}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                     isActive
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   )}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.title}</span>
+                  <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-400")} />
+                  <span className="font-medium text-sm">{item.title}</span>
                 </Link>
               </li>
             );
@@ -96,15 +96,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-gray-700">
-        <Button
+      <div className="p-4 border-t border-slate-800">
+        <button
           onClick={handleLogout}
-          variant="ghost"
-          className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-800"
+          className="flex items-center gap-3 w-full px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all duration-200"
         >
-          <LogOut className="w-5 h-5 mr-3" />
-          Cerrar Sesión
-        </Button>
+          <LogOut className="w-5 h-5" />
+          <span className="font-medium text-sm">Cerrar Sesión</span>
+        </button>
       </div>
     </div>
   );

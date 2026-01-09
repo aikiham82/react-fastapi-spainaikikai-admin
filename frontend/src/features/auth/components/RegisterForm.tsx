@@ -17,13 +17,13 @@ import { jwtDecode } from "jwt-decode";
 export const RegisterForm = () => {
   const { isAuthenticated } = useAuthContext();
   const navigate = useNavigate();
-  const { registerMutation, isPending, error } = useRegisterMutation();
-  
+  const { registerMutation, isPending } = useRegisterMutation();
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Validation errors
   const [errors, setErrors] = useState<{
     username?: string;
@@ -36,10 +36,10 @@ export const RegisterForm = () => {
     email?: boolean;
     password?: boolean;
   }>({});
-  
+
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/home");
+      navigate("/");
       return;
     }
   }, [isAuthenticated, navigate]);
@@ -47,8 +47,8 @@ export const RegisterForm = () => {
   // Real-time validation
   const validateField = (field: string, value: string) => {
     const newErrors = { ...errors };
-    
-    switch(field) {
+
+    switch (field) {
       case 'username':
         if (!value.trim()) {
           newErrors.username = "Username is required";
@@ -79,7 +79,7 @@ export const RegisterForm = () => {
         }
         break;
     }
-    
+
     setErrors(newErrors);
     return newErrors;
   };
@@ -92,7 +92,7 @@ export const RegisterForm = () => {
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
-    
+
     if (!username.trim()) {
       newErrors.username = "Username is required";
     } else if (username.length < 3) {
@@ -100,19 +100,19 @@ export const RegisterForm = () => {
     } else if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
       newErrors.username = "Username can only contain letters, numbers, hyphens, and underscores";
     }
-    
+
     if (!email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Please enter a valid email address";
     }
-    
+
     if (!password) {
       newErrors.password = "Password is required";
     } else if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
-    
+
     setErrors(newErrors);
     setTouched({ username: true, email: true, password: true });
     return Object.keys(newErrors).length === 0;
@@ -121,37 +121,37 @@ export const RegisterForm = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError("");
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     const data = {
       username: username.trim(),
       email: email.trim(),
       password
     };
-    
+
     registerMutation(data, {
       onSuccess: async (response) => {
         toast.success("Registration successful! Logging you in...");
         // Store the token and auth data
         const decoded = jwtDecode(response.access_token) as { exp?: number; sub?: string };
         const { exp, sub } = decoded;
-        
+
         if (exp) {
           const expirationDate = new Date(exp * 1000);
           localStorage.setItem('session_expiration', expirationDate.toISOString());
         }
         localStorage.setItem('user_email', sub || '');
         appStorage().local.setString('access_token', response.access_token);
-        
+
         // Reload to trigger auth context update
-        window.location.href = "/home";
+        window.location.href = "/";
       },
       onError: (err: any) => {
         const errorMessage = err?.response?.data?.detail || err?.message || "Registration failed. Please try again.";
-        
+
         // Check for specific error types
         if (errorMessage.includes("already exists") || errorMessage.includes("duplicate")) {
           if (errorMessage.toLowerCase().includes("email")) {
@@ -164,13 +164,13 @@ export const RegisterForm = () => {
         } else {
           setServerError(errorMessage);
         }
-        
+
         toast.error(errorMessage);
       }
     });
   };
 
-  
+
   return (
     <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
       <CardHeader className="space-y-1 pb-6">
@@ -189,11 +189,11 @@ export const RegisterForm = () => {
             <AlertDescription>{serverError}</AlertDescription>
           </Alert>
         )}
-        
+
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
-            <Label 
-              htmlFor="username" 
+            <Label
+              htmlFor="username"
               className={cn(
                 "text-sm font-medium",
                 touched.username && errors.username ? "text-destructive" : "text-gray-700"
@@ -212,8 +212,8 @@ export const RegisterForm = () => {
                 placeholder="johndoe"
                 className={cn(
                   "pl-10 h-12 transition-all duration-200",
-                  touched.username && errors.username 
-                    ? "border-destructive focus:ring-destructive/20 focus:border-destructive" 
+                  touched.username && errors.username
+                    ? "border-destructive focus:ring-destructive/20 focus:border-destructive"
                     : "focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
                 value={username}
@@ -237,8 +237,8 @@ export const RegisterForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label 
-              htmlFor="email" 
+            <Label
+              htmlFor="email"
               className={cn(
                 "text-sm font-medium",
                 touched.email && errors.email ? "text-destructive" : "text-gray-700"
@@ -257,8 +257,8 @@ export const RegisterForm = () => {
                 placeholder="email@example.com"
                 className={cn(
                   "pl-10 h-12 transition-all duration-200",
-                  touched.email && errors.email 
-                    ? "border-destructive focus:ring-destructive/20 focus:border-destructive" 
+                  touched.email && errors.email
+                    ? "border-destructive focus:ring-destructive/20 focus:border-destructive"
                     : "focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
                 value={email}
@@ -282,8 +282,8 @@ export const RegisterForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label 
-              htmlFor="password" 
+            <Label
+              htmlFor="password"
               className={cn(
                 "text-sm font-medium",
                 touched.password && errors.password ? "text-destructive" : "text-gray-700"
@@ -302,8 +302,8 @@ export const RegisterForm = () => {
                 placeholder="Create a strong password"
                 className={cn(
                   "pl-10 pr-10 h-12 transition-all duration-200",
-                  touched.password && errors.password 
-                    ? "border-destructive focus:ring-destructive/20 focus:border-destructive" 
+                  touched.password && errors.password
+                    ? "border-destructive focus:ring-destructive/20 focus:border-destructive"
                     : "focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 )}
                 value={password}
