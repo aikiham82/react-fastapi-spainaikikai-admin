@@ -35,12 +35,17 @@ class Club:
             raise ValueError("Federation number cannot be empty")
 
     def deactivate(self) -> None:
-        """Deactivate the club."""
+        """Deactivate club."""
         self.is_active = False
 
     def activate(self) -> None:
-        """Activate the club."""
+        """Activate club."""
         self.is_active = True
+
+    @property
+    def is_active_property(self) -> bool:
+        """Check if club is currently active."""
+        return self.is_active
 
     def update_contact_info(
         self,

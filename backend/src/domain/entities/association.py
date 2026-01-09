@@ -34,12 +34,17 @@ class Association:
             raise ValueError("Association CIF cannot be empty")
 
     def deactivate(self) -> None:
-        """Deactivate the association."""
+        """Deactivate association."""
         self.is_active = False
 
     def activate(self) -> None:
-        """Activate the association."""
+        """Activate association."""
         self.is_active = True
+
+    @property
+    def is_active_property(self) -> bool:
+        """Check if association is currently active."""
+        return self.is_active
 
     def update_contact_info(
         self,

@@ -50,10 +50,22 @@ class Insurance:
             raise ValueError("Start date must be before end date")
 
     def activate(self) -> None:
-        """Activate the insurance."""
+        """Activate insurance."""
         if not self.start_date or not self.end_date:
             raise ValueError("Start and end dates must be set before activation")
         self.status = InsuranceStatus.ACTIVE
+
+    def deactivate(self) -> None:
+        """Deactivate insurance."""
+        self.status = InsuranceStatus.CANCELLED
+
+    @property
+    def is_active(self) -> bool:
+        """Check if insurance is currently active."""
+        return (
+            self.status == InsuranceStatus.ACTIVE and
+            not self.is_expired()
+        )
 
     def cancel(self) -> None:
         """Cancel the insurance."""

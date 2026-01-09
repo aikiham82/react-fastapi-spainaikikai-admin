@@ -58,9 +58,18 @@ class License:
         self.is_renewed = True
         self.status = LicenseStatus.ACTIVE
 
-    def revoke(self) -> None:
-        """Revoke the license."""
-        self.status = LicenseStatus.REVOKED
+    def activate(self) -> None:
+        """Activate license."""
+        self.status = LicenseStatus.ACTIVE
+
+    def deactivate(self) -> None:
+        """Deactivate license."""
+        self.status = LicenseStatus.EXPIRED
+
+    @property
+    def is_active(self) -> bool:
+        """Check if license is currently active."""
+        return self.status == LicenseStatus.ACTIVE and not self.is_expired()
 
     def is_expired(self) -> bool:
         """Check if the license is expired."""

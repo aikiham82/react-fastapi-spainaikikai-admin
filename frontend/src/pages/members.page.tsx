@@ -1,5 +1,5 @@
-import { MemberProvider } from './features/members/hooks/useMemberContext';
-import { MemberList } from './features/members/components/MemberList';
+import { MemberProvider } from '@/features/members/hooks/useMemberContext';
+import { MemberList } from '@/features/members/components/MemberList';
 
 export const MembersPage = () => {
   return (

@@ -54,16 +54,21 @@ class Member:
         return f"{self.first_name} {self.last_name}"
 
     def deactivate(self) -> None:
-        """Deactivate the member."""
+        """Deactivate member."""
         self.status = MemberStatus.INACTIVE
 
     def activate(self) -> None:
-        """Activate the member."""
+        """Activate member."""
         self.status = MemberStatus.ACTIVE
 
     def suspend(self) -> None:
-        """Suspend the member."""
+        """Suspend member."""
         self.status = MemberStatus.SUSPENDED
+
+    @property
+    def is_active(self) -> bool:
+        """Check if member is currently active."""
+        return self.status == MemberStatus.ACTIVE
 
     def update_personal_info(
         self,

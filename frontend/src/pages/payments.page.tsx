@@ -1,5 +1,5 @@
-import { PaymentProvider } from './features/payments/hooks/usePaymentContext';
-import { PaymentList } from './features/payments/components/PaymentList';
+import { PaymentProvider } from '@/features/payments/hooks/usePaymentContext';
+import { PaymentList } from '@/features/payments/components/PaymentList';
 
 export const PaymentsPage = () => {
   return (
