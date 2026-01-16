@@ -1,10 +1,43 @@
 export interface DashboardStats {
-  totalClubs: number;
-  totalMembers: number;
-  activeMembers: number;
-  totalPayments: number;
-  monthlyPayments: number;
-  pendingPayments: number;
-  upcomingSeminars: number;
-  expiringLicenses: number;
+  total_clubs: number;
+  total_members: number;
+  active_members: number;
+  monthly_payments: number;
+  pending_payments: number;
+  upcoming_seminars: number;
+  expiring_licenses: number;
+}
+
+export interface ExpiringLicense {
+  id: string;
+  member_name: string;
+  license_number: string;
+  expiry_date: string;
+  days_remaining: number;
+}
+
+export interface UpcomingSeminar {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  participants: number;
+  max_participants: number;
+  price: number;
+}
+
+export interface RecentActivity {
+  id: string;
+  type: 'member' | 'payment' | 'license' | 'seminar';
+  message: string;
+  user: string;
+  time: string;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  expiring_licenses: ExpiringLicense[];
+  upcoming_seminars: UpcomingSeminar[];
+  recent_activity: RecentActivity[];
 }

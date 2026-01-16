@@ -11,10 +11,22 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { SeminarForm } from './SeminarForm';
 
 const STATUS_LABELS: Record<string, string> = {
-  upcoming: 'Próximo',
+  upcoming: 'Pr\u00f3ximo',
   ongoing: 'En curso',
   completed: 'Finalizado',
   cancelled: 'Cancelado',
+};
+
+const formatDateTime = (dateString: string | undefined) => {
+  if (!dateString) return 'Fecha no disponible';
+  try {
+    return new Date(dateString).toLocaleString('es-ES', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  } catch {
+    return 'Fecha inv\u00e1lida';
+  }
 };
 
 export const SeminarList = () => {
@@ -27,20 +39,12 @@ export const SeminarList = () => {
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    // Since SeminarFilters doesn't have a title/search field yet, we'll avoid the console error
-    // setFilters({ ...filters, title: value || undefined, offset: 0 });
   };
 
   const handleFilterStatus = (value: string) => {
     setStatusFilter(value);
-    setFilters({ ...filters, status: value as any, offset: 0 });
+    setFilters({ ...filters, status: value === 'all' ? undefined : value as any, offset: 0 });
   };
-
-  // const isUpcoming = (date: string) => {
-  //   const seminarDate = new Date(date);
-  //   const today = new Date();
-  //   return seminarDate >= today;
-  // };
 
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(offset / limit) + 1;
@@ -68,7 +72,7 @@ export const SeminarList = () => {
         <Calendar className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No hay seminarios</h3>
         <p className="text-gray-600 mb-4">
-          {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay seminarios registrados'}
+          {searchTerm ? 'No se encontraron resultados para tu b\u00fasqueda' : 'No hay seminarios registrados'}
         </p>
         {canAccess({ resource: 'seminars', action: 'create' }) && (
           <Button onClick={() => { setSelectedSeminarForEdit(null); setIsFormOpen(true); }}>
@@ -92,7 +96,7 @@ export const SeminarList = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Buscar seminarios por título..."
+            placeholder="Buscar seminarios por t\u00edtulo..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
@@ -104,8 +108,8 @@ export const SeminarList = () => {
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
-            <SelectItem value="upcoming">Próximo</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="upcoming">Pr\u00f3ximo</SelectItem>
             <SelectItem value="ongoing">En curso</SelectItem>
             <SelectItem value="completed">Finalizado</SelectItem>
             <SelectItem value="cancelled">Cancelado</SelectItem>
@@ -123,15 +127,6 @@ export const SeminarList = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {seminars.map((seminar) => (
           <div key={seminar.id} className="border rounded-lg hover:shadow-lg transition-shadow bg-white">
-            {seminar.image_url && (
-              <div className="w-full h-48 bg-gray-100 overflow-hidden">
-                <img
-                  src={seminar.image_url}
-                  alt={seminar.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
             <div className="p-6 space-y-4">
               <div>
                 <div className="flex items-start justify-between mb-2">
@@ -156,21 +151,16 @@ export const SeminarList = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="w-4 h-4" />
-                  <span>
-                    {new Date(`${seminar.date}T${seminar.time}`).toLocaleString('es-ES', {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })}
-                  </span>
+                  <span>{formatDateTime(seminar.start_date)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="w-4 h-4" />
-                  <span>{seminar.location}</span>
+                  <span>{seminar.venue}, {seminar.city}</span>
                 </div>
-                {seminar.instructor && (
+                {seminar.instructor_name && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <User className="w-4 h-4" />
-                    <span>{seminar.instructor}</span>
+                    <span>{seminar.instructor_name}</span>
                   </div>
                 )}
               </div>
@@ -185,7 +175,7 @@ export const SeminarList = () => {
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900">
-                    {seminar.price.toFixed(2)}€
+                    {seminar.price.toFixed(2)}\u20ac
                   </p>
                 </div>
               </div>
@@ -205,32 +195,38 @@ export const SeminarList = () => {
                       <DialogTitle>{seminar.title}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
-                      {seminar.image_url && (
-                        <div className="w-full h-64 bg-gray-100 overflow-hidden rounded-lg">
-                          <img
-                            src={seminar.image_url}
-                            alt={seminar.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
                       <div>
-                        <p className="text-sm font-medium text-gray-900">Descripción</p>
-                        <p className="text-sm text-gray-600 mt-1">{seminar.description}</p>
+                        <p className="text-sm font-medium text-gray-900">Descripci\u00f3n</p>
+                        <p className="text-sm text-gray-600 mt-1">{seminar.description || 'Sin descripci\u00f3n'}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Fecha</p>
-                          <p className="text-sm text-gray-600">
-                            {new Date(`${seminar.date}T${seminar.time}`).toLocaleString('es-ES', {
-                              dateStyle: 'medium',
-                              timeStyle: 'short',
-                            })}
-                          </p>
+                          <p className="text-sm font-medium text-gray-900">Fecha Inicio</p>
+                          <p className="text-sm text-gray-600">{formatDateTime(seminar.start_date)}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Ubicación</p>
-                          <p className="text-sm text-gray-600">{seminar.location}</p>
+                          <p className="text-sm font-medium text-gray-900">Fecha Fin</p>
+                          <p className="text-sm text-gray-600">{formatDateTime(seminar.end_date)}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Lugar</p>
+                          <p className="text-sm text-gray-600">{seminar.venue}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Direcci\u00f3n</p>
+                          <p className="text-sm text-gray-600">{seminar.address}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Ciudad</p>
+                          <p className="text-sm text-gray-600">{seminar.city}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Provincia</p>
+                          <p className="text-sm text-gray-600">{seminar.province}</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
@@ -244,14 +240,14 @@ export const SeminarList = () => {
                         <div>
                           <p className="text-sm font-medium text-gray-900">Precio</p>
                           <p className="text-2xl font-bold text-gray-900">
-                            {seminar.price.toFixed(2)}€
+                            {seminar.price.toFixed(2)}\u20ac
                           </p>
                         </div>
                       </div>
-                      {seminar.instructor && (
+                      {seminar.instructor_name && (
                         <div>
                           <p className="text-sm font-medium text-gray-900">Instructor</p>
-                          <p className="text-sm text-gray-600">{seminar.instructor}</p>
+                          <p className="text-sm text-gray-600">{seminar.instructor_name}</p>
                         </div>
                       )}
                       <div>
@@ -284,7 +280,7 @@ export const SeminarList = () => {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      if (window.confirm(`¿Estás seguro de eliminar el seminario "${seminar.title}"?`)) {
+                      if (window.confirm(`\u00bfEst\u00e1s seguro de eliminar el seminario "${seminar.title}"?`)) {
                         deleteSeminar(seminar.id);
                       }
                     }}
@@ -314,7 +310,7 @@ export const SeminarList = () => {
               Anterior
             </Button>
             <span className="text-sm text-gray-600">
-              Página {currentPage} de {totalPages}
+              P\u00e1gina {currentPage} de {totalPages}
             </span>
             <Button
               variant="outline"

@@ -35,9 +35,10 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
     member_id: '',
     insurance_type: 'accident',
     policy_number: '',
+    insurance_company: '',
+    coverage_amount: 0,
     start_date: '',
     end_date: '',
-    amount: 0,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateInsuranceRequest, string>>>({});
@@ -48,18 +49,20 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
         member_id: insurance.member_id || '',
         insurance_type: insurance.insurance_type || 'accident',
         policy_number: insurance.policy_number || '',
-        start_date: insurance.start_date || '',
-        end_date: insurance.end_date || '',
-        amount: insurance.amount || 0,
+        insurance_company: insurance.insurance_company || '',
+        coverage_amount: insurance.coverage_amount || 0,
+        start_date: insurance.start_date ? insurance.start_date.slice(0, 10) : '',
+        end_date: insurance.end_date ? insurance.end_date.slice(0, 10) : '',
       });
     } else {
       setFormData({
         member_id: '',
         insurance_type: 'accident',
         policy_number: '',
+        insurance_company: '',
+        coverage_amount: 0,
         start_date: '',
         end_date: '',
-        amount: 0,
       });
     }
     setErrors({});
@@ -77,6 +80,9 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
     if (!formData.policy_number.trim()) {
       newErrors.policy_number = 'El número de póliza es obligatorio';
     }
+    if (!formData.insurance_company.trim()) {
+      newErrors.insurance_company = 'La compañía de seguros es obligatoria';
+    }
     if (!formData.start_date) {
       newErrors.start_date = 'La fecha de inicio es obligatoria';
     }
@@ -84,9 +90,6 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
       newErrors.end_date = 'La fecha de fin es obligatoria';
     } else if (new Date(formData.end_date) <= new Date(formData.start_date)) {
       newErrors.end_date = 'La fecha de fin debe ser posterior a la fecha de inicio';
-    }
-    if (!formData.amount || formData.amount < 0) {
-      newErrors.amount = 'El monto debe ser mayor a 0';
     }
 
     setErrors(newErrors);
@@ -166,19 +169,29 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount">Monto (€) *</Label>
+              <Label htmlFor="coverage_amount">Cobertura (€)</Label>
               <Input
-                id="amount"
+                id="coverage_amount"
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.amount}
-                onChange={(e) => handleChange('amount', parseFloat(e.target.value) || 0)}
+                value={formData.coverage_amount || ''}
+                onChange={(e) => handleChange('coverage_amount', parseFloat(e.target.value) || undefined)}
                 placeholder="0.00"
-                className={errors.amount ? 'border-red-500' : ''}
               />
-              {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="insurance_company">Compañía de Seguros *</Label>
+            <Input
+              id="insurance_company"
+              value={formData.insurance_company}
+              onChange={(e) => handleChange('insurance_company', e.target.value)}
+              placeholder="AXA, Mapfre, etc."
+              className={errors.insurance_company ? 'border-red-500' : ''}
+            />
+            {errors.insurance_company && <p className="text-sm text-red-500">{errors.insurance_company}</p>}
           </div>
 
           <div className="space-y-2">

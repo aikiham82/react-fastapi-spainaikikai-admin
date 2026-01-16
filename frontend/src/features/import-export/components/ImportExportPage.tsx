@@ -120,7 +120,7 @@ export const ImportExportPage = () => {
                   <input
                     type="file"
                     accept=".xlsx,.xls"
-                    onChange={handleFileSelect}
+                    onChange={handleFileInputChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                   <div className="flex flex-col items-center justify-center space-y-2">

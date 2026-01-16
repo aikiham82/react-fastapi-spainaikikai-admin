@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
 import type { Insurance } from '../data/schemas/insurance.schema';
 import { Shield, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { InsuranceForm } from './InsuranceForm';
+import { memberService } from '@/features/members/data/services/member.service';
 
 const INSURANCE_TYPE_LABELS: Record<string, string> = {
   accident: 'Seguro de Accidentes',
@@ -28,6 +29,23 @@ export const InsuranceList = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedInsuranceForEdit, setSelectedInsuranceForEdit] = useState<Insurance | null>(null);
+  const [memberOptions, setMemberOptions] = useState<{ id: string; name: string }[]>([]);
+
+  // Fetch all members for the dropdown
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const members = await memberService.getMembers();
+        setMemberOptions(members.map(m => ({
+          id: m.id,
+          name: `${m.first_name} ${m.last_name}`
+        })));
+      } catch (err) {
+        console.error('Error fetching members:', err);
+      }
+    };
+    fetchMembers();
+  }, []);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -36,12 +54,12 @@ export const InsuranceList = () => {
 
   const handleFilterInsuranceType = (value: string) => {
     setInsuranceTypeFilter(value);
-    setFilters({ ...filters, insurance_type: value as any, offset: 0 });
+    setFilters({ ...filters, insurance_type: value === 'all' ? undefined : value as any, offset: 0 });
   };
 
   const handleFilterStatus = (value: string) => {
     setStatusFilter(value);
-    setFilters({ ...filters, status: value as any, offset: 0 });
+    setFilters({ ...filters, status: value === 'all' ? undefined : value as any, offset: 0 });
   };
 
   const isExpiringSoon = (endDate: string) => {
@@ -89,7 +107,7 @@ export const InsuranceList = () => {
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
           insurance={selectedInsuranceForEdit}
-          memberOptions={[]}
+          memberOptions={memberOptions}
         />
       </div>
     );
@@ -110,23 +128,23 @@ export const InsuranceList = () => {
         </div>
 
         <div className="flex gap-2 flex-1">
-          <Select value={insuranceTypeFilter} onValueChange={handleFilterInsuranceType}>
+          <Select value={insuranceTypeFilter || 'all'} onValueChange={handleFilterInsuranceType}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Tipo de seguro" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="accident">Seguro Accidentes</SelectItem>
               <SelectItem value="rc">Seguro RC</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select value={statusFilter} onValueChange={handleFilterStatus}>
+          <Select value={statusFilter || 'all'} onValueChange={handleFilterStatus}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="active">Activa</SelectItem>
               <SelectItem value="expired">Expirada</SelectItem>
             </SelectContent>
@@ -182,7 +200,7 @@ export const InsuranceList = () => {
                     </div>
                   </td>
                   <td className="p-4 text-right font-medium text-gray-900">
-                    {insurance.amount.toFixed(2)}€
+                    {insurance.coverage_amount?.toFixed(2) || '-'}€
                   </td>
                   <td className="p-4">
                     <Badge
@@ -229,9 +247,13 @@ export const InsuranceList = () => {
                               </div>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">Monto</p>
+                              <p className="text-sm font-medium text-gray-900">Compañía</p>
+                              <p className="text-sm text-gray-600">{insurance.insurance_company}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Cobertura</p>
                               <p className="text-2xl font-bold text-gray-900">
-                                {insurance.amount.toFixed(2)}€
+                                {insurance.coverage_amount?.toFixed(2) || '-'}€
                               </p>
                             </div>
                             <div>
@@ -313,7 +335,7 @@ export const InsuranceList = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         insurance={selectedInsuranceForEdit}
-        memberOptions={insuranceList.map(i => ({ id: i.member_id, name: i.member_name || '' }))}
+        memberOptions={memberOptions}
       />
     </div>
   );

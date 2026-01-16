@@ -47,14 +47,14 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [filters, setFilters]);
 
   const value: MemberContextType = {
-    members: membersData?.items || [],
+    members: membersData || [],
     selectedMember,
     isLoading,
     error,
     filters,
-    total: membersData?.total || 0,
-    offset: membersData?.offset || 0,
-    limit: membersData?.limit || 20,
+    total: membersData?.length || 0,
+    offset: filters.offset || 0,
+    limit: filters.limit || 20,
     createMember: handleCreateMember,
     updateMember: handleUpdateMember,
     deleteMember: handleDeleteMember,

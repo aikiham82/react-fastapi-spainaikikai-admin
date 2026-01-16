@@ -1,7 +1,7 @@
 import { apiClient } from '@/core/data/apiClient';
 import type { Insurance, CreateInsuranceRequest, UpdateInsuranceRequest, InsuranceFilters, InsuranceListResponse } from './insurance.schema';
 
-const BASE_URL = '/api/v1/insurance';
+const BASE_URL = '/api/v1/insurances';
 
 export const getInsurance = async (filters?: InsuranceFilters): Promise<InsuranceListResponse> => {
   return await apiClient.get<InsuranceListResponse>(BASE_URL, { params: filters });

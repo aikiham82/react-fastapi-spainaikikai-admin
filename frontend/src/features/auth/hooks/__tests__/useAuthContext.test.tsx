@@ -3,18 +3,45 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { AuthProvider, useAuthContext } from '../useAuthContext'
-import { 
-  createMockAuthRequest, 
-  createMockAuthResponse, 
+import {
+  createMockAuthRequest,
+  createMockAuthResponse,
   createMockJWT,
   createExpiredMockJWT,
   createMockLocalStorageState
 } from '@/test-utils/factories'
-import { mockAuthService, mockAppStorage, cleanup } from '@/test-utils/mocks'
+import { mockAuthService, cleanup } from '@/test-utils/mocks'
+
+// Use vi.hoisted to define mocks before module mocking happens
+const { mockAppStorage } = vi.hoisted(() => ({
+  mockAppStorage: {
+    local: {
+      get: vi.fn().mockReturnValue(null),
+      set: vi.fn(),
+      remove: vi.fn(),
+      getString: vi.fn().mockReturnValue(null),
+      setString: vi.fn(),
+      clear: vi.fn()
+    },
+    session: {
+      get: vi.fn().mockReturnValue(null),
+      set: vi.fn(),
+      remove: vi.fn(),
+      getString: vi.fn().mockReturnValue(null),
+      setString: vi.fn(),
+      clear: vi.fn()
+    }
+  }
+}))
 
 // Mock external dependencies
 vi.mock('@/features/auth/data/auth.service', () => ({
-  authService: mockAuthService
+  authService: {
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn()
+  },
+  getCurrentUser: vi.fn().mockResolvedValue(null)
 }))
 
 vi.mock('@/core/data/appStorage', () => ({

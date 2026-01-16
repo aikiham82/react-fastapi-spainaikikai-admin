@@ -90,47 +90,19 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     if (!formData.first_name.trim()) {
       newErrors.first_name = 'El nombre es obligatorio';
     }
-    if (!formData.last_name.trim()) {
-      newErrors.last_name = 'Los apellidos son obligatorios';
-    }
-    if (!formData.dni.trim()) {
-      newErrors.dni = 'El DNI es obligatorio';
-    }
     if (!formData.email.trim()) {
       newErrors.email = 'El email es obligatorio';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
     }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'El teléfono es obligatorio';
-    }
-    if (!formData.birth_date) {
-      newErrors.birth_date = 'La fecha de nacimiento es obligatoria';
-    } else {
+    // Validación opcional de fecha de nacimiento si se proporciona
+    if (formData.birth_date) {
       const birthDate = new Date(formData.birth_date);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       if (age < 0 || age > 120) {
         newErrors.birth_date = 'Fecha de nacimiento inválida';
       }
-    }
-    if (!formData.address.trim()) {
-      newErrors.address = 'La dirección es obligatoria';
-    }
-    if (!formData.city.trim()) {
-      newErrors.city = 'La ciudad es obligatoria';
-    }
-    if (!formData.province.trim()) {
-      newErrors.province = 'La provincia es obligatoria';
-    }
-    if (!formData.postal_code.trim()) {
-      newErrors.postal_code = 'El código postal es obligatorio';
-    }
-    if (!formData.country.trim()) {
-      newErrors.country = 'El país es obligatorio';
-    }
-    if (!formData.club_id) {
-      newErrors.club_id = 'Debes seleccionar un club';
     }
 
     setErrors(newErrors);
@@ -185,15 +157,13 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="last_name">Apellidos *</Label>
+              <Label htmlFor="last_name">Apellidos</Label>
               <Input
                 id="last_name"
                 value={formData.last_name}
                 onChange={(e) => handleChange('last_name', e.target.value)}
                 placeholder="Pérez García"
-                className={errors.last_name ? 'border-red-500' : ''}
               />
-              {errors.last_name && <p className="text-sm text-red-500">{errors.last_name}</p>}
             </div>
           </div>
 
@@ -212,34 +182,30 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono *</Label>
+              <Label htmlFor="phone">Teléfono</Label>
               <Input
                 id="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 placeholder="+34 600 000 000"
-                className={errors.phone ? 'border-red-500' : ''}
               />
-              {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dni">DNI/NIE *</Label>
+            <Label htmlFor="dni">DNI/NIE</Label>
             <Input
               id="dni"
               value={formData.dni}
               onChange={(e) => handleChange('dni', e.target.value)}
               placeholder="12345678X"
-              className={errors.dni ? 'border-red-500' : ''}
             />
-            {errors.dni && <p className="text-sm text-red-500">{errors.dni}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="birth_date">Fecha de Nacimiento *</Label>
+              <Label htmlFor="birth_date">Fecha de Nacimiento</Label>
               <Input
                 id="birth_date"
                 type="date"
@@ -251,12 +217,12 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="club_id">Club *</Label>
+              <Label htmlFor="club_id">Club</Label>
               <Select
                 value={formData.club_id}
                 onValueChange={(value) => handleChange('club_id', value)}
               >
-                <SelectTrigger className={errors.club_id ? 'border-red-500' : ''}>
+                <SelectTrigger>
                   <SelectValue placeholder="Selecciona un club" />
                 </SelectTrigger>
                 <SelectContent>
@@ -267,71 +233,60 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.club_id && <p className="text-sm text-red-500">{errors.club_id}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Dirección *</Label>
+            <Label htmlFor="address">Dirección</Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => handleChange('address', e.target.value)}
               placeholder="Calle Principal 123"
-              className={errors.address ? 'border-red-500' : ''}
             />
-            {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="city">Ciudad *</Label>
+              <Label htmlFor="city">Ciudad</Label>
               <Input
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleChange('city', e.target.value)}
                 placeholder="Murcia"
-                className={errors.city ? 'border-red-500' : ''}
               />
-              {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="province">Provincia *</Label>
+              <Label htmlFor="province">Provincia</Label>
               <Input
                 id="province"
                 value={formData.province}
                 onChange={(e) => handleChange('province', e.target.value)}
                 placeholder="Murcia"
-                className={errors.province ? 'border-red-500' : ''}
               />
-              {errors.province && <p className="text-sm text-red-500">{errors.province}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="postal_code">Código Postal *</Label>
+              <Label htmlFor="postal_code">Código Postal</Label>
               <Input
                 id="postal_code"
                 value={formData.postal_code}
                 onChange={(e) => handleChange('postal_code', e.target.value)}
                 placeholder="30011"
-                className={errors.postal_code ? 'border-red-500' : ''}
               />
-              {errors.postal_code && <p className="text-sm text-red-500">{errors.postal_code}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">País *</Label>
+              <Label htmlFor="country">País</Label>
               <Input
                 id="country"
                 value={formData.country}
                 onChange={(e) => handleChange('country', e.target.value)}
                 placeholder="España"
-                className={errors.country ? 'border-red-500' : ''}
               />
-              {errors.country && <p className="text-sm text-red-500">{errors.country}</p>}
             </div>
           </div>
 

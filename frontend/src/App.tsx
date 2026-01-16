@@ -19,6 +19,7 @@ import { PaymentsPage } from "./pages/payments.page";
 import { SeminarsPage } from "./pages/seminars.page";
 import { InsurancePage } from "./pages/insurance.page";
 import { ImportExportPage } from "./pages/import-export.page";
+import { SettingsPage } from "./pages/settings.page";
 
 import { Toaster } from "sonner";
 
@@ -43,7 +44,7 @@ function App() {
                 <Route path="/seminars" element={<SeminarsPage />} />
                 <Route path="/insurance" element={<InsurancePage />} />
                 <Route path="/import-export" element={<ImportExportPage />} />
-                <Route path="/settings" element={<div>Settings Page</div>} />
+                <Route path="/settings" element={<SettingsPage />} />
               </Route>
 
               <Route

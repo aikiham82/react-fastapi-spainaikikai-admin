@@ -1,70 +1,14 @@
-import { Users, Building2, CreditCard, Calendar, Shield, TrendingUp, AlertCircle } from 'lucide-react';
+import { Users, Building2, CreditCard, Calendar, Shield, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useDashboardDataQuery } from '../hooks/queries/useDashboardData.query';
+import type { RecentActivity } from '../data/schemas/dashboard.schema';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
-  const stats = {
-    totalClubs: 12,
-    totalMembers: 245,
-    activeMembers: 198,
-    totalPayments: 1205,
-    monthlyPayments: 42,
-    pendingPayments: 8,
-    upcomingSeminars: 3,
-    expiringLicenses: 15,
-  };
-
-  const recentActivity = [
-    { id: 1, type: 'member', message: 'Nuevo miembro registrado', time: 'Hace 2 minutos', user: 'Juan García' },
-    { id: 2, type: 'payment', message: 'Pago recibido', time: 'Hace 15 minutos', user: 'María López' },
-    { id: 3, type: 'license', message: 'Licencia renovada', time: 'Hace 1 hora', user: 'Pedro Martínez' },
-    { id: 4, type: 'seminar', message: 'Inscripción a seminario', time: 'Hace 3 horas', user: 'Ana Sánchez' },
-    { id: 5, type: 'member', message: 'Nuevo miembro registrado', time: 'Hace 5 horas', user: 'Carlos Rodríguez' },
-  ];
-
-  const upcomingSeminars = [
-    {
-      id: 1,
-      title: 'Seminario de Aikido Avanzado',
-      date: '2026-01-15',
-      time: '10:00',
-      location: 'Dojo Central, Madrid',
-      participants: 23,
-      maxParticipants: 30,
-      price: 45.00,
-    },
-    {
-      id: 2,
-      title: 'Taller de Técnicas Básicas',
-      date: '2026-01-20',
-      time: '09:30',
-      location: 'Club Aikido Norte, Bilbao',
-      participants: 15,
-      maxParticipants: 25,
-      price: 25.00,
-    },
-    {
-      id: 3,
-      title: 'Seminario con Sensei Nakamura',
-      date: '2026-01-28',
-      time: '10:00',
-      location: 'Dojo Sur, Sevilla',
-      participants: 28,
-      maxParticipants: 35,
-      price: 60.00,
-    },
-  ];
-
-  const expiringLicenses = [
-    { id: 1, member: 'María González', license: 'A-1234', expiryDate: '2026-01-15', days: 7 },
-    { id: 2, member: 'José Martínez', license: 'A-5678', expiryDate: '2026-01-18', days: 10 },
-    { id: 3, member: 'Ana Fernández', license: 'A-9012', expiryDate: '2026-01-20', days: 12 },
-    { id: 4, member: 'Luis Sánchez', license: 'A-3456', expiryDate: '2026-01-22', days: 14 },
-    { id: 5, member: 'Carmen Rodríguez', license: 'A-7890', expiryDate: '2026-01-25', days: 17 },
-  ];
+  const { data, isLoading, error } = useDashboardDataQuery();
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -87,6 +31,29 @@ export const Dashboard = () => {
     return <Badge variant="secondary">30 días</Badge>;
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 space-y-4">
+        <AlertCircle className="w-12 h-12 text-destructive" />
+        <p className="text-muted-foreground">Error al cargar los datos del dashboard</p>
+        <Button onClick={() => window.location.reload()}>Reintentar</Button>
+      </div>
+    );
+  }
+
+  const stats = data?.stats;
+  const expiringLicenses = data?.expiring_licenses || [];
+  const upcomingSeminars = data?.upcoming_seminars || [];
+  const recentActivity = data?.recent_activity || [];
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -96,8 +63,8 @@ export const Dashboard = () => {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalClubs}</div>
-            <p className="text-xs text-muted-foreground">+2 este mes</p>
+            <div className="text-2xl font-bold">{stats?.total_clubs ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Clubs registrados</p>
           </CardContent>
         </Card>
 
@@ -107,8 +74,8 @@ export const Dashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMembers}</div>
-            <p className="text-xs text-muted-foreground">{stats.activeMembers} activos</p>
+            <div className="text-2xl font-bold">{stats?.total_members ?? 0}</div>
+            <p className="text-xs text-muted-foreground">{stats?.active_members ?? 0} activos</p>
           </CardContent>
         </Card>
 
@@ -118,8 +85,8 @@ export const Dashboard = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.monthlyPayments}</div>
-            <p className="text-xs text-muted-foreground">{stats.pendingPayments} pendientes</p>
+            <div className="text-2xl font-bold">{stats?.monthly_payments ?? 0}</div>
+            <p className="text-xs text-muted-foreground">{stats?.pending_payments ?? 0} pendientes</p>
           </CardContent>
         </Card>
 
@@ -129,8 +96,8 @@ export const Dashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.upcomingSeminars}</div>
-            <p className="text-xs text-muted-foreground">Este mes</p>
+            <div className="text-2xl font-bold">{stats?.upcoming_seminars ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Próximos 30 días</p>
           </CardContent>
         </Card>
       </div>
@@ -142,20 +109,26 @@ export const Dashboard = () => {
               <CardTitle>Actividad Reciente</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3">
-                    <div className="mt-1">
-                      {getActivityIcon(activity.type)}
+              {recentActivity.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay actividad reciente
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {recentActivity.map((activity: RecentActivity) => (
+                    <div key={activity.id} className="flex items-start gap-3">
+                      <div className="mt-1">
+                        {getActivityIcon(activity.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                        <p className="text-xs text-gray-600">{activity.user}</p>
+                      </div>
+                      <p className="text-xs text-gray-500 whitespace-nowrap">{activity.time}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{activity.message}</p>
-                      <p className="text-xs text-gray-600">{activity.user}</p>
-                    </div>
-                    <p className="text-xs text-gray-500 whitespace-nowrap">{activity.time}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -164,31 +137,37 @@ export const Dashboard = () => {
               <CardTitle>Seminarios Próximos</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {upcomingSeminars.map((seminar) => (
-                  <div key={seminar.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{seminar.title}</h3>
-                        <p className="text-sm text-gray-600">{seminar.location}</p>
+              {upcomingSeminars.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay seminarios programados
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {upcomingSeminars.map((seminar) => (
+                    <div key={seminar.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{seminar.title}</h3>
+                          <p className="text-sm text-gray-600">{seminar.location}</p>
+                        </div>
+                        <Badge variant="outline">{seminar.price.toFixed(2)}€</Badge>
                       </div>
-                      <Badge variant="outline">{seminar.price.toFixed(2)}€</Badge>
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {new Date(seminar.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - {seminar.time}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span>{seminar.participants}/{seminar.max_participants}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          {new Date(seminar.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - {seminar.time}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>{seminar.participants}/{seminar.maxParticipants}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -200,22 +179,28 @@ export const Dashboard = () => {
               <CardTitle>Licencias Expirando</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {expiringLicenses.map((license) => (
-                  <div key={license.id} className="border-b last:border-0 pb-3 last:pb-0">
-                    <div className="flex items-start justify-between mb-1">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{license.member}</p>
-                        <p className="text-xs text-gray-600">{license.license}</p>
+              {expiringLicenses.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No hay licencias por expirar
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {expiringLicenses.map((license) => (
+                    <div key={license.id} className="border-b last:border-0 pb-3 last:pb-0">
+                      <div className="flex items-start justify-between mb-1">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">{license.member_name}</p>
+                          <p className="text-xs text-gray-600">{license.license_number}</p>
+                        </div>
+                        {getExpiryBadge(license.days_remaining)}
                       </div>
-                      {getExpiryBadge(license.days)}
+                      <div className="text-xs text-gray-600">
+                        Expira: {new Date(license.expiry_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-600">
-                      Expira: {new Date(license.expiryDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -6,13 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -34,13 +27,15 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
   const [formData, setFormData] = useState<CreateSeminarRequest>({
     title: '',
     description: '',
-    date: '',
-    time: '',
-    location: '',
+    instructor_name: '',
+    venue: '',
+    address: '',
+    city: '',
+    province: '',
+    start_date: '',
+    end_date: '',
     max_participants: undefined,
     price: 0,
-    instructor: '',
-    image_url: '',
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateSeminarRequest, string>>>({});
@@ -50,25 +45,29 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
       setFormData({
         title: seminar.title || '',
         description: seminar.description || '',
-        date: seminar.date || '',
-        time: seminar.time || '',
-        location: seminar.location || '',
+        instructor_name: seminar.instructor_name || '',
+        venue: seminar.venue || '',
+        address: seminar.address || '',
+        city: seminar.city || '',
+        province: seminar.province || '',
+        start_date: seminar.start_date ? seminar.start_date.slice(0, 16) : '',
+        end_date: seminar.end_date ? seminar.end_date.slice(0, 16) : '',
         max_participants: seminar.max_participants,
         price: seminar.price || 0,
-        instructor: seminar.instructor || '',
-        image_url: seminar.image_url || '',
       });
     } else {
       setFormData({
         title: '',
         description: '',
-        date: '',
-        time: '',
-        location: '',
+        instructor_name: '',
+        venue: '',
+        address: '',
+        city: '',
+        province: '',
+        start_date: '',
+        end_date: '',
         max_participants: undefined,
         price: 0,
-        instructor: '',
-        image_url: '',
       });
     }
     setErrors({});
@@ -80,19 +79,31 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
     if (!formData.title.trim()) {
       newErrors.title = 'El título es obligatorio';
     }
-    if (!formData.description.trim()) {
-      newErrors.description = 'La descripción es obligatoria';
+    if (!formData.instructor_name.trim()) {
+      newErrors.instructor_name = 'El nombre del instructor es obligatorio';
     }
-    if (!formData.date) {
-      newErrors.date = 'La fecha es obligatoria';
+    if (!formData.venue.trim()) {
+      newErrors.venue = 'El lugar es obligatorio';
     }
-    if (!formData.time) {
-      newErrors.time = 'La hora es obligatoria';
+    if (!formData.address.trim()) {
+      newErrors.address = 'La dirección es obligatoria';
     }
-    if (!formData.location.trim()) {
-      newErrors.location = 'La ubicación es obligatoria';
+    if (!formData.city.trim()) {
+      newErrors.city = 'La ciudad es obligatoria';
     }
-    if (!formData.price || formData.price < 0) {
+    if (!formData.province.trim()) {
+      newErrors.province = 'La provincia es obligatoria';
+    }
+    if (!formData.start_date) {
+      newErrors.start_date = 'La fecha de inicio es obligatoria';
+    }
+    if (!formData.end_date) {
+      newErrors.end_date = 'La fecha de fin es obligatoria';
+    }
+    if (formData.start_date && formData.end_date && formData.start_date > formData.end_date) {
+      newErrors.end_date = 'La fecha de fin debe ser posterior a la de inicio';
+    }
+    if (formData.price < 0) {
       newErrors.price = 'El precio debe ser mayor o igual a 0';
     }
 
@@ -107,10 +118,17 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
       return;
     }
 
+    // Format dates for backend (ISO 8601)
+    const submitData = {
+      ...formData,
+      start_date: new Date(formData.start_date).toISOString(),
+      end_date: new Date(formData.end_date).toISOString(),
+    };
+
     if (isEditing && seminar) {
-      updateSeminar(seminar.id, formData);
+      updateSeminar(seminar.id, submitData);
     } else {
-      createSeminar(formData);
+      createSeminar(submitData);
     }
 
     onOpenChange(false);
@@ -125,7 +143,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Seminario' : 'Crear Seminario'}</DialogTitle>
           <DialogDescription>
@@ -147,54 +165,102 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descripción *</Label>
+            <Label htmlFor="description">Descripción</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Describe el contenido y objetivos del seminario..."
-              rows={4}
-              className={errors.description ? 'border-red-500' : ''}
+              rows={3}
             />
-            {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="instructor_name">Instructor *</Label>
+            <Input
+              id="instructor_name"
+              value={formData.instructor_name}
+              onChange={(e) => handleChange('instructor_name', e.target.value)}
+              placeholder="Sensei Juan Pérez"
+              className={errors.instructor_name ? 'border-red-500' : ''}
+            />
+            {errors.instructor_name && <p className="text-sm text-red-500">{errors.instructor_name}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="date">Fecha *</Label>
+              <Label htmlFor="start_date">Fecha y Hora Inicio *</Label>
               <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => handleChange('date', e.target.value)}
-                className={errors.date ? 'border-red-500' : ''}
+                id="start_date"
+                type="datetime-local"
+                value={formData.start_date}
+                onChange={(e) => handleChange('start_date', e.target.value)}
+                className={errors.start_date ? 'border-red-500' : ''}
               />
-              {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
+              {errors.start_date && <p className="text-sm text-red-500">{errors.start_date}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="time">Hora *</Label>
+              <Label htmlFor="end_date">Fecha y Hora Fin *</Label>
               <Input
-                id="time"
-                type="time"
-                value={formData.time}
-                onChange={(e) => handleChange('time', e.target.value)}
-                className={errors.time ? 'border-red-500' : ''}
+                id="end_date"
+                type="datetime-local"
+                value={formData.end_date}
+                onChange={(e) => handleChange('end_date', e.target.value)}
+                className={errors.end_date ? 'border-red-500' : ''}
               />
-              {errors.time && <p className="text-sm text-red-500">{errors.time}</p>}
+              {errors.end_date && <p className="text-sm text-red-500">{errors.end_date}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Ubicación *</Label>
+            <Label htmlFor="venue">Lugar/Local *</Label>
             <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => handleChange('location', e.target.value)}
-              placeholder="Dojo Central, Madrid"
-              className={errors.location ? 'border-red-500' : ''}
+              id="venue"
+              value={formData.venue}
+              onChange={(e) => handleChange('venue', e.target.value)}
+              placeholder="Dojo Central"
+              className={errors.venue ? 'border-red-500' : ''}
             />
-            {errors.location && <p className="text-sm text-red-500">{errors.location}</p>}
+            {errors.venue && <p className="text-sm text-red-500">{errors.venue}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Dirección *</Label>
+            <Input
+              id="address"
+              value={formData.address}
+              onChange={(e) => handleChange('address', e.target.value)}
+              placeholder="Calle Principal 123"
+              className={errors.address ? 'border-red-500' : ''}
+            />
+            {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city">Ciudad *</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => handleChange('city', e.target.value)}
+                placeholder="Madrid"
+                className={errors.city ? 'border-red-500' : ''}
+              />
+              {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="province">Provincia *</Label>
+              <Input
+                id="province"
+                value={formData.province}
+                onChange={(e) => handleChange('province', e.target.value)}
+                placeholder="Madrid"
+                className={errors.province ? 'border-red-500' : ''}
+              />
+              {errors.province && <p className="text-sm text-red-500">{errors.province}</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -211,7 +277,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Precio (€) *</Label>
+              <Label htmlFor="price">Precio (€)</Label>
               <Input
                 id="price"
                 type="number"
@@ -224,27 +290,6 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
               />
               {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="instructor">Instructor</Label>
-            <Input
-              id="instructor"
-              value={formData.instructor}
-              onChange={(e) => handleChange('instructor', e.target.value)}
-              placeholder="Sensei Juan Pérez"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="image_url">URL de Imagen</Label>
-            <Input
-              id="image_url"
-              type="url"
-              value={formData.image_url}
-              onChange={(e) => handleChange('image_url', e.target.value)}
-              placeholder="https://ejemplo.com/imagen.jpg"
-            />
           </div>
 
           <DialogFooter>

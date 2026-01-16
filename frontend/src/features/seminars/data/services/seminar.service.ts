@@ -4,7 +4,14 @@ import type { Seminar, CreateSeminarRequest, UpdateSeminarRequest, SeminarFilter
 const BASE_URL = '/api/v1/seminars';
 
 export const getSeminars = async (filters?: SeminarFilters): Promise<SeminarsListResponse> => {
-  return await apiClient.get<SeminarsListResponse>(BASE_URL, { params: filters });
+  // Backend returns plain array, transform to paginated format
+  const seminars = await apiClient.get<Seminar[]>(BASE_URL, { params: filters });
+  return {
+    items: seminars,
+    total: seminars.length,
+    offset: filters?.offset || 0,
+    limit: filters?.limit || 20,
+  };
 };
 
 export const getSeminar = async (id: string): Promise<Seminar> => {

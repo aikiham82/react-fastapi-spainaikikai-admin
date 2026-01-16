@@ -14,7 +14,7 @@ export const MemberList = () => {
   const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
-  const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('');
+  const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
 
@@ -25,7 +25,8 @@ export const MemberList = () => {
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
-    setFilters({ ...filters, license_status: value as "active" | "expired" | "pending" | undefined, offset: 0 });
+    const statusValue = value === 'all' ? undefined : value as "active" | "expired" | "pending";
+    setFilters({ ...filters, license_status: statusValue, offset: 0 });
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -89,7 +90,7 @@ export const MemberList = () => {
             <SelectValue placeholder="Estado de licencia" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="active">Activa</SelectItem>
             <SelectItem value="expired">Expirada</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
@@ -179,7 +180,9 @@ export const MemberList = () => {
                             <div>
                               <p className="text-sm font-medium text-gray-900">Fecha de Nacimiento</p>
                               <p className="text-sm text-gray-600">
-                                {new Date(member.date_of_birth).toLocaleDateString('es-ES')}
+                                {member.date_of_birth
+                                  ? new Date(member.date_of_birth).toLocaleDateString('es-ES')
+                                  : 'No especificada'}
                               </p>
                             </div>
                             <div className="grid grid-cols-2 gap-4">

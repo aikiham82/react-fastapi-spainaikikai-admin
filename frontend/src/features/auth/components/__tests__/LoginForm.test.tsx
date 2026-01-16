@@ -309,7 +309,7 @@ describe('LoginForm', () => {
       
       // Wait for useEffect to run
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/home')
+        expect(mockNavigate).toHaveBeenCalledWith('/')
       })
     })
 
@@ -339,7 +339,7 @@ describe('LoginForm', () => {
       rerender(<LoginForm />)
       
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/home')
+        expect(mockNavigate).toHaveBeenCalledWith('/')
       })
     })
 
@@ -367,7 +367,7 @@ describe('LoginForm', () => {
         
         if (testCase.shouldNavigate) {
           await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith('/home')
+            expect(mockNavigate).toHaveBeenCalledWith('/')
           })
         } else {
           await act(async () => {
@@ -564,7 +564,7 @@ describe('LoginForm', () => {
       rerender(<LoginForm />)
       
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/home')
+        expect(mockNavigate).toHaveBeenCalledWith('/')
       })
     })
   })

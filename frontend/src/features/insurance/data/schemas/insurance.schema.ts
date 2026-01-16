@@ -1,24 +1,31 @@
 export interface Insurance {
   id: string;
-  member_id: string;
+  member_id?: string;
+  club_id?: string;
   member_name?: string;
   insurance_type: 'accident' | 'rc';
   policy_number: string;
+  insurance_company: string;
+  coverage_amount?: number;
+  payment_id?: string;
   start_date: string;
   end_date: string;
   status: 'active' | 'expired';
-  amount: number;
+  documents?: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateInsuranceRequest {
-  member_id: string;
+  member_id?: string;
+  club_id?: string;
   insurance_type: 'accident' | 'rc';
   policy_number: string;
+  insurance_company: string;
+  coverage_amount?: number;
+  payment_id?: string;
   start_date: string;
   end_date: string;
-  amount: number;
 }
 
 export interface UpdateInsuranceRequest extends Partial<CreateInsuranceRequest> {}

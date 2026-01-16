@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 const BASE_URL = '/api/v1/import-export';
 
 export const importMembers = async (data: ImportMembersRequest): Promise<ImportMembersResponse> => {
-  return await apiClient.post<ImportMembersResponse>(`${BASE_URL}/members`, data);
+  return await apiClient.post<ImportMembersResponse>(`${BASE_URL}/members/import`, data);
 };
 
 export const exportMembers = async (filters?: ExportMembersFilters): Promise<Blob> => {

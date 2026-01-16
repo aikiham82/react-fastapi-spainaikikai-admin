@@ -1,10 +1,10 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters, MembersListResponse } from './member.schema';
+import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters } from '../schemas/member.schema';
 
 const BASE_URL = '/api/v1/members';
 
-export const getMembers = async (filters?: MemberFilters): Promise<MembersListResponse> => {
-  return await apiClient.get<MembersListResponse>(BASE_URL, { params: filters });
+export const getMembers = async (filters?: MemberFilters): Promise<Member[]> => {
+  return await apiClient.get<Member[]>(BASE_URL, { params: filters });
 };
 
 export const getMember = async (id: string): Promise<Member> => {

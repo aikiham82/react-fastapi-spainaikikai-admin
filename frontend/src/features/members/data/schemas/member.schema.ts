@@ -21,17 +21,17 @@ export interface Member {
 
 export interface CreateMemberRequest {
   first_name: string;
-  last_name: string;
-  dni: string;
   email: string;
-  phone: string;
-  birth_date: string;
-  address: string;
-  city: string;
-  province: string;
-  postal_code: string;
-  country: string;
-  club_id: string;
+  last_name?: string;
+  dni?: string;
+  phone?: string;
+  birth_date?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
+  country?: string;
+  club_id?: string;
 }
 
 export interface UpdateMemberRequest extends Partial<CreateMemberRequest> { }

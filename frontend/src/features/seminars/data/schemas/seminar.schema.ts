@@ -2,14 +2,18 @@ export interface Seminar {
   id: string;
   title: string;
   description: string;
-  date: string;
-  time: string;
-  location: string;
+  instructor_name: string;
+  venue: string;
+  address: string;
+  city: string;
+  province: string;
+  start_date: string;
+  end_date: string;
   max_participants?: number;
   current_participants: number;
   price: number;
-  instructor?: string;
-  image_url?: string;
+  club_id?: string;
+  association_id?: string;
   status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;
@@ -18,13 +22,17 @@ export interface Seminar {
 export interface CreateSeminarRequest {
   title: string;
   description: string;
-  date: string;
-  time: string;
-  location: string;
+  instructor_name: string;
+  venue: string;
+  address: string;
+  city: string;
+  province: string;
+  start_date: string;
+  end_date: string;
   max_participants?: number;
   price: number;
-  instructor?: string;
-  image_url?: string;
+  club_id?: string;
+  association_id?: string;
 }
 
 export interface UpdateSeminarRequest extends Partial<CreateSeminarRequest> {}
