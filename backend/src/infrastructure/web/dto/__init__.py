@@ -8,7 +8,7 @@ from .member_dto import MemberCreate, MemberUpdate, MemberResponse
 from .license_dto import LicenseCreate, LicenseUpdate, LicenseRenewRequest, LicenseResponse
 from .seminar_dto import SeminarCreate, SeminarUpdate, SeminarResponse
 from .payment_dto import PaymentCreate, PaymentResponse, PaymentRefundRequest, RedsysPaymentRequest, RedsysWebhookResponse
-from .insurance_dto import InsuranceCreate, InsuranceUpdate, InsuranceResponse
+from .insurance_dto import InsuranceCreate, InsuranceUpdate, InsuranceResponse, InsuranceListResponse
 
 __all__ = [
     "UserCreate", "UserResponse", "Token",
@@ -19,5 +19,5 @@ __all__ = [
     "LicenseCreate", "LicenseUpdate", "LicenseRenewRequest", "LicenseResponse",
     "SeminarCreate", "SeminarUpdate", "SeminarResponse",
     "PaymentCreate", "PaymentResponse", "PaymentRefundRequest", "RedsysPaymentRequest", "RedsysWebhookResponse",
-    "InsuranceCreate", "InsuranceUpdate", "InsuranceResponse"
+    "InsuranceCreate", "InsuranceUpdate", "InsuranceResponse", "InsuranceListResponse"
 ]

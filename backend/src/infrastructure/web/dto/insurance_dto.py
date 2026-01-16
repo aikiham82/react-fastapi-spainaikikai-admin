@@ -42,3 +42,11 @@ class InsuranceResponse(InsuranceBase):
 
     class Config:
         from_attributes = True
+
+
+class InsuranceListResponse(BaseModel):
+    """DTO for paginated insurance list response."""
+    items: list[InsuranceResponse]
+    total: int
+    offset: int
+    limit: int

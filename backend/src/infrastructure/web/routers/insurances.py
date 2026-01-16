@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.infrastructure.web.dto.insurance_dto import (
     InsuranceCreate,
     InsuranceUpdate,
-    InsuranceResponse
+    InsuranceResponse,
+    InsuranceListResponse
 )
 from src.infrastructure.web.mappers_insurance import InsuranceMapper
 from src.infrastructure.web.dependencies import (
@@ -24,9 +25,10 @@ from src.domain.entities.user import User
 router = APIRouter(prefix="/insurances", tags=["insurances"])
 
 
-@router.get("", response_model=List[InsuranceResponse])
+@router.get("", response_model=InsuranceListResponse)
 async def get_insurances(
     limit: int = 100,
+    offset: int = 0,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
     get_all_use_case = Depends(get_all_insurances_use_case),
@@ -34,7 +36,13 @@ async def get_insurances(
 ):
     """Get all insurances, optionally filtered by club or member."""
     insurances = await get_all_use_case.execute(limit, club_id, member_id)
-    return InsuranceMapper.to_response_list(insurances)
+    items = InsuranceMapper.to_response_list(insurances)
+    return InsuranceListResponse(
+        items=items,
+        total=len(items),
+        offset=offset,
+        limit=limit
+    )
 
 
 @router.get("/{insurance_id}", response_model=InsuranceResponse)

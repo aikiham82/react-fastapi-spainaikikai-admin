@@ -20,8 +20,8 @@ class CreateInsuranceUseCase:
         club_id: Optional[str],
         policy_number: str,
         insurance_company: str,
-        start_date: str,
-        end_date: str,
+        start_date: datetime,
+        end_date: datetime,
         insurance_type: str = "accident",
         coverage_amount: Optional[float] = None,
         payment_id: Optional[str] = None
@@ -38,8 +38,8 @@ class CreateInsuranceUseCase:
             insurance_type=InsuranceType(insurance_type),
             policy_number=policy_number,
             insurance_company=insurance_company,
-            start_date=datetime.fromisoformat(start_date),
-            end_date=datetime.fromisoformat(end_date),
+            start_date=start_date,
+            end_date=end_date,
             status=InsuranceStatus.ACTIVE,
             coverage_amount=coverage_amount,
             payment_id=payment_id

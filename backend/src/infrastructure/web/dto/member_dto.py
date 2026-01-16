@@ -8,14 +8,14 @@ from datetime import datetime
 class MemberBase(BaseModel):
     """Base Member DTO."""
     first_name: str
-    last_name: str
-    dni: str
     email: EmailStr
-    phone: str
-    address: str
-    city: str
-    province: str
-    postal_code: str
+    last_name: Optional[str] = None
+    dni: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
     country: str = "Spain"
     club_id: Optional[str] = None
 

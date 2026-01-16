@@ -34,15 +34,11 @@ class Member:
     updated_at: Optional[datetime] = None
 
     def __post_init__(self):
+        """Validate the member entity."""
         self.created_at = self.created_at or datetime.now()
         self.updated_at = self.updated_at or datetime.now()
-        """Validate the member entity."""
         if not self.first_name or not self.first_name.strip():
             raise ValueError("Member first name cannot be empty")
-        if not self.last_name or not self.last_name.strip():
-            raise ValueError("Member last name cannot be empty")
-        if not self.dni or not self.dni.strip():
-            raise ValueError("Member DNI cannot be empty")
         if not self.email or not self.email.strip():
             raise ValueError("Member email cannot be empty")
         if "@" not in self.email:
