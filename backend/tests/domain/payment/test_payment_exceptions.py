@@ -46,5 +46,5 @@ class TestPaymentExceptions:
     def test_redsys_payment_error(self):
         """Test RedsysPaymentError."""
         error = RedsysPaymentError("Redsys payment failed")
-        assert "Redsys payment" in str(error).lower()
+        assert "redsys payment" in str(error).lower()
         assert "payment" in str(error).lower()

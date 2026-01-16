@@ -80,13 +80,20 @@ class TestUserBase:
             "username": "testuser",
             "is_active": False
         }
+        expected = {
+            "email": "test@example.com",
+            "username": "testuser",
+            "is_active": False,
+            "role": None,
+            "club_id": None
+        }
         user_base = UserBase(**data)
-        
+
         # Act
         serialized = user_base.model_dump()
-        
+
         # Assert
-        assert serialized == data
+        assert serialized == expected
 
     def test_user_base_json_serialization(self):
         """Test that UserBase can be serialized to JSON."""

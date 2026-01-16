@@ -18,6 +18,7 @@ from src.application.use_cases.user_use_cases import (
 
 @pytest.mark.service
 @pytest.mark.unit
+@pytest.mark.asyncio
 class TestGetAllUsersUseCase:
     """Test suite for GetAllUsersUseCase."""
 
@@ -78,6 +79,7 @@ class TestGetAllUsersUseCase:
 
 @pytest.mark.service
 @pytest.mark.unit
+@pytest.mark.asyncio
 class TestGetUserByIdUseCase:
     """Test suite for GetUserByIdUseCase."""
 
@@ -126,6 +128,7 @@ class TestGetUserByIdUseCase:
 
 @pytest.mark.service
 @pytest.mark.unit
+@pytest.mark.asyncio
 class TestGetUserByEmailUseCase:
     """Test suite for GetUserByEmailUseCase."""
 
@@ -174,6 +177,7 @@ class TestGetUserByEmailUseCase:
 
 @pytest.mark.service
 @pytest.mark.unit
+@pytest.mark.asyncio
 class TestCreateUserUseCase:
     """Test suite for CreateUserUseCase."""
 
@@ -334,6 +338,7 @@ class TestCreateUserUseCase:
 
 @pytest.mark.service
 @pytest.mark.unit
+@pytest.mark.asyncio
 class TestAuthenticateUserUseCase:
     """Test suite for AuthenticateUserUseCase."""
 
@@ -464,6 +469,7 @@ class TestAuthenticateUserUseCase:
 
 @pytest.mark.service
 @pytest.mark.unit
+@pytest.mark.asyncio
 class TestUserUseCasesIntegration:
     """Integration tests for user use cases interaction."""
 

@@ -18,7 +18,6 @@ class TestMemberEntity:
     @pytest.fixture
     def member_fixture(self):
         """Member fixture."""
-        from datetime import datetime
         return Member(
             first_name="John",
             last_name="Doe",
@@ -31,10 +30,8 @@ class TestMemberEntity:
             postal_code="28001",
             country="Spain",
             birth_date=datetime(1990, 1, 1),
-            federation_number="LIC-123",
             club_id="club-123",
-            status=MemberStatus.ACTIVE,
-            registration_date=datetime.utcnow()
+            status=MemberStatus.ACTIVE
         )
 
     def test_member_creation_valid(self, member_fixture):
@@ -45,7 +42,7 @@ class TestMemberEntity:
         assert member_fixture.email == "john.doe@example.com"
         assert member_fixture.status == MemberStatus.ACTIVE
         assert member_fixture.club_id == "club-123"
-        assert member_fixture.registration_date is not None
+        assert member_fixture.created_at is not None
 
     def test_member_creation_empty_first_name(self):
         """Test member creation with empty first name raises error."""
@@ -58,11 +55,10 @@ class TestMemberEntity:
                 phone="+34612345678",
                 address="123 Street",
                 city="Madrid",
-                province="Madrird",
+                province="Madrid",
                 postal_code="28001",
                 country="Spain",
                 birth_date=datetime(1990, 1, 1),
-                federation_number="LIC-123",
                 club_id="club-123"
             )
 
@@ -81,18 +77,18 @@ class TestMemberEntity:
                 postal_code="28001",
                 country="Spain",
                 birth_date=datetime(1990, 1, 1),
-                federation_number="LIC-123",
                 club_id="club-123"
             )
 
     def test_member_activation(self, member_fixture):
-        """Test member activation."""
+        """Test member is_active property."""
         assert member_fixture.is_active is True
 
     def test_member_deactivation(self, member_fixture):
         """Test member deactivation."""
         member_fixture.deactivate()
         assert member_fixture.is_active is False
+        assert member_fixture.status == MemberStatus.INACTIVE
 
     def test_member_suspension(self, member_fixture):
         """Test member suspension."""

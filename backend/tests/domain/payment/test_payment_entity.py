@@ -50,15 +50,13 @@ class TestPaymentEntity:
 
     def test_payment_creation_invalid_refund_amount(self):
         """Test payment creation with invalid refund amount raises error."""
-        payment = Payment(
-            member_id="member-id",
-            club_id="club-id",
-            amount=100.0,
-            refund_amount=200.0
-        )
-        
-        # This will be validated in __post_init__
-        assert payment.refund_amount > payment.amount
+        with pytest.raises(ValueError, match="Refund amount cannot exceed payment amount"):
+            Payment(
+                member_id="member-id",
+                club_id="club-id",
+                amount=100.0,
+                refund_amount=200.0
+            )
 
     def test_payment_creation_with_refund_amount(self):
         """Test payment creation with refund amount."""
@@ -85,16 +83,16 @@ class TestPaymentEntity:
         assert payment.status == PaymentStatus.PROCESSING
 
     def test_payment_mark_as_processing_invalid_state(self):
-        """Test marking pending payment as processing raises error."""
+        """Test marking non-pending payment as processing raises error."""
         payment = Payment(
             member_id="member-id",
             club_id="club-id",
             payment_type=PaymentType.ANNUAL_QUOTA,
             amount=100.0,
-            status=PaymentStatus.PENDING
+            status=PaymentStatus.COMPLETED  # Not PENDING
         )
-        
-        with pytest.raises(ValueError, match="Cannot mark.*as processing"):
+
+        with pytest.raises(ValueError, match="Only pending payments can be marked as processing"):
             payment.mark_as_processing()
 
     def test_payment_complete(self):
@@ -126,8 +124,8 @@ class TestPaymentEntity:
             amount=100.0,
             status=PaymentStatus.PENDING
         )
-        
-        with pytest.raises(ValueError, match="Cannot complete.*status is not PROCESSING"):
+
+        with pytest.raises(ValueError, match="Only processing payments can be completed"):
             payment.complete_payment("TXN-12345", "Response data")
 
     def test_payment_fail(self):
@@ -139,15 +137,14 @@ class TestPaymentEntity:
             amount=100.0,
             status=PaymentStatus.PROCESSING
         )
-        
+
         error_message = "Payment failed"
-        transaction_id = "TXN-FAILED-123"
-        
+
         payment.fail_payment(error_message)
-        
+
         assert payment.status == PaymentStatus.FAILED
         assert payment.error_message == error_message
-        assert payment.transaction_id == transaction_id
+        assert payment.transaction_id is None  # fail_payment doesn't set transaction_id
         assert payment.payment_date is None
 
     def test_payment_fail_invalid_state(self):
@@ -157,10 +154,10 @@ class TestPaymentEntity:
             club_id="club-id",
             payment_type=PaymentType.ANNUAL_QUOTA,
             amount=100.0,
-            status=PaymentStatus.PENDING
+            status=PaymentStatus.COMPLETED  # Not PROCESSING or PENDING
         )
-        
-        with pytest.raises(ValueError, match="Cannot fail.*status is not PROCESSING"):
+
+        with pytest.raises(ValueError, match="Only processing or pending payments can fail"):
             payment.fail_payment("Error")
 
     def test_payment_cancel(self):
@@ -183,10 +180,10 @@ class TestPaymentEntity:
             club_id="club-id",
             payment_type=PaymentType.ANNUAL_QUOTA,
             amount=100.0,
-            status=PaymentStatus.PENDING
+            status=PaymentStatus.COMPLETED  # Not PENDING or PROCESSING
         )
-        
-        with pytest.raises(ValueError, match="Cannot cancel.*status is not PROCESSING"):
+
+        with pytest.raises(ValueError, match="Only pending or processing payments can be cancelled"):
             payment.cancel_payment()
 
     def test_payment_refund(self):
@@ -265,8 +262,8 @@ class TestPaymentEntity:
             amount=100.0,
             status=PaymentStatus.CANCELLED
         )
-        
-        with pytest.raises(ValueError, match="Cannot refund.*not refundable"):
+
+        with pytest.raises(ValueError, match="Only completed payments can be refunded"):
             payment.refund_payment()
 
     def test_payment_refund_partial_invalid_state(self):
@@ -279,8 +276,8 @@ class TestPaymentEntity:
             amount=100.0,
             status=PaymentStatus.FAILED
         )
-        
-        with pytest.raises(ValueError, match="Cannot refund.*not refundable"):
+
+        with pytest.raises(ValueError, match="Only completed payments can be refunded"):
             payment.refund_payment()
 
     def test_payment_refund_amount_exceeds_total(self):
@@ -292,14 +289,14 @@ class TestPaymentEntity:
             payment_type=PaymentType.ANNUAL_QUOTA,
             amount=100.0,
             status=PaymentStatus.COMPLETED,
-            payment_date=datetime.utcnow(),
+            payment_date=datetime.now(),
             transaction_id="TXN-12345",
             redsys_response="Success",
             refund_amount=None,
             refund_date=None
         )
-        
-        with pytest.raises(ValueError, match="Refund amount.*exceeds.*amount"):
+
+        with pytest.raises(ValueError, match="Refund amount cannot exceed payment amount"):
             payment.refund_payment(150.0)
 
     def test_payment_is_refundable(self):

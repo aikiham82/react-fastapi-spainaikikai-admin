@@ -25,13 +25,11 @@ class TestClubEntity:
             country="Spain",
             phone="+34938765432",
             email="info@club.com",
-            federation_number="FC-123",
             association_id="association-id"
         )
-        
+
         assert club.name == "Test Club"
         assert club.email == "info@club.com"
-        assert club.federation_number == "FC-123"
         assert club.association_id == "association-id"
         assert club.is_active is True
         assert club.created_at is not None
@@ -47,8 +45,7 @@ class TestClubEntity:
                 postal_code="08001",
                 country="Spain",
                 phone="+34938765432",
-                email="info@club.com",
-                federation_number="FC-123"
+                email="info@club.com"
             )
 
     def test_club_creation_invalid_email(self):
@@ -62,13 +59,12 @@ class TestClubEntity:
                 postal_code="08001",
                 country="Spain",
                 phone="+34938765432",
-                email="invalid-email",
-                federation_number="FC-123"
+                email="invalid-email"
             )
 
-    def test_club_creation_empty_federation_number(self):
-        """Test club creation with empty federation number raises error."""
-        with pytest.raises(ValueError, match="Federation number cannot be empty"):
+    def test_club_creation_empty_email(self):
+        """Test club creation with empty email raises error."""
+        with pytest.raises(ValueError, match="Club email cannot be empty"):
             Club(
                 name="Test Club",
                 address="456 Avenue",
@@ -77,8 +73,7 @@ class TestClubEntity:
                 postal_code="08001",
                 country="Spain",
                 phone="+34938765432",
-                email="info@club.com",
-                federation_number=""
+                email=""
             )
 
     def test_club_activation(self):
@@ -92,10 +87,9 @@ class TestClubEntity:
             country="Spain",
             phone="+34938765432",
             email="info@club.com",
-            federation_number="FC-123",
             is_active=False
         )
-        
+
         club.activate()
         assert club.is_active is True
 
@@ -110,10 +104,9 @@ class TestClubEntity:
             country="Spain",
             phone="+34938765432",
             email="info@club.com",
-            federation_number="FC-123",
             is_active=True
         )
-        
+
         club.deactivate()
         assert club.is_active is False
 
@@ -128,10 +121,9 @@ class TestClubEntity:
             country="Spain",
             phone="+34938765432",
             email="info@club.com",
-            federation_number="FC-123",
             is_active=True
         )
-        
+
         club.update_contact_info(phone="+34999999999", email="newemail@club.com")
         assert club.phone == "+34999999999"
         assert club.email == "newemail@club.com"
@@ -147,10 +139,9 @@ class TestClubEntity:
             country="Spain",
             phone="+34938765432",
             email="info@club.com",
-            federation_number="FC-123",
             is_active=True
         )
-        
+
         with pytest.raises(ValueError, match="Invalid email format"):
             club.update_contact_info(email="invalid-email")
 
@@ -165,10 +156,9 @@ class TestClubEntity:
             country="Spain",
             phone="+34938765432",
             email="info@club.com",
-            federation_number="FC-123",
             is_active=True
         )
-        
+
         club.update_address(
             address="789 New Street",
             city="Valencia",
@@ -176,14 +166,14 @@ class TestClubEntity:
             postal_code="46001",
             country="Spain"
         )
-        
+
         assert club.address == "789 New Street"
         assert club.city == "Valencia"
         assert club.province == "Valencia"
         assert club.postal_code == "46001"
 
-    def test_club_change_club(self):
-        """Test club change."""
+    def test_club_association_id_update(self):
+        """Test club association id can be updated."""
         club = Club(
             name="Test Club",
             address="456 Avenue",
@@ -193,9 +183,8 @@ class TestClubEntity:
             country="Spain",
             phone="+34938765432",
             email="info@club.com",
-            federation_number="FC-123",
-            association_id="old-club-id"
+            association_id="old-association-id"
         )
-        
-        club.club_id = "new-club-id"
-        assert club.club_id == "new-club-id"
+
+        club.association_id = "new-association-id"
+        assert club.association_id == "new-association-id"

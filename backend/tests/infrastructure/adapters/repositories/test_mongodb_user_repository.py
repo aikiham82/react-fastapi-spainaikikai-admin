@@ -9,14 +9,19 @@ from src.domain.entities.user import User
 from src.infrastructure.adapters.repositories.mongodb_user_repository import MongoDBUserRepository
 
 
+@pytest.mark.asyncio
 @pytest.mark.repository
 @pytest.mark.integration
 class TestMongoDBUserRepository:
     """Test suite for MongoDB User Repository."""
 
     @pytest.fixture
-    def repository(self, mock_database):
-        """Create repository instance with mocked database."""
+    def repository(self, mock_mongo_collection, mock_database):
+        """Create repository instance with mocked database.
+
+        Note: mock_mongo_collection must be created before repository
+        so the collection mock is properly set up.
+        """
         with patch('src.infrastructure.adapters.repositories.mongodb_user_repository.get_database', return_value=mock_database):
             return MongoDBUserRepository()
 
@@ -47,17 +52,21 @@ class TestMongoDBUserRepository:
 
     @pytest.mark.unit
     def test_to_domain_handles_missing_optional_fields(self, repository):
-        """Test that _to_domain handles documents with missing optional fields."""
+        """Test that _to_domain handles documents with missing optional fields.
+
+        Note: User entity auto-sets created_at/updated_at in __post_init__,
+        so they will never be None even if not in source document.
+        """
         # Arrange
         minimal_doc = {
             "_id": ObjectId(),
             "email": "test@example.com",
             "username": "testuser"
         }
-        
+
         # Act
         user = repository._to_domain(minimal_doc)
-        
+
         # Assert
         assert isinstance(user, User)
         assert user.id == str(minimal_doc["_id"])
@@ -65,8 +74,9 @@ class TestMongoDBUserRepository:
         assert user.username == minimal_doc["username"]
         assert user.hashed_password == ""  # Default value
         assert user.is_active is True  # Default value
-        assert user.created_at is None
-        assert user.updated_at is None
+        # User entity auto-sets timestamps when None is passed
+        assert user.created_at is not None
+        assert user.updated_at is not None
 
     @pytest.mark.unit
     def test_to_document_converts_user_entity_to_document(self, repository, user_entity):
@@ -291,18 +301,21 @@ class TestMongoDBUserRepository:
         # Verify find_one was called to get the created document
         mock_mongo_collection.find_one.assert_called_once_with({"_id": inserted_id})
 
-    async def test_create_removes_id_from_document_before_insert(self, repository, mock_mongo_collection, user_entity_with_id):
+    async def test_create_removes_id_from_document_before_insert(self, repository, mock_mongo_collection, user_entity_with_id, user_document):
         """Test that create removes _id from document before inserting."""
         # Arrange
         inserted_id = ObjectId()
         mock_insert_result = Mock()
         mock_insert_result.inserted_id = inserted_id
         mock_mongo_collection.insert_one.return_value = mock_insert_result
-        mock_mongo_collection.find_one.return_value = {"_id": inserted_id}
-        
+        # Return a complete user document, not just the _id
+        created_doc = user_document.copy()
+        created_doc["_id"] = inserted_id
+        mock_mongo_collection.find_one.return_value = created_doc
+
         # Act
         await repository.create(user_entity_with_id)
-        
+
         # Assert
         insert_call = mock_mongo_collection.insert_one.call_args[0][0]
         assert "_id" not in insert_call
@@ -348,15 +361,18 @@ class TestMongoDBUserRepository:
         
         assert "User ID is required for update" in str(exc_info.value)
 
-    async def test_update_removes_id_from_update_document(self, repository, mock_mongo_collection, user_entity_with_id):
+    async def test_update_removes_id_from_update_document(self, repository, mock_mongo_collection, user_entity_with_id, user_document):
         """Test that update removes _id from the update document."""
         # Arrange
         mock_mongo_collection.update_one.return_value = Mock(modified_count=1)
-        mock_mongo_collection.find_one.return_value = {"_id": ObjectId(user_entity_with_id.id)}
-        
+        # Return a complete user document, not just the _id
+        updated_doc = user_document.copy()
+        updated_doc["_id"] = ObjectId(user_entity_with_id.id)
+        mock_mongo_collection.find_one.return_value = updated_doc
+
         # Act
         await repository.update(user_entity_with_id)
-        
+
         # Assert
         update_call = mock_mongo_collection.update_one.call_args[0][1]
         assert "_id" not in update_call["$set"]

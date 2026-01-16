@@ -16,9 +16,8 @@ class TestClubExceptions:
         """Test ClubNotFoundError."""
         error = ClubNotFoundError("club-123")
         assert error.entity_type == "Club"
-        assert error.entity_type == "Club"
         assert error.entity_id == "club-123"
-        assert str(error) == "Club with id club-123 not found"
+        assert str(error) == "Club with ID club-123 not found"
 
     def test_invalid_club_data_error(self):
         """Test InvalidClubDataError."""

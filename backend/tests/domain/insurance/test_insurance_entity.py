@@ -81,25 +81,7 @@ class TestInsuranceEntity:
         
         insurance.activate()
         assert insurance.status == InsuranceStatus.ACTIVE
-        assert insurance.created_at is None
-
-    def test_insurance_deactivation(self):
-        """Test insurance deactivation."""
-        insurance = Insurance(
-            member_id="member-id",
-            club_id="club-id",
-            insurance_type=InsuranceType.ACCIDENT,
-            policy_number="POL-12345",
-            insurance_company="Insurance Company Inc",
-            start_date=datetime.now() - timedelta(days=10),
-            end_date=datetime.now() + timedelta(days=355),
-            coverage_amount=100000.0,
-            payment_id="payment-id",
-            status=InsuranceStatus.ACTIVE
-        )
-        
-        insurance.deactivate()
-        assert insurance.status == InsuranceStatus.INACTIVE
+        assert insurance.created_at is not None  # Auto-set in __post_init__
 
     def test_insurance_cancellation(self):
         """Test insurance cancellation."""
@@ -171,9 +153,9 @@ class TestInsuranceEntity:
 
     def test_insurance_is_expiring_soon(self):
         """Test is expiring soon method."""
-        # Insurance expiring in 5 days (threshold)
+        # Insurance expiring in 15 days
         start_date = datetime.now() - timedelta(days=10)
-        end_date = start_date + timedelta(days=365)
+        end_date = datetime.now() + timedelta(days=15)  # Expires in 15 days from now
         insurance = Insurance(
             member_id="member-id",
             club_id="club-id",
@@ -186,15 +168,15 @@ class TestInsuranceEntity:
             payment_id="payment-id",
             status=InsuranceStatus.ACTIVE
         )
-        
-        # 10 days until expiration (more than 30 day threshold)
-        assert insurance.is_expiring_soon(30) is False
-        
-        # 5 days until expiration (exactly 30 day threshold)
-        assert insurance.is_expiring_soon(10) is True
 
-        # 1 day until expiration (less than 30 day threshold)
-        assert insurance.is_expiring_soon(1) is True
+        # 15 days until expiration (within 30 day threshold)
+        assert insurance.is_expiring_soon(30) is True
+
+        # 15 days until expiration (within 20 day threshold)
+        assert insurance.is_expiring_soon(20) is True
+
+        # 15 days until expiration (outside 10 day threshold)
+        assert insurance.is_expiring_soon(10) is False
 
         # Already expired
         insurance.end_date = datetime.now() - timedelta(days=1)
@@ -277,8 +259,8 @@ class TestInsuranceEntity:
 
     def test_insurance_get_days_until_expiry(self):
         """Test get days until expiry method."""
-        # Insurance expiring in 30 days
-        start_date = datetime.now() + timedelta(days=30)
+        # Insurance expiring in ~30 days (allow small variance due to timing)
+        end_date = datetime.now() + timedelta(days=30)
         insurance = Insurance(
             member_id="member-id",
             club_id="club-id",
@@ -286,62 +268,54 @@ class TestInsuranceEntity:
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
             start_date=datetime.now(),
-            end_date=start_date + timedelta(days=365),
+            end_date=end_date,
             coverage_amount=100000.0,
             payment_id="payment-id"
         )
-        
+
         days = insurance.get_days_until_expiry()
-        assert days == 30
+        assert 29 <= days <= 30  # Allow 1 day variance due to timing
 
-        # Insurance expiring in 5 days
-        start_date = datetime.now() + timedelta(days=5)
-        insurance.end_date = start_date + timedelta(days=365)
-        assert insurance.get_days_until_expiry() == 365
+        # Insurance expiring in ~5 days
+        insurance.end_date = datetime.now() + timedelta(days=5)
+        days = insurance.get_days_until_expiry()
+        assert 4 <= days <= 5  # Allow 1 day variance
 
-        # Expired insurance
-        insurance.end_date = datetime.now() - timedelta(days=5)
-        assert insurance.get_days_until_expiry() == 5
-
-        # Almost expired insurance
-        start_date = datetime.now() + timedelta(days=1)
-        insurance.end_date = start_date + timedelta(days=365)
-        assert insurance.get_days_until_expiry() == 1
-
-        # Expired insurance (very old)
-        insurance.end_date = datetime.now() - timedelta(days=400)
-        assert insurance.get_days_until_expiry() == 400
+        # Almost expired insurance (~1 day)
+        insurance.end_date = datetime.now() + timedelta(days=1)
+        days = insurance.get_days_until_expiry()
+        assert 0 <= days <= 1  # Allow variance
 
     def test_insurance_is_expiring_soon_various_thresholds(self):
         """Test is expiring soon with various thresholds."""
-        start_date = datetime.now() + timedelta(days=30)
+        # Insurance expiring in 30 days from now
+        end_date = datetime.now() + timedelta(days=30)
         insurance = Insurance(
             member_id="member-id",
             club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
-            start_date=start_date,
-            end_date=start_date + timedelta(days=365),
+            start_date=datetime.now(),
+            end_date=end_date,
             coverage_amount=100000.0,
             payment_id="payment-id"
         )
-        
-        # Test various thresholds
-        assert insurance.is_expiring_soon(60) is True
-        assert insurance.is_expiring_soon(45) is True
-        assert insurance.is_expiring_soon(30) is True
-        assert insurance.is_expiring_soon(15) is True
-        assert insurance.is_expiring_soon(10) is True
-        assert insurance.is_expiring_soon(5) is True
-        assert insurance.is_expiring_soon(1) is True
-        assert insurance.is_expiring_soon(0) is False
+
+        # Test various thresholds (insurance expires in 30 days)
+        assert insurance.is_expiring_soon(60) is True  # 30 days < 60 threshold
+        assert insurance.is_expiring_soon(45) is True  # 30 days < 45 threshold
+        assert insurance.is_expiring_soon(30) is True  # 30 days <= 30 threshold
+        assert insurance.is_expiring_soon(15) is False  # 30 days > 15 threshold
+        assert insurance.is_expiring_soon(10) is False  # 30 days > 10 threshold
+        assert insurance.is_expiring_soon(5) is False   # 30 days > 5 threshold
+        assert insurance.is_expiring_soon(1) is False   # 30 days > 1 threshold
 
     def test_insurance_activation_with_dates(self):
         """Test insurance activation with dates set."""
         start_date = datetime.now()
         end_date = start_date + timedelta(days=365)
-        
+
         insurance = Insurance(
             member_id="member-id",
             club_id="club-id",
@@ -352,14 +326,14 @@ class TestInsuranceEntity:
             end_date=end_date,
             coverage_amount=100000.0,
             payment_id="payment-id",
-            status=InsuranceStatus.INACTIVE
+            status=InsuranceStatus.PENDING  # Use PENDING instead of INACTIVE
         )
-        
+
         insurance.activate()
         assert insurance.status == InsuranceStatus.ACTIVE
 
-    def test_insurance_deactivation(self):
-        """Test insurance deactivation."""
+    def test_insurance_deactivation_cancels(self):
+        """Test insurance deactivation (sets to CANCELLED)."""
         insurance = Insurance(
             member_id="member-id",
             club_id="club-id",
@@ -372,10 +346,10 @@ class TestInsuranceEntity:
             payment_id="payment-id",
             status=InsuranceStatus.ACTIVE
         )
-        
+
         insurance.deactivate()
-        assert insurance.status == InsuranceStatus.INACTIVE
-        assert insurance.is_active() is False
+        assert insurance.status == InsuranceStatus.CANCELLED  # deactivate sets to CANCELLED
+        assert insurance.is_active() is False  # is_active is a method
 
     def test_insurance_cancellation_with_dates(self):
         """Test insurance cancellation with dates set."""

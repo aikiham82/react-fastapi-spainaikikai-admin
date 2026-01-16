@@ -88,15 +88,15 @@ class TestAssociationEntity:
         assert association_fixture.is_active is True
 
         association_fixture.deactivate()
-        assert association.is_active is False
+        assert association_fixture.is_active is False
 
         association_fixture.activate()
-        assert association.is_active is True
+        assert association_fixture.is_active is True
 
     def test_association_deactivation(self, association_fixture):
         """Test association deactivation."""
         association_fixture.deactivate()
-        assert association.is_active is False
+        assert association_fixture.is_active is False
 
     def test_association_update_contact_info(self, association_fixture):
         """Test association contact info update."""

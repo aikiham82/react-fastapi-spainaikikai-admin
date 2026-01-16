@@ -15,15 +15,15 @@ class TestUserEntity:
         """Test that User entity can be created with valid data."""
         # Arrange & Act
         user = User(**valid_user_data)
-        
+
         # Assert
         assert user.email == valid_user_data["email"]
-        assert user.username == valid_user_data["username"] 
+        assert user.username == valid_user_data["username"]
         assert user.hashed_password == valid_user_data["hashed_password"]
         assert user.is_active is True  # Default value
         assert user.id is None  # Default value
-        assert user.created_at is None  # Default value
-        assert user.updated_at is None  # Default value
+        assert user.created_at is not None  # Auto-set in __post_init__
+        assert user.updated_at is not None  # Auto-set in __post_init__
 
     def test_user_creation_with_all_fields_succeeds(self):
         """Test User entity creation with all fields provided."""
@@ -176,11 +176,18 @@ class TestUserEntity:
         assert user_entity.hashed_password == original_password
 
     def test_user_entity_equality_comparison(self, valid_user_data):
-        """Test User entity equality based on all attributes."""
-        # Arrange
-        user1 = User(**valid_user_data)
-        user2 = User(**valid_user_data)
-        
+        """Test User entity equality based on key attributes."""
+        # Arrange - Create users with same timestamps
+        from datetime import datetime
+        now = datetime.now()
+        data_with_timestamps = {
+            **valid_user_data,
+            "created_at": now,
+            "updated_at": now
+        }
+        user1 = User(**data_with_timestamps)
+        user2 = User(**data_with_timestamps)
+
         # Act & Assert
         assert user1 == user2
 

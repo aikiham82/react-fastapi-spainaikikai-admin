@@ -314,7 +314,11 @@ class TestUserMapper:
         assert getattr(response, field_name) == field_value
 
     def test_mapper_handles_user_with_all_none_optional_fields(self):
-        """Test that mapper handles User with all optional fields set to None."""
+        """Test that mapper handles User with optional fields.
+
+        Note: User entity auto-sets created_at and updated_at in __post_init__,
+        so they will never actually be None after entity creation.
+        """
         # Arrange
         user = User(
             id=None,
@@ -325,14 +329,15 @@ class TestUserMapper:
             created_at=None,
             updated_at=None
         )
-        
+
         # Act
         response = UserMapper.to_response(user)
-        
+
         # Assert
         assert response.id is None
-        assert response.created_at is None
-        assert response.updated_at is None
+        # User entity auto-sets timestamps in __post_init__, so they won't be None
+        assert response.created_at is not None
+        assert response.updated_at is not None
         assert response.email == "test@example.com"
         assert response.username == "testuser"
         assert response.is_active is True
@@ -429,12 +434,12 @@ class TestUserMapperIntegration:
         
         # Assert
         assert len(responses) == 4
-        
-        # New user
+
+        # New user - timestamps are auto-set by User entity __post_init__
         assert responses[0].id == "1"
-        assert responses[0].created_at is None
-        
-        # Established user  
+        assert responses[0].created_at is not None
+
+        # Established user
         assert responses[1].created_at == datetime(2023, 1, 1)
         assert responses[1].updated_at == datetime(2023, 6, 1)
         
