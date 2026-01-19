@@ -11,11 +11,18 @@ import {
   FileSpreadsheet,
   Settings,
   LogOut,
+  DollarSign,
+  FileText,
 } from 'lucide-react';
 
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import type { LucideIcon } from 'lucide-react';
+
+const roleTranslations: Record<string, string> = {
+  'association_admin': 'Administrador',
+  'club_admin': 'Admin de Club',
+};
 
 interface NavItem {
   title: string;
@@ -25,15 +32,17 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { title: 'Dashboard', path: '/', icon: Home, resource: 'clubs' },
+  { title: 'Panel Principal', path: '/', icon: Home, resource: 'clubs' },
   { title: 'Clubs', path: '/clubs', icon: Building2, resource: 'clubs' },
-  { title: 'Members', path: '/members', icon: Users, resource: 'members' },
-  { title: 'Licenses', path: '/licenses', icon: IdCard, resource: 'licenses' },
-  { title: 'Payments', path: '/payments', icon: CreditCard, resource: 'payments' },
-  { title: 'Seminars', path: '/seminars', icon: Calendar, resource: 'seminars' },
-  { title: 'Insurance', path: '/insurance', icon: Shield, resource: 'insurance' },
-  { title: 'Import/Export', path: '/import-export', icon: FileSpreadsheet, resource: 'import_export' },
-  { title: 'Settings', path: '/settings', icon: Settings, resource: 'clubs' },
+  { title: 'Miembros', path: '/members', icon: Users, resource: 'members' },
+  { title: 'Licencias', path: '/licenses', icon: IdCard, resource: 'licenses' },
+  { title: 'Pagos', path: '/payments', icon: CreditCard, resource: 'payments' },
+  { title: 'Facturas', path: '/invoices', icon: FileText, resource: 'invoices' },
+  { title: 'Seminarios', path: '/seminars', icon: Calendar, resource: 'seminars' },
+  { title: 'Seguros', path: '/insurance', icon: Shield, resource: 'insurance' },
+  { title: 'Importar/Exportar', path: '/import-export', icon: FileSpreadsheet, resource: 'import_export' },
+  { title: 'Precios', path: '/price-configurations', icon: DollarSign, resource: 'price_configurations' },
+  { title: 'Configuracion', path: '/settings', icon: Settings, resource: 'clubs' },
 ];
 
 interface SidebarProps {
@@ -64,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }
         <h1 className="text-xl font-bold tracking-tight text-white leading-none">Aikido Admin</h1>
         {userRole && (
           <p className="text-[11px] font-semibold text-slate-400 mt-1.5 uppercase tracking-wider">
-            {userRole.replace('_', ' ')}
+            {roleTranslations[userRole] || userRole.replace('_', ' ')}
           </p>
         )}
       </div>

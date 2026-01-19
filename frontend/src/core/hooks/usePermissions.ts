@@ -15,18 +15,22 @@ const rolePermissions: Record<
     members: ['read', 'create', 'update', 'delete'],
     licenses: ['read', 'create', 'update', 'delete'],
     payments: ['read', 'create', 'update', 'delete'],
+    invoices: ['read', 'create', 'update', 'delete'],
     seminars: ['read', 'create', 'update', 'delete'],
     insurance: ['read', 'create', 'update', 'delete'],
     import_export: ['read', 'create', 'update', 'delete'],
+    price_configurations: ['read', 'create', 'update', 'delete'],
   },
   club_admin: {
     clubs: ['read'],
     members: ['read', 'create', 'update', 'delete'],
     licenses: ['read', 'create', 'update', 'delete'],
     payments: ['read', 'create', 'update'],
+    invoices: ['read'],
     seminars: ['read', 'create', 'update'],
     insurance: ['read', 'create', 'update'],
     import_export: ['read', 'create', 'update'],
+    price_configurations: ['read'],
   },
 };
 

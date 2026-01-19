@@ -15,7 +15,7 @@ export const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
@@ -40,24 +40,24 @@ export const LoginForm = () => {
     <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
       <CardHeader className="space-y-1 pb-6">
         <CardTitle className="text-2xl font-bold text-center text-gray-900">
-          Welcome back
+          Bienvenido
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
-          Enter your credentials to access your account
+          Introduce tus credenciales para acceder
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Email
+              Correo electrónico
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="email"
                 type="email"
-                placeholder="Email@example.com"
+                placeholder="correo@ejemplo.com"
                 className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
                 value={email}
@@ -68,14 +68,14 @@ export const LoginForm = () => {
 
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Password
+              Contraseña
             </Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
+                placeholder="Introduce tu contraseña"
                 className="pl-10 pr-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
                 value={password}
@@ -96,7 +96,7 @@ export const LoginForm = () => {
               to="/forgot-password"
               className="text-sm text-primary hover:text-primary/80 transition-colors font-medium underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-1"
             >
-              Forgot password?
+              ¿Olvidaste tu contraseña?
             </Link>
           </div>
 
@@ -104,7 +104,7 @@ export const LoginForm = () => {
             type="submit"
             disabled={isLoading}
             className={cn(
-              "w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium transition-all duration-200",
+              "w-full h-12 bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white font-medium transition-all duration-200",
               "hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0",
               isLoading && "opacity-50 cursor-not-allowed"
             )}
@@ -112,22 +112,22 @@ export const LoginForm = () => {
             {isLoading ? (
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                <span>Signing in...</span>
+                <span>Iniciando sesión...</span>
               </div>
             ) : (
-              "Sign In"
+              "Iniciar Sesión"
             )}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4 pt-6">
         <div className="text-center text-sm text-gray-600">
-          Don't have an account?{" "}
+          ¿No tienes cuenta?{" "}
           <Link
             to="/register"
             className="font-medium text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-1"
           >
-            Sign up
+            Regístrate
           </Link>
         </div>
       </CardFooter>

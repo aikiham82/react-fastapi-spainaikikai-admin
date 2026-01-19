@@ -11,7 +11,7 @@ const getPageTitle = (pathname: string) => {
   switch (pathname) {
     case '/':
     case '/home':
-      return 'Dashboard';
+      return 'Panel Principal';
     case '/clubs':
       return 'Clubs';
     case '/members':
@@ -29,7 +29,7 @@ const getPageTitle = (pathname: string) => {
     case '/settings':
       return 'Configuración';
     default:
-      return 'Dashboard';
+      return 'Panel Principal';
   }
 };
 
