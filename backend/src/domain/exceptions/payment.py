@@ -43,3 +43,24 @@ class InvalidRefundAmountError(BusinessRuleViolationError):
 class RedsysPaymentError(BusinessRuleViolationError):
     """Raised when a Redsys payment operation fails."""
     pass
+
+
+class RedsysSignatureError(BusinessRuleViolationError):
+    """Raised when Redsys signature verification fails."""
+
+    def __init__(self, message: str = "Invalid Redsys signature"):
+        super().__init__(message)
+
+
+class RedsysEncryptionError(BusinessRuleViolationError):
+    """Raised when Redsys encryption/decryption fails."""
+
+    def __init__(self, message: str = "Redsys encryption error"):
+        super().__init__(message)
+
+
+class RedsysWebhookError(BusinessRuleViolationError):
+    """Raised when processing Redsys webhook fails."""
+
+    def __init__(self, message: str = "Redsys webhook processing error"):
+        super().__init__(message)
