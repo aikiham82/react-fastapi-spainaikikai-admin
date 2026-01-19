@@ -2,13 +2,16 @@
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 
 from src.infrastructure.web.dto.payment_dto import (
     PaymentCreate,
     PaymentResponse,
     PaymentRefundRequest,
-    RedsysPaymentRequest
+    InitiatePaymentRequest,
+    InitiatePaymentResponse,
+    RedsysWebhookRequest,
+    RedsysWebhookResponse
 )
 from src.infrastructure.web.mappers_payment import PaymentMapper
 from src.infrastructure.web.dependencies import (
@@ -22,6 +25,7 @@ from src.infrastructure.web.dependencies import (
 )
 from src.infrastructure.web.dependencies import get_current_active_user
 from src.domain.entities.user import User
+from src.config.settings import get_app_settings
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -50,42 +54,74 @@ async def get_payment(
     return PaymentMapper.to_response_dto(payment)
 
 
-@router.post("/initiate")
+@router.post("/initiate", response_model=InitiatePaymentResponse)
 async def initiate_payment(
-    payment_request: RedsysPaymentRequest,
+    payment_request: InitiatePaymentRequest,
     get_initiate_use_case = Depends(get_initiate_redsys_payment_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
     """Initiate payment through Redsys."""
+    app_settings = get_app_settings()
+
+    # Build URLs for Redsys callbacks
+    base_url = app_settings.backend_base_url
+    frontend_url = app_settings.frontend_base_url
+
     result = await get_initiate_use_case.execute(
         member_id=payment_request.member_id,
         club_id=payment_request.club_id,
         payment_type=payment_request.payment_type,
         amount=payment_request.amount,
-        return_url=str(payment_request.return_url),
-        related_entity_id=payment_request.related_entity_id
+        success_url=f"{frontend_url}/payments/success",
+        failure_url=f"{frontend_url}/payments/failure",
+        webhook_url=f"{base_url}/api/v1/payments/webhook",
+        related_entity_id=payment_request.related_entity_id,
+        description=payment_request.description
     )
-    return result
+
+    return InitiatePaymentResponse(
+        payment_id=result.payment_id,
+        order_id=result.order_id,
+        payment_url=result.form_data.payment_url,
+        ds_signature_version=result.form_data.ds_signature_version,
+        ds_merchant_parameters=result.form_data.ds_merchant_parameters,
+        ds_signature=result.form_data.ds_signature
+    )
 
 
-@router.post("/webhook")
+@router.post("/webhook", response_model=RedsysWebhookResponse)
 async def redsys_webhook(
-    webhook_data: dict,
-    get_process_redsys_webhook_use_case = Depends(get_process_redsys_webhook_use_case)
+    Ds_SignatureVersion: str = Form(...),
+    Ds_MerchantParameters: str = Form(...),
+    Ds_Signature: str = Form(...),
+    get_process_webhook_use_case = Depends(get_process_redsys_webhook_use_case)
 ):
-    """Handle Redsys webhook callback."""
-    transaction_id = webhook_data.get("Ds_MerchantParameters", "")
-    status = webhook_data.get("Ds_Response", "0000")
-    
-    if status == "0000" or status == "0001":
-        status = "success"
-    elif status.startswith("0" + status[1:]):
-        status = "success"
-    else:
-        status = "failed"
-    
-    payment = await get_process_redsys_webhook_use_case.execute(transaction_id, status)
-    return PaymentMapper.to_response_dto(payment)
+    """
+    Handle Redsys webhook callback.
+
+    This endpoint does NOT require authentication as it's called by Redsys servers.
+    Security is ensured through signature verification.
+    """
+    try:
+        result = await get_process_webhook_use_case.execute(
+            ds_signature=Ds_Signature,
+            ds_merchant_parameters=Ds_MerchantParameters,
+            ds_signature_version=Ds_SignatureVersion
+        )
+
+        return RedsysWebhookResponse(
+            success=result.success,
+            message=result.message,
+            payment_id=result.payment.id,
+            invoice_number=result.invoice.invoice_number if result.invoice else None
+        )
+    except Exception as e:
+        # Log the error but return OK to Redsys
+        # Redsys expects HTTP 200 even on errors
+        return RedsysWebhookResponse(
+            success=False,
+            message=str(e)
+        )
 
 
 @router.put("/{payment_id}/refund", response_model=PaymentResponse)

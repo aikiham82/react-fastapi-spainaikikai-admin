@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, date
 from typing import Optional
 from enum import Enum
@@ -13,10 +13,29 @@ class LicenseStatus(str, Enum):
 
 
 class LicenseType(str, Enum):
-    """License type enumeration."""
+    """License type enumeration (legacy - kept for backward compatibility)."""
     DAN = "dan"
     KYU = "kyu"
     INSTRUCTOR = "instructor"
+
+
+class TechnicalGrade(str, Enum):
+    """Technical grade enumeration (Dan or Kyu)."""
+    DAN = "dan"
+    KYU = "kyu"
+
+
+class InstructorCategory(str, Enum):
+    """Instructor category enumeration."""
+    NONE = "none"
+    FUKUSHIDOIN = "fukushidoin"  # Assistant instructor
+    SHIDOIN = "shidoin"  # Instructor
+
+
+class AgeCategory(str, Enum):
+    """Age category enumeration."""
+    INFANTIL = "infantil"  # Children
+    ADULTO = "adulto"  # Adult
 
 
 @dataclass
@@ -27,7 +46,7 @@ class License:
     member_id: Optional[str] = None
     club_id: Optional[str] = None
     association_id: Optional[str] = None
-    license_type: LicenseType = LicenseType.KYU
+    license_type: LicenseType = LicenseType.KYU  # Legacy field
     grade: str = ""
     status: LicenseStatus = LicenseStatus.ACTIVE
     issue_date: Optional[datetime] = None
@@ -36,6 +55,11 @@ class License:
     is_renewed: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    # New category fields for payment calculation
+    grado_tecnico: TechnicalGrade = TechnicalGrade.KYU
+    categoria_instructor: InstructorCategory = InstructorCategory.NONE
+    categoria_edad: AgeCategory = AgeCategory.ADULTO
+    last_payment_id: Optional[str] = None  # Track the last payment for this license
 
     def __post_init__(self):
         self.created_at = self.created_at or datetime.now()
@@ -87,3 +111,41 @@ class License:
         if not new_grade or not new_grade.strip():
             raise ValueError("Grade cannot be empty")
         self.grade = new_grade
+
+    def get_price_key(self) -> str:
+        """Generate the price configuration key based on license categories.
+
+        Format: grado_tecnico-categoria_instructor-categoria_edad
+        Example: "dan-shidoin-adulto", "kyu-none-infantil"
+        """
+        return f"{self.grado_tecnico.value}-{self.categoria_instructor.value}-{self.categoria_edad.value}"
+
+    def update_categories(
+        self,
+        grado_tecnico: Optional[TechnicalGrade] = None,
+        categoria_instructor: Optional[InstructorCategory] = None,
+        categoria_edad: Optional[AgeCategory] = None
+    ) -> None:
+        """Update license categories.
+
+        Args:
+            grado_tecnico: New technical grade (Dan/Kyu).
+            categoria_instructor: New instructor category.
+            categoria_edad: New age category.
+        """
+        if grado_tecnico is not None:
+            self.grado_tecnico = grado_tecnico
+        if categoria_instructor is not None:
+            self.categoria_instructor = categoria_instructor
+        if categoria_edad is not None:
+            self.categoria_edad = categoria_edad
+        self.updated_at = datetime.now()
+
+    def record_payment(self, payment_id: str) -> None:
+        """Record a payment for this license.
+
+        Args:
+            payment_id: The ID of the payment.
+        """
+        self.last_payment_id = payment_id
+        self.updated_at = datetime.now()

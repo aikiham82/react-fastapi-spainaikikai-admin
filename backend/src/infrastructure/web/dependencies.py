@@ -13,6 +13,12 @@ from src.infrastructure.adapters.repositories.mongodb_license_repository import 
 from src.infrastructure.adapters.repositories.mongodb_seminar_repository import MongoDBSeminarRepository
 from src.infrastructure.adapters.repositories.mongodb_payment_repository import MongoDBPaymentRepository
 from src.infrastructure.adapters.repositories.mongodb_insurance_repository import MongoDBInsuranceRepository
+from src.infrastructure.adapters.repositories.mongodb_price_configuration_repository import MongoDBPriceConfigurationRepository
+from src.infrastructure.adapters.repositories.mongodb_invoice_repository import MongoDBInvoiceRepository
+from src.infrastructure.adapters.repositories.mongodb_password_reset_token_repository import MongoDBPasswordResetTokenRepository
+from src.infrastructure.adapters.services.redsys_service import RedsysService
+from src.infrastructure.adapters.services.email_service import EmailService
+from src.infrastructure.adapters.services.pdf_service import PDFService
 from src.infrastructure.web.security import decode_access_token
 from src.infrastructure.web.dto.user_dto import TokenData
 from src.domain.entities.user import User
@@ -76,6 +82,27 @@ from src.application.use_cases import (
     UpdateInsuranceUseCase,
     DeleteInsuranceUseCase
 )
+from src.application.use_cases.price_configuration import (
+    GetPriceConfigurationUseCase,
+    GetAllPricesUseCase,
+    CreatePriceConfigurationUseCase,
+    UpdatePriceConfigurationUseCase,
+    DeletePriceConfigurationUseCase,
+    GetLicensePriceUseCase
+)
+from src.application.use_cases.invoice import (
+    GetInvoiceUseCase,
+    GetAllInvoicesUseCase,
+    GetInvoicesByMemberUseCase,
+    DownloadInvoicePDFUseCase,
+    RegenerateInvoicePDFUseCase
+)
+from src.application.use_cases.password_reset import (
+    RequestPasswordResetUseCase,
+    ResetPasswordUseCase,
+    ValidateResetTokenUseCase
+)
+from src.config.settings import get_app_settings
 from src.infrastructure.database import get_database
 
 @lru_cache()
@@ -290,14 +317,40 @@ def get_create_payment_use_case() -> CreatePaymentUseCase:
     return CreatePaymentUseCase(get_payment_repository())
 
 @lru_cache()
+def get_redsys_service() -> RedsysService:
+    """Get Redsys service instance."""
+    return RedsysService()
+
+@lru_cache()
+def get_email_service() -> EmailService:
+    """Get email service instance."""
+    return EmailService()
+
+@lru_cache()
+def get_pdf_service() -> PDFService:
+    """Get PDF service instance."""
+    return PDFService()
+
+@lru_cache()
 def get_initiate_redsys_payment_use_case() -> InitiateRedsysPaymentUseCase:
     """Initiate Redsys payment use case."""
-    return InitiateRedsysPaymentUseCase(get_payment_repository())
+    return InitiateRedsysPaymentUseCase(
+        get_payment_repository(),
+        get_redsys_service()
+    )
 
 @lru_cache()
 def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
     """Process Redsys webhook use case."""
-    return ProcessRedsysWebhookUseCase(get_payment_repository())
+    return ProcessRedsysWebhookUseCase(
+        payment_repository=get_payment_repository(),
+        redsys_service=get_redsys_service(),
+        invoice_repository=get_invoice_repository(),
+        license_repository=get_license_repository(),
+        member_repository=get_member_repository(),
+        email_service=get_email_service(),
+        pdf_service=get_pdf_service()
+    )
 
 @lru_cache()
 def get_refund_payment_use_case() -> RefundPaymentUseCase:
@@ -344,6 +397,79 @@ def get_update_insurance_use_case() -> UpdateInsuranceUseCase:
 def get_delete_insurance_use_case() -> DeleteInsuranceUseCase:
     """Delete insurance use case."""
     return DeleteInsuranceUseCase(get_insurance_repository())
+
+# Price configuration repository and use cases
+@lru_cache()
+def get_price_configuration_repository() -> MongoDBPriceConfigurationRepository:
+    """Get price configuration repository instance."""
+    return MongoDBPriceConfigurationRepository()
+
+@lru_cache()
+def get_all_prices_use_case() -> GetAllPricesUseCase:
+    """Get all prices use case."""
+    return GetAllPricesUseCase(get_price_configuration_repository())
+
+@lru_cache()
+def get_price_configuration_use_case() -> GetPriceConfigurationUseCase:
+    """Get price configuration use case."""
+    return GetPriceConfigurationUseCase(get_price_configuration_repository())
+
+@lru_cache()
+def get_create_price_configuration_use_case() -> CreatePriceConfigurationUseCase:
+    """Create price configuration use case."""
+    return CreatePriceConfigurationUseCase(get_price_configuration_repository())
+
+@lru_cache()
+def get_update_price_configuration_use_case() -> UpdatePriceConfigurationUseCase:
+    """Update price configuration use case."""
+    return UpdatePriceConfigurationUseCase(get_price_configuration_repository())
+
+@lru_cache()
+def get_delete_price_configuration_use_case() -> DeletePriceConfigurationUseCase:
+    """Delete price configuration use case."""
+    return DeletePriceConfigurationUseCase(get_price_configuration_repository())
+
+@lru_cache()
+def get_license_price_use_case() -> GetLicensePriceUseCase:
+    """Get license price use case."""
+    return GetLicensePriceUseCase(get_price_configuration_repository())
+
+# Invoice repository and use cases
+@lru_cache()
+def get_invoice_repository() -> MongoDBInvoiceRepository:
+    """Get invoice repository instance."""
+    return MongoDBInvoiceRepository()
+
+@lru_cache()
+def get_all_invoices_use_case() -> GetAllInvoicesUseCase:
+    """Get all invoices use case."""
+    return GetAllInvoicesUseCase(get_invoice_repository())
+
+@lru_cache()
+def get_invoice_use_case() -> GetInvoiceUseCase:
+    """Get invoice use case."""
+    return GetInvoiceUseCase(get_invoice_repository())
+
+@lru_cache()
+def get_invoices_by_member_use_case() -> GetInvoicesByMemberUseCase:
+    """Get invoices by member use case."""
+    return GetInvoicesByMemberUseCase(get_invoice_repository())
+
+@lru_cache()
+def get_download_invoice_pdf_use_case() -> DownloadInvoicePDFUseCase:
+    """Download invoice PDF use case."""
+    return DownloadInvoicePDFUseCase(
+        get_invoice_repository(),
+        get_pdf_service()
+    )
+
+@lru_cache()
+def get_regenerate_invoice_pdf_use_case() -> RegenerateInvoicePDFUseCase:
+    """Regenerate invoice PDF use case."""
+    return RegenerateInvoicePDFUseCase(
+        get_invoice_repository(),
+        get_pdf_service()
+    )
 
 # User use case dependencies
 def get_all_users_use_case() -> GetAllUsersUseCase:
@@ -410,3 +536,39 @@ async def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+# Password reset repository and use cases
+@lru_cache()
+def get_password_reset_token_repository() -> MongoDBPasswordResetTokenRepository:
+    """Get password reset token repository instance."""
+    return MongoDBPasswordResetTokenRepository()
+
+
+@lru_cache()
+def get_request_password_reset_use_case() -> RequestPasswordResetUseCase:
+    """Get request password reset use case."""
+    app_settings = get_app_settings()
+    return RequestPasswordResetUseCase(
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository(),
+        email_service=get_email_service(),
+        frontend_base_url=app_settings.frontend_base_url
+    )
+
+
+@lru_cache()
+def get_reset_password_use_case() -> ResetPasswordUseCase:
+    """Get reset password use case."""
+    return ResetPasswordUseCase(
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository()
+    )
+
+
+@lru_cache()
+def get_validate_reset_token_use_case() -> ValidateResetTokenUseCase:
+    """Get validate reset token use case."""
+    return ValidateResetTokenUseCase(
+        token_repository=get_password_reset_token_repository()
+    )

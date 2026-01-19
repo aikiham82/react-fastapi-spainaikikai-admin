@@ -18,6 +18,11 @@ from src.infrastructure.web.dependencies import (
     get_delete_club_use_case
 )
 from src.infrastructure.web.dependencies import get_current_active_user
+from src.infrastructure.web.authorization import (
+    check_club_access,
+    is_club_admin,
+    require_association_admin
+)
 from src.domain.entities.user import User
 
 router = APIRouter(prefix="/clubs", tags=["clubs"])
@@ -28,9 +33,18 @@ async def get_clubs(
     limit: int = 100,
     association_id: Optional[str] = None,
     get_all_use_case = Depends(get_all_clubs_use_case),
+    get_single_club_use_case = Depends(get_club_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
     """Get all clubs, optionally filtered by association."""
+    # Club admins only see their own club
+    if is_club_admin(current_user):
+        if current_user.club_id:
+            club = await get_single_club_use_case.execute(current_user.club_id)
+            return ClubMapper.to_response_list([club])
+        return []
+
+    # Association admins see all clubs (with optional association filter)
     clubs = await get_all_use_case.execute(limit, association_id)
     return ClubMapper.to_response_list(clubs)
 
@@ -42,6 +56,7 @@ async def get_club(
     current_user: User = Depends(get_current_active_user)
 ):
     """Get club by ID."""
+    check_club_access(current_user, club_id)
     club = await get_club_use_case.execute(club_id)
     return ClubMapper.to_response_dto(club)
 
@@ -51,9 +66,20 @@ async def get_clubs_by_association(
     association_id: str,
     limit: int = 100,
     get_all_use_case = Depends(get_all_clubs_use_case),
+    get_single_club_use_case = Depends(get_club_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
     """Get clubs by association ID."""
+    # Club admins only see their own club (if it belongs to the association)
+    if is_club_admin(current_user):
+        if current_user.club_id:
+            club = await get_single_club_use_case.execute(current_user.club_id)
+            # Only return if club belongs to the requested association
+            if club.association_id == association_id:
+                return ClubMapper.to_response_list([club])
+        return []
+
+    # Association admins see all clubs in the association
     clubs = await get_all_use_case.execute(limit, association_id)
     return ClubMapper.to_response_list(clubs)
 
@@ -64,7 +90,8 @@ async def create_club(
     get_create_use_case = Depends(get_create_club_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
-    """Create a new club (Association/Club Admin)."""
+    """Create a new club (Association Admin only)."""
+    require_association_admin(current_user)
     club = await get_create_use_case.execute(
         name=club_data.name,
         address=club_data.address,
@@ -86,7 +113,8 @@ async def update_club(
     get_update_use_case = Depends(get_update_club_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
-    """Update club (Club Admin)."""
+    """Update club (Club Admin for own club, Association Admin for any)."""
+    check_club_access(current_user, club_id)
     club = await get_update_use_case.execute(club_id, **club_data.model_dump(exclude_none=True))
     return ClubMapper.to_response_dto(club)
 
@@ -97,6 +125,7 @@ async def delete_club(
     get_delete_use_case = Depends(get_delete_club_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
-    """Delete club (Club Admin)."""
+    """Delete club (Association Admin only)."""
+    require_association_admin(current_user)
     await get_delete_use_case.execute(club_id)
     return None
