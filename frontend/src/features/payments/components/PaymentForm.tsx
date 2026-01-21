@@ -34,6 +34,7 @@ export const PaymentForm = ({ open, onOpenChange, memberOptions = [], seminarOpt
     member_id: '',
     payment_type: 'license',
     amount: 0,
+    payment_year: new Date().getFullYear(),
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreatePaymentRequest, string>>>({});
@@ -44,6 +45,7 @@ export const PaymentForm = ({ open, onOpenChange, memberOptions = [], seminarOpt
         member_id: '',
         payment_type: 'license',
         amount: 0,
+        payment_year: new Date().getFullYear(),
       });
     }
     setErrors({});
@@ -60,6 +62,9 @@ export const PaymentForm = ({ open, onOpenChange, memberOptions = [], seminarOpt
     }
     if (formData.payment_type === 'seminar' && !formData.seminar_id) {
       newErrors.seminar_id = 'Debes seleccionar un seminario';
+    }
+    if (!formData.payment_year || formData.payment_year < 1900 || formData.payment_year > 2100) {
+      newErrors.payment_year = 'El año debe estar entre 1900 y 2100';
     }
 
     setErrors(newErrors);
@@ -119,6 +124,20 @@ export const PaymentForm = ({ open, onOpenChange, memberOptions = [], seminarOpt
                 <SelectItem value="seminar">Seminario</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payment_year">Año de Pago *</Label>
+            <Input
+              id="payment_year"
+              type="number"
+              min="1900"
+              max="2100"
+              value={formData.payment_year}
+              onChange={(e) => handleChange('payment_year', parseInt(e.target.value) || new Date().getFullYear())}
+              className={errors.payment_year ? 'border-red-500' : ''}
+            />
+            {errors.payment_year && <p className="text-sm text-red-500">{errors.payment_year}</p>}
           </div>
 
           <div className="space-y-2">

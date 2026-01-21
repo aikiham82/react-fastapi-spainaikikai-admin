@@ -33,6 +33,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             refund_amount=doc.get("refund_amount"),
             refund_date=doc.get("refund_date"),
             related_entity_id=doc.get("related_entity_id"),
+            payment_year=doc.get("payment_year"),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
         )
@@ -51,6 +52,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             "refund_amount": payment.refund_amount,
             "refund_date": payment.refund_date,
             "related_entity_id": payment.related_entity_id,
+            "payment_year": payment.payment_year,
             "updated_at": datetime.utcnow()
         }
         if payment.id:
@@ -145,3 +147,23 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             return count > 0
         except Exception:
             return False
+
+    async def find_by_member_type_year(
+        self,
+        member_id: str,
+        payment_type: PaymentType,
+        payment_year: int
+    ) -> Optional[Payment]:
+        """Find a payment by member ID, payment type, and year."""
+        doc = await self.collection.find_one({
+            "member_id": member_id,
+            "payment_type": payment_type.value,
+            "payment_year": payment_year
+        })
+        return self._to_domain(doc) if doc else None
+
+    async def find_by_year(self, payment_year: int, limit: int = 100) -> List[Payment]:
+        """Find all payments for a specific year."""
+        cursor = self.collection.find({"payment_year": payment_year}).limit(limit)
+        documents = await cursor.to_list(length=limit)
+        return [self._to_domain(doc) for doc in documents]

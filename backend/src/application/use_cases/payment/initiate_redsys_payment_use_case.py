@@ -1,9 +1,11 @@
 """Initiate Redsys Payment use case."""
 
+from datetime import datetime
 from typing import Optional
 from dataclasses import dataclass
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
+from src.domain.exceptions.payment import DuplicatePaymentForYearError
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.redsys_service import (
     RedsysServicePort,
@@ -41,7 +43,8 @@ class InitiateRedsysPaymentUseCase:
         failure_url: str,
         webhook_url: str,
         related_entity_id: Optional[str] = None,
-        description: Optional[str] = None
+        description: Optional[str] = None,
+        payment_year: Optional[int] = None
     ) -> InitiatePaymentResult:
         """
         Execute the use case and return Redsys form data.
@@ -56,10 +59,22 @@ class InitiateRedsysPaymentUseCase:
             webhook_url: URL for Redsys to send payment notifications
             related_entity_id: ID of related entity (license_id, seminar_id, etc.)
             description: Optional description for the payment
+            payment_year: Year the payment covers (defaults to current year)
 
         Returns:
             InitiatePaymentResult with payment ID, order ID and form data
         """
+        # Default to current year if not provided
+        year = payment_year or datetime.now().year
+
+        # Check for duplicate payment (only for member-specific payments)
+        if member_id:
+            existing = await self.payment_repository.find_by_member_type_year(
+                member_id, PaymentType(payment_type), year
+            )
+            if existing:
+                raise DuplicatePaymentForYearError(member_id, payment_type, year)
+
         # Create pending payment
         payment = Payment(
             member_id=member_id,
@@ -67,7 +82,8 @@ class InitiateRedsysPaymentUseCase:
             payment_type=PaymentType(payment_type),
             amount=amount,
             status=PaymentStatus.PENDING,
-            related_entity_id=related_entity_id
+            related_entity_id=related_entity_id,
+            payment_year=year
         )
         payment = await self.payment_repository.create(payment)
 

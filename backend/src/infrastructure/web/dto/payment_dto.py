@@ -12,6 +12,7 @@ class PaymentBase(BaseModel):
     payment_type: str = "license_fee"
     amount: float
     related_entity_id: Optional[str] = None
+    payment_year: Optional[int] = None
 
 
 class PaymentCreate(PaymentBase):
@@ -49,6 +50,7 @@ class InitiatePaymentRequest(BaseModel):
     amount: float
     related_entity_id: Optional[str] = None
     description: Optional[str] = None
+    payment_year: Optional[int] = None
 
 
 class InitiatePaymentResponse(BaseModel):

@@ -30,6 +30,7 @@ export const PaymentList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [yearFilter, setYearFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleSearch = (value: string) => {
@@ -45,6 +46,12 @@ export const PaymentList = () => {
   const handleFilterStatus = (value: string) => {
     setStatusFilter(value);
     setFilters({ ...filters, status: value || undefined, offset: 0 });
+  };
+
+  const handleFilterYear = (value: string) => {
+    setYearFilter(value);
+    const year = value ? parseInt(value) : undefined;
+    setFilters({ ...filters, payment_year: year, offset: 0 });
   };
 
   const getStatusIcon = (status: string) => {
@@ -147,6 +154,16 @@ export const PaymentList = () => {
             </SelectContent>
           </Select>
 
+          <Input
+            type="number"
+            placeholder="Año"
+            value={yearFilter}
+            onChange={(e) => handleFilterYear(e.target.value)}
+            className="w-24"
+            min="1900"
+            max="2100"
+          />
+
           {canAccess({ resource: 'payments', action: 'create' }) && (
             <Button onClick={() => setIsFormOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
@@ -163,6 +180,7 @@ export const PaymentList = () => {
               <tr className="border-b bg-gray-50">
                 <th className="text-left p-4 font-medium text-gray-900">Tipo</th>
                 <th className="text-left p-4 font-medium text-gray-900">Miembro</th>
+                <th className="text-center p-4 font-medium text-gray-900">Año</th>
                 <th className="text-left p-4 font-medium text-gray-900">Fecha</th>
                 <th className="text-right p-4 font-medium text-gray-900">Monto</th>
                 <th className="text-left p-4 font-medium text-gray-900">Estado</th>
@@ -181,8 +199,11 @@ export const PaymentList = () => {
                     )}
                   </td>
                   <td className="p-4 text-gray-600">{payment.member_name || '-'}</td>
+                  <td className="p-4 text-center font-medium text-gray-900">
+                    {payment.payment_year || '-'}
+                  </td>
                   <td className="p-4 text-gray-600">
-                    {new Date(payment.payment_date).toLocaleDateString('es-ES')}
+                    {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('es-ES') : '-'}
                   </td>
                   <td className="p-4 text-right font-medium text-gray-900">
                     {payment.amount.toFixed(2)} €
@@ -259,7 +280,9 @@ export const PaymentList = () => {
       <PaymentForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        memberOptions={payments.map(p => ({ id: p.member_id, name: p.member_name || '' }))}
+        memberOptions={payments
+          .filter(p => p.member_id !== null)
+          .map(p => ({ id: p.member_id as string, name: p.member_name || '' }))}
       />
     </div>
   );

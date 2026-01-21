@@ -152,9 +152,9 @@ class ProcessRedsysWebhookUseCase:
                 customer_name = f"{member.nombre} {member.primer_apellido} {member.segundo_apellido or ''}".strip()
                 customer_email = member.email
 
-        # Get next invoice number
-        current_year = datetime.now().year
-        invoice_number = await self.invoice_repository.get_next_invoice_number(current_year)
+        # Get next invoice number (use payment year for multi-year support)
+        invoice_year = payment.payment_year or datetime.now().year
+        invoice_number = await self.invoice_repository.get_next_invoice_number(invoice_year)
 
         # Get invoice settings
         invoice_settings = get_invoice_settings()

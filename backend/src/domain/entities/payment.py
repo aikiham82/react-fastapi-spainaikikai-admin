@@ -39,13 +39,20 @@ class Payment:
     refund_amount: Optional[float] = None
     refund_date: Optional[datetime] = None
     related_entity_id: Optional[str] = None  # license_id, seminar_id, etc.
+    payment_year: Optional[int] = None  # Year the payment covers (for multi-year support)
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     def __post_init__(self):
+        """Validate payment entity."""
         self.created_at = self.created_at or datetime.now()
         self.updated_at = self.updated_at or datetime.now()
-        """Validate payment entity."""
+        # Default payment_year to current year if not provided
+        if self.payment_year is None:
+            self.payment_year = datetime.now().year
+        # Validate payment_year range
+        if self.payment_year < 1900 or self.payment_year > 2100:
+            raise ValueError("Payment year must be between 1900 and 2100")
         if self.amount < 0:
             raise ValueError("Payment amount cannot be negative")
         if self.refund_amount and self.refund_amount < 0:

@@ -64,3 +64,15 @@ class RedsysWebhookError(BusinessRuleViolationError):
 
     def __init__(self, message: str = "Redsys webhook processing error"):
         super().__init__(message)
+
+
+class DuplicatePaymentForYearError(BusinessRuleViolationError):
+    """Raised when a payment already exists for the same member, type, and year."""
+
+    def __init__(self, member_id: str, payment_type: str, year: int):
+        self.member_id = member_id
+        self.payment_type = payment_type
+        self.year = year
+        super().__init__(
+            f"Ya existe un pago de tipo '{payment_type}' para el año {year}"
+        )

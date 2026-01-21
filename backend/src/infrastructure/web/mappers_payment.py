@@ -20,7 +20,8 @@ class PaymentMapper:
             payment_type=PaymentType(dto.payment_type),
             amount=dto.amount,
             status=PaymentStatus.PENDING,
-            related_entity_id=dto.related_entity_id
+            related_entity_id=dto.related_entity_id,
+            payment_year=dto.payment_year
         )
 
     @staticmethod
@@ -39,7 +40,8 @@ class PaymentMapper:
             error_message=entity.error_message,
             refund_amount=entity.refund_amount,
             refund_date=entity.refund_date,
-            related_entity_id=entity.related_entity_id
+            related_entity_id=entity.related_entity_id,
+            payment_year=entity.payment_year
         )
 
     @staticmethod

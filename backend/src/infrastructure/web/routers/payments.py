@@ -25,6 +25,7 @@ from src.infrastructure.web.dependencies import (
 )
 from src.infrastructure.web.dependencies import get_current_active_user
 from src.domain.entities.user import User
+from src.domain.exceptions.payment import DuplicatePaymentForYearError
 from src.config.settings import get_app_settings
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -35,11 +36,12 @@ async def get_payments(
     limit: int = 100,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
+    payment_year: Optional[int] = None,
     get_all_use_case = Depends(get_all_payments_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
-    """Get all payments, optionally filtered by club or member."""
-    payments = await get_all_use_case.execute(limit, club_id, member_id)
+    """Get all payments, optionally filtered by club, member, or year."""
+    payments = await get_all_use_case.execute(limit, club_id, member_id, payment_year)
     return PaymentMapper.to_response_list(payments)
 
 
@@ -67,17 +69,24 @@ async def initiate_payment(
     base_url = app_settings.backend_base_url
     frontend_url = app_settings.frontend_base_url
 
-    result = await get_initiate_use_case.execute(
-        member_id=payment_request.member_id,
-        club_id=payment_request.club_id,
-        payment_type=payment_request.payment_type,
-        amount=payment_request.amount,
-        success_url=f"{frontend_url}/payments/success",
-        failure_url=f"{frontend_url}/payments/failure",
-        webhook_url=f"{base_url}/api/v1/payments/webhook",
-        related_entity_id=payment_request.related_entity_id,
-        description=payment_request.description
-    )
+    try:
+        result = await get_initiate_use_case.execute(
+            member_id=payment_request.member_id,
+            club_id=payment_request.club_id,
+            payment_type=payment_request.payment_type,
+            amount=payment_request.amount,
+            success_url=f"{frontend_url}/payments/success",
+            failure_url=f"{frontend_url}/payments/failure",
+            webhook_url=f"{base_url}/api/v1/payments/webhook",
+            related_entity_id=payment_request.related_entity_id,
+            description=payment_request.description,
+            payment_year=payment_request.payment_year
+        )
+    except DuplicatePaymentForYearError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
 
     return InitiatePaymentResponse(
         payment_id=result.payment_id,

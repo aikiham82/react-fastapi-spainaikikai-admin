@@ -16,6 +16,7 @@ export interface Payment {
   refund_amount: number | null;
   refund_date: string | null;
   related_entity_id: string | null;
+  payment_year: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +28,7 @@ export interface InitiatePaymentRequest {
   amount: number;
   related_entity_id?: string;
   description?: string;
+  payment_year?: number;
 }
 
 export interface InitiatePaymentResponse {
@@ -49,6 +51,7 @@ export interface PaymentFilters {
   status?: PaymentStatus;
   date_from?: string;
   date_to?: string;
+  payment_year?: number;
   limit?: number;
   offset?: number;
 }
@@ -66,6 +69,7 @@ export interface CreatePaymentRequest {
   payment_type: PaymentType;
   amount: number;
   seminar_id?: string;
+  payment_year?: number;
 }
 
 export interface UpdatePaymentStatusRequest {

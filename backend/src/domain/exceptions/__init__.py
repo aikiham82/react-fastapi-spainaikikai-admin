@@ -31,7 +31,8 @@ from .payment import (
     PaymentAlreadyExistsError, InvalidPaymentStatusError,
     PaymentAlreadyCompletedError, PaymentNotRefundableError,
     InvalidRefundAmountError, RedsysPaymentError,
-    RedsysSignatureError, RedsysEncryptionError, RedsysWebhookError
+    RedsysSignatureError, RedsysEncryptionError, RedsysWebhookError,
+    DuplicatePaymentForYearError
 )
 from .insurance import (
     InsuranceNotFoundError, InvalidInsuranceDataError,
@@ -79,6 +80,7 @@ __all__ = [
     "PaymentAlreadyCompletedError", "PaymentNotRefundableError",
     "InvalidRefundAmountError", "RedsysPaymentError",
     "RedsysSignatureError", "RedsysEncryptionError", "RedsysWebhookError",
+    "DuplicatePaymentForYearError",
     "InsuranceNotFoundError", "InvalidInsuranceDataError",
     "InsuranceAlreadyExistsError", "ExpiredInsuranceError",
     "CancelledInsuranceError", "InvalidInsuranceDatesError", "InsuranceNotActiveError",

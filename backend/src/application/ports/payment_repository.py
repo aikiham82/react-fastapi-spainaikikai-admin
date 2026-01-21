@@ -73,3 +73,18 @@ class PaymentRepositoryPort(ABC):
     async def exists(self, payment_id: str) -> bool:
         """Check if a payment exists."""
         pass
+
+    @abstractmethod
+    async def find_by_member_type_year(
+        self,
+        member_id: str,
+        payment_type: PaymentType,
+        payment_year: int
+    ) -> Optional[Payment]:
+        """Find a payment by member ID, payment type, and year."""
+        pass
+
+    @abstractmethod
+    async def find_by_year(self, payment_year: int, limit: int = 100) -> List[Payment]:
+        """Find all payments for a specific year."""
+        pass
