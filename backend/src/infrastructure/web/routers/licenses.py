@@ -1,8 +1,10 @@
 """License routes."""
 
 from typing import List, Optional
+from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from datetime import datetime
 
 from src.infrastructure.web.dto.license_dto import (
@@ -19,10 +21,13 @@ from src.infrastructure.web.dependencies import (
     get_create_license_use_case,
     get_renew_license_use_case,
     get_update_license_use_case,
-    get_delete_license_use_case
+    get_delete_license_use_case,
+    get_generate_license_image_use_case
 )
 from src.infrastructure.web.dependencies import get_current_active_user
 from src.domain.entities.user import User
+from src.domain.exceptions.license import LicenseNotFoundError, LicenseImageGenerationError
+from src.domain.exceptions.member import MemberNotFoundError
 
 router = APIRouter(prefix="/licenses", tags=["licenses"])
 
@@ -38,6 +43,42 @@ async def get_licenses(
     """Get all licenses, optionally filtered by club or member."""
     licenses = await get_all_use_case.execute(limit, club_id, member_id)
     return LicenseMapper.to_response_list(licenses)
+
+
+@router.get("/{license_id}/image")
+async def get_license_image(
+    license_id: str,
+    generate_image_use_case = Depends(get_generate_license_image_use_case),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get license image as PNG.
+
+    Returns a PNG image of the license card with member data overlaid.
+    """
+    try:
+        result = await generate_image_use_case.execute(license_id)
+        return StreamingResponse(
+            BytesIO(result.image_bytes),
+            media_type=result.content_type,
+            headers={
+                "Content-Disposition": f"attachment; filename={result.filename}"
+            }
+        )
+    except LicenseNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"License with ID {license_id} not found"
+        )
+    except MemberNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except LicenseImageGenerationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate license image: {str(e)}"
+        )
 
 
 @router.get("/{license_id}", response_model=LicenseResponse)

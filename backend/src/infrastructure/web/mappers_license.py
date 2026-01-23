@@ -31,6 +31,11 @@ class LicenseMapper:
     @staticmethod
     def to_response_dto(entity: License) -> LicenseResponse:
         """Convert Domain Entity to Response DTO."""
+        # Generate image URL for active licenses with a member
+        image_url = None
+        if entity.id and entity.member_id:
+            image_url = f"/api/v1/licenses/{entity.id}/image"
+
         return LicenseResponse(
             id=entity.id,
             license_number=entity.license_number,
@@ -43,7 +48,8 @@ class LicenseMapper:
             issue_date=entity.issue_date,
             expiration_date=entity.expiration_date,
             renewal_date=entity.renewal_date,
-            is_renewed=entity.is_renewed
+            is_renewed=entity.is_renewed,
+            image_url=image_url
         )
 
     @staticmethod

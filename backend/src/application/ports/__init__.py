@@ -14,6 +14,7 @@ from .invoice_repository import InvoiceRepositoryPort
 from .password_reset_token_repository import PasswordResetTokenRepositoryPort
 from .email_service import EmailServicePort, EmailMessage, EmailAttachment
 from .pdf_service import PDFServicePort
+from .license_image_service import LicenseImageServicePort, LicenseImageData
 from .redsys_service import (
     RedsysServicePort,
     RedsysPaymentRequest,
@@ -39,6 +40,8 @@ __all__ = [
     "EmailMessage",
     "EmailAttachment",
     "PDFServicePort",
+    "LicenseImageServicePort",
+    "LicenseImageData",
     "RedsysServicePort",
     "RedsysPaymentRequest",
     "RedsysPaymentFormData",

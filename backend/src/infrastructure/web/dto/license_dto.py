@@ -40,6 +40,7 @@ class LicenseResponse(LicenseBase):
     expiration_date: Optional[datetime] = None
     renewal_date: Optional[datetime] = None
     is_renewed: bool
+    image_url: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

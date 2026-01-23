@@ -38,3 +38,8 @@ class InvalidLicenseRenewalError(BusinessRuleViolationError):
 class LicenseAlreadyRenewedError(BusinessRuleViolationError):
     """Raised when trying to renew a license that has already been renewed."""
     pass
+
+
+class LicenseImageGenerationError(BusinessRuleViolationError):
+    """Raised when license image generation fails."""
+    pass

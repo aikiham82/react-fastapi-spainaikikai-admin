@@ -19,6 +19,7 @@ from src.infrastructure.adapters.repositories.mongodb_password_reset_token_repos
 from src.infrastructure.adapters.services.redsys_service import RedsysService
 from src.infrastructure.adapters.services.email_service import EmailService
 from src.infrastructure.adapters.services.pdf_service import PDFService
+from src.infrastructure.adapters.services.license_image_service import LicenseImageService
 from src.infrastructure.web.security import decode_access_token
 from src.infrastructure.web.dto.user_dto import TokenData
 from src.domain.entities.user import User
@@ -58,6 +59,7 @@ from src.application.use_cases import (
     RenewLicenseUseCase,
     UpdateLicenseUseCase,
     DeleteLicenseUseCase,
+    GenerateLicenseImageUseCase,
     # Seminar use cases
     GetSeminarUseCase,
     GetAllSeminarsUseCase,
@@ -253,6 +255,20 @@ def get_update_license_use_case() -> UpdateLicenseUseCase:
 def get_delete_license_use_case() -> DeleteLicenseUseCase:
     """Delete license use case."""
     return DeleteLicenseUseCase(get_license_repository())
+
+@lru_cache()
+def get_license_image_service() -> LicenseImageService:
+    """Get license image service instance."""
+    return LicenseImageService()
+
+@lru_cache()
+def get_generate_license_image_use_case() -> GenerateLicenseImageUseCase:
+    """Generate license image use case."""
+    return GenerateLicenseImageUseCase(
+        get_license_repository(),
+        get_member_repository(),
+        get_license_image_service()
+    )
 
 # Seminar repository and use cases
 @lru_cache()
