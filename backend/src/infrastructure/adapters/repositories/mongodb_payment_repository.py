@@ -34,6 +34,8 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             refund_date=doc.get("refund_date"),
             related_entity_id=doc.get("related_entity_id"),
             payment_year=doc.get("payment_year"),
+            payer_name=doc.get("payer_name"),
+            line_items_data=doc.get("line_items_data"),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
         )
@@ -53,6 +55,8 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             "refund_date": payment.refund_date,
             "related_entity_id": payment.related_entity_id,
             "payment_year": payment.payment_year,
+            "payer_name": payment.payer_name,
+            "line_items_data": payment.line_items_data,
             "updated_at": datetime.utcnow()
         }
         if payment.id:
@@ -167,3 +171,18 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         cursor = self.collection.find({"payment_year": payment_year}).limit(limit)
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
+
+    async def find_by_club_type_year(
+        self,
+        club_id: str,
+        payment_type: PaymentType,
+        payment_year: int
+    ) -> Optional[Payment]:
+        """Find a payment by club ID, payment type, and year."""
+        doc = await self.collection.find_one({
+            "club_id": club_id,
+            "payment_type": payment_type.value,
+            "payment_year": payment_year,
+            "status": {"$in": [PaymentStatus.COMPLETED.value, PaymentStatus.PROCESSING.value]}
+        })
+        return self._to_domain(doc) if doc else None

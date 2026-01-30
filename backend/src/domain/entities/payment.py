@@ -40,6 +40,8 @@ class Payment:
     refund_date: Optional[datetime] = None
     related_entity_id: Optional[str] = None  # license_id, seminar_id, etc.
     payment_year: Optional[int] = None  # Year the payment covers (for multi-year support)
+    payer_name: Optional[str] = None  # Name of the payer (for annual payments)
+    line_items_data: Optional[str] = None  # JSON string for line items storage
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

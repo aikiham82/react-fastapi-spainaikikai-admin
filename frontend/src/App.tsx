@@ -24,6 +24,7 @@ import { PriceConfigurationsPage } from "./pages/price-configurations.page";
 import { InvoicesPage } from "./pages/invoices.page";
 import { PaymentSuccessPage } from "./pages/payment-success.page";
 import { PaymentFailurePage } from "./pages/payment-failure.page";
+import { AnnualPaymentsPage } from "./pages/annual-payments.page";
 import ForgotPasswordPage from "./pages/forgot-password.page";
 import ResetPasswordPage from "./pages/reset-password.page";
 
@@ -50,6 +51,7 @@ function App() {
                 <Route path="/licenses" element={<LicensesPage />} />
                 <Route path="/payments" element={<PaymentsPage />} />
                 <Route path="/invoices" element={<InvoicesPage />} />
+                <Route path="/annual-payments" element={<AnnualPaymentsPage />} />
                 <Route path="/seminars" element={<SeminarsPage />} />
                 <Route path="/insurance" element={<InsurancePage />} />
                 <Route path="/import-export" element={<ImportExportPage />} />

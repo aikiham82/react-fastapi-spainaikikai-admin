@@ -13,12 +13,18 @@ from src.infrastructure.web.dto.payment_dto import (
     RedsysWebhookRequest,
     RedsysWebhookResponse
 )
+from src.infrastructure.web.dto.annual_payment_dto import (
+    InitiateAnnualPaymentRequest,
+    InitiateAnnualPaymentResponse,
+    AnnualPaymentLineItem
+)
 from src.infrastructure.web.mappers_payment import PaymentMapper
 from src.infrastructure.web.dependencies import (
     get_all_payments_use_case,
     get_payment_use_case,
     get_create_payment_use_case,
     get_initiate_redsys_payment_use_case,
+    get_initiate_annual_payment_use_case,
     get_refund_payment_use_case,
     get_delete_payment_use_case,
     get_process_redsys_webhook_use_case
@@ -91,6 +97,66 @@ async def initiate_payment(
     return InitiatePaymentResponse(
         payment_id=result.payment_id,
         order_id=result.order_id,
+        payment_url=result.form_data.payment_url,
+        ds_signature_version=result.form_data.ds_signature_version,
+        ds_merchant_parameters=result.form_data.ds_merchant_parameters,
+        ds_signature=result.form_data.ds_signature
+    )
+
+
+@router.post("/annual/initiate", response_model=InitiateAnnualPaymentResponse)
+async def initiate_annual_payment(
+    payment_request: InitiateAnnualPaymentRequest,
+    get_initiate_use_case = Depends(get_initiate_annual_payment_use_case),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Initiate annual payment through Redsys."""
+    app_settings = get_app_settings()
+
+    # Build URLs for Redsys callbacks
+    base_url = app_settings.backend_base_url
+    frontend_url = app_settings.frontend_base_url
+
+    try:
+        result = await get_initiate_use_case.execute(
+            payer_name=payment_request.payer_name,
+            club_id=payment_request.club_id,
+            payment_year=payment_request.payment_year,
+            include_club_fee=payment_request.include_club_fee,
+            kyu_count=payment_request.kyu_count,
+            kyu_infantil_count=payment_request.kyu_infantil_count,
+            dan_count=payment_request.dan_count,
+            fukushidoin_shidoin_count=payment_request.fukushidoin_shidoin_count,
+            seguro_accidentes_count=payment_request.seguro_accidentes_count,
+            seguro_rc_count=payment_request.seguro_rc_count,
+            success_url=f"{frontend_url}/payments/success",
+            failure_url=f"{frontend_url}/payments/failure",
+            webhook_url=f"{base_url}/api/v1/payments/webhook"
+        )
+    except DuplicatePaymentForYearError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    return InitiateAnnualPaymentResponse(
+        payment_id=result.payment_id,
+        order_id=result.order_id,
+        total_amount=result.total_amount,
+        line_items=[
+            AnnualPaymentLineItem(
+                item_type=item.item_type,
+                description=item.description,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                total=item.total
+            ) for item in result.line_items
+        ],
         payment_url=result.form_data.payment_url,
         ds_signature_version=result.form_data.ds_signature_version,
         ds_merchant_parameters=result.form_data.ds_merchant_parameters,

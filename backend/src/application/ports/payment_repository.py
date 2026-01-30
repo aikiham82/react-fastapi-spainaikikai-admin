@@ -88,3 +88,13 @@ class PaymentRepositoryPort(ABC):
     async def find_by_year(self, payment_year: int, limit: int = 100) -> List[Payment]:
         """Find all payments for a specific year."""
         pass
+
+    @abstractmethod
+    async def find_by_club_type_year(
+        self,
+        club_id: str,
+        payment_type: PaymentType,
+        payment_year: int
+    ) -> Optional[Payment]:
+        """Find a payment by club ID, payment type, and year."""
+        pass

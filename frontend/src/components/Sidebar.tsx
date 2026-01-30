@@ -13,6 +13,7 @@ import {
   LogOut,
   DollarSign,
   FileText,
+  Receipt,
 } from 'lucide-react';
 
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { title: 'Licencias', path: '/licenses', icon: IdCard, resource: 'licenses' },
   { title: 'Pagos', path: '/payments', icon: CreditCard, resource: 'payments' },
   { title: 'Facturas', path: '/invoices', icon: FileText, resource: 'invoices' },
+  { title: 'Pagos Anuales', path: '/annual-payments', icon: Receipt, resource: 'payments' },
   { title: 'Seminarios', path: '/seminars', icon: Calendar, resource: 'seminars' },
   { title: 'Seguros', path: '/insurance', icon: Shield, resource: 'insurance' },
   { title: 'Importar/Exportar', path: '/import-export', icon: FileSpreadsheet, resource: 'import_export' },

@@ -73,6 +73,7 @@ from src.application.use_cases import (
     GetAllPaymentsUseCase,
     CreatePaymentUseCase,
     InitiateRedsysPaymentUseCase,
+    InitiateAnnualPaymentUseCase,
     ProcessRedsysWebhookUseCase,
     RefundPaymentUseCase,
     DeletePaymentUseCase,
@@ -351,6 +352,14 @@ def get_pdf_service() -> PDFService:
 def get_initiate_redsys_payment_use_case() -> InitiateRedsysPaymentUseCase:
     """Initiate Redsys payment use case."""
     return InitiateRedsysPaymentUseCase(
+        get_payment_repository(),
+        get_redsys_service()
+    )
+
+@lru_cache()
+def get_initiate_annual_payment_use_case() -> InitiateAnnualPaymentUseCase:
+    """Initiate annual payment use case."""
+    return InitiateAnnualPaymentUseCase(
         get_payment_repository(),
         get_redsys_service()
     )

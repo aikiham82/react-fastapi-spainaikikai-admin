@@ -46,6 +46,7 @@ from .payment.get_payment_use_case import GetPaymentUseCase
 from .payment.get_all_payments_use_case import GetAllPaymentsUseCase
 from .payment.create_payment_use_case import CreatePaymentUseCase
 from .payment.initiate_redsys_payment_use_case import InitiateRedsysPaymentUseCase
+from .payment.initiate_annual_payment_use_case import InitiateAnnualPaymentUseCase
 from .payment.process_redsys_webhook_use_case import ProcessRedsysWebhookUseCase
 from .payment.refund_payment_use_case import RefundPaymentUseCase
 from .payment.delete_payment_use_case import DeletePaymentUseCase
@@ -86,8 +87,8 @@ __all__ = [
     # Payment
     "GetPaymentUseCase", "GetAllPaymentsUseCase",
     "CreatePaymentUseCase", "InitiateRedsysPaymentUseCase",
-    "ProcessRedsysWebhookUseCase", "RefundPaymentUseCase",
-    "DeletePaymentUseCase",
+    "InitiateAnnualPaymentUseCase", "ProcessRedsysWebhookUseCase",
+    "RefundPaymentUseCase", "DeletePaymentUseCase",
     # Insurance
     "GetInsuranceUseCase", "GetAllInsurancesUseCase",
     "GetExpiringInsurancesUseCase",

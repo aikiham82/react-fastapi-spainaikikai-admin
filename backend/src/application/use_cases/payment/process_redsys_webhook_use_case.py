@@ -1,8 +1,9 @@
 """Process Redsys Webhook use case."""
 
+import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from src.domain.entities.payment import Payment, PaymentStatus
 from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
@@ -152,6 +153,10 @@ class ProcessRedsysWebhookUseCase:
                 customer_name = f"{member.nombre} {member.primer_apellido} {member.segundo_apellido or ''}".strip()
                 customer_email = member.email
 
+        # For annual payments, use payer_name if available
+        if payment.payer_name:
+            customer_name = payment.payer_name
+
         # Get next invoice number (use payment year for multi-year support)
         invoice_year = payment.payment_year or datetime.now().year
         invoice_number = await self.invoice_repository.get_next_invoice_number(invoice_year)
@@ -159,15 +164,38 @@ class ProcessRedsysWebhookUseCase:
         # Get invoice settings
         invoice_settings = get_invoice_settings()
 
-        # Create line item
-        line_items = [
-            InvoiceLineItem(
-                description=f"Pago de licencia - {payment.payment_type.value}",
-                quantity=1,
-                unit_price=payment.amount,
-                tax_rate=invoice_settings.tax_rate * 100  # Convert to percentage
-            )
-        ]
+        # Create line items - check if payment has line_items_data (annual payments)
+        line_items: List[InvoiceLineItem] = []
+        if payment.line_items_data:
+            try:
+                items_data = json.loads(payment.line_items_data)
+                for item in items_data:
+                    line_items.append(InvoiceLineItem(
+                        description=item.get("description", ""),
+                        quantity=item.get("quantity", 1),
+                        unit_price=item.get("unit_price", 0),
+                        tax_rate=invoice_settings.tax_rate * 100  # Convert to percentage
+                    ))
+            except (json.JSONDecodeError, KeyError):
+                # Fallback to single line item if parsing fails
+                line_items = [
+                    InvoiceLineItem(
+                        description=f"Pago anual - {payment.payment_type.value}",
+                        quantity=1,
+                        unit_price=payment.amount,
+                        tax_rate=invoice_settings.tax_rate * 100
+                    )
+                ]
+        else:
+            # Standard single line item for non-annual payments
+            line_items = [
+                InvoiceLineItem(
+                    description=f"Pago de licencia - {payment.payment_type.value}",
+                    quantity=1,
+                    unit_price=payment.amount,
+                    tax_rate=invoice_settings.tax_rate * 100  # Convert to percentage
+                )
+            ]
 
         # Create invoice
         invoice = Invoice(
