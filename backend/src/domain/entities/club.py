@@ -16,6 +16,7 @@ class Club:
     phone: str = ""
     email: str = ""
     association_id: Optional[str] = None
+    website: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

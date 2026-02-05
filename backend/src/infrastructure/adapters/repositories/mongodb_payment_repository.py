@@ -36,6 +36,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             payment_year=doc.get("payment_year"),
             payer_name=doc.get("payer_name"),
             line_items_data=doc.get("line_items_data"),
+            member_assignments=doc.get("member_assignments"),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
         )
@@ -57,6 +58,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             "payment_year": payment.payment_year,
             "payer_name": payment.payer_name,
             "line_items_data": payment.line_items_data,
+            "member_assignments": payment.member_assignments,
             "updated_at": datetime.utcnow()
         }
         if payment.id:

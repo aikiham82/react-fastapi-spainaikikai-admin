@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLicenseContext } from '../hooks/useLicenseContext';
+import { useMemberContext } from '../../members/hooks/useMemberContext';
 import type { License } from '../data/schemas/license.schema';
 import { IdCard, Plus, Search, Edit, Trash2, Eye, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,11 +13,17 @@ import { LicenseForm } from './LicenseForm';
 
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
+  const { members } = useMemberContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLicenseForEdit, setSelectedLicenseForEdit] = useState<License | null>(null);
+
+  const memberOptions = members.map(member => ({
+    id: member.id,
+    name: `${member.first_name} ${member.last_name || ''}`.trim()
+  }));
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -25,7 +32,7 @@ export const LicenseList = () => {
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
-    setFilters({ ...filters, status: value as "active" | "expired" | "pending" | undefined, offset: 0 });
+    setFilters({ ...filters, status: value === 'all' ? undefined : value as "active" | "expired" | "pending", offset: 0 });
   };
 
   const isExpiringSoon = (expiryDate: string) => {
@@ -73,6 +80,7 @@ export const LicenseList = () => {
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
           license={selectedLicenseForEdit}
+          memberOptions={memberOptions}
         />
       </div>
     );
@@ -92,12 +100,12 @@ export const LicenseList = () => {
           />
         </div>
 
-        <Select value={licenseStatusFilter} onValueChange={handleFilterStatus}>
+        <Select value={licenseStatusFilter || 'all'} onValueChange={handleFilterStatus}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Estado de licencia" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="active">Activa</SelectItem>
             <SelectItem value="expired">Expirada</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
@@ -282,6 +290,7 @@ export const LicenseList = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         license={selectedLicenseForEdit}
+        memberOptions={memberOptions}
       />
     </div>
   );

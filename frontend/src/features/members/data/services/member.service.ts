@@ -11,12 +11,20 @@ export const getMember = async (id: string): Promise<Member> => {
   return await apiClient.get<Member>(`${BASE_URL}/${id}`);
 };
 
+const cleanEmptyFields = <T extends Record<string, unknown>>(data: T): Partial<T> => {
+  return Object.fromEntries(
+    Object.entries(data).filter(([, value]) => value !== '' && value !== null && value !== undefined)
+  ) as Partial<T>;
+};
+
 export const createMember = async (data: CreateMemberRequest): Promise<Member> => {
-  return await apiClient.post<Member>(BASE_URL, data);
+  const cleanedData = cleanEmptyFields(data);
+  return await apiClient.post<Member>(BASE_URL, cleanedData);
 };
 
 export const updateMember = async (id: string, data: UpdateMemberRequest): Promise<Member> => {
-  return await apiClient.put<Member>(`${BASE_URL}/${id}`, data);
+  const cleanedData = cleanEmptyFields(data);
+  return await apiClient.put<Member>(`${BASE_URL}/${id}`, cleanedData);
 };
 
 export const deleteMember = async (id: string): Promise<void> => {

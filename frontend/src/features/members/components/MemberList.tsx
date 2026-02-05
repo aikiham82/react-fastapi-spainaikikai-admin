@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
 import type { Member } from '../data/schemas/member.schema';
-import { Users, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Users, Plus, Search, Edit, Trash2, Eye, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { MemberForm } from './MemberForm';
+import { MemberPaymentStatus } from '@/features/member-payments';
 
 export const MemberList = () => {
   const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
@@ -17,6 +19,7 @@ export const MemberList = () => {
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
+  const [selectedMemberForPayments, setSelectedMemberForPayments] = useState<Member | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -117,6 +120,7 @@ export const MemberList = () => {
                 <th className="text-left p-4 font-medium text-gray-900">Club</th>
                 <th className="text-left p-4 font-medium text-gray-900">Licencia</th>
                 <th className="text-left p-4 font-medium text-gray-900">Estado</th>
+                <th className="text-center p-4 font-medium text-gray-900">Pagos</th>
                 <th className="text-right p-4 font-medium text-gray-900">Acciones</th>
               </tr>
             </thead>
@@ -144,6 +148,24 @@ export const MemberList = () => {
                       {member.license_status === 'active' ? 'Activa' :
                         member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
                     </Badge>
+                  </td>
+                  <td className="p-4 text-center">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSelectedMemberForPayments(member)}
+                          >
+                            <CreditCard className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Ver estado de pagos</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -277,6 +299,20 @@ export const MemberList = () => {
         onOpenChange={setIsFormOpen}
         member={selectedMemberForEdit}
       />
+
+      {/* Payment Status Dialog */}
+      <Dialog open={!!selectedMemberForPayments} onOpenChange={(open) => !open && setSelectedMemberForPayments(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Estado de Pagos - {selectedMemberForPayments?.first_name} {selectedMemberForPayments?.last_name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedMemberForPayments && (
+            <MemberPaymentStatus memberId={selectedMemberForPayments.id} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

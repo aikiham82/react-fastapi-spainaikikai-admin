@@ -96,22 +96,27 @@ class TestRegisterEndpoint:
             hashed_password="hashed_password"
         )
 
-    @patch('src.infrastructure.web.routers.users.get_create_user_use_case')
-    @patch('src.infrastructure.web.routers.users.get_password_hash')
     def test_register_with_existing_email_returns_400(
-        self, mock_hash_password, mock_get_use_case, client, user_create_data
+        self, test_app, user_create_data
     ):
         """Test registration with existing email returns 400 Bad Request."""
-        # Arrange
-        mock_hash_password.return_value = "hashed_password"
-        
+        # Arrange - Mock dependencies using FastAPI's dependency override
+        from src.infrastructure.web.dependencies import get_create_user_use_case
+
         mock_use_case = AsyncMock()
         mock_use_case.execute.side_effect = UserAlreadyExistsError("User with this email already exists")
-        mock_get_use_case.return_value = mock_use_case
-        
-        # Act
-        response = client.post("/api/v1/auth/register", json=user_create_data)
-        
+
+        # Override dependencies
+        test_app.dependency_overrides[get_create_user_use_case] = lambda: mock_use_case
+
+        with patch('src.infrastructure.web.routers.users.get_password_hash') as mock_hash_password:
+            mock_hash_password.return_value = "hashed_password"
+
+            client = TestClient(test_app)
+
+            # Act
+            response = client.post("/api/v1/auth/register", json=user_create_data)
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         data = response.json()
@@ -136,22 +141,27 @@ class TestRegisterEndpoint:
         # Assert
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    @patch('src.infrastructure.web.routers.users.get_create_user_use_case')
-    @patch('src.infrastructure.web.routers.users.get_password_hash')
     def test_register_with_server_error_returns_500(
-        self, mock_hash_password, mock_get_use_case, client, user_create_data
+        self, test_app, user_create_data
     ):
         """Test registration with server error returns 500 Internal Server Error."""
-        # Arrange
-        mock_hash_password.return_value = "hashed_password"
-        
+        # Arrange - Mock dependencies using FastAPI's dependency override
+        from src.infrastructure.web.dependencies import get_create_user_use_case
+
         mock_use_case = AsyncMock()
         mock_use_case.execute.side_effect = Exception("Database connection failed")
-        mock_get_use_case.return_value = mock_use_case
-        
-        # Act
-        response = client.post("/api/v1/auth/register", json=user_create_data)
-        
+
+        # Override dependencies
+        test_app.dependency_overrides[get_create_user_use_case] = lambda: mock_use_case
+
+        with patch('src.infrastructure.web.routers.users.get_password_hash') as mock_hash_password:
+            mock_hash_password.return_value = "hashed_password"
+
+            client = TestClient(test_app)
+
+            # Act
+            response = client.post("/api/v1/auth/register", json=user_create_data)
+
         # Assert
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         data = response.json()

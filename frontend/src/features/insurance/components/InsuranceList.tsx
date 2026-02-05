@@ -14,6 +14,7 @@ import { memberService } from '@/features/members/data/services/member.service';
 const INSURANCE_TYPE_LABELS: Record<string, string> = {
   accident: 'Seguro de Accidentes',
   rc: 'Seguro de Responsabilidad Civil',
+  civil_liability: 'Responsabilidad Civil',
 };
 
 const STATUS_LABELS: Record<string, string> = {

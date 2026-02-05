@@ -1,15 +1,22 @@
 import { useState } from 'react';
-import { Settings, User, Bell, Shield, Palette } from 'lucide-react';
+import { User, Bell, Shield, Palette } from 'lucide-react';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
+const roleTranslations: Record<string, string> = {
+  'association_admin': 'Administrador',
+  'club_admin': 'Admin de Club',
+};
+
 export const SettingsPage = () => {
   const [notifications, setNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const { currentUser, userRole } = useAuthContext();
 
   return (
     <div className="space-y-6">
@@ -33,11 +40,11 @@ export const SettingsPage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Email</Label>
-                <p className="text-sm text-gray-900">admin@spainaikikai.org</p>
+                <p className="text-sm text-gray-900">{currentUser?.email ?? 'No disponible'}</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-gray-700">Rol</Label>
-                <p className="text-sm text-gray-900">Administrador</p>
+                <p className="text-sm text-gray-900">{userRole ? (roleTranslations[userRole] || userRole) : 'No disponible'}</p>
               </div>
             </div>
             <Button variant="outline" size="sm">

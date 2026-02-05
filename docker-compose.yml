@@ -7,6 +7,8 @@ services:
     image: mongo:7
     container_name: spainaikikai-mongodb
     restart: unless-stopped
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     environment:
@@ -63,7 +65,7 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - app-network
+      - app-networky
 
 volumes:
   mongodb_data:

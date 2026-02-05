@@ -21,6 +21,7 @@ from src.infrastructure.web.routers.price_configurations import router as price_
 from src.infrastructure.web.routers.invoices import router as invoices_router
 from src.infrastructure.web.routers.notifications import router as notifications_router
 from src.infrastructure.web.routers.password_reset import router as password_reset_router
+from src.infrastructure.web.routers.member_payments import router as member_payments_router
 from src.config.logfire import configure_logfire
 from dotenv import load_dotenv
 load_dotenv()
@@ -100,6 +101,7 @@ def create_app() -> FastAPI:
     app.include_router(invoices_router, prefix="/api/v1")
     app.include_router(notifications_router, prefix="/api/v1")
     app.include_router(password_reset_router, prefix="/api/v1")
+    app.include_router(member_payments_router, prefix="/api/v1")
 
     @app.get("/")
     async def root():

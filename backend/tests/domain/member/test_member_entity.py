@@ -62,7 +62,7 @@ class TestMemberEntity:
                 club_id="club-123"
             )
 
-    def test_member_creation_invalid_email(self):
+    def test_member_creation_invalid_email_raises_error(self):
         """Test member creation with invalid email raises error."""
         with pytest.raises(ValueError, match="Invalid email format"):
             Member(

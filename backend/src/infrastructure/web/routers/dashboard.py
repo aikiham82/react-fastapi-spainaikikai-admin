@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
+from bson import ObjectId
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
@@ -115,8 +116,14 @@ async def get_dashboard_stats(
 
     for lic in expiring_licenses_docs:
         # Get member name
-        member = await db["members"].find_one({"_id": lic.get("member_id")})
-        member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}" if member else "Desconocido"
+        member_id = lic.get("member_id")
+        member = None
+        if member_id:
+            try:
+                member = await db["members"].find_one({"_id": ObjectId(member_id)})
+            except Exception:
+                pass
+        member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip() if member else "Desconocido"
 
         expiry_date = lic.get("expiration_date")
         days_remaining = (expiry_date - now).days if expiry_date else 0
@@ -181,8 +188,14 @@ async def get_dashboard_stats(
         created_at = payment.get("created_at")
         time_diff = _format_time_diff(now, created_at)
         # Get member name
-        member = await db["members"].find_one({"_id": payment.get("member_id")})
-        member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}" if member else "Desconocido"
+        member_id = payment.get("member_id")
+        member = None
+        if member_id:
+            try:
+                member = await db["members"].find_one({"_id": ObjectId(member_id)})
+            except Exception:
+                pass
+        member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip() if member else "Desconocido"
         recent_activity.append(RecentActivity(
             id=str(payment.get("_id")),
             type="payment",
@@ -201,8 +214,14 @@ async def get_dashboard_stats(
     for lic in recent_licenses:
         updated_at = lic.get("updated_at")
         time_diff = _format_time_diff(now, updated_at)
-        member = await db["members"].find_one({"_id": lic.get("member_id")})
-        member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}" if member else "Desconocido"
+        member_id = lic.get("member_id")
+        member = None
+        if member_id:
+            try:
+                member = await db["members"].find_one({"_id": ObjectId(member_id)})
+            except Exception:
+                pass
+        member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip() if member else "Desconocido"
         recent_activity.append(RecentActivity(
             id=str(lic.get("_id")),
             type="license",

@@ -24,6 +24,7 @@ class ClubMapper:
             phone=dto.phone,
             email=dto.email,
             association_id=dto.association_id,
+            website=dto.website,
             is_active=True
         )
 
@@ -41,6 +42,7 @@ class ClubMapper:
             phone=entity.phone,
             email=entity.email,
             association_id=entity.association_id,
+            website=entity.website,
             is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at
@@ -67,6 +69,8 @@ class ClubMapper:
             entity.email = dto.email
         if dto.association_id is not None:
             entity.association_id = dto.association_id
+        if dto.website is not None:
+            entity.website = dto.website
         if dto.is_active is not None:
             if dto.is_active:
                 entity.activate()
