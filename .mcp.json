@@ -30,16 +30,39 @@
       "command": "npx",
       "args": ["@jpisnice/shadcn-ui-mcp-server"]
     },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
     "MongoDB": {
       "command": "docker",
       "args": [
         "run",
         "--rm",
         "-i",
+        "--network", "host",
         "-e",
-        "MDB_MCP_CONNECTION_STRING=mongodb://host.docker.internal:27017/uptodateai",
+        "MDB_MCP_CONNECTION_STRING=mongodb://spainaikikai_user:spainaikikai_password@spainaikikai:27017/spainaikikai?authSource=spainaikikai",
         "mongodb/mongodb-mcp-server:latest"
       ]
+    },
+    "MariaDB": {
+      "command": "npx",
+      "args": ["mariadb-mcp-server"],
+      "env": {
+        "MARIADB_HOST": "localhost",
+        "MARIADB_PORT": "3306",
+        "MARIADB_USER": "spainaikikai",
+        "MARIADB_PASSWORD": "SpainAikikai",
+        "MARIADB_DATABASE": "spainaikikai",
+        "MARIADB_ALLOW_INSERT": "false",
+        "MARIADB_ALLOW_UPDATE": "false",
+        "MARIADB_ALLOW_DELETE": "false",
+        "MARIADB_TIMEOUT_MS": "10000",
+        "MARIADB_ROW_LIMIT": "1000000"
+      },
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }

@@ -10,7 +10,10 @@
       "mcp__playwright__browser_type",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_wait_for",
-      "mcp__playwright__browser_run_code"
+      "mcp__playwright__browser_run_code",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "Bash(lsof:*)"
     ]
   }
 }
