@@ -35,6 +35,6 @@ class PriceConfigurationNotActiveError(BusinessRuleViolationError):
 class PriceNotFoundError(BusinessRuleViolationError):
     """Raised when no price is configured for a license type combination."""
 
-    def __init__(self, grado_tecnico: str, categoria_instructor: str, categoria_edad: str):
-        key = f"{grado_tecnico}-{categoria_instructor}-{categoria_edad}"
+    def __init__(self, technical_grade: str, instructor_category: str, age_category: str):
+        key = f"{technical_grade}-{instructor_category}-{age_category}"
         super().__init__(f"No price configured for license type: {key}")

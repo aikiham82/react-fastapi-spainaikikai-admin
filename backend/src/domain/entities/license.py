@@ -40,11 +40,14 @@ class AgeCategory(str, Enum):
 
 @dataclass
 class License:
-    """License domain entity representing a federation license."""
+    """License domain entity representing a federation license.
+
+    Note: club_id has been removed. The club association is now derived
+    from the member's club_id. Use member.club_id instead.
+    """
     id: Optional[str] = None
     license_number: str = ""
     member_id: Optional[str] = None
-    club_id: Optional[str] = None
     association_id: Optional[str] = None
     license_type: LicenseType = LicenseType.KYU  # Legacy field
     grade: str = ""
@@ -55,10 +58,10 @@ class License:
     is_renewed: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    # New category fields for payment calculation
-    grado_tecnico: TechnicalGrade = TechnicalGrade.KYU
-    categoria_instructor: InstructorCategory = InstructorCategory.NONE
-    categoria_edad: AgeCategory = AgeCategory.ADULTO
+    # Category fields for payment calculation (renamed to English)
+    technical_grade: TechnicalGrade = TechnicalGrade.KYU
+    instructor_category: InstructorCategory = InstructorCategory.NONE
+    age_category: AgeCategory = AgeCategory.ADULTO
     last_payment_id: Optional[str] = None  # Track the last payment for this license
 
     def __post_init__(self):
@@ -115,30 +118,30 @@ class License:
     def get_price_key(self) -> str:
         """Generate the price configuration key based on license categories.
 
-        Format: grado_tecnico-categoria_instructor-categoria_edad
+        Format: technical_grade-instructor_category-age_category
         Example: "dan-shidoin-adulto", "kyu-none-infantil"
         """
-        return f"{self.grado_tecnico.value}-{self.categoria_instructor.value}-{self.categoria_edad.value}"
+        return f"{self.technical_grade.value}-{self.instructor_category.value}-{self.age_category.value}"
 
     def update_categories(
         self,
-        grado_tecnico: Optional[TechnicalGrade] = None,
-        categoria_instructor: Optional[InstructorCategory] = None,
-        categoria_edad: Optional[AgeCategory] = None
+        technical_grade: Optional[TechnicalGrade] = None,
+        instructor_category: Optional[InstructorCategory] = None,
+        age_category: Optional[AgeCategory] = None
     ) -> None:
         """Update license categories.
 
         Args:
-            grado_tecnico: New technical grade (Dan/Kyu).
-            categoria_instructor: New instructor category.
-            categoria_edad: New age category.
+            technical_grade: New technical grade (Dan/Kyu).
+            instructor_category: New instructor category.
+            age_category: New age category.
         """
-        if grado_tecnico is not None:
-            self.grado_tecnico = grado_tecnico
-        if categoria_instructor is not None:
-            self.categoria_instructor = categoria_instructor
-        if categoria_edad is not None:
-            self.categoria_edad = categoria_edad
+        if technical_grade is not None:
+            self.technical_grade = technical_grade
+        if instructor_category is not None:
+            self.instructor_category = instructor_category
+        if age_category is not None:
+            self.age_category = age_category
         self.updated_at = datetime.now()
 
     def record_payment(self, payment_id: str) -> None:

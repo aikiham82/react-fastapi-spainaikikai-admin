@@ -23,3 +23,10 @@ class UserAlreadyExistsError(BusinessRuleViolationError):
 class InactiveUserError(BusinessRuleViolationError):
     """Raised when trying to perform operations on an inactive user."""
     pass
+
+
+class SuperAdminAlreadyExistsError(BusinessRuleViolationError):
+    """Raised when trying to create a second super admin (only one allowed)."""
+
+    def __init__(self):
+        super().__init__("Only one super admin is allowed in the system")

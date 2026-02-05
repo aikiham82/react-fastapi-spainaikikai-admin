@@ -16,6 +16,7 @@ from src.infrastructure.adapters.repositories.mongodb_insurance_repository impor
 from src.infrastructure.adapters.repositories.mongodb_price_configuration_repository import MongoDBPriceConfigurationRepository
 from src.infrastructure.adapters.repositories.mongodb_invoice_repository import MongoDBInvoiceRepository
 from src.infrastructure.adapters.repositories.mongodb_password_reset_token_repository import MongoDBPasswordResetTokenRepository
+from src.infrastructure.adapters.repositories.mongodb_member_payment_repository import MongoDBMemberPaymentRepository
 from src.infrastructure.adapters.services.redsys_service import RedsysService
 from src.infrastructure.adapters.services.email_service import EmailService
 from src.infrastructure.adapters.services.pdf_service import PDFService
@@ -104,6 +105,12 @@ from src.application.use_cases.password_reset import (
     RequestPasswordResetUseCase,
     ResetPasswordUseCase,
     ValidateResetTokenUseCase
+)
+from src.application.use_cases.member_payment import (
+    GetMemberPaymentStatusUseCase,
+    GetMemberPaymentHistoryUseCase,
+    GetClubPaymentSummaryUseCase,
+    GetUnpaidMembersUseCase
 )
 from src.config.settings import get_app_settings
 from src.infrastructure.database import get_database
@@ -373,6 +380,7 @@ def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
         invoice_repository=get_invoice_repository(),
         license_repository=get_license_repository(),
         member_repository=get_member_repository(),
+        member_payment_repository=get_member_payment_repository(),
         email_service=get_email_service(),
         pdf_service=get_pdf_service()
     )
@@ -563,6 +571,26 @@ async def get_current_active_user(
     return current_user
 
 
+# Import AuthContext for the new authentication pattern
+from src.infrastructure.web.authorization import AuthContext
+
+
+async def get_auth_context(
+    current_user: User = Depends(get_current_active_user),
+    member_repository: MongoDBMemberRepository = Depends(get_member_repository)
+) -> AuthContext:
+    """Get authentication context with user and linked member.
+
+    This dependency loads the Member associated with the User (if any)
+    and returns an AuthContext that can be used for authorization decisions.
+    """
+    member = None
+    if current_user.member_id:
+        member = await member_repository.find_by_id(current_user.member_id)
+
+    return AuthContext(user=current_user, member=member)
+
+
 # Password reset repository and use cases
 @lru_cache()
 def get_password_reset_token_repository() -> MongoDBPasswordResetTokenRepository:
@@ -596,4 +624,48 @@ def get_validate_reset_token_use_case() -> ValidateResetTokenUseCase:
     """Get validate reset token use case."""
     return ValidateResetTokenUseCase(
         token_repository=get_password_reset_token_repository()
+    )
+
+
+# Member payment repository and use cases
+@lru_cache()
+def get_member_payment_repository() -> MongoDBMemberPaymentRepository:
+    """Get member payment repository instance."""
+    return MongoDBMemberPaymentRepository()
+
+
+@lru_cache()
+def get_member_payment_status_use_case() -> GetMemberPaymentStatusUseCase:
+    """Get member payment status use case."""
+    return GetMemberPaymentStatusUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        member_repository=get_member_repository()
+    )
+
+
+@lru_cache()
+def get_member_payment_history_use_case() -> GetMemberPaymentHistoryUseCase:
+    """Get member payment history use case."""
+    return GetMemberPaymentHistoryUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        member_repository=get_member_repository()
+    )
+
+
+@lru_cache()
+def get_club_payment_summary_use_case() -> GetClubPaymentSummaryUseCase:
+    """Get club payment summary use case."""
+    return GetClubPaymentSummaryUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        club_repository=get_club_repository(),
+        member_repository=get_member_repository()
+    )
+
+
+@lru_cache()
+def get_unpaid_members_use_case() -> GetUnpaidMembersUseCase:
+    """Get unpaid members use case."""
+    return GetUnpaidMembersUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        member_repository=get_member_repository()
     )

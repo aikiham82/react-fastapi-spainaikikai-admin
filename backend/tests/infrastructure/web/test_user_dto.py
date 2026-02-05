@@ -84,8 +84,9 @@ class TestUserBase:
             "email": "test@example.com",
             "username": "testuser",
             "is_active": False,
-            "role": None,
-            "club_id": None
+            "global_role": "user",
+            "member_id": None,
+            "role": None
         }
         user_base = UserBase(**data)
 

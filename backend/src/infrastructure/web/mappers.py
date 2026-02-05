@@ -17,8 +17,9 @@ class UserMapper:
             email=user.email,
             username=user.username,
             is_active=user.is_active,
-            role=user.role,
-            club_id=user.club_id,
+            global_role=user.global_role.value,
+            member_id=user.member_id,
+            role=user.role,  # Legacy field (deprecated)
             created_at=user.created_at,
             updated_at=user.updated_at
         )

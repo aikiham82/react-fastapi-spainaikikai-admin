@@ -57,18 +57,18 @@ async def get_all_prices(
 
 @router.get("/license-price", response_model=LicensePriceResponse)
 async def get_license_price(
-    grado_tecnico: str,
-    categoria_instructor: str,
-    categoria_edad: str,
+    technical_grade: str,
+    instructor_category: str,
+    age_category: str,
     get_price_use_case = Depends(get_license_price_use_case),
     current_user: User = Depends(get_current_active_user)
 ):
     """Get the price for a specific license type combination."""
     try:
         price_config = await get_price_use_case.execute(
-            grado_tecnico=grado_tecnico,
-            categoria_instructor=categoria_instructor,
-            categoria_edad=categoria_edad
+            technical_grade=technical_grade,
+            instructor_category=instructor_category,
+            age_category=age_category
         )
         return LicensePriceResponse(
             key=price_config.key,

@@ -32,9 +32,9 @@ class PriceConfigurationRepositoryPort(ABC):
     @abstractmethod
     async def find_by_license_type(
         self,
-        grado_tecnico: str,
-        categoria_instructor: str,
-        categoria_edad: str
+        technical_grade: str,
+        instructor_category: str,
+        age_category: str
     ) -> Optional[PriceConfiguration]:
         """Find price configuration for a specific license type combination."""
         pass

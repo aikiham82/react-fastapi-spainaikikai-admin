@@ -4,7 +4,10 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime, timedelta
 
-from src.domain.entities.license import License, LicenseStatus, LicenseType
+from src.domain.entities.license import (
+    License, LicenseStatus, LicenseType,
+    TechnicalGrade, InstructorCategory, AgeCategory
+)
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -19,11 +22,18 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
     def _to_domain(self, doc: dict) -> Optional[License]:
         if doc is None:
             return None
+
+        # Read category fields with fallback to legacy Spanish field names for migration
+        technical_grade_val = doc.get("technical_grade") or doc.get("grado_tecnico", "kyu")
+        instructor_category_val = doc.get("instructor_category") or doc.get("categoria_instructor", "none")
+        age_category_val = doc.get("age_category") or doc.get("categoria_edad", "adulto")
+
+        # Note: club_id is no longer stored in License entity
+        # It should be derived from the member's club_id
         return License(
             id=str(doc.get("_id")),
             license_number=doc.get("license_number", ""),
             member_id=doc.get("member_id"),
-            club_id=doc.get("club_id"),
             association_id=doc.get("association_id"),
             license_type=LicenseType(doc.get("license_type", "kyu")),
             grade=doc.get("grade", ""),
@@ -33,14 +43,18 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
             renewal_date=doc.get("renewal_date"),
             is_renewed=doc.get("is_renewed", False),
             created_at=doc.get("created_at"),
-            updated_at=doc.get("updated_at")
+            updated_at=doc.get("updated_at"),
+            technical_grade=TechnicalGrade(technical_grade_val),
+            instructor_category=InstructorCategory(instructor_category_val),
+            age_category=AgeCategory(age_category_val),
+            last_payment_id=doc.get("last_payment_id")
         )
 
     def _to_document(self, license: License) -> dict:
+        # Note: club_id is no longer stored - it's derived via member
         doc = {
             "license_number": license.license_number,
             "member_id": license.member_id,
-            "club_id": license.club_id,
             "association_id": license.association_id,
             "license_type": license.license_type.value,
             "grade": license.grade,
@@ -49,6 +63,11 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
             "expiration_date": license.expiration_date,
             "renewal_date": license.renewal_date,
             "is_renewed": license.is_renewed,
+            # Category fields with English names
+            "technical_grade": license.technical_grade.value,
+            "instructor_category": license.instructor_category.value,
+            "age_category": license.age_category.value,
+            "last_payment_id": license.last_payment_id,
             "updated_at": datetime.utcnow()
         }
         if license.id:
@@ -81,7 +100,26 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[License]:
-        cursor = self.collection.find({"club_id": club_id}).limit(limit)
+        """Find licenses by club ID.
+
+        Since club_id is no longer stored in licenses, this method:
+        1. Finds all member_ids in the specified club
+        2. Queries licenses by those member_ids
+
+        Note: For better performance, consider creating an index on members.club_id
+        """
+        # Get all member IDs for this club
+        members_collection = self.db["members"]
+        member_ids = await members_collection.distinct("_id", {"club_id": club_id})
+
+        if not member_ids:
+            return []
+
+        # Convert ObjectIds to strings for the query
+        member_id_strings = [str(m) for m in member_ids]
+
+        # Find licenses for these members
+        cursor = self.collection.find({"member_id": {"$in": member_id_strings}}).limit(limit)
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
 

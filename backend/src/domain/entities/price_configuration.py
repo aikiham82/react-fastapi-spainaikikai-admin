@@ -25,10 +25,10 @@ class PriceConfiguration:
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    # Valid values for each category
-    VALID_GRADO_TECNICO = {"dan", "kyu"}
-    VALID_CATEGORIA_INSTRUCTOR = {"none", "fukushidoin", "shidoin"}
-    VALID_CATEGORIA_EDAD = {"infantil", "adulto"}
+    # Valid values for each category (using English names internally)
+    VALID_TECHNICAL_GRADE = {"dan", "kyu"}
+    VALID_INSTRUCTOR_CATEGORY = {"none", "fukushidoin", "shidoin"}
+    VALID_AGE_CATEGORY = {"infantil", "adulto"}
 
     def __post_init__(self):
         """Validate price configuration entity."""
@@ -46,7 +46,7 @@ class PriceConfiguration:
     def _validate_key_format(self) -> None:
         """Validate the key format matches expected pattern.
 
-        Expected format: grado_tecnico-categoria_instructor-categoria_edad
+        Expected format: technical_grade-instructor_category-age_category
         Example: "dan-shidoin-adulto"
 
         Raises:
@@ -57,47 +57,47 @@ class PriceConfiguration:
         if len(parts) != 3:
             raise ValueError(
                 f"Invalid key format: '{self.key}'. "
-                "Expected format: grado_tecnico-categoria_instructor-categoria_edad"
+                "Expected format: technical_grade-instructor_category-age_category"
             )
 
-        grado, instructor, edad = parts
+        technical_grade, instructor_category, age_category = parts
 
-        if grado not in self.VALID_GRADO_TECNICO:
+        if technical_grade not in self.VALID_TECHNICAL_GRADE:
             raise ValueError(
-                f"Invalid grado_tecnico: '{grado}'. "
-                f"Valid values: {self.VALID_GRADO_TECNICO}"
+                f"Invalid technical_grade: '{technical_grade}'. "
+                f"Valid values: {self.VALID_TECHNICAL_GRADE}"
             )
 
-        if instructor not in self.VALID_CATEGORIA_INSTRUCTOR:
+        if instructor_category not in self.VALID_INSTRUCTOR_CATEGORY:
             raise ValueError(
-                f"Invalid categoria_instructor: '{instructor}'. "
-                f"Valid values: {self.VALID_CATEGORIA_INSTRUCTOR}"
+                f"Invalid instructor_category: '{instructor_category}'. "
+                f"Valid values: {self.VALID_INSTRUCTOR_CATEGORY}"
             )
 
-        if edad not in self.VALID_CATEGORIA_EDAD:
+        if age_category not in self.VALID_AGE_CATEGORY:
             raise ValueError(
-                f"Invalid categoria_edad: '{edad}'. "
-                f"Valid values: {self.VALID_CATEGORIA_EDAD}"
+                f"Invalid age_category: '{age_category}'. "
+                f"Valid values: {self.VALID_AGE_CATEGORY}"
             )
 
     @classmethod
     def generate_key(
         cls,
-        grado_tecnico: str,
-        categoria_instructor: str,
-        categoria_edad: str
+        technical_grade: str,
+        instructor_category: str,
+        age_category: str
     ) -> str:
         """Generate a price configuration key from category values.
 
         Args:
-            grado_tecnico: Technical grade (dan/kyu).
-            categoria_instructor: Instructor category (none/fukushidoin/shidoin).
-            categoria_edad: Age category (infantil/adulto).
+            technical_grade: Technical grade (dan/kyu).
+            instructor_category: Instructor category (none/fukushidoin/shidoin).
+            age_category: Age category (infantil/adulto).
 
         Returns:
             The generated key string.
         """
-        return f"{grado_tecnico.lower()}-{categoria_instructor.lower()}-{categoria_edad.lower()}"
+        return f"{technical_grade.lower()}-{instructor_category.lower()}-{age_category.lower()}"
 
     def activate(self) -> None:
         """Activate this price configuration."""
@@ -143,16 +143,16 @@ class PriceConfiguration:
         return True
 
     @property
-    def grado_tecnico(self) -> str:
-        """Extract grado_tecnico from key."""
+    def technical_grade(self) -> str:
+        """Extract technical_grade from key."""
         return self.key.split("-")[0]
 
     @property
-    def categoria_instructor(self) -> str:
-        """Extract categoria_instructor from key."""
+    def instructor_category(self) -> str:
+        """Extract instructor_category from key."""
         return self.key.split("-")[1]
 
     @property
-    def categoria_edad(self) -> str:
-        """Extract categoria_edad from key."""
+    def age_category(self) -> str:
+        """Extract age_category from key."""
         return self.key.split("-")[2]

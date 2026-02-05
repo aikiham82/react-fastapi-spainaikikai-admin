@@ -3,7 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from src.domain.entities.user import User
+from src.domain.entities.user import User, GlobalRole
+
 
 class UserRepositoryPort(ABC):
     """Port for user repository operations."""
@@ -26,6 +27,16 @@ class UserRepositoryPort(ABC):
     @abstractmethod
     async def find_by_username(self, username: str) -> Optional[User]:
         """Find a user by username."""
+        pass
+
+    @abstractmethod
+    async def find_by_member_id(self, member_id: str) -> Optional[User]:
+        """Find a user by linked member ID."""
+        pass
+
+    @abstractmethod
+    async def find_by_global_role(self, global_role: GlobalRole) -> Optional[User]:
+        """Find a user by global role (useful for finding super_admin)."""
         pass
 
     @abstractmethod

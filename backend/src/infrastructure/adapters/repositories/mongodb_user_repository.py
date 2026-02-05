@@ -4,7 +4,7 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
 
-from src.domain.entities.user import User
+from src.domain.entities.user import User, GlobalRole
 from src.application.ports.repositories import UserRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -20,39 +20,55 @@ class MongoDBUserRepository(UserRepositoryPort):
         """Convert MongoDB document to domain entity."""
         if doc is None:
             return None
-        
+
+        # Read global_role with fallback to legacy role mapping for migration
+        global_role_val = doc.get("global_role")
+        if not global_role_val:
+            # Map legacy roles to new global_role
+            legacy_role = doc.get("role")
+            if legacy_role == "association_admin":
+                global_role_val = "super_admin"
+            else:
+                global_role_val = "user"
+
+        # Note: club_id is no longer read - derive via member_id
         return User(
             id=str(doc.get("_id")),
             email=doc.get("email", ""),
             username=doc.get("username", ""),
             hashed_password=doc.get("hashed_password", ""),
             is_active=doc.get("is_active", True),
+            global_role=GlobalRole(global_role_val),
+            member_id=doc.get("member_id"),
+            # Legacy field (deprecated)
             role=doc.get("role"),
-            club_id=doc.get("club_id"),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
         )
 
     def _to_document(self, user: User) -> dict:
         """Convert domain entity to MongoDB document."""
+        # Note: club_id is no longer stored - derive via member_id
         doc = {
             "email": user.email,
             "username": user.username,
             "hashed_password": user.hashed_password,
             "is_active": user.is_active,
+            "global_role": user.global_role.value,
+            "member_id": user.member_id,
+            # Legacy field (deprecated - kept during transition)
             "role": user.role,
-            "club_id": user.club_id,
             "updated_at": datetime.utcnow()
         }
-        
+
         if user.id:
             doc["_id"] = ObjectId(user.id)
-        
+
         if user.created_at is None:
             doc["created_at"] = datetime.utcnow()
         else:
             doc["created_at"] = user.created_at
-            
+
         return doc
 
     async def find_all(self, limit: int = 100) -> List[User]:
@@ -77,6 +93,16 @@ class MongoDBUserRepository(UserRepositoryPort):
     async def find_by_username(self, username: str) -> Optional[User]:
         """Find a user by username."""
         doc = await self.collection.find_one({"username": username})
+        return self._to_domain(doc) if doc else None
+
+    async def find_by_member_id(self, member_id: str) -> Optional[User]:
+        """Find a user by linked member ID."""
+        doc = await self.collection.find_one({"member_id": member_id})
+        return self._to_domain(doc) if doc else None
+
+    async def find_by_global_role(self, global_role: GlobalRole) -> Optional[User]:
+        """Find a user by global role (useful for finding super_admin)."""
+        doc = await self.collection.find_one({"global_role": global_role.value})
         return self._to_domain(doc) if doc else None
 
     async def create(self, user: User) -> User:

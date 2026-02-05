@@ -2,8 +2,11 @@
 
 from typing import List, Optional
 
-from src.domain.entities.user import User
-from src.domain.exceptions.user import UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError
+from src.domain.entities.user import User, GlobalRole
+from src.domain.exceptions.user import (
+    UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError,
+    SuperAdminAlreadyExistsError
+)
 from src.application.ports.repositories import UserRepositoryPort
 
 
@@ -52,10 +55,23 @@ class CreateUserUseCase:
     def __init__(self, user_repository: UserRepositoryPort):
         self.user_repository = user_repository
 
-    async def execute(self, email: str, username: str, hashed_password: str) -> User:
+    async def execute(
+        self,
+        email: str,
+        username: str,
+        hashed_password: str,
+        global_role: GlobalRole = GlobalRole.USER,
+        member_id: Optional[str] = None
+    ) -> User:
         """Execute the use case."""
         try:
-            user = User(email=email, username=username, hashed_password=hashed_password)
+            user = User(
+                email=email,
+                username=username,
+                hashed_password=hashed_password,
+                global_role=global_role,
+                member_id=member_id
+            )
         except ValueError as e:
             raise InvalidUserDataError(str(e))
 
@@ -63,10 +79,16 @@ class CreateUserUseCase:
         existing_user = await self.user_repository.find_by_email(email)
         if existing_user:
             raise UserAlreadyExistsError("User with this email already exists")
-            
+
         existing_user = await self.user_repository.find_by_username(username)
         if existing_user:
             raise UserAlreadyExistsError("User with this username already exists")
+
+        # Validate single super_admin constraint
+        if global_role == GlobalRole.SUPER_ADMIN:
+            existing_super_admin = await self.user_repository.find_by_global_role(GlobalRole.SUPER_ADMIN)
+            if existing_super_admin:
+                raise SuperAdminAlreadyExistsError()
 
         return await self.user_repository.create(user)
 

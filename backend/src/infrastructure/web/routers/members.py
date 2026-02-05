@@ -16,10 +16,15 @@ from src.infrastructure.web.dependencies import (
     get_search_members_use_case,
     get_create_member_use_case,
     get_update_member_use_case,
-    get_delete_member_use_case
+    get_delete_member_use_case,
+    get_auth_context,
+    get_current_active_user
 )
-from src.infrastructure.web.dependencies import get_current_active_user
 from src.infrastructure.web.authorization import (
+    AuthContext,
+    check_club_access_ctx,
+    get_club_filter_ctx,
+    # Legacy imports for backwards compatibility
     check_club_access,
     get_club_filter,
     is_club_admin

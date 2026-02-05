@@ -4,7 +4,7 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
 
-from src.domain.entities.member import Member, MemberStatus
+from src.domain.entities.member import Member, MemberStatus, ClubRole
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -19,6 +19,10 @@ class MongoDBMemberRepository(MemberRepositoryPort):
     def _to_domain(self, doc: dict) -> Optional[Member]:
         if doc is None:
             return None
+
+        # Read club_role with fallback to default "member" for existing documents
+        club_role_val = doc.get("club_role", "member")
+
         return Member(
             id=str(doc.get("_id")),
             first_name=doc.get("first_name", ""),
@@ -34,6 +38,7 @@ class MongoDBMemberRepository(MemberRepositoryPort):
             birth_date=doc.get("birth_date"),
             club_id=doc.get("club_id"),
             status=MemberStatus(doc.get("status", "active")),
+            club_role=ClubRole(club_role_val),
             registration_date=doc.get("registration_date"),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
@@ -54,6 +59,7 @@ class MongoDBMemberRepository(MemberRepositoryPort):
             "birth_date": member.birth_date,
             "club_id": member.club_id,
             "status": member.status.value,
+            "club_role": member.club_role.value,
             "registration_date": member.registration_date,
             "updated_at": datetime.utcnow()
         }

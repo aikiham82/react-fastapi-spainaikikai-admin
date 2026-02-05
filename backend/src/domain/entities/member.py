@@ -12,6 +12,12 @@ class MemberStatus(str, Enum):
     SUSPENDED = "suspended"
 
 
+class ClubRole(str, Enum):
+    """Club-level role enumeration for members."""
+    ADMIN = "admin"  # Club administrator
+    MEMBER = "member"  # Regular member
+
+
 @dataclass
 class Member:
     """Member domain entity representing an Aikido practitioner."""
@@ -29,6 +35,7 @@ class Member:
     birth_date: Optional[datetime] = None
     club_id: Optional[str] = None
     status: MemberStatus = MemberStatus.ACTIVE
+    club_role: ClubRole = ClubRole.MEMBER  # Role within the club
     registration_date: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -39,9 +46,8 @@ class Member:
         self.updated_at = self.updated_at or datetime.now()
         if not self.first_name or not self.first_name.strip():
             raise ValueError("Member first name cannot be empty")
-        if not self.email or not self.email.strip():
-            raise ValueError("Member email cannot be empty")
-        if "@" not in self.email:
+        # Email is optional, but if provided must be valid
+        if self.email and self.email.strip() and "@" not in self.email:
             raise ValueError("Invalid email format")
 
     def get_full_name(self) -> str:
@@ -98,3 +104,18 @@ class Member:
         if not new_club_id:
             raise ValueError("Club ID cannot be empty")
         self.club_id = new_club_id
+
+    def promote_to_admin(self) -> None:
+        """Promote member to club admin role."""
+        self.club_role = ClubRole.ADMIN
+        self.updated_at = datetime.now()
+
+    def demote_to_member(self) -> None:
+        """Demote member from admin to regular member role."""
+        self.club_role = ClubRole.MEMBER
+        self.updated_at = datetime.now()
+
+    @property
+    def is_club_admin(self) -> bool:
+        """Check if member has club admin role."""
+        return self.club_role == ClubRole.ADMIN

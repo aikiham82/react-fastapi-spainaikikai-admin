@@ -23,7 +23,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -44,7 +43,6 @@ class TestLicenseEntity:
             License(
                 license_number="",
                 member_id="member-id",
-                club_id="club-id",
                 license_type=LicenseType.KYU,
                 grade="5th Kyu"
             )
@@ -55,7 +53,6 @@ class TestLicenseEntity:
             License(
                 license_number="LIC-2024-001",
                 member_id="member-id",
-                club_id="club-id",
                 license_type=LicenseType.KYU,
                 grade=""
             )
@@ -65,7 +62,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -81,7 +77,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -99,7 +94,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -114,7 +108,6 @@ class TestLicenseEntity:
         license2 = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -131,7 +124,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -154,7 +146,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -171,7 +162,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -189,7 +179,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",
@@ -209,7 +198,6 @@ class TestLicenseEntity:
         license = License(
             license_number="LIC-2024-001",
             member_id="member-id",
-            club_id="club-id",
             association_id="association-id",
             license_type=LicenseType.KYU,
             grade="5th Kyu",

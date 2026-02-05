@@ -1,7 +1,7 @@
 """Member mapper for DTO to Entity conversion."""
 
 from datetime import datetime
-from src.domain.entities.member import Member, MemberStatus
+from src.domain.entities.member import Member, MemberStatus, ClubRole
 from src.infrastructure.web.dto.member_dto import (
     MemberCreate,
     MemberUpdate,
@@ -19,7 +19,7 @@ class MemberMapper:
             first_name=dto.first_name,
             last_name=dto.last_name or "",
             dni=dto.dni or "",
-            email=dto.email,
+            email=dto.email or "",
             phone=dto.phone or "",
             address=dto.address or "",
             city=dto.city or "",
@@ -50,6 +50,7 @@ class MemberMapper:
             birth_date=entity.birth_date,
             club_id=entity.club_id,
             status=entity.status.value,
+            club_role=entity.club_role.value,
             registration_date=entity.registration_date,
             created_at=entity.created_at,
             updated_at=entity.updated_at
@@ -87,6 +88,11 @@ class MemberMapper:
                 entity.deactivate()
             elif dto.status == "suspended":
                 entity.suspend()
+        if dto.club_role is not None:
+            if dto.club_role == "admin":
+                entity.promote_to_admin()
+            elif dto.club_role == "member":
+                entity.demote_to_member()
         return entity
 
     @staticmethod

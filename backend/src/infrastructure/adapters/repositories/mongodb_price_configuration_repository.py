@@ -72,11 +72,11 @@ class MongoDBPriceConfigurationRepository(PriceConfigurationRepositoryPort):
 
     async def find_by_license_type(
         self,
-        grado_tecnico: str,
-        categoria_instructor: str,
-        categoria_edad: str
+        technical_grade: str,
+        instructor_category: str,
+        age_category: str
     ) -> Optional[PriceConfiguration]:
-        key = f"{grado_tecnico}-{categoria_instructor}-{categoria_edad}"
+        key = f"{technical_grade}-{instructor_category}-{age_category}"
         doc = await self.collection.find_one({"key": key, "is_active": True})
         return self._to_domain(doc) if doc else None
 

@@ -13,17 +13,17 @@ class GetLicensePriceUseCase:
 
     async def execute(
         self,
-        grado_tecnico: str,
-        categoria_instructor: str,
-        categoria_edad: str
+        technical_grade: str,
+        instructor_category: str,
+        age_category: str
     ) -> PriceConfiguration:
         """
         Execute the use case.
 
         Args:
-            grado_tecnico: Technical grade (dan/kyu)
-            categoria_instructor: Instructor category (none/fukushidoin/shidoin)
-            categoria_edad: Age category (infantil/adulto)
+            technical_grade: Technical grade (dan/kyu)
+            instructor_category: Instructor category (none/fukushidoin/shidoin)
+            age_category: Age category (infantil/adulto)
 
         Returns:
             The price configuration for the specified license type.
@@ -32,16 +32,16 @@ class GetLicensePriceUseCase:
             PriceNotFoundError: If no price is configured for this combination.
         """
         price_config = await self.price_repository.find_by_license_type(
-            grado_tecnico=grado_tecnico,
-            categoria_instructor=categoria_instructor,
-            categoria_edad=categoria_edad
+            technical_grade=technical_grade,
+            instructor_category=instructor_category,
+            age_category=age_category
         )
 
         if not price_config:
             raise PriceNotFoundError(
-                grado_tecnico=grado_tecnico,
-                categoria_instructor=categoria_instructor,
-                categoria_edad=categoria_edad
+                technical_grade=technical_grade,
+                instructor_category=instructor_category,
+                age_category=age_category
             )
 
         return price_config

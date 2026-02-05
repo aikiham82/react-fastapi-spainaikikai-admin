@@ -41,9 +41,9 @@ class PriceConfigurationResponse(PriceConfigurationBase):
 
 class LicensePriceQuery(BaseModel):
     """DTO for querying license price."""
-    grado_tecnico: str
-    categoria_instructor: str
-    categoria_edad: str
+    technical_grade: str
+    instructor_category: str
+    age_category: str
 
 
 class LicensePriceResponse(BaseModel):
