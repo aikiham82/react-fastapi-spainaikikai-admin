@@ -6,9 +6,11 @@ from datetime import datetime
 
 
 class InsuranceBase(BaseModel):
-    """Base Insurance DTO."""
+    """Base Insurance DTO.
+
+    Note: club_id has been removed. The club is derived from the member.
+    """
     member_id: Optional[str] = None
-    club_id: Optional[str] = None
     insurance_type: str = "accident"
     policy_number: str
     insurance_company: str
@@ -37,6 +39,7 @@ class InsuranceResponse(InsuranceBase):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     documents: Optional[str] = None
+    member_name: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

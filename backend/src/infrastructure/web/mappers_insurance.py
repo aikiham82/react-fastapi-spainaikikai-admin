@@ -16,7 +16,6 @@ class InsuranceMapper:
         """Convert Create DTO to Domain Entity."""
         return Insurance(
             member_id=dto.member_id,
-            club_id=dto.club_id,
             insurance_type=InsuranceType(dto.insurance_type),
             policy_number=dto.policy_number,
             insurance_company=dto.insurance_company,
@@ -33,7 +32,6 @@ class InsuranceMapper:
         return InsuranceResponse(
             id=entity.id,
             member_id=entity.member_id,
-            club_id=entity.club_id,
             insurance_type=entity.insurance_type.value,
             policy_number=entity.policy_number,
             insurance_company=entity.insurance_company,

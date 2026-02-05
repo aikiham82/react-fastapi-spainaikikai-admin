@@ -13,10 +13,9 @@ class TestInsuranceEntity:
         """Test valid insurance creation."""
         start_date = datetime.now()
         end_date = start_date + timedelta(days=365)
-        
+
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -25,9 +24,8 @@ class TestInsuranceEntity:
             coverage_amount=100000.0,
             payment_id="payment-id"
         )
-        
+
         assert insurance.member_id == "member-id"
-        assert insurance.club_id == "club-id"
         assert insurance.insurance_type == InsuranceType.ACCIDENT
         assert insurance.policy_number == "POL-12345"
         assert insurance.insurance_company == "Insurance Company Inc"
@@ -41,7 +39,6 @@ class TestInsuranceEntity:
         with pytest.raises(ValueError, match="Policy number cannot be empty"):
             Insurance(
                 member_id="member-id",
-                club_id="club-id",
                 insurance_type=InsuranceType.ACCIDENT,
                 policy_number="",
                 insurance_company="Insurance Company Inc",
@@ -55,7 +52,6 @@ class TestInsuranceEntity:
         with pytest.raises(ValueError, match="Coverage amount cannot be negative"):
             Insurance(
                 member_id="member-id",
-                club_id="club-id",
                 insurance_type=InsuranceType.ACCIDENT,
                 policy_number="POL-12345",
                 insurance_company="Insurance Company Inc",
@@ -68,7 +64,6 @@ class TestInsuranceEntity:
         """Test insurance activation."""
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -78,7 +73,7 @@ class TestInsuranceEntity:
             payment_id="payment-id",
             status=InsuranceStatus.PENDING
         )
-        
+
         insurance.activate()
         assert insurance.status == InsuranceStatus.ACTIVE
         assert insurance.created_at is not None  # Auto-set in __post_init__
@@ -87,7 +82,6 @@ class TestInsuranceEntity:
         """Test insurance cancellation."""
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -97,7 +91,7 @@ class TestInsuranceEntity:
             payment_id="payment-id",
             status=InsuranceStatus.ACTIVE
         )
-        
+
         insurance.cancel()
         assert insurance.status == InsuranceStatus.CANCELLED
 
@@ -107,7 +101,6 @@ class TestInsuranceEntity:
         past_date = datetime.now() - timedelta(days=10)
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -117,7 +110,7 @@ class TestInsuranceEntity:
             payment_id="payment-id",
             status=InsuranceStatus.ACTIVE
         )
-        
+
         assert insurance.is_expired() is True
 
         # Active insurance
@@ -131,7 +124,6 @@ class TestInsuranceEntity:
         threshold_date = datetime.now() + timedelta(days=5)
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -141,7 +133,7 @@ class TestInsuranceEntity:
             payment_id="payment-id",
             status=InsuranceStatus.ACTIVE
         )
-        
+
         insurance.check_and_update_status()
         assert insurance.status == InsuranceStatus.ACTIVE
 
@@ -158,7 +150,6 @@ class TestInsuranceEntity:
         end_date = datetime.now() + timedelta(days=15)  # Expires in 15 days from now
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -186,10 +177,9 @@ class TestInsuranceEntity:
         """Test insurance dates update."""
         new_start_date = datetime.now() + timedelta(days=7)
         new_end_date = new_start_date + timedelta(days=358)
-        
+
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -198,7 +188,7 @@ class TestInsuranceEntity:
             coverage_amount=100000.0,
             payment_id="payment-id"
         )
-        
+
         insurance.update_dates(new_start_date, new_end_date)
         assert insurance.start_date == new_start_date
         assert insurance.end_date == new_end_date
@@ -207,7 +197,6 @@ class TestInsuranceEntity:
         """Test insurance dates update with invalid dates raises error."""
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -216,7 +205,7 @@ class TestInsuranceEntity:
             coverage_amount=100000.0,
             payment_id="payment-id"
         )
-        
+
         with pytest.raises(ValueError, match="Start date must be before end date"):
             insurance.update_dates(
                 datetime.now() + timedelta(days=10),
@@ -227,7 +216,6 @@ class TestInsuranceEntity:
         """Test coverage amount update."""
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -236,7 +224,7 @@ class TestInsuranceEntity:
             coverage_amount=50000.0,
             payment_id="payment-id"
         )
-        
+
         insurance.update_coverage(75000.0)
         assert insurance.coverage_amount == 75000.0
 
@@ -244,7 +232,6 @@ class TestInsuranceEntity:
         """Test coverage amount update with negative value raises error."""
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -253,7 +240,7 @@ class TestInsuranceEntity:
             coverage_amount=100000.0,
             payment_id="payment-id"
         )
-        
+
         with pytest.raises(ValueError, match="Coverage amount cannot be negative"):
             insurance.update_coverage(-10000.0)
 
@@ -263,7 +250,6 @@ class TestInsuranceEntity:
         end_date = datetime.now() + timedelta(days=30)
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -292,7 +278,6 @@ class TestInsuranceEntity:
         end_date = datetime.now() + timedelta(days=30)
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -318,7 +303,6 @@ class TestInsuranceEntity:
 
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -336,7 +320,6 @@ class TestInsuranceEntity:
         """Test insurance deactivation (sets to CANCELLED)."""
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -349,16 +332,15 @@ class TestInsuranceEntity:
 
         insurance.deactivate()
         assert insurance.status == InsuranceStatus.CANCELLED  # deactivate sets to CANCELLED
-        assert insurance.is_active() is False  # is_active is a method
+        assert insurance.is_active is False  # is_active is a property
 
     def test_insurance_cancellation_with_dates(self):
         """Test insurance cancellation with dates set."""
         start_date = datetime.now()
         end_date = start_date + timedelta(days=7)
-        
+
         insurance = Insurance(
             member_id="member-id",
-            club_id="club-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
@@ -368,7 +350,7 @@ class TestInsuranceEntity:
             payment_id="payment-id",
             status=InsuranceStatus.ACTIVE
         )
-        
+
         insurance.cancel()
         assert insurance.status == InsuranceStatus.CANCELLED
-        assert insurance.is_active() is False
+        assert insurance.is_active is False  # is_active is a property

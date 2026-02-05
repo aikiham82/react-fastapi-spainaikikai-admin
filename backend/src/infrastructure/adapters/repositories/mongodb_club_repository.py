@@ -10,7 +10,11 @@ from src.infrastructure.database import get_database
 
 
 class MongoDBClubRepository(ClubRepositoryPort):
-    """MongoDB implementation of Club Repository."""
+    """MongoDB implementation of Club Repository.
+
+    Note: After migration 009, all club _id values are ObjectId.
+    The dual-query defensive code has been removed.
+    """
 
     def __init__(self):
         self.db = get_database()

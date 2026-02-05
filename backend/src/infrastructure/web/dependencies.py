@@ -404,7 +404,10 @@ def get_insurance_repository() -> MongoDBInsuranceRepository:
 @lru_cache()
 def get_all_insurances_use_case() -> GetAllInsurancesUseCase:
     """Get all insurances use case."""
-    return GetAllInsurancesUseCase(get_insurance_repository())
+    return GetAllInsurancesUseCase(
+        get_insurance_repository(),
+        get_member_repository()
+    )
 
 @lru_cache()
 def get_insurance_use_case() -> GetInsuranceUseCase:

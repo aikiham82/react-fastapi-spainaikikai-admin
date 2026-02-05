@@ -25,8 +25,8 @@ class InsuranceRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Insurance]:
-        """Find insurances by club ID."""
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[Insurance]:
+        """Find insurances by a list of member IDs."""
         pass
 
     @abstractmethod

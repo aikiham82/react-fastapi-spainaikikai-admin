@@ -22,7 +22,6 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         return Insurance(
             id=str(doc.get("_id")),
             member_id=doc.get("member_id"),
-            club_id=doc.get("club_id"),
             insurance_type=InsuranceType(doc.get("insurance_type", "accident")),
             policy_number=doc.get("policy_number", ""),
             insurance_company=doc.get("insurance_company", ""),
@@ -39,7 +38,6 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
     def _to_document(self, insurance: Insurance) -> dict:
         doc = {
             "member_id": insurance.member_id,
-            "club_id": insurance.club_id,
             "insurance_type": insurance.insurance_type.value,
             "policy_number": insurance.policy_number,
             "insurance_company": insurance.insurance_company,
@@ -76,8 +74,11 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Insurance]:
-        cursor = self.collection.find({"club_id": club_id}).limit(limit)
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[Insurance]:
+        """Find insurances by a list of member IDs."""
+        if not member_ids:
+            return []
+        cursor = self.collection.find({"member_id": {"$in": member_ids}}).limit(limit)
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
 

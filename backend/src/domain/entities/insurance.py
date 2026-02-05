@@ -20,10 +20,13 @@ class InsuranceStatus(str, Enum):
 
 @dataclass
 class Insurance:
-    """Insurance domain entity representing accident or civil liability insurance."""
+    """Insurance domain entity representing accident or civil liability insurance.
+
+    Note: club_id has been removed. To find the club for an insurance,
+    look up the member_id and get the club_id from the member entity.
+    """
     id: Optional[str] = None
     member_id: Optional[str] = None
-    club_id: Optional[str] = None
     insurance_type: InsuranceType = InsuranceType.ACCIDENT
     policy_number: str = ""
     insurance_company: str = ""
@@ -80,13 +83,6 @@ class Insurance:
         if self.end_date:
             return datetime.now() > self.end_date
         return False
-
-    def is_active(self) -> bool:
-        """Check if insurance is currently active."""
-        return (
-            self.status == InsuranceStatus.ACTIVE and
-            not self.is_expired()
-        )
 
     def check_and_update_status(self) -> None:
         """Check and update insurance status based on end date."""

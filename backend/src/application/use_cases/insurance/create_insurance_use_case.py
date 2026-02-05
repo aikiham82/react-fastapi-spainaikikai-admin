@@ -17,7 +17,6 @@ class CreateInsuranceUseCase:
     async def execute(
         self,
         member_id: Optional[str],
-        club_id: Optional[str],
         policy_number: str,
         insurance_company: str,
         start_date: datetime,
@@ -26,7 +25,11 @@ class CreateInsuranceUseCase:
         coverage_amount: Optional[float] = None,
         payment_id: Optional[str] = None
     ) -> Insurance:
-        """Execute to use case."""
+        """Execute the use case.
+
+        Note: club_id is no longer stored on insurance. The club can be
+        derived from the member_id when needed.
+        """
         # Check if insurance with same policy number exists
         existing = await self.insurance_repository.find_by_policy_number(policy_number)
         if existing:
@@ -34,7 +37,6 @@ class CreateInsuranceUseCase:
 
         insurance = Insurance(
             member_id=member_id,
-            club_id=club_id,
             insurance_type=InsuranceType(insurance_type),
             policy_number=policy_number,
             insurance_company=insurance_company,
