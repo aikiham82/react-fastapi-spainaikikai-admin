@@ -16,8 +16,10 @@ from src.infrastructure.web.dto.payment_dto import (
 from src.infrastructure.web.dto.annual_payment_dto import (
     InitiateAnnualPaymentRequest,
     InitiateAnnualPaymentResponse,
-    AnnualPaymentLineItem
+    AnnualPaymentLineItem,
+    MemberPaymentAssignment
 )
+from src.application.use_cases.payment.initiate_annual_payment_use_case import MemberAssignment
 from src.infrastructure.web.mappers_payment import PaymentMapper
 from src.infrastructure.web.dependencies import (
     get_all_payments_use_case,
@@ -117,6 +119,17 @@ async def initiate_annual_payment(
     base_url = app_settings.backend_base_url
     frontend_url = app_settings.frontend_base_url
 
+    # Convert DTO member assignments to domain objects
+    member_assignments = None
+    if payment_request.member_assignments:
+        member_assignments = [
+            MemberAssignment(
+                member_id=a.member_id,
+                member_name=a.member_name,
+                payment_types=a.payment_types
+            ) for a in payment_request.member_assignments
+        ]
+
     try:
         result = await get_initiate_use_case.execute(
             payer_name=payment_request.payer_name,
@@ -131,7 +144,8 @@ async def initiate_annual_payment(
             seguro_rc_count=payment_request.seguro_rc_count,
             success_url=f"{frontend_url}/payments/success",
             failure_url=f"{frontend_url}/payments/failure",
-            webhook_url=f"{base_url}/api/v1/payments/webhook"
+            webhook_url=f"{base_url}/api/v1/payments/webhook",
+            member_assignments=member_assignments
         )
     except DuplicatePaymentForYearError as e:
         raise HTTPException(

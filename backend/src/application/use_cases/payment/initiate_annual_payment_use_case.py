@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 from dataclasses import dataclass
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
@@ -32,6 +32,21 @@ class AnnualPaymentLineItem:
             "quantity": self.quantity,
             "unit_price": self.unit_price,
             "total": self.total
+        }
+
+
+@dataclass
+class MemberAssignment:
+    """Assignment of payment types to a specific member."""
+    member_id: str
+    member_name: str
+    payment_types: List[str]
+
+    def to_dict(self) -> dict:
+        return {
+            "member_id": self.member_id,
+            "member_name": self.member_name,
+            "payment_types": self.payment_types
         }
 
 
@@ -70,7 +85,8 @@ class InitiateAnnualPaymentUseCase:
         seguro_rc_count: int = 0,
         success_url: str = "",
         failure_url: str = "",
-        webhook_url: str = ""
+        webhook_url: str = "",
+        member_assignments: Optional[List[MemberAssignment]] = None
     ) -> InitiateAnnualPaymentResult:
         """
         Execute the use case and return Redsys form data for annual payment.
@@ -89,6 +105,7 @@ class InitiateAnnualPaymentUseCase:
             success_url: URL to redirect on successful payment
             failure_url: URL to redirect on failed payment
             webhook_url: URL for Redsys to send payment notifications
+            member_assignments: Optional list of member payment assignments
 
         Returns:
             InitiateAnnualPaymentResult with payment ID, order ID, line items and form data
@@ -197,6 +214,23 @@ class InitiateAnnualPaymentUseCase:
         # Serialize line items to JSON for storage
         line_items_data = json.dumps([item.to_dict() for item in line_items])
 
+        # Validate and serialize member assignments if provided
+        member_assignments_data = None
+        if member_assignments:
+            # Validate that assignments match quantities
+            self._validate_member_assignments(
+                member_assignments,
+                kyu_count,
+                kyu_infantil_count,
+                dan_count,
+                fukushidoin_shidoin_count,
+                seguro_accidentes_count,
+                seguro_rc_count
+            )
+            member_assignments_data = json.dumps(
+                [a.to_dict() for a in member_assignments]
+            )
+
         # Create pending payment
         payment = Payment(
             club_id=club_id,
@@ -205,7 +239,8 @@ class InitiateAnnualPaymentUseCase:
             status=PaymentStatus.PENDING,
             payment_year=payment_year,
             payer_name=payer_name,
-            line_items_data=line_items_data
+            line_items_data=line_items_data,
+            member_assignments=member_assignments_data
         )
         payment = await self.payment_repository.create(payment)
 
@@ -242,3 +277,51 @@ class InitiateAnnualPaymentUseCase:
             line_items=line_items,
             form_data=form_data
         )
+
+    def _validate_member_assignments(
+        self,
+        assignments: List[MemberAssignment],
+        kyu_count: int,
+        kyu_infantil_count: int,
+        dan_count: int,
+        fukushidoin_shidoin_count: int,
+        seguro_accidentes_count: int,
+        seguro_rc_count: int
+    ) -> None:
+        """Validate that member assignments match the quantities specified.
+
+        This ensures that the total number of members assigned for each type
+        does not exceed the quantity being paid for.
+        """
+        # Count assignments per type
+        type_counts: Dict[str, int] = {
+            "kyu": 0,
+            "kyu_infantil": 0,
+            "dan": 0,
+            "fukushidoin_shidoin": 0,
+            "seguro_accidentes": 0,
+            "seguro_rc": 0
+        }
+
+        for assignment in assignments:
+            for ptype in assignment.payment_types:
+                if ptype in type_counts:
+                    type_counts[ptype] += 1
+
+        # Validate counts don't exceed quantities
+        expected_counts = {
+            "kyu": kyu_count,
+            "kyu_infantil": kyu_infantil_count,
+            "dan": dan_count,
+            "fukushidoin_shidoin": fukushidoin_shidoin_count,
+            "seguro_accidentes": seguro_accidentes_count,
+            "seguro_rc": seguro_rc_count
+        }
+
+        for ptype, count in type_counts.items():
+            expected = expected_counts[ptype]
+            if count > expected:
+                raise ValueError(
+                    f"Demasiados miembros asignados para {ptype}: "
+                    f"{count} asignados, {expected} esperados"
+                )

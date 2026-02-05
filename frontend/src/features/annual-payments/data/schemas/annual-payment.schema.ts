@@ -37,6 +37,13 @@ export interface AnnualPaymentLineItem {
   total: number;
 }
 
+// Member assignment for tracking individual payments
+export interface MemberPaymentAssignment {
+  member_id: string;
+  member_name: string;
+  payment_types: string[];
+}
+
 export interface InitiateAnnualPaymentRequest {
   payer_name: string;
   club_id: string;
@@ -48,6 +55,7 @@ export interface InitiateAnnualPaymentRequest {
   fukushidoin_shidoin_count: number;
   seguro_accidentes_count: number;
   seguro_rc_count: number;
+  member_assignments?: MemberPaymentAssignment[];
 }
 
 export interface InitiateAnnualPaymentResponse {
@@ -72,6 +80,7 @@ export interface AnnualPaymentFormData {
   fukushidoin_shidoin_count: number;
   seguro_accidentes_count: number;
   seguro_rc_count: number;
+  member_assignments: MemberPaymentAssignment[];
 }
 
 export interface PaymentTotals {
@@ -155,4 +164,5 @@ export const defaultFormValues: AnnualPaymentFormData = {
   fukushidoin_shidoin_count: 0,
   seguro_accidentes_count: 0,
   seguro_rc_count: 0,
+  member_assignments: [],
 };

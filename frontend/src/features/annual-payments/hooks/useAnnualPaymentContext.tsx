@@ -1,19 +1,28 @@
-import { createContext, useContext, useCallback, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useState, useRef, useEffect, type ReactNode } from 'react';
 import { useAnnualPaymentForm, type UseAnnualPaymentFormReturn } from './useAnnualPaymentForm';
 import { useInitiateAnnualPaymentMutation } from './mutations/useInitiateAnnualPayment.mutation';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
+import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { Club } from '@/features/clubs/data/schemas/club.schema';
-import type { InitiateAnnualPaymentRequest } from '../data/schemas/annual-payment.schema';
+import type { Member } from '@/features/members/data/schemas/member.schema';
+import type { InitiateAnnualPaymentRequest, MemberPaymentAssignment } from '../data/schemas/annual-payment.schema';
 
 interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   clubs: Club[];
   isLoadingClubs: boolean;
+  members: Member[];
+  isLoadingMembers: boolean;
   userClubId: string | null;
   isClubAdmin: boolean;
   isSubmitting: boolean;
   submitError: string | null;
   submitPayment: () => void;
+  // Member selection
+  isMemberSelectionOpen: boolean;
+  openMemberSelection: () => void;
+  closeMemberSelection: () => void;
+  setMemberAssignments: (assignments: MemberPaymentAssignment[]) => void;
 }
 
 const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>(undefined);
@@ -40,6 +49,24 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
 
   const form = useAnnualPaymentForm(initialFormValues);
 
+  // Fetch members for the selected club
+  const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
+    { club_id: form.formData.club_id },
+    { enabled: !!form.formData.club_id }
+  );
+
+  // Clear member assignments when club changes
+  const previousClubIdRef = useRef(form.formData.club_id);
+  useEffect(() => {
+    if (previousClubIdRef.current !== form.formData.club_id) {
+      // Club changed, clear member assignments
+      if (form.formData.member_assignments.length > 0) {
+        form.setField('member_assignments', []);
+      }
+      previousClubIdRef.current = form.formData.club_id;
+    }
+  }, [form.formData.club_id, form.formData.member_assignments.length, form]);
+
   const clubs = useMemo(() => {
     if (isClubAdmin && userClubId) {
       // Filter to only show user's club if they are a club admin
@@ -47,6 +74,23 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     }
     return clubsData || [];
   }, [clubsData, isClubAdmin, userClubId]);
+
+  const members = useMemo(() => membersData || [], [membersData]);
+
+  // Member selection modal state
+  const [isMemberSelectionOpen, setIsMemberSelectionOpen] = useState(false);
+
+  const openMemberSelection = useCallback(() => {
+    setIsMemberSelectionOpen(true);
+  }, []);
+
+  const closeMemberSelection = useCallback(() => {
+    setIsMemberSelectionOpen(false);
+  }, []);
+
+  const setMemberAssignments = useCallback((assignments: MemberPaymentAssignment[]) => {
+    form.setField('member_assignments', assignments);
+  }, [form]);
 
   const submitPayment = useCallback(() => {
     if (!form.validate()) {
@@ -64,6 +108,9 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       fukushidoin_shidoin_count: form.formData.fukushidoin_shidoin_count,
       seguro_accidentes_count: form.formData.seguro_accidentes_count,
       seguro_rc_count: form.formData.seguro_rc_count,
+      member_assignments: form.formData.member_assignments.length > 0
+        ? form.formData.member_assignments
+        : undefined,
     };
 
     initiatePaymentMutation.mutate(request);
@@ -81,11 +128,17 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     ...form,
     clubs,
     isLoadingClubs,
+    members,
+    isLoadingMembers,
     userClubId,
     isClubAdmin,
     isSubmitting: initiatePaymentMutation.isPending,
     submitError,
     submitPayment,
+    isMemberSelectionOpen,
+    openMemberSelection,
+    closeMemberSelection,
+    setMemberAssignments,
   };
 
   return (

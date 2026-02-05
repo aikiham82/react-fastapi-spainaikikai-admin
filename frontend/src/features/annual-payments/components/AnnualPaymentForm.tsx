@@ -3,6 +3,7 @@ import { PayerDataSection } from './PayerDataSection';
 import { ClubFeeSection } from './ClubFeeSection';
 import { MemberFeesSection } from './MemberFeesSection';
 import { InsuranceSection } from './InsuranceSection';
+import { MemberSelectionSection } from './MemberSelectionSection';
 import { PaymentSummary } from './PaymentSummary';
 
 export const AnnualPaymentForm: React.FC = () => {
@@ -21,6 +22,7 @@ export const AnnualPaymentForm: React.FC = () => {
             <ClubFeeSection />
             <MemberFeesSection />
             <InsuranceSection />
+            <MemberSelectionSection />
           </CardContent>
         </Card>
       </div>

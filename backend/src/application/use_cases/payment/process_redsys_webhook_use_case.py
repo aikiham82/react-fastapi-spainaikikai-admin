@@ -17,10 +17,18 @@ from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.invoice_repository import InvoiceRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.redsys_service import RedsysServicePort
 from src.application.ports.email_service import EmailServicePort
 from src.application.ports.pdf_service import PDFServicePort
 from src.config.settings import get_invoice_settings
+from src.domain.entities.member_payment import (
+    MemberPayment,
+    MemberPaymentStatus,
+    MemberPaymentType,
+    ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
+)
+from src.config.annual_payment_prices import ANNUAL_PAYMENT_PRICES
 
 
 @dataclass
@@ -42,6 +50,7 @@ class ProcessRedsysWebhookUseCase:
         invoice_repository: Optional[InvoiceRepositoryPort] = None,
         license_repository: Optional[LicenseRepositoryPort] = None,
         member_repository: Optional[MemberRepositoryPort] = None,
+        member_payment_repository: Optional[MemberPaymentRepositoryPort] = None,
         email_service: Optional[EmailServicePort] = None,
         pdf_service: Optional[PDFServicePort] = None
     ):
@@ -50,6 +59,7 @@ class ProcessRedsysWebhookUseCase:
         self.invoice_repository = invoice_repository
         self.license_repository = license_repository
         self.member_repository = member_repository
+        self.member_payment_repository = member_payment_repository
         self.email_service = email_service
         self.pdf_service = pdf_service
 
@@ -109,6 +119,10 @@ class ProcessRedsysWebhookUseCase:
                 transaction_id=notification.order_id,
                 redsys_response=payment.redsys_response
             )
+
+            # Create member payment records if assignments exist
+            if self.member_payment_repository and payment.member_assignments:
+                await self._create_member_payments(payment)
 
             # Create invoice if repositories are available
             if self.invoice_repository and self.member_repository:
@@ -300,3 +314,65 @@ class ProcessRedsysWebhookUseCase:
         except Exception:
             # Log error but don't fail
             pass
+
+    async def _create_member_payments(self, payment: Payment) -> None:
+        """Create individual MemberPayment records from payment assignments.
+
+        This is called when an annual payment is completed and has member
+        assignments defined. It creates a MemberPayment record for each
+        member and payment type combination.
+
+        Members that no longer exist are skipped gracefully.
+        """
+        if not self.member_payment_repository or not payment.member_assignments:
+            return
+
+        try:
+            assignments = json.loads(payment.member_assignments)
+        except (json.JSONDecodeError, TypeError):
+            return
+
+        member_payments: List[MemberPayment] = []
+
+        for assignment in assignments:
+            member_id = assignment.get("member_id")
+            member_name = assignment.get("member_name", "")
+            payment_types = assignment.get("payment_types", [])
+
+            # Skip if member_id is missing
+            if not member_id:
+                continue
+
+            # Verify member still exists (handle deleted members gracefully)
+            if self.member_repository:
+                try:
+                    member = await self.member_repository.find_by_id(member_id)
+                    if not member:
+                        # Member was deleted, skip their payments
+                        continue
+                except Exception:
+                    # If lookup fails, skip this member
+                    continue
+
+            for ptype in payment_types:
+                # Map item type to member payment type
+                member_payment_type = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get(ptype)
+                if not member_payment_type:
+                    continue
+
+                # Get price for this payment type
+                price = ANNUAL_PAYMENT_PRICES.get(ptype, 0.0)
+
+                member_payments.append(MemberPayment(
+                    payment_id=payment.id,
+                    member_id=member_id,
+                    payment_year=payment.payment_year,
+                    payment_type=member_payment_type,
+                    concept=f"{member_payment_type.value} - {payment.payment_year}",
+                    amount=price,
+                    status=MemberPaymentStatus.COMPLETED
+                ))
+
+        # Bulk create all member payments
+        if member_payments:
+            await self.member_payment_repository.create_bulk(member_payments)

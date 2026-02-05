@@ -17,6 +17,34 @@ class AnnualPaymentLineItem(BaseModel):
     total: float
 
 
+class MemberPaymentAssignment(BaseModel):
+    """Assignment of payment types to a specific member."""
+    member_id: str
+    member_name: str  # For display purposes
+    payment_types: List[str]  # e.g., ["kyu", "seguro_accidentes"]
+
+    @field_validator('member_id')
+    @classmethod
+    def validate_member_id(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Member ID is required')
+        return v.strip()
+
+    @field_validator('payment_types')
+    @classmethod
+    def validate_payment_types(cls, v: List[str]) -> List[str]:
+        if not v:
+            raise ValueError('At least one payment type is required')
+        valid_types = [
+            'kyu', 'kyu_infantil', 'dan', 'fukushidoin_shidoin',
+            'seguro_accidentes', 'seguro_rc'
+        ]
+        for ptype in v:
+            if ptype not in valid_types:
+                raise ValueError(f'Invalid payment type: {ptype}')
+        return v
+
+
 class InitiateAnnualPaymentRequest(BaseModel):
     """DTO for initiating an annual payment."""
     payer_name: str
@@ -29,6 +57,7 @@ class InitiateAnnualPaymentRequest(BaseModel):
     fukushidoin_shidoin_count: int = 0
     seguro_accidentes_count: int = 0
     seguro_rc_count: int = 0
+    member_assignments: Optional[List[MemberPaymentAssignment]] = None
 
     @field_validator('payment_year')
     @classmethod
