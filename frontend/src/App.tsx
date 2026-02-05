@@ -15,7 +15,6 @@ import { AppLayout } from "./components/AppLayout";
 import { ClubsPage } from "./pages/clubs.page";
 import { MembersPage } from "./pages/members.page";
 import { LicensesPage } from "./pages/licenses.page";
-import { PaymentsPage } from "./pages/payments.page";
 import { SeminarsPage } from "./pages/seminars.page";
 import { InsurancePage } from "./pages/insurance.page";
 import { ImportExportPage } from "./pages/import-export.page";
@@ -49,7 +48,6 @@ function App() {
                 <Route path="/clubs" element={<ClubsPage />} />
                 <Route path="/members" element={<MembersPage />} />
                 <Route path="/licenses" element={<LicensesPage />} />
-                <Route path="/payments" element={<PaymentsPage />} />
                 <Route path="/invoices" element={<InvoicesPage />} />
                 <Route path="/annual-payments" element={<AnnualPaymentsPage />} />
                 <Route path="/seminars" element={<SeminarsPage />} />
