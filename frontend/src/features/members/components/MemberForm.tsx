@@ -143,7 +143,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name">Nombre *</Label>
               <Input
@@ -167,7 +167,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
               <Input
@@ -203,7 +203,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="birth_date">Fecha de Nacimiento</Label>
               <Input
@@ -246,7 +246,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">Ciudad</Label>
               <Input
@@ -268,7 +268,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="postal_code">Código Postal</Label>
               <Input

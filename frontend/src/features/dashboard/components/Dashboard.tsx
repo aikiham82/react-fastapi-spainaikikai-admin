@@ -4,11 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardDataQuery } from '../hooks/queries/useDashboardData.query';
+import { usePermissions } from '@/core/hooks/usePermissions';
 import type { RecentActivity } from '../data/schemas/dashboard.schema';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
   const { data, isLoading, error } = useDashboardDataQuery();
+  const { canAccess } = usePermissions();
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -63,7 +65,7 @@ export const Dashboard = () => {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_clubs ?? 0}</div>
+            <div className="text-2xl font-bold tabular-nums">{stats?.total_clubs ?? 0}</div>
             <p className="text-xs text-muted-foreground">Clubs registrados</p>
           </CardContent>
         </Card>
@@ -74,18 +76,18 @@ export const Dashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_members ?? 0}</div>
+            <div className="text-2xl font-bold tabular-nums">{stats?.total_members ?? 0}</div>
             <p className="text-xs text-muted-foreground">{stats?.active_members ?? 0} activos</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pagos del Mes</CardTitle>
+            <CardTitle className="text-sm font-medium">Pagos Anuales</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.monthly_payments ?? 0}</div>
+            <div className="text-2xl font-bold tabular-nums">{stats?.annual_payments ?? 0}</div>
             <p className="text-xs text-muted-foreground">{stats?.pending_payments ?? 0} pendientes</p>
           </CardContent>
         </Card>
@@ -96,7 +98,7 @@ export const Dashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.upcoming_seminars ?? 0}</div>
+            <div className="text-2xl font-bold tabular-nums">{stats?.upcoming_seminars ?? 0}</div>
             <p className="text-xs text-muted-foreground">Próximos 30 días</p>
           </CardContent>
         </Card>
@@ -209,22 +211,30 @@ export const Dashboard = () => {
               <CardTitle>Acciones Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full justify-start" onClick={() => navigate('/members')}>
-                <Users className="mr-2 h-4 w-4" />
-                Gestionar Miembros
-              </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/payments')}>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Ver Pagos
-              </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/seminars')}>
-                <Calendar className="mr-2 h-4 w-4" />
-                Crear Seminario
-              </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/licenses')}>
-                <Shield className="mr-2 h-4 w-4" />
-                Renovar Licencias
-              </Button>
+              {canAccess({ resource: 'members', action: 'read' }) && (
+                <Button className="w-full justify-start" onClick={() => navigate('/members')}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Gestionar Miembros
+                </Button>
+              )}
+              {canAccess({ resource: 'payments', action: 'read' }) && (
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/annual-payments')}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Ver Pagos
+                </Button>
+              )}
+              {canAccess({ resource: 'seminars', action: 'read' }) && (
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/seminars')}>
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Ver Seminarios
+                </Button>
+              )}
+              {canAccess({ resource: 'licenses', action: 'read' }) && (
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/licenses')}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Renovar Licencias
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

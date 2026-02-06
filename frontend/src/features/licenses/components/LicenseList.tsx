@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { LicenseForm } from './LicenseForm';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
@@ -19,6 +20,7 @@ export const LicenseList = () => {
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLicenseForEdit, setSelectedLicenseForEdit] = useState<License | null>(null);
+  const [licenseToDelete, setLicenseToDelete] = useState<License | null>(null);
 
   const memberOptions = members.map(member => ({
     id: member.id,
@@ -120,7 +122,85 @@ export const LicenseList = () => {
         )}
       </div>
 
-      <div className="rounded-md border">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {licenses.map((license) => (
+          <div key={license.id} className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900">{license.license_number}</h3>
+                <p className="text-sm text-gray-600">{license.member_name || '-'}</p>
+              </div>
+              <Badge
+                variant={
+                  license.status === 'active' ? 'default' :
+                    license.status === 'expired' ? 'destructive' : 'secondary'
+                }
+              >
+                {license.status === 'active' ? 'Activa' :
+                  license.status === 'expired' ? 'Expirada' : 'Pendiente'}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+              <span>Exp: {new Date(license.expiry_date).toLocaleDateString('es-ES')}</span>
+              <span>{license.dan_grade === 0 ? 'Kyû' : `Dan ${license.dan_grade}`}</span>
+              {isExpiringSoon(license.expiry_date) && (
+                <Badge variant="outline" className="border-yellow-500 text-yellow-700">
+                  <RotateCw className="w-3 h-3 mr-1" />
+                  Expira pronto
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => selectLicense(license)} aria-label="Ver detalles de licencia">
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Licencia {license.license_number}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Miembro</p>
+                      <p className="text-sm text-gray-600">{license.member_name || '-'}</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Fecha Emisión</p>
+                        <p className="text-sm text-gray-600">{new Date(license.issue_date).toLocaleDateString('es-ES')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Fecha Expiración</p>
+                        <p className="text-sm text-gray-600">{new Date(license.expiry_date).toLocaleDateString('es-ES')}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Grado</p>
+                      <p className="text-sm text-gray-600">{license.dan_grade === 0 ? 'Kyû' : `Dan ${license.dan_grade}`}</p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {canAccess({ resource: 'licenses', action: 'update' }) && (
+                <Button variant="ghost" size="icon" onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }} aria-label="Editar licencia">
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+              {canAccess({ resource: 'licenses', action: 'delete' }) && (
+                <Button variant="ghost" size="icon" onClick={() => setLicenseToDelete(license)} aria-label="Eliminar licencia">
+                  <Trash2 className="w-4 h-4 text-red-600" />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-md border">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -238,11 +318,7 @@ export const LicenseList = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            if (window.confirm(`¿Estás seguro de eliminar la licencia "${license.license_number}"?`)) {
-                              deleteLicense(license.id);
-                            }
-                          }}
+                          onClick={() => setLicenseToDelete(license)}
                           aria-label="Eliminar licencia"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
@@ -258,7 +334,7 @@ export const LicenseList = () => {
       </div>
 
       {total > limit && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-gray-600">
             Mostrando {offset + 1}-{Math.min(offset + limit, total)} de {total} licencias
           </p>
@@ -291,6 +367,18 @@ export const LicenseList = () => {
         onOpenChange={setIsFormOpen}
         license={selectedLicenseForEdit}
         memberOptions={memberOptions}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!licenseToDelete}
+        onOpenChange={(open) => !open && setLicenseToDelete(null)}
+        description={`Se eliminará permanentemente la licencia "${licenseToDelete?.license_number}". Esta acción no se puede deshacer.`}
+        onConfirm={() => {
+          if (licenseToDelete) {
+            deleteLicense(licenseToDelete.id);
+            setLicenseToDelete(null);
+          }
+        }}
       />
     </div>
   );

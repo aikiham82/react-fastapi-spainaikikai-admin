@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
 import type { Insurance } from '../data/schemas/insurance.schema';
 import { Shield, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { InsuranceForm } from './InsuranceForm';
-import { memberService } from '@/features/members/data/services/member.service';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 
 const INSURANCE_TYPE_LABELS: Record<string, string> = {
   accident: 'Seguro de Accidentes',
@@ -30,23 +31,13 @@ export const InsuranceList = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedInsuranceForEdit, setSelectedInsuranceForEdit] = useState<Insurance | null>(null);
-  const [memberOptions, setMemberOptions] = useState<{ id: string; name: string }[]>([]);
+  const [insuranceToDelete, setInsuranceToDelete] = useState<Insurance | null>(null);
 
-  // Fetch all members for the dropdown
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const members = await memberService.getMembers();
-        setMemberOptions(members.map(m => ({
-          id: m.id,
-          name: `${m.first_name} ${m.last_name}`
-        })));
-      } catch (err) {
-        console.error('Error fetching members:', err);
-      }
-    };
-    fetchMembers();
-  }, []);
+  const { data: members = [] } = useMembersQuery();
+  const memberOptions = members.map(m => ({
+    id: m.id,
+    name: `${m.first_name} ${m.last_name}`
+  }));
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -128,7 +119,7 @@ export const InsuranceList = () => {
           />
         </div>
 
-        <div className="flex gap-2 flex-1">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:flex-1">
           <Select value={insuranceTypeFilter || 'all'} onValueChange={handleFilterInsuranceType}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Tipo de seguro" />
@@ -160,7 +151,83 @@ export const InsuranceList = () => {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {insuranceList.map((insurance) => (
+          <div key={insurance.id} className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900">
+                  {INSURANCE_TYPE_LABELS[insurance.insurance_type] || insurance.insurance_type}
+                </h3>
+                <p className="text-sm text-gray-600">{insurance.member_name || '-'}</p>
+                <p className="text-sm text-gray-600">Póliza: {insurance.policy_number}</p>
+              </div>
+              <Badge variant={insurance.status === 'active' ? 'default' : 'destructive'}>
+                {STATUS_LABELS[insurance.status] || insurance.status}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+              <span>{new Date(insurance.start_date).toLocaleDateString('es-ES')} - {new Date(insurance.end_date).toLocaleDateString('es-ES')}</span>
+              <span className="font-medium text-gray-900 tabular-nums">{insurance.coverage_amount?.toFixed(2) || '-'}€</span>
+              {isExpiringSoon(insurance.end_date) && (
+                <Badge variant="outline" className="border-yellow-500 text-yellow-700">Expira pronto</Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => selectInsurance(insurance)} aria-label="Ver detalles de seguro">
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{INSURANCE_TYPE_LABELS[insurance.insurance_type] || 'Seguro'}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Póliza</p>
+                      <p className="text-sm text-gray-600">{insurance.policy_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Miembro</p>
+                      <p className="text-sm text-gray-600">{insurance.member_name || '-'}</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Fecha Inicio</p>
+                        <p className="text-sm text-gray-600">{new Date(insurance.start_date).toLocaleDateString('es-ES')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Fecha Fin</p>
+                        <p className="text-sm text-gray-600">{new Date(insurance.end_date).toLocaleDateString('es-ES')}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Cobertura</p>
+                      <p className="text-2xl font-bold text-gray-900 tabular-nums">{insurance.coverage_amount?.toFixed(2) || '-'}€</p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {canAccess({ resource: 'insurance', action: 'update' }) && (
+                <Button variant="ghost" size="icon" onClick={() => { setSelectedInsuranceForEdit(insurance); setIsFormOpen(true); }} aria-label="Editar seguro">
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+              {canAccess({ resource: 'insurance', action: 'delete' }) && (
+                <Button variant="ghost" size="icon" onClick={() => setInsuranceToDelete(insurance)} aria-label="Eliminar seguro">
+                  <Trash2 className="w-4 h-4 text-red-600" />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-md border">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -200,7 +267,7 @@ export const InsuranceList = () => {
                       )}
                     </div>
                   </td>
-                  <td className="p-4 text-right font-medium text-gray-900">
+                  <td className="p-4 text-right font-medium text-gray-900 tabular-nums">
                     {insurance.coverage_amount?.toFixed(2) || '-'}€
                   </td>
                   <td className="p-4">
@@ -284,11 +351,7 @@ export const InsuranceList = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            if (window.confirm(`¿Estás seguro de eliminar el seguro con póliza "${insurance.policy_number}"?`)) {
-                              deleteInsurance(insurance.id);
-                            }
-                          }}
+                          onClick={() => setInsuranceToDelete(insurance)}
                           aria-label="Eliminar seguro"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
@@ -304,7 +367,7 @@ export const InsuranceList = () => {
       </div>
 
       {total > limit && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-gray-600">
             Mostrando {offset + 1}-{Math.min(offset + limit, total)} de {total} seguros
           </p>
@@ -337,6 +400,18 @@ export const InsuranceList = () => {
         onOpenChange={setIsFormOpen}
         insurance={selectedInsuranceForEdit}
         memberOptions={memberOptions}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!insuranceToDelete}
+        onOpenChange={(open) => !open && setInsuranceToDelete(null)}
+        description={`Se eliminará permanentemente el seguro con póliza "${insuranceToDelete?.policy_number}". Esta acción no se puede deshacer.`}
+        onConfirm={() => {
+          if (insuranceToDelete) {
+            deleteInsurance(insuranceToDelete.id);
+            setInsuranceToDelete(null);
+          }
+        }}
       />
     </div>
   );

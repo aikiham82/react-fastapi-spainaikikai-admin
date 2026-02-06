@@ -187,7 +187,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
             {errors.instructor_name && <p className="text-sm text-red-500">{errors.instructor_name}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start_date">Fecha y Hora Inicio *</Label>
               <Input
@@ -237,7 +237,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
             {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">Ciudad *</Label>
               <Input
@@ -263,7 +263,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="max_participants">Máximo de Participantes</Label>
               <Input

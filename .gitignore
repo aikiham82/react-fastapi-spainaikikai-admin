@@ -3,3 +3,5 @@ latest_news_links/*
 # MCP and testing tool artifacts
 .playwright-mcp/
 testsprite_tests/
+.claude/sessions
+.claude/doc

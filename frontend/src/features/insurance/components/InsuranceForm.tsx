@@ -150,7 +150,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
             {errors.member_id && <p className="text-sm text-red-500">{errors.member_id}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="insurance_type">Tipo de Seguro *</Label>
               <Select
@@ -206,7 +206,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
             {errors.policy_number && <p className="text-sm text-red-500">{errors.policy_number}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="start_date">Fecha de Inicio *</Label>
               <Input

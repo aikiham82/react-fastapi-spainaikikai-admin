@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { ClubForm } from './ClubForm';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export const ClubList = () => {
   const { clubs, isLoading, error, filters, setFilters, deleteClub, selectClub } = useClubContext();
@@ -16,6 +17,7 @@ export const ClubList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedClubForEdit, setSelectedClubForEdit] = useState<Club | null>(null);
+  const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -154,11 +156,7 @@ export const ClubList = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        if (window.confirm(`¿Estás seguro de eliminar el club "${club.name}"?`)) {
-                          deleteClub(club.id);
-                        }
-                      }}
+                      onClick={() => setClubToDelete(club)}
                       aria-label="Eliminar club"
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
@@ -181,6 +179,18 @@ export const ClubList = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         club={selectedClubForEdit}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!clubToDelete}
+        onOpenChange={(open) => !open && setClubToDelete(null)}
+        description={`Se eliminará permanentemente el club "${clubToDelete?.name}". Esta acción no se puede deshacer.`}
+        onConfirm={() => {
+          if (clubToDelete) {
+            deleteClub(clubToDelete.id);
+            setClubToDelete(null);
+          }
+        }}
       />
     </div>
   );

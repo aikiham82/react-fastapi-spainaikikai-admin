@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { SeminarForm } from './SeminarForm';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 const STATUS_LABELS: Record<string, string> = {
   upcoming: 'Pr\u00f3ximo',
@@ -36,6 +37,7 @@ export const SeminarList = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSeminarForEdit, setSelectedSeminarForEdit] = useState<Seminar | null>(null);
+  const [seminarToDelete, setSeminarToDelete] = useState<Seminar | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -174,7 +176,7 @@ export const SeminarList = () => {
                       {seminar.max_participants && `/${seminar.max_participants}`}
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">
                     {seminar.price.toFixed(2)}\u20ac
                   </p>
                 </div>
@@ -239,7 +241,7 @@ export const SeminarList = () => {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900">Precio</p>
-                          <p className="text-2xl font-bold text-gray-900">
+                          <p className="text-2xl font-bold text-gray-900 tabular-nums">
                             {seminar.price.toFixed(2)}\u20ac
                           </p>
                         </div>
@@ -279,11 +281,7 @@ export const SeminarList = () => {
                 {canAccess({ resource: 'seminars', action: 'delete' }) && (
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      if (window.confirm(`\u00bfEst\u00e1s seguro de eliminar el seminario "${seminar.title}"?`)) {
-                        deleteSeminar(seminar.id);
-                      }
-                    }}
+                    onClick={() => setSeminarToDelete(seminar)}
                     aria-label="Eliminar seminario"
                   >
                     <Trash2 className="w-4 h-4 text-red-600" />
@@ -296,7 +294,7 @@ export const SeminarList = () => {
       </div>
 
       {total > limit && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-gray-600">
             Mostrando {offset + 1}-{Math.min(offset + limit, total)} de {total} seminarios
           </p>
@@ -328,6 +326,18 @@ export const SeminarList = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         seminar={selectedSeminarForEdit}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!seminarToDelete}
+        onOpenChange={(open) => !open && setSeminarToDelete(null)}
+        description={`Se eliminará permanentemente el seminario "${seminarToDelete?.title}". Esta acción no se puede deshacer.`}
+        onConfirm={() => {
+          if (seminarToDelete) {
+            deleteSeminar(seminarToDelete.id);
+            setSeminarToDelete(null);
+          }
+        }}
       />
     </div>
   );

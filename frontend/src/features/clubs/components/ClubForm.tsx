@@ -158,7 +158,7 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
             {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">Ciudad *</Label>
               <Input
@@ -184,7 +184,7 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="postal_code">Código Postal *</Label>
               <Input

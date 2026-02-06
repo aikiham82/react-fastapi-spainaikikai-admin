@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { MemberForm } from './MemberForm';
-import { MemberPaymentStatus } from '@/features/member-payments';
+import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
+import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export const MemberList = () => {
   const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
@@ -20,6 +21,7 @@ export const MemberList = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
   const [selectedMemberForPayments, setSelectedMemberForPayments] = useState<Member | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -110,7 +112,92 @@ export const MemberList = () => {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {members.map((member) => (
+          <div key={member.id} className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900">
+                  {member.first_name} {member.last_name}
+                </h3>
+                <p className="text-sm text-gray-600">{member.phone}</p>
+                <p className="text-sm text-gray-600">{member.email}</p>
+              </div>
+              <Badge
+                variant={
+                  member.license_status === 'active' ? 'default' :
+                    member.license_status === 'expired' ? 'destructive' : 'secondary'
+                }
+              >
+                {member.license_status === 'active' ? 'Activa' :
+                  member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
+              </Badge>
+            </div>
+            <div className="text-sm text-gray-600">
+              <span>{member.club_name || '-'}</span>
+              {member.license_number && (
+                <span className="ml-3">Lic: {member.license_number}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t">
+              <Button variant="ghost" size="icon" onClick={() => setSelectedMemberForPayments(member)} aria-label="Ver pagos">
+                <CreditCard className="w-4 h-4" />
+              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => selectMember(member)} aria-label="Ver detalles del miembro">
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{member.first_name} {member.last_name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Email</p>
+                        <p className="text-sm text-gray-600">{member.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Teléfono</p>
+                        <p className="text-sm text-gray-600">{member.phone}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Dirección</p>
+                      <p className="text-sm text-gray-600">{member.address}</p>
+                      <p className="text-sm text-gray-600">{member.postal_code}, {member.city}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Fecha de Nacimiento</p>
+                      <p className="text-sm text-gray-600">
+                        {member.birth_date
+                          ? new Date(member.birth_date).toLocaleDateString('es-ES')
+                          : 'No especificada'}
+                      </p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {canAccess({ resource: 'members', action: 'update' }) && (
+                <Button variant="ghost" size="icon" onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }} aria-label="Editar miembro">
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+              {canAccess({ resource: 'members', action: 'delete' }) && (
+                <Button variant="ghost" size="icon" onClick={() => setMemberToDelete(member)} aria-label="Eliminar miembro">
+                  <Trash2 className="w-4 h-4 text-red-600" />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-md border">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -202,8 +289,8 @@ export const MemberList = () => {
                             <div>
                               <p className="text-sm font-medium text-gray-900">Fecha de Nacimiento</p>
                               <p className="text-sm text-gray-600">
-                                {member.date_of_birth
-                                  ? new Date(member.date_of_birth).toLocaleDateString('es-ES')
+                                {member.birth_date
+                                  ? new Date(member.birth_date).toLocaleDateString('es-ES')
                                   : 'No especificada'}
                               </p>
                             </div>
@@ -246,11 +333,7 @@ export const MemberList = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            if (window.confirm(`¿Estás seguro de eliminar a "${member.first_name} ${member.last_name}"?`)) {
-                              deleteMember(member.id);
-                            }
-                          }}
+                          onClick={() => setMemberToDelete(member)}
                           aria-label="Eliminar miembro"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
@@ -266,7 +349,7 @@ export const MemberList = () => {
       </div>
 
       {total > limit && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-gray-600">
             Mostrando {offset + 1}-{Math.min(offset + limit, total)} de {total} miembros
           </p>
@@ -313,6 +396,18 @@ export const MemberList = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDeleteDialog
+        open={!!memberToDelete}
+        onOpenChange={(open) => !open && setMemberToDelete(null)}
+        description={`Se eliminará permanentemente a "${memberToDelete?.first_name} ${memberToDelete?.last_name}". Esta acción no se puede deshacer.`}
+        onConfirm={() => {
+          if (memberToDelete) {
+            deleteMember(memberToDelete.id);
+            setMemberToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 };

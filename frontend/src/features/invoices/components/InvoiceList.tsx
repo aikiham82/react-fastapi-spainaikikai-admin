@@ -111,7 +111,43 @@ export const InvoiceList = () => {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {invoices.map((invoice) => (
+          <div key={invoice.id} className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900">{invoice.invoice_number}</h3>
+                <p className="text-sm text-gray-600">{invoice.customer_name || '-'}</p>
+                <p className="text-sm text-gray-600">{formatDate(invoice.issue_date)}</p>
+              </div>
+              <Badge variant={INVOICE_STATUS_VARIANTS[invoice.status]}>
+                {INVOICE_STATUS_LABELS[invoice.status]}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">Total:</span>
+              <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(invoice.total_amount)}</span>
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t">
+              <InvoiceDetailDialog invoice={invoice} />
+              {invoice.pdf_path && (
+                <Button variant="ghost" size="icon" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
+                  <Download className="w-4 h-4" />
+                </Button>
+              )}
+              {canAccess({ resource: 'invoices', action: 'update' }) && (
+                <Button variant="ghost" size="icon" onClick={() => regeneratePdf(invoice.id)} disabled={isRegenerating} aria-label="Regenerar PDF">
+                  <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-md border">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -175,9 +211,9 @@ const InvoiceRow = ({
         )}
       </td>
       <td className="p-4 text-gray-600">{formatDate(invoice.issue_date)}</td>
-      <td className="p-4 text-right text-gray-600">{formatCurrency(invoice.subtotal)}</td>
-      <td className="p-4 text-right text-gray-600">{formatCurrency(invoice.tax_amount)}</td>
-      <td className="p-4 text-right font-medium text-gray-900">
+      <td className="p-4 text-right text-gray-600 tabular-nums">{formatCurrency(invoice.subtotal)}</td>
+      <td className="p-4 text-right text-gray-600 tabular-nums">{formatCurrency(invoice.tax_amount)}</td>
+      <td className="p-4 text-right font-medium text-gray-900 tabular-nums">
         {formatCurrency(invoice.total_amount)}
       </td>
       <td className="p-4 text-center">

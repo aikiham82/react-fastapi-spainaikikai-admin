@@ -135,7 +135,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
             {errors.member_id && <p className="text-sm text-red-500">{errors.member_id}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="issue_date">Fecha de Emisión *</Label>
               <Input
