@@ -10,22 +10,30 @@ import re
 class PriceConfiguration:
     """Price configuration domain entity.
 
-    Stores configurable prices for license types based on category combinations.
-    The key format is: "grado_tecnico-categoria_instructor-categoria_edad"
+    Stores configurable prices for different payment types: licenses, insurance, and club fees.
+
+    For license category, the key format is: "grado_tecnico-categoria_instructor-categoria_edad"
     Examples: "dan-none-adulto", "kyu-fukushidoin-infantil"
+
+    For insurance and club_fee categories, the key can be any non-empty string.
+    Examples: "seguro_accidentes", "seguro_rc", "club_fee"
     """
 
     id: Optional[str] = None
     key: str = ""
     price: float = 0.0
     description: str = ""
+    category: str = "license"  # "license", "insurance", or "club_fee"
     is_active: bool = True
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    # Valid values for each category (using English names internally)
+    # Valid categories
+    VALID_CATEGORIES = {"license", "insurance", "club_fee"}
+
+    # Valid values for license category keys (using English names internally)
     VALID_TECHNICAL_GRADE = {"dan", "kyu"}
     VALID_INSTRUCTOR_CATEGORY = {"none", "fukushidoin", "shidoin"}
     VALID_AGE_CATEGORY = {"infantil", "adulto"}
@@ -35,10 +43,20 @@ class PriceConfiguration:
         self.created_at = self.created_at or datetime.now()
         self.updated_at = self.updated_at or datetime.now()
 
+        # Validate category
+        if self.category not in self.VALID_CATEGORIES:
+            raise ValueError(
+                f"Invalid category: '{self.category}'. "
+                f"Valid values: {self.VALID_CATEGORIES}"
+            )
+
+        # Validate key is non-empty
         if not self.key or not self.key.strip():
             raise ValueError("Price configuration key cannot be empty")
 
-        self._validate_key_format()
+        # Only validate key format for license category
+        if self.category == "license":
+            self._validate_key_format()
 
         if self.price < 0:
             raise ValueError("Price cannot be negative")
@@ -144,15 +162,48 @@ class PriceConfiguration:
 
     @property
     def technical_grade(self) -> str:
-        """Extract technical_grade from key."""
+        """Extract technical_grade from key.
+
+        Only valid for license category.
+
+        Raises:
+            ValueError: If category is not 'license'.
+        """
+        if self.category != "license":
+            raise ValueError(
+                f"technical_grade property is only available for license category, "
+                f"not '{self.category}'"
+            )
         return self.key.split("-")[0]
 
     @property
     def instructor_category(self) -> str:
-        """Extract instructor_category from key."""
+        """Extract instructor_category from key.
+
+        Only valid for license category.
+
+        Raises:
+            ValueError: If category is not 'license'.
+        """
+        if self.category != "license":
+            raise ValueError(
+                f"instructor_category property is only available for license category, "
+                f"not '{self.category}'"
+            )
         return self.key.split("-")[1]
 
     @property
     def age_category(self) -> str:
-        """Extract age_category from key."""
+        """Extract age_category from key.
+
+        Only valid for license category.
+
+        Raises:
+            ValueError: If category is not 'license'.
+        """
+        if self.category != "license":
+            raise ValueError(
+                f"age_category property is only available for license category, "
+                f"not '{self.category}'"
+            )
         return self.key.split("-")[2]

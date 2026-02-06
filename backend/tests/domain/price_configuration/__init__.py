@@ -1,0 +1,1 @@
+"""Price configuration domain tests."""
