@@ -16,6 +16,7 @@ from src.domain.exceptions.payment import (
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.invoice_repository import InvoiceRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
+from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.redsys_service import RedsysServicePort
@@ -30,6 +31,8 @@ from src.domain.entities.member_payment import (
 )
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
+from src.application.use_cases.license.generate_licenses_from_payment_use_case import GenerateLicensesFromPaymentUseCase
+from src.application.use_cases.insurance.generate_insurance_from_payment_use_case import GenerateInsuranceFromPaymentUseCase
 
 
 @dataclass
@@ -50,6 +53,7 @@ class ProcessRedsysWebhookUseCase:
         redsys_service: RedsysServicePort,
         invoice_repository: Optional[InvoiceRepositoryPort] = None,
         license_repository: Optional[LicenseRepositoryPort] = None,
+        insurance_repository: Optional[InsuranceRepositoryPort] = None,
         member_repository: Optional[MemberRepositoryPort] = None,
         member_payment_repository: Optional[MemberPaymentRepositoryPort] = None,
         email_service: Optional[EmailServicePort] = None,
@@ -60,6 +64,7 @@ class ProcessRedsysWebhookUseCase:
         self.redsys_service = redsys_service
         self.invoice_repository = invoice_repository
         self.license_repository = license_repository
+        self.insurance_repository = insurance_repository
         self.member_repository = member_repository
         self.member_payment_repository = member_payment_repository
         self.email_service = email_service
@@ -125,7 +130,12 @@ class ProcessRedsysWebhookUseCase:
 
             # Create member payment records if assignments exist
             if self.member_payment_repository and payment.member_assignments:
-                await self._create_member_payments(payment)
+                member_payments = await self._create_member_payments(payment)
+
+                # Auto-generate licenses and insurance from member payments
+                await self._generate_licenses_and_insurance(
+                    member_payments, payment.id, payment.payment_year
+                )
 
             # Create invoice if repositories are available
             if self.invoice_repository and self.member_repository:
@@ -318,7 +328,7 @@ class ProcessRedsysWebhookUseCase:
             # Log error but don't fail
             pass
 
-    async def _create_member_payments(self, payment: Payment) -> None:
+    async def _create_member_payments(self, payment: Payment) -> List[MemberPayment]:
         """Create individual MemberPayment records from payment assignments.
 
         This is called when an annual payment is completed and has member
@@ -326,14 +336,17 @@ class ProcessRedsysWebhookUseCase:
         member and payment type combination.
 
         Members that no longer exist are skipped gracefully.
+
+        Returns:
+            List of created MemberPayment records.
         """
         if not self.member_payment_repository or not payment.member_assignments:
-            return
+            return []
 
         try:
             assignments = json.loads(payment.member_assignments)
         except (json.JSONDecodeError, TypeError):
-            return
+            return []
 
         member_payments: List[MemberPayment] = []
 
@@ -385,3 +398,42 @@ class ProcessRedsysWebhookUseCase:
         # Bulk create all member payments
         if member_payments:
             await self.member_payment_repository.create_bulk(member_payments)
+
+        return member_payments
+
+    async def _generate_licenses_and_insurance(
+        self,
+        member_payments: List[MemberPayment],
+        payment_id: str,
+        payment_year: int,
+    ) -> None:
+        """Auto-generate License and Insurance entities from member payments.
+
+        Filters member payments into license and insurance types, then
+        delegates to the respective use cases for creation.
+        """
+        license_payments = [mp for mp in member_payments if mp.is_license_payment]
+        insurance_payments = [mp for mp in member_payments if mp.is_insurance_payment]
+
+        # Generate licenses
+        if license_payments and self.license_repository:
+            try:
+                use_case = GenerateLicensesFromPaymentUseCase(self.license_repository)
+                await use_case.execute(license_payments, payment_id, payment_year)
+            except Exception:
+                # Log but don't fail the webhook — payments are already recorded
+                import logging
+                logging.getLogger(__name__).exception(
+                    "Failed to auto-generate licenses for payment %s", payment_id
+                )
+
+        # Generate insurance
+        if insurance_payments and self.insurance_repository:
+            try:
+                use_case = GenerateInsuranceFromPaymentUseCase(self.insurance_repository)
+                await use_case.execute(insurance_payments, payment_id, payment_year)
+            except Exception:
+                import logging
+                logging.getLogger(__name__).exception(
+                    "Failed to auto-generate insurance for payment %s", payment_id
+                )

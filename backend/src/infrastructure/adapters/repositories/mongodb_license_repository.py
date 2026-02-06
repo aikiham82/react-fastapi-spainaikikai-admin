@@ -150,6 +150,31 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
 
+    async def find_active_by_member_year(
+        self, member_id: str, payment_year: int,
+        technical_grade: str, instructor_category: str
+    ) -> Optional[License]:
+        """Find an active license for a member matching type and year."""
+        start = datetime(payment_year, 1, 1)
+        end = datetime(payment_year, 12, 31, 23, 59, 59)
+        doc = await self.collection.find_one({
+            "member_id": member_id,
+            "technical_grade": technical_grade,
+            "instructor_category": instructor_category,
+            "status": "active",
+            "issue_date": {"$gte": start},
+            "expiration_date": {"$lte": end},
+        })
+        return self._to_domain(doc) if doc else None
+
+    async def count_by_license_number_prefix(self, prefix: str) -> int:
+        """Count licenses with license_number starting with the given prefix."""
+        import re
+        pattern = f"^{re.escape(prefix)}"
+        return await self.collection.count_documents(
+            {"license_number": {"$regex": pattern}}
+        )
+
     async def create(self, license: License) -> License:
         doc = self._to_document(license)
         if "_id" in doc:

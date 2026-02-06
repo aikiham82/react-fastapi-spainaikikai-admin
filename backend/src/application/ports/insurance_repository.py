@@ -50,6 +50,13 @@ class InsuranceRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_active_by_member_year_type(
+        self, member_id: str, payment_year: int, insurance_type: InsuranceType
+    ) -> Optional[Insurance]:
+        """Find an active insurance for a member matching type and year."""
+        pass
+
+    @abstractmethod
     async def create(self, insurance: Insurance) -> Insurance:
         """Create a new insurance."""
         pass

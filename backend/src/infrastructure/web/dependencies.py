@@ -336,6 +336,7 @@ def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
         redsys_service=get_redsys_service(),
         invoice_repository=get_invoice_repository(),
         license_repository=get_license_repository(),
+        insurance_repository=get_insurance_repository(),
         member_repository=get_member_repository(),
         member_payment_repository=get_member_payment_repository(),
         email_service=get_email_service(),

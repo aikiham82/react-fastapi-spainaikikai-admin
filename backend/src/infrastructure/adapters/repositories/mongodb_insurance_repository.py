@@ -105,6 +105,21 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
 
+    async def find_active_by_member_year_type(
+        self, member_id: str, payment_year: int, insurance_type: InsuranceType
+    ) -> Optional[Insurance]:
+        """Find an active insurance for a member matching type and year."""
+        start = datetime(payment_year, 1, 1)
+        end = datetime(payment_year, 12, 31, 23, 59, 59)
+        doc = await self.collection.find_one({
+            "member_id": member_id,
+            "insurance_type": insurance_type.value,
+            "status": "active",
+            "start_date": {"$gte": start},
+            "end_date": {"$lte": end},
+        })
+        return self._to_domain(doc) if doc else None
+
     async def create(self, insurance: Insurance) -> Insurance:
         doc = self._to_document(insurance)
         if "_id" in doc:

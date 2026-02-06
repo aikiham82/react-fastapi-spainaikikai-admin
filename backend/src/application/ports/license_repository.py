@@ -55,6 +55,19 @@ class LicenseRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_active_by_member_year(
+        self, member_id: str, payment_year: int,
+        technical_grade: str, instructor_category: str
+    ) -> Optional[License]:
+        """Find an active license for a member matching type and year."""
+        pass
+
+    @abstractmethod
+    async def count_by_license_number_prefix(self, prefix: str) -> int:
+        """Count licenses with license_number starting with the given prefix."""
+        pass
+
+    @abstractmethod
     async def create(self, license: License) -> License:
         """Create a new license."""
         pass
