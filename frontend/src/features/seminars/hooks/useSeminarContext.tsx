@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useSeminarsQuery } from './queries/useSeminarQueries';
 import { useCreateSeminarMutation, useUpdateSeminarMutation, useDeleteSeminarMutation, useRegisterMemberMutation } from './mutations/useSeminarMutations';
 import type { Seminar, CreateSeminarRequest, UpdateSeminarRequest, SeminarFilters, RegisterMemberRequest } from '../data/schemas/seminar.schema';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 
 interface SeminarContextType {
   seminars: Seminar[];
@@ -26,7 +27,16 @@ const SeminarContext = createContext<SeminarContextType | undefined>(undefined);
 export const SeminarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [filters, setFilters] = useState<SeminarFilters>({ limit: 20, offset: 0 });
   const [selectedSeminar, setSelectedSeminar] = useState<Seminar | null>(null);
-  const { data: seminarsData, isLoading, error } = useSeminarsQuery(filters);
+  const { clubId, userRole } = useAuthContext();
+
+  const effectiveFilters = useMemo(() => {
+    if (userRole !== 'super_admin' && clubId) {
+      return { ...filters, club_id: clubId };
+    }
+    return filters;
+  }, [filters, userRole, clubId]);
+
+  const { data: seminarsData, isLoading, error } = useSeminarsQuery(effectiveFilters);
   const createMutation = useCreateSeminarMutation();
   const updateMutation = useUpdateSeminarMutation();
   const deleteMutation = useDeleteSeminarMutation();

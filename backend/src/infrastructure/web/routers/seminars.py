@@ -20,7 +20,8 @@ from src.infrastructure.web.dependencies import (
     get_delete_seminar_use_case
 )
 from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext
+from src.infrastructure.web.authorization import AuthContext, check_club_access_ctx
+from src.domain.entities.seminar import SeminarStatus
 
 router = APIRouter(prefix="/seminars", tags=["seminars"])
 
@@ -34,7 +35,32 @@ async def get_seminars(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all seminars, optionally filtered by club or association."""
-    seminars = await get_all_use_case.execute(limit, club_id, association_id)
+    if not ctx.is_super_admin:
+        effective_club_id = ctx.club_id
+        if not effective_club_id:
+            return []
+        seminars = await get_all_use_case.execute(limit, effective_club_id)
+    else:
+        seminars = await get_all_use_case.execute(limit, club_id, association_id)
+    return SeminarMapper.to_response_list(seminars)
+
+
+@router.get("/upcoming", response_model=List[SeminarResponse])
+async def get_upcoming_seminars(
+    limit: int = 100,
+    get_upcoming_use_case = Depends(get_upcoming_seminars_use_case),
+    get_all_use_case = Depends(get_all_seminars_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Get upcoming seminars."""
+    if not ctx.is_super_admin:
+        effective_club_id = ctx.club_id
+        if not effective_club_id:
+            return []
+        seminars = await get_all_use_case.execute(limit, effective_club_id)
+        seminars = [s for s in seminars if s.status == SeminarStatus.UPCOMING]
+    else:
+        seminars = await get_upcoming_use_case.execute(limit)
     return SeminarMapper.to_response_list(seminars)
 
 
@@ -46,18 +72,9 @@ async def get_seminar(
 ):
     """Get seminar by ID."""
     seminar = await get_seminar_use_case.execute(seminar_id)
+    if not ctx.is_super_admin:
+        check_club_access_ctx(ctx, seminar.club_id or "")
     return SeminarMapper.to_response_dto(seminar)
-
-
-@router.get("/upcoming", response_model=List[SeminarResponse])
-async def get_upcoming_seminars(
-    limit: int = 100,
-    get_upcoming_use_case = Depends(get_upcoming_seminars_use_case),
-    ctx: AuthContext = Depends(get_auth_context)
-):
-    """Get upcoming seminars."""
-    seminars = await get_upcoming_use_case.execute(limit)
-    return SeminarMapper.to_response_list(seminars)
 
 
 @router.post("", response_model=SeminarResponse, status_code=status.HTTP_201_CREATED)
@@ -67,6 +84,10 @@ async def create_seminar(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new seminar."""
+    effective_club_id = seminar_data.club_id
+    if not ctx.is_super_admin:
+        effective_club_id = ctx.club_id
+
     seminar = await get_create_use_case.execute(
         title=seminar_data.title,
         description=seminar_data.description,
@@ -79,7 +100,7 @@ async def create_seminar(
         end_date=seminar_data.end_date,
         price=seminar_data.price,
         max_participants=seminar_data.max_participants,
-        club_id=seminar_data.club_id,
+        club_id=effective_club_id,
         association_id=seminar_data.association_id
     )
     return SeminarMapper.to_response_dto(seminar)
@@ -90,10 +111,18 @@ async def update_seminar(
     seminar_id: str,
     seminar_data: SeminarUpdate,
     get_update_use_case = Depends(get_update_seminar_use_case),
+    get_one_use_case = Depends(get_seminar_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Update seminar."""
-    seminar = await get_update_use_case.execute(seminar_id, **seminar_data.model_dump(exclude_none=True))
+    if not ctx.is_super_admin:
+        existing = await get_one_use_case.execute(seminar_id)
+        check_club_access_ctx(ctx, existing.club_id or "")
+        update_data = seminar_data.model_dump(exclude_none=True)
+        update_data.pop("club_id", None)
+    else:
+        update_data = seminar_data.model_dump(exclude_none=True)
+    seminar = await get_update_use_case.execute(seminar_id, **update_data)
     return SeminarMapper.to_response_dto(seminar)
 
 
@@ -101,9 +130,13 @@ async def update_seminar(
 async def cancel_seminar(
     seminar_id: str,
     get_cancel_use_case = Depends(get_cancel_seminar_use_case),
+    get_one_use_case = Depends(get_seminar_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Cancel seminar."""
+    if not ctx.is_super_admin:
+        existing = await get_one_use_case.execute(seminar_id)
+        check_club_access_ctx(ctx, existing.club_id or "")
     seminar = await get_cancel_use_case.execute(seminar_id)
     return SeminarMapper.to_response_dto(seminar)
 
@@ -112,8 +145,12 @@ async def cancel_seminar(
 async def delete_seminar(
     seminar_id: str,
     get_delete_use_case = Depends(get_delete_seminar_use_case),
+    get_one_use_case = Depends(get_seminar_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete seminar."""
+    if not ctx.is_super_admin:
+        existing = await get_one_use_case.execute(seminar_id)
+        check_club_access_ctx(ctx, existing.club_id or "")
     await get_delete_use_case.execute(seminar_id)
     return None

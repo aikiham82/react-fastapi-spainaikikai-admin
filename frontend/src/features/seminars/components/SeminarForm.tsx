@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSeminarContext } from '../hooks/useSeminarContext';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import type { Seminar, CreateSeminarRequest } from '../data/schemas/seminar.schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ interface SeminarFormProps {
 
 export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) => {
   const { createSeminar, updateSeminar } = useSeminarContext();
+  const { clubId, userRole } = useAuthContext();
   const isEditing = !!seminar;
 
   const [formData, setFormData] = useState<CreateSeminarRequest>({
@@ -119,11 +121,16 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
     }
 
     // Format dates for backend (ISO 8601)
-    const submitData = {
+    const submitData: CreateSeminarRequest = {
       ...formData,
       start_date: new Date(formData.start_date).toISOString(),
       end_date: new Date(formData.end_date).toISOString(),
     };
+
+    // Auto-assign club_id for club admins on creation
+    if (!isEditing && userRole !== 'super_admin' && clubId) {
+      submitData.club_id = clubId;
+    }
 
     if (isEditing && seminar) {
       updateSeminar(seminar.id, submitData);

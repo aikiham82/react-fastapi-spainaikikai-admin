@@ -39,6 +39,7 @@ export interface UpdateSeminarRequest extends Partial<CreateSeminarRequest> {}
 
 export interface SeminarFilters {
   status?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  club_id?: string;
   date_from?: string;
   date_to?: string;
   limit?: number;
