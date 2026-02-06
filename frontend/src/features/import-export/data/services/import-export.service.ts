@@ -1,5 +1,13 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { ImportMembersRequest, ImportMembersResponse, ExportMembersFilters } from '../schemas/import-export.schema';
+import type {
+  ImportMembersRequest,
+  ImportMembersResponse,
+  ExportMembersFilters,
+  ImportLicensesRequest,
+  ExportLicensesFilters,
+  ImportInsurancesRequest,
+  ExportInsurancesFilters,
+} from '../schemas/import-export.schema';
 import * as XLSX from 'xlsx';
 
 const BASE_URL = '/api/v1/import-export';
@@ -49,9 +57,37 @@ export const exportToExcel = (data: any[], filename: string): void => {
   XLSX.writeFile(workbook, `${filename}.xlsx`);
 };
 
+// License import/export
+export const importLicenses = async (data: ImportLicensesRequest): Promise<ImportMembersResponse> => {
+  return await apiClient.post<ImportMembersResponse>(`${BASE_URL}/licenses/import`, data);
+};
+
+export const exportLicenses = async (filters?: ExportLicensesFilters): Promise<Blob> => {
+  return await apiClient.get<Blob>(`${BASE_URL}/licenses/export`, {
+    params: filters,
+    responseType: 'blob',
+  });
+};
+
+// Insurance import/export
+export const importInsurances = async (data: ImportInsurancesRequest): Promise<ImportMembersResponse> => {
+  return await apiClient.post<ImportMembersResponse>(`${BASE_URL}/insurances/import`, data);
+};
+
+export const exportInsurances = async (filters?: ExportInsurancesFilters): Promise<Blob> => {
+  return await apiClient.get<Blob>(`${BASE_URL}/insurances/export`, {
+    params: filters,
+    responseType: 'blob',
+  });
+};
+
 export const importExportService = {
   importMembers,
   exportMembers,
+  importLicenses,
+  exportLicenses,
+  importInsurances,
+  exportInsurances,
   parseExcelFile,
   exportToExcel,
 };

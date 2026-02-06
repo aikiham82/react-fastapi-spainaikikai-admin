@@ -40,3 +40,81 @@ export const useExportMembersMutation = () => {
     },
   });
 };
+
+// License mutations
+export const useImportLicensesMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importExportService.importLicenses,
+    onSuccess: (response) => {
+      toast.success(`${response.imported} licencias importadas exitosamente`);
+      queryClient.invalidateQueries({ queryKey: ['licenses'] });
+    },
+    onError: (error: any) => {
+      toast.error('Error al importar licencias');
+      if (error.response?.data?.errors) {
+        error.response.data.errors.forEach((err: string) => {
+          toast.error(err);
+        });
+      }
+    },
+  });
+};
+
+export const useExportLicensesMutation = () => {
+  return useMutation({
+    mutationFn: (filters?: any) => importExportService.exportLicenses(filters),
+    onSuccess: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `licencias_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Licencias exportadas exitosamente');
+    },
+    onError: () => {
+      toast.error('Error al exportar licencias');
+    },
+  });
+};
+
+// Insurance mutations
+export const useImportInsurancesMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importExportService.importInsurances,
+    onSuccess: (response) => {
+      toast.success(`${response.imported} seguros importados exitosamente`);
+      queryClient.invalidateQueries({ queryKey: ['insurances'] });
+    },
+    onError: (error: any) => {
+      toast.error('Error al importar seguros');
+      if (error.response?.data?.errors) {
+        error.response.data.errors.forEach((err: string) => {
+          toast.error(err);
+        });
+      }
+    },
+  });
+};
+
+export const useExportInsurancesMutation = () => {
+  return useMutation({
+    mutationFn: (filters?: any) => importExportService.exportInsurances(filters),
+    onSuccess: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `seguros_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Seguros exportados exitosamente');
+    },
+    onError: () => {
+      toast.error('Error al exportar seguros');
+    },
+  });
+};

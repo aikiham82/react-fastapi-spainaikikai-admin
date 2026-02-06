@@ -34,6 +34,16 @@ class ImportMembersResponse(BaseModel):
     errors: List[str]
 
 
+class ImportLicensesRequest(BaseModel):
+    """DTO for importing licenses."""
+    licenses: List[dict]
+
+
+class ImportInsurancesRequest(BaseModel):
+    """DTO for importing insurances."""
+    insurances: List[dict]
+
+
 class MemberExportRow(BaseModel):
     """DTO for a single member export row."""
     id: str
