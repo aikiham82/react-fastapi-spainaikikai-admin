@@ -27,6 +27,9 @@ RUN addgroup -g 1001 -S appgroup && \
     touch /var/run/nginx.pid && \
     chown appuser:appgroup /var/run/nginx.pid
 
+# Override main nginx.conf to remove 'user' directive (incompatible with non-root)
+RUN sed -i 's/^user  nginx;/#user  nginx;/' /etc/nginx/nginx.conf
+
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
@@ -36,10 +39,10 @@ COPY --from=builder --chown=appuser:appgroup /app/dist /usr/share/nginx/html
 # Security: Switch to non-root user
 USER appuser
 
-EXPOSE 80
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
