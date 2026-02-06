@@ -20,29 +20,22 @@ RUN npx tsc -p tsconfig.build.json && npx vite build
 # ==================== Production Stage ====================
 FROM nginx:1.27-alpine AS production
 
-# Security: Create non-root user for nginx
+# Setup non-root user for nginx
 RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup && \
     chown -R appuser:appgroup /var/cache/nginx /var/log/nginx && \
     touch /var/run/nginx.pid && \
-    chown appuser:appgroup /var/run/nginx.pid
-
-# Override main nginx.conf to remove 'user' directive (incompatible with non-root)
-RUN sed -i 's/^user  nginx;/#user  nginx;/' /etc/nginx/nginx.conf
+    chown appuser:appgroup /var/run/nginx.pid && \
+    sed -i 's/^user  nginx;/#user  nginx;/' /etc/nginx/nginx.conf
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets from builder
-COPY --from=builder --chown=appuser:appgroup /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Security: Switch to non-root user
 USER appuser
 
 EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
