@@ -34,7 +34,7 @@
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest"]
     },
-    "MongoDB": {
+    "MongoDB-local": {
       "command": "docker",
       "args": [
         "run",
@@ -42,7 +42,19 @@
         "-i",
         "--network", "host",
         "-e",
-        "MDB_MCP_CONNECTION_STRING=mongodb://spainaikikai_user:spainaikikai_password@spainaikikai:27017/spainaikikai?authSource=spainaikikai",
+        "MDB_MCP_CONNECTION_STRING=mongodb://spainaikikai_user:spainaikikai_password@localhost:27017/spainaikikai?authSource=spainaikikai",
+        "mongodb/mongodb-mcp-server:latest"
+      ]
+    },
+    "MongoDB-production": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--network", "host",
+        "-e",
+        "MDB_MCP_CONNECTION_STRING=mongodb://spainaikikai_user:U4itYb383FuRkrm4HH4P@localhost:27018/spainaikikai?authSource=spainaikikai",
         "mongodb/mongodb-mcp-server:latest"
       ]
     },
