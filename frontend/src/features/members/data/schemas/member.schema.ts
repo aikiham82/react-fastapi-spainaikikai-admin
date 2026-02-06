@@ -1,3 +1,18 @@
+export interface LicenseSummary {
+  grade: string | null;
+  technical_grade: string | null;
+  instructor_category: string | null;
+  status: string | null;
+  expiration_date: string | null;
+}
+
+export interface InsuranceSummary {
+  has_accident: boolean;
+  accident_status: string | null;
+  has_rc: boolean;
+  rc_status: string | null;
+}
+
 export interface Member {
   id: string;
   first_name: string;
@@ -17,6 +32,8 @@ export interface Member {
   club_name?: string;
   created_at: string;
   updated_at: string;
+  license_summary?: LicenseSummary;
+  insurance_summary?: InsuranceSummary;
 }
 
 export interface CreateMemberRequest {

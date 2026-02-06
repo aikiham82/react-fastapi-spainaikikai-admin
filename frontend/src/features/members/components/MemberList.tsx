@@ -4,14 +4,76 @@ import type { Member } from '../data/schemas/member.schema';
 import { Users, Plus, Search, Edit, Trash2, Eye, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge } from './MemberBadges';
+
+function MemberQuickViewContent({ member }: { member: Member }) {
+  return (
+    <div className="space-y-4 py-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <p className="text-sm font-medium text-gray-900">Email</p>
+          <p className="text-sm text-gray-600">{member.email}</p>
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-900">Teléfono</p>
+          <p className="text-sm text-gray-600">{member.phone}</p>
+        </div>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-900">Dirección</p>
+        <p className="text-sm text-gray-600">{member.address}</p>
+        <p className="text-sm text-gray-600">{member.postal_code}, {member.city}</p>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-900">Fecha de Nacimiento</p>
+        <p className="text-sm text-gray-600">
+          {member.birth_date
+            ? new Date(member.birth_date).toLocaleDateString('es-ES')
+            : 'No especificada'}
+        </p>
+      </div>
+
+      <Separator />
+
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">Licencia</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <GradeBadge licenseSummary={member.license_summary} />
+          <LicenseStatusBadge licenseSummary={member.license_summary} />
+        </div>
+        {member.license_summary?.expiration_date && (
+          <p className="text-xs text-gray-500 mt-1">
+            Vence: {new Date(member.license_summary.expiration_date).toLocaleDateString('es-ES')}
+          </p>
+        )}
+      </div>
+
+      <Separator />
+
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">Seguros</p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Responsabilidad Civil</p>
+            <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Accidentes</p>
+            <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export const MemberList = () => {
   const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
@@ -124,21 +186,17 @@ export const MemberList = () => {
                 <p className="text-sm text-gray-600">{member.phone}</p>
                 <p className="text-sm text-gray-600">{member.email}</p>
               </div>
-              <Badge
-                variant={
-                  member.license_status === 'active' ? 'default' :
-                    member.license_status === 'expired' ? 'destructive' : 'secondary'
-                }
-              >
-                {member.license_status === 'active' ? 'Activa' :
-                  member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
-              </Badge>
+              <LicenseStatusBadge licenseSummary={member.license_summary} />
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>{member.club_name || '-'}</span>
-              {member.license_number && (
-                <span className="ml-3">Lic: {member.license_number}</span>
-              )}
+              <span className="text-gray-300">|</span>
+              <GradeBadge licenseSummary={member.license_summary} compact />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Seguros:</span>
+              <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
+              <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
             </div>
             <div className="flex items-center gap-2 pt-2 border-t">
               <Button variant="ghost" size="icon" onClick={() => setSelectedMemberForPayments(member)} aria-label="Ver pagos">
@@ -154,31 +212,7 @@ export const MemberList = () => {
                   <DialogHeader>
                     <DialogTitle>{member.first_name} {member.last_name}</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Email</p>
-                        <p className="text-sm text-gray-600">{member.email}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">Teléfono</p>
-                        <p className="text-sm text-gray-600">{member.phone}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Dirección</p>
-                      <p className="text-sm text-gray-600">{member.address}</p>
-                      <p className="text-sm text-gray-600">{member.postal_code}, {member.city}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Fecha de Nacimiento</p>
-                      <p className="text-sm text-gray-600">
-                        {member.birth_date
-                          ? new Date(member.birth_date).toLocaleDateString('es-ES')
-                          : 'No especificada'}
-                      </p>
-                    </div>
-                  </div>
+                  <MemberQuickViewContent member={member} />
                 </DialogContent>
               </Dialog>
               {canAccess({ resource: 'members', action: 'update' }) && (
@@ -205,8 +239,9 @@ export const MemberList = () => {
                 <th className="text-left p-4 font-medium text-gray-900">Nombre</th>
                 <th className="text-left p-4 font-medium text-gray-900">Email</th>
                 <th className="text-left p-4 font-medium text-gray-900">Club</th>
-                <th className="text-left p-4 font-medium text-gray-900">Licencia</th>
-                <th className="text-left p-4 font-medium text-gray-900">Estado</th>
+                <th className="text-left p-4 font-medium text-gray-900">Grado</th>
+                <th className="text-left p-4 font-medium text-gray-900">Seguro RC</th>
+                <th className="text-left p-4 font-medium text-gray-900">Seguro Acc.</th>
                 <th className="text-center p-4 font-medium text-gray-900">Pagos</th>
                 <th className="text-right p-4 font-medium text-gray-900">Acciones</th>
               </tr>
@@ -224,17 +259,14 @@ export const MemberList = () => {
                   </td>
                   <td className="p-4 text-gray-600">{member.email}</td>
                   <td className="p-4 text-gray-600">{member.club_name || '-'}</td>
-                  <td className="p-4 text-gray-600">{member.license_number || '-'}</td>
                   <td className="p-4">
-                    <Badge
-                      variant={
-                        member.license_status === 'active' ? 'default' :
-                          member.license_status === 'expired' ? 'destructive' : 'secondary'
-                      }
-                    >
-                      {member.license_status === 'active' ? 'Activa' :
-                        member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
-                    </Badge>
+                    <GradeBadge licenseSummary={member.license_summary} />
+                  </td>
+                  <td className="p-4">
+                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
+                  </td>
+                  <td className="p-4">
+                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
                   </td>
                   <td className="p-4 text-center">
                     <TooltipProvider>
@@ -268,53 +300,7 @@ export const MemberList = () => {
                               {member.first_name} {member.last_name}
                             </DialogTitle>
                           </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">Email</p>
-                                <p className="text-sm text-gray-600">{member.email}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">Teléfono</p>
-                                <p className="text-sm text-gray-600">{member.phone}</p>
-                              </div>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">Dirección</p>
-                              <p className="text-sm text-gray-600">{member.address}</p>
-                              <p className="text-sm text-gray-600">
-                                {member.postal_code}, {member.city}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">Fecha de Nacimiento</p>
-                              <p className="text-sm text-gray-600">
-                                {member.birth_date
-                                  ? new Date(member.birth_date).toLocaleDateString('es-ES')
-                                  : 'No especificada'}
-                              </p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">Licencia</p>
-                                <p className="text-sm text-gray-600">
-                                  {member.license_number || 'Sin licencia'}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">Estado</p>
-                                <Badge
-                                  variant={
-                                    member.license_status === 'active' ? 'default' :
-                                      member.license_status === 'expired' ? 'destructive' : 'secondary'
-                                  }
-                                >
-                                  {member.license_status === 'active' ? 'Activa' :
-                                    member.license_status === 'expired' ? 'Expirada' : 'Pendiente'}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
+                          <MemberQuickViewContent member={member} />
                         </DialogContent>
                       </Dialog>
 

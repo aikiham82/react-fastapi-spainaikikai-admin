@@ -99,6 +99,14 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         documents = await cursor.to_list(length=limit)
         return [self._to_domain(doc) for doc in documents]
 
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[License]:
+        """Find licenses by a list of member IDs."""
+        if not member_ids:
+            return []
+        cursor = self.collection.find({"member_id": {"$in": member_ids}}).limit(limit)
+        documents = await cursor.to_list(length=limit)
+        return [self._to_domain(doc) for doc in documents]
+
     async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[License]:
         """Find licenses by club ID.
 

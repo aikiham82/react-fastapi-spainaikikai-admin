@@ -1,7 +1,7 @@
 """Member DTOs for request/response validation."""
 
 from pydantic import BaseModel, field_validator
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 
 
@@ -62,6 +62,23 @@ class MemberUpdate(BaseModel):
         return v
 
 
+class LicenseSummary(BaseModel):
+    """Summary of a member's primary license."""
+    grade: Optional[str] = None
+    technical_grade: Optional[str] = None
+    instructor_category: Optional[str] = None
+    status: Optional[str] = None
+    expiration_date: Optional[datetime] = None
+
+
+class InsuranceSummary(BaseModel):
+    """Summary of a member's insurance status."""
+    has_accident: bool = False
+    accident_status: Optional[str] = None
+    has_rc: bool = False
+    rc_status: Optional[str] = None
+
+
 class MemberResponse(MemberBase):
     """DTO for member response."""
     id: str
@@ -71,6 +88,8 @@ class MemberResponse(MemberBase):
     registration_date: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    license_summary: Optional[LicenseSummary] = None
+    insurance_summary: Optional[InsuranceSummary] = None
 
     class Config:
         from_attributes = True

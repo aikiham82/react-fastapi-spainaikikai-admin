@@ -30,6 +30,11 @@ class LicenseRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[License]:
+        """Find licenses by a list of member IDs."""
+        pass
+
+    @abstractmethod
     async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[License]:
         """Find licenses by club ID."""
         pass
