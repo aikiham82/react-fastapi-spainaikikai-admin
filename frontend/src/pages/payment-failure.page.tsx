@@ -47,7 +47,7 @@ export const PaymentFailurePage = () => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate('/payments');
+          navigate('/annual-payments');
           return 0;
         }
         return prev - 1;
@@ -97,7 +97,7 @@ export const PaymentFailurePage = () => {
           </div>
 
           <div className="space-y-2">
-            <Button onClick={() => navigate('/payments')} className="w-full">
+            <Button onClick={() => navigate('/annual-payments')} className="w-full">
               Volver a Intentar
             </Button>
             <Button onClick={() => navigate('/')} variant="outline" className="w-full">

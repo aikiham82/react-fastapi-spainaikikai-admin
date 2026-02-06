@@ -1,4 +1,4 @@
-import { ProtectedRoute } from '@/core/components/ProtectedRoute';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Dashboard } from '@/features/dashboard/components/Dashboard';
 
 const HomePage = () => {

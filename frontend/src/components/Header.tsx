@@ -18,8 +18,6 @@ const getPageTitle = (pathname: string) => {
       return 'Miembros';
     case '/licenses':
       return 'Licencias';
-    case '/payments':
-      return 'Pagos';
     case '/seminars':
       return 'Seminarios';
     case '/insurance':
@@ -53,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notificaciones">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
         </Button>

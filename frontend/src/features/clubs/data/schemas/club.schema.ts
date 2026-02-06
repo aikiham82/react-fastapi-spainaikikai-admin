@@ -8,7 +8,7 @@ export interface Club {
   country: string;
   phone: string;
   email: string;
-  association_id?: string;
+
   website?: string;
   created_at: string;
   updated_at: string;
@@ -24,7 +24,7 @@ export interface CreateClubRequest {
   country: string;
   phone: string;
   email: string;
-  association_id?: string;
+
   website?: string;
 }
 
