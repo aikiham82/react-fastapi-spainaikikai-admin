@@ -30,7 +30,6 @@ const rolePermissions: Record<
     seminars: ['read', 'create', 'update'],
     insurance: ['read', 'create', 'update'],
     import_export: ['read', 'create', 'update'],
-    price_configurations: ['read'],
   },
 };
 

@@ -10,6 +10,7 @@ import type { PriceConfiguration } from '../data/schemas/price-configuration.sch
 import {
   getPriceKeyDescription,
   formatCurrency,
+  PRICE_CATEGORY_LABELS,
 } from '../data/schemas/price-configuration.schema';
 
 export const PriceConfigurationList = () => {
@@ -95,8 +96,11 @@ export const PriceConfigurationList = () => {
           <div key={config.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-medium text-gray-900">{getPriceKeyDescription(config.key)}</h3>
+                <h3 className="font-medium text-gray-900">{getPriceKeyDescription(config.key, config.category)}</h3>
                 <p className="text-sm text-gray-500 font-mono">{config.key}</p>
+                <Badge variant="outline" className="mt-1">
+                  {PRICE_CATEGORY_LABELS[config.category] || config.category}
+                </Badge>
               </div>
               <Badge variant={config.is_active ? 'default' : 'secondary'}>
                 {config.is_active ? 'Activo' : 'Inactivo'}
@@ -130,7 +134,8 @@ export const PriceConfigurationList = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-gray-50">
-                <th className="text-left p-4 font-medium text-gray-900">Tipo de Licencia</th>
+                <th className="text-left p-4 font-medium text-gray-900">Concepto</th>
+                <th className="text-left p-4 font-medium text-gray-900">Categoria</th>
                 <th className="text-left p-4 font-medium text-gray-900">Descripcion</th>
                 <th className="text-right p-4 font-medium text-gray-900">Precio</th>
                 <th className="text-center p-4 font-medium text-gray-900">Estado</th>
@@ -142,9 +147,14 @@ export const PriceConfigurationList = () => {
                 <tr key={config.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <p className="font-medium text-gray-900">
-                      {getPriceKeyDescription(config.key)}
+                      {getPriceKeyDescription(config.key, config.category)}
                     </p>
                     <p className="text-sm text-gray-500 font-mono">{config.key}</p>
+                  </td>
+                  <td className="p-4">
+                    <Badge variant="outline">
+                      {PRICE_CATEGORY_LABELS[config.category] || config.category}
+                    </Badge>
                   </td>
                   <td className="p-4">
                     <span className="text-gray-700">
@@ -200,7 +210,7 @@ export const PriceConfigurationList = () => {
       <ConfirmDeleteDialog
         open={!!configToDelete}
         onOpenChange={(open) => !open && setConfigToDelete(null)}
-        description={`Se eliminará permanentemente la configuración "${configToDelete ? getPriceKeyDescription(configToDelete.key) : ''}". Esta acción no se puede deshacer.`}
+        description={`Se eliminará permanentemente la configuración "${configToDelete ? getPriceKeyDescription(configToDelete.key, configToDelete.category) : ''}". Esta acción no se puede deshacer.`}
         onConfirm={() => {
           if (configToDelete) {
             deletePriceConfiguration(configToDelete.id);
