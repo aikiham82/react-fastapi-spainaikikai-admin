@@ -44,8 +44,8 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
     if (license) {
       setFormData({
         member_id: license.member_id || '',
-        issue_date: license.issue_date || '',
-        expiry_date: license.expiry_date || '',
+        issue_date: license.issue_date?.split('T')[0] || '',
+        expiry_date: license.expiry_date?.split('T')[0] || '',
         dan_grade: license.dan_grade || 6,
       });
     } else {
