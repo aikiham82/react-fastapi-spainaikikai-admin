@@ -5,3 +5,6 @@ latest_news_links/*
 testsprite_tests/
 .claude/sessions
 .claude/doc
+
+# Database backups
+backups/
