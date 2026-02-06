@@ -6,8 +6,7 @@ testsprite_tests/
 .claude/sessions
 .claude/doc
 
-# Database backups
-backups/
 
 # Git worktrees
 .worktrees/
+*.png
