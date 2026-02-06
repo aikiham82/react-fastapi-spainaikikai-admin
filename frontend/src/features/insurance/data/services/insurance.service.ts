@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { Insurance, CreateInsuranceRequest, UpdateInsuranceRequest, InsuranceFilters, InsuranceListResponse } from './insurance.schema';
+import type { Insurance, CreateInsuranceRequest, UpdateInsuranceRequest, InsuranceFilters, InsuranceListResponse } from '../schemas/insurance.schema';
 
 const BASE_URL = '/api/v1/insurances';
 

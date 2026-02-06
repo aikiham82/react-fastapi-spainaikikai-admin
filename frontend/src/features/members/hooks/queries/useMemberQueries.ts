@@ -1,6 +1,6 @@
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { memberService } from '../../data/services/member.service';
-import type { Member, MemberFilters } from '../../data/schemas/member.schema';
+import type { MemberFilters } from '../../data/schemas/member.schema';
 
 interface UseMembersQueryOptions {
   enabled?: boolean;

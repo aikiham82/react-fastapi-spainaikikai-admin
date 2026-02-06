@@ -5,7 +5,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Menu, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { SkipLink } from '@/components/ui/SkipLink';
 
 export const AppLayout: React.FC = () => {

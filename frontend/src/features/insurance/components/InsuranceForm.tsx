@@ -176,7 +176,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
                 step="0.01"
                 min="0"
                 value={formData.coverage_amount || ''}
-                onChange={(e) => handleChange('coverage_amount', parseFloat(e.target.value) || undefined)}
+                onChange={(e) => handleChange('coverage_amount', parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
               />
             </div>

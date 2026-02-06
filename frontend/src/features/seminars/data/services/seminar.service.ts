@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { Seminar, CreateSeminarRequest, UpdateSeminarRequest, SeminarFilters, SeminarsListResponse, RegisterMemberRequest } from './seminar.schema';
+import type { Seminar, CreateSeminarRequest, UpdateSeminarRequest, SeminarFilters, SeminarsListResponse, RegisterMemberRequest } from '../schemas/seminar.schema';
 
 const BASE_URL = '/api/v1/seminars';
 

@@ -47,11 +47,12 @@ const navItems: NavItem[] = [
 
 interface SidebarProps {
   className?: string;
+  id?: string;
   isMobile?: boolean;
   onClose?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ className, id, isMobile, onClose }) => {
   const location = useLocation();
   const { userRole, logout } = useAuthContext();
   const { canAccess } = usePermissions();
@@ -68,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }
   );
 
   return (
-    <div className={cn('flex flex-col h-full bg-slate-900 text-slate-100', className)}>
+    <div id={id} className={cn('flex flex-col h-full bg-slate-900 text-slate-100', className)}>
       <div className="p-6 border-b border-slate-800">
         <h1 className="text-xl font-bold tracking-tight text-white leading-none">Aikido Admin</h1>
         {userRole && (

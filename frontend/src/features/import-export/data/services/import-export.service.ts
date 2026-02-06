@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { ImportMembersRequest, ImportMembersResponse, ExportMembersFilters } from './import-export.schema';
+import type { ImportMembersRequest, ImportMembersResponse, ExportMembersFilters } from '../schemas/import-export.schema';
 import * as XLSX from 'xlsx';
 
 const BASE_URL = '/api/v1/import-export';

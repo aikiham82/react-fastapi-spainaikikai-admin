@@ -11,7 +11,7 @@ export const getMember = async (id: string): Promise<Member> => {
   return await apiClient.get<Member>(`${BASE_URL}/${id}`);
 };
 
-const cleanEmptyFields = <T extends Record<string, unknown>>(data: T): Partial<T> => {
+const cleanEmptyFields = <T extends object>(data: T): Partial<T> => {
   return Object.fromEntries(
     Object.entries(data).filter(([, value]) => value !== '' && value !== null && value !== undefined)
   ) as Partial<T>;

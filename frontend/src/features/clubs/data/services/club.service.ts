@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { Club, CreateClubRequest, UpdateClubRequest, ClubFilters } from './club.schema';
+import type { Club, CreateClubRequest, UpdateClubRequest, ClubFilters } from '../schemas/club.schema';
 
 const BASE_URL = '/api/v1/clubs';
 

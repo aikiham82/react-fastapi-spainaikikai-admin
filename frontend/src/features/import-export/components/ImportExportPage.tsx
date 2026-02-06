@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import type { ImportMembersRequest } from '../data/schemas/import-export.schema';
 
 export const ImportExportPage = () => {
   const importMutation = useImportMembersMutation();
@@ -58,7 +59,7 @@ export const ImportExportPage = () => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      const result = await importMutation.mutateAsync({ members: jsonData });
+      const result = await importMutation.mutateAsync({ members: jsonData as ImportMembersRequest['members'] });
 
       setImportResults({
         success: result.success || true,

@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { License, CreateLicenseRequest, UpdateLicenseRequest, LicenseFilters, LicensesListResponse } from './license.schema';
+import type { License, CreateLicenseRequest, UpdateLicenseRequest, LicenseFilters, LicensesListResponse } from '../schemas/license.schema';
 
 const BASE_URL = '/api/v1/licenses';
 

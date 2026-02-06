@@ -50,7 +50,7 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
 };
 
 // Invoice status badge variants
-export const INVOICE_STATUS_VARIANTS: Record<InvoiceStatus, 'default' | 'success' | 'warning' | 'destructive'> = {
+export const INVOICE_STATUS_VARIANTS: Record<InvoiceStatus, 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'> = {
   draft: 'default',
   issued: 'warning',
   paid: 'success',

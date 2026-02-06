@@ -64,7 +64,7 @@ export const PriceConfigurationForm = ({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       grado_tecnico: 'kyu',
