@@ -1,8 +1,6 @@
 # Ports - Interfaces for adapters
 
 from .repositories import UserRepositoryPort
-from .news_repository import NewsRepository
-from .association_repository import AssociationRepositoryPort
 from .club_repository import ClubRepositoryPort
 from .member_repository import MemberRepositoryPort
 from .license_repository import LicenseRepositoryPort
@@ -25,8 +23,6 @@ from .redsys_service import (
 
 __all__ = [
     "UserRepositoryPort",
-    "NewsRepository",
-    "AssociationRepositoryPort",
     "ClubRepositoryPort",
     "MemberRepositoryPort",
     "LicenseRepositoryPort",

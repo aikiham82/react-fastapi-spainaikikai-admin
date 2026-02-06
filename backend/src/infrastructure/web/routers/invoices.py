@@ -19,8 +19,8 @@ from src.infrastructure.web.dependencies import (
     get_download_invoice_pdf_use_case,
     get_regenerate_invoice_pdf_use_case
 )
-from src.infrastructure.web.dependencies import get_current_active_user
-from src.domain.entities.user import User
+from src.infrastructure.web.dependencies import get_auth_context
+from src.infrastructure.web.authorization import AuthContext
 from src.domain.exceptions.invoice import InvoiceNotFoundError, InvoicePDFGenerationError
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
@@ -69,7 +69,7 @@ async def get_all_invoices(
     end_date: Optional[date] = None,
     limit: int = 100,
     get_all_use_case = Depends(get_all_invoices_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all invoices with optional filters."""
     invoices = await get_all_use_case.execute(
@@ -86,7 +86,7 @@ async def get_member_invoices(
     member_id: str,
     limit: int = 100,
     get_invoices_use_case = Depends(get_invoices_by_member_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all invoices for a member."""
     invoices = await get_invoices_use_case.execute(member_id, limit)
@@ -97,7 +97,7 @@ async def get_member_invoices(
 async def get_invoice(
     invoice_id: str,
     get_invoice_use_case = Depends(get_invoice_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get invoice by ID."""
     try:
@@ -114,7 +114,7 @@ async def get_invoice(
 async def download_invoice_pdf(
     invoice_id: str,
     download_use_case = Depends(get_download_invoice_pdf_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Download invoice PDF."""
     try:
@@ -142,7 +142,7 @@ async def download_invoice_pdf(
 async def regenerate_invoice_pdf(
     invoice_id: str,
     regenerate_use_case = Depends(get_regenerate_invoice_pdf_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Regenerate invoice PDF."""
     try:

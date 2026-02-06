@@ -15,7 +15,6 @@ class ClubBase(BaseModel):
     country: str
     phone: str
     email: EmailStr
-    association_id: Optional[str] = None
     website: Optional[str] = None
 
 
@@ -34,7 +33,6 @@ class ClubUpdate(BaseModel):
     country: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
-    association_id: Optional[str] = None
     website: Optional[str] = None
     is_active: Optional[bool] = None
 

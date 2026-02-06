@@ -4,7 +4,6 @@ import pytest
 from datetime import datetime
 
 from src.infrastructure.database import get_database
-from src.infrastructure.adapters.repositories.mongodb_association_repository import MongoDBAssociationRepository
 from src.infrastructure.adapters.repositories.mongodb_club_repository import MongoDBClubRepository
 from src.infrastructure.adapters.repositories.mongodb_member_repository import MongoDBMemberRepository
 from src.infrastructure.adapters.repositories.mongodb_license_repository import MongoDBLicenseRepository
@@ -17,12 +16,6 @@ from src.infrastructure.adapters.repositories.mongodb_insurance_repository impor
 def db():
     """Database fixture for testing."""
     yield get_database()
-
-
-@pytest.fixture(scope="function")
-def association_repository(db):
-    """Association repository fixture."""
-    return MongoDBAssociationRepository()
 
 
 @pytest.fixture(scope="function")
@@ -149,7 +142,6 @@ def user_document():
         "username": "testuser",
         "hashed_password": "hashed_password_123",
         "is_active": True,
-        "role": None,
         "club_id": None,
         "created_at": datetime(2024, 1, 1, 12, 0, 0),
         "updated_at": datetime(2024, 1, 1, 12, 0, 0)
@@ -182,7 +174,6 @@ def user_documents_list():
             "username": "user1",
             "hashed_password": "hashed_password_1",
             "is_active": True,
-            "role": None,
             "club_id": None,
             "created_at": datetime(2024, 1, 1, 12, 0, 0),
             "updated_at": datetime(2024, 1, 1, 12, 0, 0)
@@ -193,7 +184,6 @@ def user_documents_list():
             "username": "user2",
             "hashed_password": "hashed_password_2",
             "is_active": True,
-            "role": None,
             "club_id": None,
             "created_at": datetime(2024, 1, 2, 12, 0, 0),
             "updated_at": datetime(2024, 1, 2, 12, 0, 0)
@@ -204,7 +194,6 @@ def user_documents_list():
             "username": "user3",
             "hashed_password": "hashed_password_3",
             "is_active": False,
-            "role": None,
             "club_id": None,
             "created_at": datetime(2024, 1, 3, 12, 0, 0),
             "updated_at": datetime(2024, 1, 3, 12, 0, 0)
@@ -317,7 +306,6 @@ def user_response_data():
         "email": "test@example.com",
         "username": "testuser",
         "is_active": True,
-        "role": None,
         "club_id": None,
         "created_at": datetime(2024, 1, 1, 12, 0, 0),
         "updated_at": datetime(2024, 1, 1, 12, 0, 0)

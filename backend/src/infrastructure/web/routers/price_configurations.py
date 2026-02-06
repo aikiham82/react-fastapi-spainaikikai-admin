@@ -19,8 +19,8 @@ from src.infrastructure.web.dependencies import (
     get_delete_price_configuration_use_case,
     get_license_price_use_case
 )
-from src.infrastructure.web.dependencies import get_current_active_user
-from src.domain.entities.user import User
+from src.infrastructure.web.dependencies import get_auth_context
+from src.infrastructure.web.authorization import AuthContext
 from src.domain.exceptions.price_configuration import (
     PriceConfigurationNotFoundError,
     PriceConfigurationAlreadyExistsError,
@@ -35,7 +35,7 @@ async def get_all_prices(
     active_only: bool = False,
     limit: int = 100,
     get_all_use_case = Depends(get_all_prices_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all price configurations."""
     prices = await get_all_use_case.execute(active_only=active_only, limit=limit)
@@ -61,7 +61,7 @@ async def get_license_price(
     instructor_category: str,
     age_category: str,
     get_price_use_case = Depends(get_license_price_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get the price for a specific license type combination."""
     try:
@@ -86,7 +86,7 @@ async def get_license_price(
 async def get_price_configuration(
     price_id: str,
     get_price_use_case = Depends(get_price_configuration_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get price configuration by ID."""
     try:
@@ -113,7 +113,7 @@ async def get_price_configuration(
 async def create_price_configuration(
     price_data: PriceConfigurationCreate,
     create_use_case = Depends(get_create_price_configuration_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new price configuration."""
     try:
@@ -148,7 +148,7 @@ async def update_price_configuration(
     price_id: str,
     price_data: PriceConfigurationUpdate,
     update_use_case = Depends(get_update_price_configuration_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Update a price configuration."""
     try:
@@ -182,7 +182,7 @@ async def update_price_configuration(
 async def delete_price_configuration(
     price_id: str,
     delete_use_case = Depends(get_delete_price_configuration_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete a price configuration."""
     try:

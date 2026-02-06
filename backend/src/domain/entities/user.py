@@ -14,8 +14,8 @@ class GlobalRole(str, Enum):
 class User:
     """User domain entity.
 
-    Note: club_id has been removed. Club association is now derived via member_id.
-    The role field is deprecated - use global_role and Member.club_role instead.
+    Club association is derived via member_id → Member → club_id.
+    Permissions: global_role for system-wide, Member.club_role for club-level.
     """
     id: Optional[str] = None
     email: str = ""
@@ -24,8 +24,6 @@ class User:
     is_active: bool = True
     global_role: GlobalRole = GlobalRole.USER  # System-wide role
     member_id: Optional[str] = None  # Link to Member entity
-    # Legacy field - kept for backwards compatibility during transition
-    role: Optional[str] = None  # Deprecated: use global_role + Member.club_role
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

@@ -26,15 +26,14 @@ from src.infrastructure.web.dependencies import (
     get_renew_license_use_case,
     get_update_license_use_case,
     get_delete_license_use_case,
-    get_generate_license_image_use_case
+    get_generate_license_image_use_case,
+    get_auth_context
 )
-from src.infrastructure.web.dependencies import get_current_active_user
 from src.infrastructure.web.authorization import (
-    check_club_access,
-    get_club_filter,
-    is_club_admin
+    AuthContext,
+    check_club_access_ctx,
+    get_club_filter_ctx
 )
-from src.domain.entities.user import User
 from src.domain.exceptions.license import LicenseNotFoundError, LicenseImageGenerationError
 from src.domain.exceptions.member import MemberNotFoundError
 
@@ -84,20 +83,20 @@ async def get_licenses(
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
     get_all_use_case = Depends(get_all_licenses_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all licenses, optionally filtered by club or member."""
     # Club admins are forced to their club only
-    effective_club_id = get_club_filter(current_user)
+    effective_club_id = get_club_filter_ctx(ctx)
 
     if effective_club_id is not None:
         # Club admin - use their club_id (ignore query param)
         licenses = await get_all_use_case.execute(limit, effective_club_id, member_id)
     elif club_id:
-        # Association admin with explicit club filter
+        # Super admin with explicit club filter
         licenses = await get_all_use_case.execute(limit, club_id, member_id)
     else:
-        # Association admin - see all licenses
+        # Super admin - see all licenses
         licenses = await get_all_use_case.execute(limit, None, member_id)
 
     items = LicenseMapper.to_response_list(licenses)
@@ -115,7 +114,7 @@ async def get_license_image(
     license_id: str,
     generate_image_use_case = Depends(get_generate_license_image_use_case),
     get_license_use_case_instance = Depends(get_license_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get license image as PNG.
 
@@ -125,8 +124,8 @@ async def get_license_image(
     try:
         license = await get_license_use_case_instance.execute(license_id)
         if license.club_id:
-            check_club_access(current_user, license.club_id)
-        elif is_club_admin(current_user):
+            check_club_access_ctx(ctx, license.club_id)
+        elif ctx.is_club_admin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied to this license"
@@ -167,15 +166,15 @@ async def get_license_image(
 async def get_license(
     license_id: str,
     get_license_use_case = Depends(get_license_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get license by ID."""
     license = await get_license_use_case.execute(license_id)
 
     # Verify club access
     if license.club_id:
-        check_club_access(current_user, license.club_id)
-    elif is_club_admin(current_user):
+        check_club_access_ctx(ctx, license.club_id)
+    elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied to this license"
@@ -189,16 +188,16 @@ async def get_licenses_by_member(
     member_id: str,
     limit: int = 100,
     get_all_use_case = Depends(get_all_licenses_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get licenses by member ID."""
     # Club admins are forced to their club only
-    effective_club_id = get_club_filter(current_user)
+    effective_club_id = get_club_filter_ctx(ctx)
     licenses = await get_all_use_case.execute(limit, club_id=effective_club_id, member_id=member_id)
 
     # Additional filter for club admins - ensure all licenses belong to their club
-    if is_club_admin(current_user):
-        licenses = [lic for lic in licenses if lic.club_id == current_user.club_id]
+    if ctx.is_club_admin:
+        licenses = [lic for lic in licenses if lic.club_id == ctx.club_id]
 
     return LicenseMapper.to_response_list(licenses)
 
@@ -208,14 +207,14 @@ async def get_expiring_licenses(
     days: int = 30,
     limit: int = 100,
     get_expiring_use_case = Depends(get_expiring_licenses_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get licenses expiring soon."""
     licenses = await get_expiring_use_case.execute(days, limit)
 
     # Filter for club admins - only show their club's licenses
-    if is_club_admin(current_user):
-        licenses = [lic for lic in licenses if lic.club_id == current_user.club_id]
+    if ctx.is_club_admin:
+        licenses = [lic for lic in licenses if lic.club_id == ctx.club_id]
 
     return LicenseMapper.to_response_list(licenses)
 
@@ -224,24 +223,24 @@ async def get_expiring_licenses(
 async def create_license(
     license_data: LicenseCreate,
     get_create_use_case = Depends(get_create_license_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new license."""
     # Determine effective club_id
     effective_club_id = license_data.club_id
 
-    if is_club_admin(current_user):
+    if ctx.is_club_admin:
         # Club admin must create licenses in their own club
-        if license_data.club_id and license_data.club_id != current_user.club_id:
+        if license_data.club_id and license_data.club_id != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot create license in another club"
             )
         # Force club_id to be the user's club
-        effective_club_id = current_user.club_id
+        effective_club_id = ctx.club_id
     elif license_data.club_id:
-        # Association admin with explicit club - verify access
-        check_club_access(current_user, license_data.club_id)
+        # Super admin with explicit club - verify access
+        check_club_access_ctx(ctx, license_data.club_id)
 
     license = await get_create_use_case.execute(
         license_number=license_data.license_number or _generate_license_number(),
@@ -262,14 +261,14 @@ async def renew_license(
     renew_data: LicenseRenewRequest,
     get_renew_use_case = Depends(get_renew_license_use_case),
     get_license_use_case_instance = Depends(get_license_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Renew license."""
     # First verify access to the license
     existing_license = await get_license_use_case_instance.execute(license_id)
     if existing_license.club_id:
-        check_club_access(current_user, existing_license.club_id)
-    elif is_club_admin(current_user):
+        check_club_access_ctx(ctx, existing_license.club_id)
+    elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied to this license"
@@ -286,14 +285,14 @@ async def update_license(
     license_data: LicenseUpdate,
     get_update_use_case = Depends(get_update_license_use_case),
     get_license_use_case_instance = Depends(get_license_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Update license."""
     # First verify access to the license
     existing_license = await get_license_use_case_instance.execute(license_id)
     if existing_license.club_id:
-        check_club_access(current_user, existing_license.club_id)
-    elif is_club_admin(current_user):
+        check_club_access_ctx(ctx, existing_license.club_id)
+    elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied to this license"
@@ -301,8 +300,8 @@ async def update_license(
 
     # Prevent club_id change by club_admin
     update_data = license_data.model_dump(exclude_none=True)
-    if is_club_admin(current_user) and 'club_id' in update_data:
-        if update_data['club_id'] != current_user.club_id:
+    if ctx.is_club_admin and 'club_id' in update_data:
+        if update_data['club_id'] != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot transfer license to another club"
@@ -317,14 +316,14 @@ async def delete_license(
     license_id: str,
     get_delete_use_case = Depends(get_delete_license_use_case),
     get_license_use_case_instance = Depends(get_license_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete license."""
     # First verify access to the license
     existing_license = await get_license_use_case_instance.execute(license_id)
     if existing_license.club_id:
-        check_club_access(current_user, existing_license.club_id)
-    elif is_club_admin(current_user):
+        check_club_access_ctx(ctx, existing_license.club_id)
+    elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied to this license"

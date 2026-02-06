@@ -2,10 +2,6 @@
 
 from .base import DomainException, EntityNotFoundError, ValidationError, BusinessRuleViolationError
 from .user import UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError, InactiveUserError
-from .association import (
-    AssociationNotFoundError, InvalidAssociationDataError,
-    AssociationAlreadyExistsError, InactiveAssociationError
-)
 from .club import (
     ClubNotFoundError, InvalidClubDataError,
     ClubAlreadyExistsError, InactiveClubError, ClubHasActiveMembersError
@@ -62,8 +58,6 @@ __all__ = [
     "ValidationError",
     "BusinessRuleViolationError",
     "UserNotFoundError", "InvalidUserDataError", "UserAlreadyExistsError", "InactiveUserError",
-    "AssociationNotFoundError", "InvalidAssociationDataError",
-    "AssociationAlreadyExistsError", "InactiveAssociationError",
     "ClubNotFoundError", "InvalidClubDataError",
     "ClubAlreadyExistsError", "InactiveClubError", "ClubHasActiveMembersError",
     "MemberNotFoundError", "InvalidMemberDataError",

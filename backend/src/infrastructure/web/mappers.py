@@ -19,7 +19,6 @@ class UserMapper:
             is_active=user.is_active,
             global_role=user.global_role.value,
             member_id=user.member_id,
-            role=user.role,  # Legacy field (deprecated)
             created_at=user.created_at,
             updated_at=user.updated_at
         )

@@ -1,11 +1,9 @@
 """Authorization helpers for role-based access control.
 
-This module provides authorization utilities that work with the new AuthContext
+This module provides authorization utilities that work with the AuthContext
 pattern where permissions are derived from:
 - User.global_role: System-wide permissions (super_admin or user)
 - Member.club_role: Club-level permissions (admin or member)
-
-Legacy support is maintained for backwards compatibility during transition.
 """
 
 from dataclasses import dataclass
@@ -15,10 +13,6 @@ from fastapi import HTTPException, status
 
 from src.domain.entities.user import User, GlobalRole
 from src.domain.entities.member import Member, ClubRole
-
-# Legacy role constants (deprecated - kept for backwards compatibility)
-ROLE_ASSOCIATION_ADMIN = "association_admin"
-ROLE_CLUB_ADMIN = "club_admin"
 
 
 @dataclass
@@ -41,16 +35,14 @@ class AuthContext:
         """Check if user is an admin of their associated club."""
         if self.member:
             return self.member.club_role == ClubRole.ADMIN
-        # Legacy fallback: check old role field
-        return self.user.role == ROLE_CLUB_ADMIN
+        return False
 
     @property
     def club_id(self) -> Optional[str]:
-        """Get the user's club ID (via member or legacy field)."""
+        """Get the user's club ID (via linked member)."""
         if self.member:
             return self.member.club_id
-        # Legacy fallback
-        return self.user.club_id
+        return None
 
     @property
     def member_id(self) -> Optional[str]:
@@ -143,82 +135,4 @@ def require_club_admin_ctx(ctx: AuthContext) -> None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="This action requires club admin privileges"
-        )
-
-
-# ============================================================================
-# Legacy functions (deprecated - kept for backwards compatibility)
-# ============================================================================
-
-def is_association_admin(user: User) -> bool:
-    """Check if user is an association admin (DEPRECATED).
-
-    Use AuthContext.is_super_admin instead.
-    """
-    # Check new global_role first
-    if user.global_role == GlobalRole.SUPER_ADMIN:
-        return True
-    # Legacy fallback
-    return user.role == ROLE_ASSOCIATION_ADMIN
-
-
-def is_club_admin(user: User) -> bool:
-    """Check if user is a club admin (DEPRECATED).
-
-    Use AuthContext.is_club_admin instead.
-    Note: This legacy function can't check Member.club_role without the member.
-    """
-    return user.role == ROLE_CLUB_ADMIN
-
-
-def check_club_access(user: User, club_id: str) -> None:
-    """
-    Verify user has access to the specified club (DEPRECATED).
-
-    Use check_club_access_ctx with AuthContext instead.
-    """
-    if is_association_admin(user):
-        return  # Super admins have full access
-
-    if is_club_admin(user):
-        if user.club_id == club_id:
-            return  # Club admin accessing their own club
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Access denied to club {club_id}"
-        )
-
-    # Unknown role - deny access
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Insufficient permissions"
-    )
-
-
-def get_club_filter(user: User) -> Optional[str]:
-    """
-    Get the club_id filter for list operations (DEPRECATED).
-
-    Use get_club_filter_ctx with AuthContext instead.
-    """
-    if is_association_admin(user):
-        return None  # No filter - see all clubs/members
-
-    if is_club_admin(user):
-        return user.club_id
-
-    # Unknown role - return impossible filter
-    return "DENIED"
-
-
-def require_association_admin(user: User) -> None:
-    """
-    Require user to be association admin (DEPRECATED).
-
-    Use require_super_admin with AuthContext instead.
-    """
-    if not is_association_admin(user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="This action requires association admin privileges"
         )

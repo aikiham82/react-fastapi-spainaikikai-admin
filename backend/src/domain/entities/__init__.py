@@ -1,7 +1,5 @@
 # Domain entities
-from .news_item import NewsItem, NewsStatus, NewsCategory
 from .user import User
-from .association import Association
 from .club import Club
 from .member import Member, MemberStatus
 from .license import (
@@ -16,9 +14,7 @@ from .invoice import Invoice, InvoiceStatus, InvoiceLineItem
 from .password_reset_token import PasswordResetToken
 
 __all__ = [
-    "NewsItem", "NewsStatus", "NewsCategory",
     "User",
-    "Association",
     "Club",
     "Member", "MemberStatus",
     "License", "LicenseStatus", "LicenseType",

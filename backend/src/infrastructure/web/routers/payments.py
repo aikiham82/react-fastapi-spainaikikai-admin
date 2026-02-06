@@ -31,8 +31,8 @@ from src.infrastructure.web.dependencies import (
     get_delete_payment_use_case,
     get_process_redsys_webhook_use_case
 )
-from src.infrastructure.web.dependencies import get_current_active_user
-from src.domain.entities.user import User
+from src.infrastructure.web.dependencies import get_auth_context
+from src.infrastructure.web.authorization import AuthContext
 from src.domain.exceptions.payment import DuplicatePaymentForYearError
 from src.config.settings import get_app_settings
 
@@ -46,7 +46,7 @@ async def get_payments(
     member_id: Optional[str] = None,
     payment_year: Optional[int] = None,
     get_all_use_case = Depends(get_all_payments_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all payments, optionally filtered by club, member, or year."""
     payments = await get_all_use_case.execute(limit, club_id, member_id, payment_year)
@@ -57,7 +57,7 @@ async def get_payments(
 async def get_payment(
     payment_id: str,
     get_payment_use_case = Depends(get_payment_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get payment by ID."""
     payment = await get_payment_use_case.execute(payment_id)
@@ -68,7 +68,7 @@ async def get_payment(
 async def initiate_payment(
     payment_request: InitiatePaymentRequest,
     get_initiate_use_case = Depends(get_initiate_redsys_payment_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Initiate payment through Redsys."""
     app_settings = get_app_settings()
@@ -110,7 +110,7 @@ async def initiate_payment(
 async def initiate_annual_payment(
     payment_request: InitiateAnnualPaymentRequest,
     get_initiate_use_case = Depends(get_initiate_annual_payment_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Initiate annual payment through Redsys."""
     app_settings = get_app_settings()
@@ -218,7 +218,7 @@ async def refund_payment(
     payment_id: str,
     refund_data: PaymentRefundRequest,
     get_refund_use_case = Depends(get_refund_payment_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Refund payment."""
     payment = await get_refund_use_case.execute(payment_id, refund_data.refund_amount)
@@ -229,7 +229,7 @@ async def refund_payment(
 async def get_payment_status(
     payment_id: str,
     get_payment_use_case = Depends(get_payment_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Check payment status."""
     payment = await get_payment_use_case.execute(payment_id)
@@ -240,7 +240,7 @@ async def get_payment_status(
 async def delete_payment(
     payment_id: str,
     get_delete_use_case = Depends(get_delete_payment_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete payment."""
     await get_delete_use_case.execute(payment_id)

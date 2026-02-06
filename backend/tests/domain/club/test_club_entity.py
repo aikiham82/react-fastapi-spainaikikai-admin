@@ -24,13 +24,11 @@ class TestClubEntity:
             postal_code="08001",
             country="Spain",
             phone="+34938765432",
-            email="info@club.com",
-            association_id="association-id"
+            email="info@club.com"
         )
 
         assert club.name == "Test Club"
         assert club.email == "info@club.com"
-        assert club.association_id == "association-id"
         assert club.is_active is True
         assert club.created_at is not None
 
@@ -172,8 +170,8 @@ class TestClubEntity:
         assert club.province == "Valencia"
         assert club.postal_code == "46001"
 
-    def test_club_association_id_update(self):
-        """Test club association id can be updated."""
+    def test_club_website_update(self):
+        """Test club website can be updated."""
         club = Club(
             name="Test Club",
             address="456 Avenue",
@@ -182,9 +180,8 @@ class TestClubEntity:
             postal_code="08001",
             country="Spain",
             phone="+34938765432",
-            email="info@club.com",
-            association_id="old-association-id"
+            email="info@club.com"
         )
 
-        club.association_id = "new-association-id"
-        assert club.association_id == "new-association-id"
+        club.website = "https://club.com"
+        assert club.website == "https://club.com"

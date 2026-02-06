@@ -5,8 +5,6 @@ from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status
 from src.infrastructure.adapters.repositories.mongodb_user_repository import MongoDBUserRepository
-from src.infrastructure.adapters.repositories.mongodb_news_repository import MongoDBNewsRepository
-from src.infrastructure.adapters.repositories.mongodb_association_repository import MongoDBAssociationRepository
 from src.infrastructure.adapters.repositories.mongodb_club_repository import MongoDBClubRepository
 from src.infrastructure.adapters.repositories.mongodb_member_repository import MongoDBMemberRepository
 from src.infrastructure.adapters.repositories.mongodb_license_repository import MongoDBLicenseRepository
@@ -33,12 +31,6 @@ from src.application.use_cases.user_use_cases import (
     AuthenticateUserUseCase
 )
 from src.application.use_cases import (
-    # Association use cases
-    GetAssociationUseCase,
-    GetAllAssociationsUseCase,
-    CreateAssociationUseCase,
-    UpdateAssociationUseCase,
-    DeleteAssociationUseCase,
     # Club use cases
     GetClubUseCase,
     GetAllClubsUseCase,
@@ -113,48 +105,11 @@ from src.application.use_cases.member_payment import (
     GetUnpaidMembersUseCase
 )
 from src.config.settings import get_app_settings
-from src.infrastructure.database import get_database
 
 @lru_cache()
 def get_user_repository() -> MongoDBUserRepository:
     """Get user repository instance."""
     return MongoDBUserRepository()
-
-@lru_cache()
-def get_news_repository() -> MongoDBNewsRepository:
-    """Get news repository instance."""
-    return MongoDBNewsRepository(get_database())
-
-# Association repository and use cases
-@lru_cache()
-def get_association_repository() -> MongoDBAssociationRepository:
-    """Get association repository instance."""
-    return MongoDBAssociationRepository()
-
-@lru_cache()
-def get_all_associations_use_case() -> GetAllAssociationsUseCase:
-    """Get all associations use case."""
-    return GetAllAssociationsUseCase(get_association_repository())
-
-@lru_cache()
-def get_association_use_case() -> GetAssociationUseCase:
-    """Get association use case."""
-    return GetAssociationUseCase(get_association_repository())
-
-@lru_cache()
-def get_create_association_use_case() -> CreateAssociationUseCase:
-    """Create association use case."""
-    return CreateAssociationUseCase(get_association_repository())
-
-@lru_cache()
-def get_update_association_use_case() -> UpdateAssociationUseCase:
-    """Update association use case."""
-    return UpdateAssociationUseCase(get_association_repository())
-
-@lru_cache()
-def get_delete_association_use_case() -> DeleteAssociationUseCase:
-    """Delete association use case."""
-    return DeleteAssociationUseCase(get_association_repository())
 
 # Club repository and use cases
 @lru_cache()

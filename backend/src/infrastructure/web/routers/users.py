@@ -7,14 +7,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from src.domain.exceptions.user import UserNotFoundError, UserAlreadyExistsError
-from src.infrastructure.web.dto.user_dto import UserCreate, UserResponse, Token
+from src.infrastructure.web.dto.user_dto import UserCreate, UserResponse, UserMeResponse, Token
 from src.infrastructure.web.dependencies import (
     get_all_users_use_case,
     get_user_by_id_use_case,
     get_create_user_use_case,
     get_authenticate_user_use_case,
-    get_current_active_user
+    get_auth_context,
 )
+from src.infrastructure.web.authorization import AuthContext
 from src.infrastructure.web.mappers import UserMapper
 from src.infrastructure.web.security import (
     verify_password,
@@ -28,7 +29,6 @@ from src.application.use_cases.user_use_cases import (
     CreateUserUseCase,
     AuthenticateUserUseCase
 )
-from src.domain.entities.user import User
 
 
 router = APIRouter(tags=["users"])
@@ -97,17 +97,22 @@ async def login(
     return Token(access_token=access_token)
 
 
-@router.get("/users/me", response_model=UserResponse)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    """Get current user information."""
-    return UserMapper.to_response(current_user)
+@router.get("/users/me", response_model=UserMeResponse)
+async def read_users_me(ctx: AuthContext = Depends(get_auth_context)):
+    """Get current user information with member-derived fields."""
+    response = UserMapper.to_response(ctx.user)
+    return UserMeResponse(
+        **response.model_dump(),
+        club_role=ctx.member.club_role.value if ctx.member else None,
+        club_id=ctx.member.club_id if ctx.member else None,
+    )
 
 
 @router.get("/users", response_model=List[UserResponse])
 async def get_users(
     limit: int = 100,
     get_all_users_use_case: GetAllUsersUseCase = Depends(get_all_users_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all users (requires authentication)."""
     users = await get_all_users_use_case.execute(limit)
@@ -118,7 +123,7 @@ async def get_users(
 async def get_user(
     user_id: str,
     get_user_by_id_use_case: GetUserByIdUseCase = Depends(get_user_by_id_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get user by ID (requires authentication)."""
     try:

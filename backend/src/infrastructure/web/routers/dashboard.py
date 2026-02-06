@@ -8,8 +8,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from src.infrastructure.database import get_database
-from src.infrastructure.web.dependencies import get_current_active_user
-from src.domain.entities.user import User
+from src.infrastructure.web.dependencies import get_auth_context
+from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -19,7 +19,7 @@ class DashboardStats(BaseModel):
     total_clubs: int
     total_members: int
     active_members: int
-    monthly_payments: int
+    annual_payments: int
     pending_payments: int
     upcoming_seminars: int
     expiring_licenses: int
@@ -65,23 +65,33 @@ class DashboardData(BaseModel):
 
 @router.get("/stats", response_model=DashboardData)
 async def get_dashboard_stats(
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get dashboard statistics and data."""
     db = get_database()
     now = datetime.utcnow()
 
-    # Get counts
-    total_clubs = await db["clubs"].count_documents({})
-    total_members = await db["members"].count_documents({})
-    active_members = await db["members"].count_documents({"status": "active"})
+    # Club-scoped filtering
+    club_id = get_club_filter_ctx(ctx)
+    member_filter = {"club_id": club_id} if club_id else {}
+    license_filter = {"club_id": club_id} if club_id else {}
+    payment_filter = {"club_id": club_id} if club_id else {}
 
-    # Monthly payments (current month)
-    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    monthly_payments = await db["payments"].count_documents({
-        "created_at": {"$gte": start_of_month}
+    # Get counts
+    if club_id:
+        total_clubs = 1
+    else:
+        total_clubs = await db["clubs"].count_documents({})
+    total_members = await db["members"].count_documents(member_filter)
+    active_members = await db["members"].count_documents({**member_filter, "status": "active"})
+
+    # Annual payments (current year)
+    current_year = now.year
+    annual_payments = await db["payments"].count_documents({
+        **payment_filter,
+        "payment_year": current_year
     })
-    pending_payments = await db["payments"].count_documents({"status": "pending"})
+    pending_payments = await db["payments"].count_documents({**payment_filter, "status": "pending"})
 
     # Upcoming seminars (next 30 days)
     upcoming_seminars_count = await db["seminars"].count_documents({
@@ -91,6 +101,7 @@ async def get_dashboard_stats(
 
     # Expiring licenses (next 30 days)
     expiring_licenses_count = await db["licenses"].count_documents({
+        **license_filter,
         "expiration_date": {"$gte": now, "$lte": now + timedelta(days=30)},
         "status": "active"
     })
@@ -99,7 +110,7 @@ async def get_dashboard_stats(
         total_clubs=total_clubs,
         total_members=total_members,
         active_members=active_members,
-        monthly_payments=monthly_payments,
+        annual_payments=annual_payments,
         pending_payments=pending_payments,
         upcoming_seminars=upcoming_seminars_count,
         expiring_licenses=expiring_licenses_count
@@ -107,6 +118,7 @@ async def get_dashboard_stats(
 
     # Get expiring licenses details
     expiring_licenses_cursor = db["licenses"].find({
+        **license_filter,
         "expiration_date": {"$gte": now, "$lte": now + timedelta(days=30)},
         "status": "active"
     }).sort("expiration_date", 1).limit(5)
@@ -163,6 +175,7 @@ async def get_dashboard_stats(
 
     # Recent members (last 24 hours)
     recent_members_cursor = db["members"].find({
+        **member_filter,
         "created_at": {"$gte": now - timedelta(hours=24)}
     }).sort("created_at", -1).limit(3)
     recent_members = await recent_members_cursor.to_list(length=3)
@@ -180,6 +193,7 @@ async def get_dashboard_stats(
 
     # Recent payments (last 24 hours)
     recent_payments_cursor = db["payments"].find({
+        **payment_filter,
         "created_at": {"$gte": now - timedelta(hours=24)}
     }).sort("created_at", -1).limit(3)
     recent_payments = await recent_payments_cursor.to_list(length=3)
@@ -206,6 +220,7 @@ async def get_dashboard_stats(
 
     # Recent license renewals (last 24 hours)
     recent_licenses_cursor = db["licenses"].find({
+        **license_filter,
         "updated_at": {"$gte": now - timedelta(hours=24)},
         "is_renewed": True
     }).sort("updated_at", -1).limit(2)

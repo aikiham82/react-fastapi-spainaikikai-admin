@@ -6,17 +6,12 @@ from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 
 class UserBase(BaseModel):
-    """Base user DTO.
-
-    Note: club_id has been removed. Club association is derived from member.
-    """
+    """Base user DTO."""
     email: EmailStr
     username: str
     is_active: bool = True
-    global_role: str = "user"  # System-wide role
-    member_id: Optional[str] = None  # Link to member
-    # Legacy field (deprecated)
-    role: Optional[str] = None
+    global_role: str = "user"
+    member_id: Optional[str] = None
 
 
 class UserCreate(BaseModel):
@@ -40,8 +35,14 @@ class UserResponse(UserBase):
     id: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserMeResponse(UserResponse):
+    """DTO for /users/me response with member-derived fields."""
+    club_role: Optional[str] = None
+    club_id: Optional[str] = None
 
 
 class UserLogin(BaseModel):

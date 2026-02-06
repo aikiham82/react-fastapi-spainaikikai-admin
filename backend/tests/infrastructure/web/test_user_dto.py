@@ -85,8 +85,7 @@ class TestUserBase:
             "username": "testuser",
             "is_active": False,
             "global_role": "user",
-            "member_id": None,
-            "role": None
+            "member_id": None
         }
         user_base = UserBase(**data)
 

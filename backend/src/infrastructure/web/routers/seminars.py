@@ -19,8 +19,8 @@ from src.infrastructure.web.dependencies import (
     get_cancel_seminar_use_case,
     get_delete_seminar_use_case
 )
-from src.infrastructure.web.dependencies import get_current_active_user
-from src.domain.entities.user import User
+from src.infrastructure.web.dependencies import get_auth_context
+from src.infrastructure.web.authorization import AuthContext
 
 router = APIRouter(prefix="/seminars", tags=["seminars"])
 
@@ -31,7 +31,7 @@ async def get_seminars(
     club_id: Optional[str] = None,
     association_id: Optional[str] = None,
     get_all_use_case = Depends(get_all_seminars_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all seminars, optionally filtered by club or association."""
     seminars = await get_all_use_case.execute(limit, club_id, association_id)
@@ -42,7 +42,7 @@ async def get_seminars(
 async def get_seminar(
     seminar_id: str,
     get_seminar_use_case = Depends(get_seminar_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get seminar by ID."""
     seminar = await get_seminar_use_case.execute(seminar_id)
@@ -53,7 +53,7 @@ async def get_seminar(
 async def get_upcoming_seminars(
     limit: int = 100,
     get_upcoming_use_case = Depends(get_upcoming_seminars_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get upcoming seminars."""
     seminars = await get_upcoming_use_case.execute(limit)
@@ -64,7 +64,7 @@ async def get_upcoming_seminars(
 async def create_seminar(
     seminar_data: SeminarCreate,
     get_create_use_case = Depends(get_create_seminar_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new seminar."""
     seminar = await get_create_use_case.execute(
@@ -90,7 +90,7 @@ async def update_seminar(
     seminar_id: str,
     seminar_data: SeminarUpdate,
     get_update_use_case = Depends(get_update_seminar_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Update seminar."""
     seminar = await get_update_use_case.execute(seminar_id, **seminar_data.model_dump(exclude_none=True))
@@ -101,7 +101,7 @@ async def update_seminar(
 async def cancel_seminar(
     seminar_id: str,
     get_cancel_use_case = Depends(get_cancel_seminar_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Cancel seminar."""
     seminar = await get_cancel_use_case.execute(seminar_id)
@@ -112,7 +112,7 @@ async def cancel_seminar(
 async def delete_seminar(
     seminar_id: str,
     get_delete_use_case = Depends(get_delete_seminar_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete seminar."""
     await get_delete_use_case.execute(seminar_id)

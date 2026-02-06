@@ -20,9 +20,9 @@ from src.infrastructure.web.dependencies import (
     get_member_payment_history_use_case,
     get_club_payment_summary_use_case,
     get_unpaid_members_use_case,
-    get_current_active_user
+    get_auth_context
 )
-from src.domain.entities.user import User
+from src.infrastructure.web.authorization import AuthContext
 
 router = APIRouter(prefix="/member-payments", tags=["member-payments"])
 
@@ -32,7 +32,7 @@ async def get_member_payment_status(
     member_id: str,
     payment_year: Optional[int] = None,
     use_case=Depends(get_member_payment_status_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """
     Get payment status for a member for the current or specified year.
@@ -73,7 +73,7 @@ async def get_member_payment_history(
     member_id: str,
     limit: int = Query(default=100, le=500),
     use_case=Depends(get_member_payment_history_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """
     Get complete payment history for a member.
@@ -117,7 +117,7 @@ async def get_club_payment_summary(
     club_id: str,
     payment_year: Optional[int] = None,
     use_case=Depends(get_club_payment_summary_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """
     Get payment summary for a club for the current or specified year.
@@ -168,7 +168,7 @@ async def get_unpaid_members(
     payment_year: Optional[int] = None,
     payment_type: Optional[str] = None,
     use_case=Depends(get_unpaid_members_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """
     Get list of members who haven't paid for a specific item type.

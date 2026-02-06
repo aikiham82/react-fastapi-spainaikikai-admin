@@ -17,8 +17,8 @@ from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
     get_create_member_use_case
 )
-from src.infrastructure.web.dependencies import get_current_active_user
-from src.domain.entities.user import User
+from src.infrastructure.web.dependencies import get_auth_context
+from src.infrastructure.web.authorization import AuthContext
 
 router = APIRouter(prefix="/import-export", tags=["import-export"])
 
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/import-export", tags=["import-export"])
 async def import_members(
     request: ImportMembersRequest,
     create_member_use_case=Depends(get_create_member_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Import members from Excel data."""
     imported = 0
@@ -106,7 +106,7 @@ async def export_members(
     offset: int = Query(0, ge=0),
     club_id: Optional[str] = Query(None),
     get_all_use_case=Depends(get_all_members_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Export members to Excel file."""
     members = await get_all_use_case.execute(limit, club_id)

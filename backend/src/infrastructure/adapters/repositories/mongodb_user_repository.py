@@ -21,17 +21,8 @@ class MongoDBUserRepository(UserRepositoryPort):
         if doc is None:
             return None
 
-        # Read global_role with fallback to legacy role mapping for migration
-        global_role_val = doc.get("global_role")
-        if not global_role_val:
-            # Map legacy roles to new global_role
-            legacy_role = doc.get("role")
-            if legacy_role == "association_admin":
-                global_role_val = "super_admin"
-            else:
-                global_role_val = "user"
+        global_role_val = doc.get("global_role", "user")
 
-        # Note: club_id is no longer read - derive via member_id
         return User(
             id=str(doc.get("_id")),
             email=doc.get("email", ""),
@@ -40,15 +31,12 @@ class MongoDBUserRepository(UserRepositoryPort):
             is_active=doc.get("is_active", True),
             global_role=GlobalRole(global_role_val),
             member_id=doc.get("member_id"),
-            # Legacy field (deprecated)
-            role=doc.get("role"),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
         )
 
     def _to_document(self, user: User) -> dict:
         """Convert domain entity to MongoDB document."""
-        # Note: club_id is no longer stored - derive via member_id
         doc = {
             "email": user.email,
             "username": user.username,
@@ -56,8 +44,6 @@ class MongoDBUserRepository(UserRepositoryPort):
             "is_active": user.is_active,
             "global_role": user.global_role.value,
             "member_id": user.member_id,
-            # Legacy field (deprecated - kept during transition)
-            "role": user.role,
             "updated_at": datetime.utcnow()
         }
 

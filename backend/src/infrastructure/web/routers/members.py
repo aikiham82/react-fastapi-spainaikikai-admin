@@ -18,18 +18,12 @@ from src.infrastructure.web.dependencies import (
     get_update_member_use_case,
     get_delete_member_use_case,
     get_auth_context,
-    get_current_active_user
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
     check_club_access_ctx,
     get_club_filter_ctx,
-    # Legacy imports for backwards compatibility
-    check_club_access,
-    get_club_filter,
-    is_club_admin
 )
-from src.domain.entities.user import User
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -39,11 +33,11 @@ async def get_members(
     limit: int = 100,
     club_id: Optional[str] = Query(None),
     get_all_use_case = Depends(get_all_members_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all members, optionally filtered by club."""
     # Club admins are forced to their club only
-    effective_club_id = get_club_filter(current_user)
+    effective_club_id = get_club_filter_ctx(ctx)
 
     if effective_club_id is not None:
         # Club admin - use their club_id (ignore query param)
@@ -62,15 +56,15 @@ async def get_members(
 async def get_member(
     member_id: str,
     get_member_use_case = Depends(get_member_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get member by ID."""
     member = await get_member_use_case.execute(member_id)
 
     # Verify club access
     if member.club_id:
-        check_club_access(current_user, member.club_id)
-    elif is_club_admin(current_user):
+        check_club_access_ctx(ctx, member.club_id)
+    elif ctx.is_club_admin:
         # Member has no club, but user is club admin - deny
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -85,10 +79,10 @@ async def get_members_by_club(
     club_id: str,
     limit: int = 100,
     get_all_use_case = Depends(get_all_members_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get members by club ID."""
-    check_club_access(current_user, club_id)
+    check_club_access_ctx(ctx, club_id)
     members = await get_all_use_case.execute(limit, club_id)
     return MemberMapper.to_response_list(members)
 
@@ -98,14 +92,14 @@ async def search_members(
     name: str = Query(...),
     limit: int = 100,
     get_search_use_case = Depends(get_search_members_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Search members by name."""
     members = await get_search_use_case.execute(name, limit)
 
     # For club admins, filter to only return members from their club
-    if is_club_admin(current_user):
-        members = [m for m in members if m.club_id == current_user.club_id]
+    if ctx.is_club_admin:
+        members = [m for m in members if m.club_id == ctx.club_id]
 
     return MemberMapper.to_response_list(members)
 
@@ -114,24 +108,24 @@ async def search_members(
 async def create_member(
     member_data: MemberCreate,
     get_create_use_case = Depends(get_create_member_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new member."""
     # Determine effective club_id
     effective_club_id = member_data.club_id
 
-    if is_club_admin(current_user):
+    if ctx.is_club_admin:
         # Club admin must create members in their own club
-        if member_data.club_id and member_data.club_id != current_user.club_id:
+        if member_data.club_id and member_data.club_id != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot create member in another club"
             )
         # Force club_id to be the user's club
-        effective_club_id = current_user.club_id
+        effective_club_id = ctx.club_id
     elif member_data.club_id:
         # Association admin with explicit club - verify it exists (optional)
-        check_club_access(current_user, member_data.club_id)
+        check_club_access_ctx(ctx, member_data.club_id)
 
     member = await get_create_use_case.execute(
         first_name=member_data.first_name,
@@ -156,15 +150,15 @@ async def update_member(
     member_data: MemberUpdate,
     get_member_use_case_instance = Depends(get_member_use_case),
     get_update_use_case = Depends(get_update_member_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Update member."""
     # First fetch the member to check access
     existing_member = await get_member_use_case_instance.execute(member_id)
 
     if existing_member.club_id:
-        check_club_access(current_user, existing_member.club_id)
-    elif is_club_admin(current_user):
+        check_club_access_ctx(ctx, existing_member.club_id)
+    elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied to this member"
@@ -172,8 +166,8 @@ async def update_member(
 
     # Prevent club_id change by club_admin
     update_data = member_data.model_dump(exclude_none=True)
-    if is_club_admin(current_user) and 'club_id' in update_data:
-        if update_data['club_id'] != current_user.club_id:
+    if ctx.is_club_admin and 'club_id' in update_data:
+        if update_data['club_id'] != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot transfer member to another club"
@@ -188,15 +182,15 @@ async def delete_member(
     member_id: str,
     get_member_use_case_instance = Depends(get_member_use_case),
     get_delete_use_case = Depends(get_delete_member_use_case),
-    current_user: User = Depends(get_current_active_user)
+    ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete member."""
     # First fetch the member to check access
     existing_member = await get_member_use_case_instance.execute(member_id)
 
     if existing_member.club_id:
-        check_club_access(current_user, existing_member.club_id)
-    elif is_club_admin(current_user):
+        check_club_access_ctx(ctx, existing_member.club_id)
+    elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied to this member"

@@ -1,12 +1,5 @@
 """Application use cases for all entities."""
 
-# Association Use Cases
-from .association.get_association_use_case import GetAssociationUseCase
-from .association.get_all_associations_use_case import GetAllAssociationsUseCase
-from .association.create_association_use_case import CreateAssociationUseCase
-from .association.update_association_use_case import UpdateAssociationUseCase
-from .association.delete_association_use_case import DeleteAssociationUseCase
-
 # Club Use Cases
 from .club.get_club_use_case import GetClubUseCase
 from .club.get_all_clubs_use_case import GetAllClubsUseCase
@@ -60,10 +53,6 @@ from .insurance.update_insurance_use_case import UpdateInsuranceUseCase
 from .insurance.delete_insurance_use_case import DeleteInsuranceUseCase
 
 __all__ = [
-    # Association
-    "GetAssociationUseCase", "GetAllAssociationsUseCase",
-    "CreateAssociationUseCase", "UpdateAssociationUseCase",
-    "DeleteAssociationUseCase",
     # Club
     "GetClubUseCase", "GetAllClubsUseCase",
     "CreateClubUseCase", "UpdateClubUseCase",
