@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { logout: logoutMutation, isLoading: isLoggingOut } = useLogoutMutation();
   const { registerMutation, isPending: isRegistering, error: registerError } = useRegisterMutation();
 
-  const { data: currentUserData, refetch: refetchCurrentUser } = useQuery({
+  const { data: currentUserData, refetch: refetchCurrentUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: getCurrentUser,
     enabled: isAuthenticated,
@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (currentUserData) {
       setCurrentUser(currentUserData);
-      localStorage.setItem('user_role', currentUserData.role || '');
+      localStorage.setItem('user_role', currentUserData.global_role || '');
       if (currentUserData.club_id) {
         localStorage.setItem('club_id', currentUserData.club_id);
       } else {
@@ -64,8 +64,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [currentUserData]);
 
-  const userRole: UserRole = currentUser?.role || null;
-  const clubId: string | null = currentUser?.club_id || null;
+  // Derive effective role from backend fields
+  // Use currentUserData (React Query) first to avoid race condition with useState
+  const effectiveUser = currentUserData || currentUser;
+  const userRole: UserRole = effectiveUser?.global_role === 'super_admin'
+    ? 'super_admin'
+    : effectiveUser?.club_role === 'admin'
+      ? 'club_admin'
+      : null;
+  const clubId: string | null = effectiveUser?.club_id || null;
 
   useEffect(() => {
     const err = registerError || loginError;
@@ -168,7 +175,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         value={{
           isAuthenticated,
           userEmail,
-          isLoading: isLoggingIn || isLoggingOut || isRegistering,
+          isLoading: isLoggingIn || isLoggingOut || isRegistering || (isAuthenticated && isLoadingUser),
           loginWithJWT,
           registerUser,
           auth,

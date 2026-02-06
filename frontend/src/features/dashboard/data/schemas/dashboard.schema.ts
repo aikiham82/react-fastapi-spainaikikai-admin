@@ -2,7 +2,7 @@ export interface DashboardStats {
   total_clubs: number;
   total_members: number;
   active_members: number;
-  monthly_payments: number;
+  annual_payments: number;
   pending_payments: number;
   upcoming_seminars: number;
   expiring_licenses: number;

@@ -10,7 +10,7 @@ const rolePermissions: Record<
   Exclude<UserRole, null>,
   Record<string, string[]>
 > = {
-  association_admin: {
+  super_admin: {
     clubs: ['read', 'create', 'update', 'delete'],
     members: ['read', 'create', 'update', 'delete'],
     licenses: ['read', 'create', 'update', 'delete'],
@@ -22,7 +22,7 @@ const rolePermissions: Record<
     price_configurations: ['read', 'create', 'update', 'delete'],
   },
   club_admin: {
-    clubs: ['read'],
+    clubs: ['read', 'update'],
     members: ['read', 'create', 'update', 'delete'],
     licenses: ['read', 'create', 'update', 'delete'],
     payments: ['read', 'create', 'update'],
@@ -50,12 +50,12 @@ export const usePermissions = () => {
   };
 
   const canAccessClub = (targetClubId: string): boolean => {
-    if (userRole === 'association_admin') return true;
+    if (userRole === 'super_admin') return true;
     if (userRole === 'club_admin') return clubId === targetClubId;
     return false;
   };
 
-  const isAssociationAdmin = (): boolean => userRole === 'association_admin';
+  const isAssociationAdmin = (): boolean => userRole === 'super_admin';
 
   const isClubAdmin = (): boolean => userRole === 'club_admin';
 

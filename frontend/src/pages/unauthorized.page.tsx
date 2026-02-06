@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 
 export default function UnauthorizedPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuthContext();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -25,22 +27,24 @@ export default function UnauthorizedPage() {
             Acceso No Autorizado
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            No tienes permisos para acceder a esta página.
+            No tienes permisos para acceder al panel de administración.
           </p>
           <div className="mt-6 space-y-3">
-            <Button
-              onClick={() => navigate(-1)}
-              className="w-full"
-              variant="outline"
-            >
-              Volver
-            </Button>
-            <Button
-              onClick={() => navigate('/')}
-              className="w-full"
-            >
-              Ir al Dashboard
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                onClick={() => { logout(); navigate('/login'); }}
+                className="w-full"
+              >
+                Cerrar Sesión
+              </Button>
+            ) : (
+              <Button
+                onClick={() => navigate('/login')}
+                className="w-full"
+              >
+                Iniciar Sesión
+              </Button>
+            )}
           </div>
         </div>
       </div>

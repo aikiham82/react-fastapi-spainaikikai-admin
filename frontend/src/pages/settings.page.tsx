@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
 const roleTranslations: Record<string, string> = {
-  'association_admin': 'Administrador',
+  'super_admin': 'Administrador',
   'club_admin': 'Admin de Club',
 };
 
