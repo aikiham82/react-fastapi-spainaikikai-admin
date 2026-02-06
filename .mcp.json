@@ -63,6 +63,14 @@
       },
       "disabled": false,
       "autoApprove": []
+    },
+    "Dokploy-mcp": {
+      "command": "npx",
+      "args": ["-y", "@ahdev/dokploy-mcp"],
+      "env": {
+        "DOKPLOY_URL": "https://dokploy.softem.es/api",
+        "DOKPLOY_API_KEY": "sammyjByFuOUpdhsSfGbFRGDhrlAlyIQDSlKEZxfdWmAKKPNnjiLzZQBBRjftHvZrRoLj"
+      }
     }
   }
 }
