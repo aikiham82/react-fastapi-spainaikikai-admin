@@ -1,6 +1,11 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { AnnualPaymentFormData, PaymentTotals } from '../data/schemas/annual-payment.schema';
+import type { AnnualPaymentFormData, AnnualPaymentPrices, PaymentTotals } from '../data/schemas/annual-payment.schema';
 import { defaultFormValues, calculateTotals, annualPaymentFormSchema, QUANTITY_LIMITS } from '../data/schemas/annual-payment.schema';
+
+const ZERO_PRICES: AnnualPaymentPrices = {
+  club_fee: 0, kyu: 0, kyu_infantil: 0, dan: 0,
+  fukushidoin_shidoin: 0, seguro_accidentes: 0, seguro_rc: 0,
+};
 
 export interface UseAnnualPaymentFormReturn {
   formData: AnnualPaymentFormData;
@@ -20,14 +25,20 @@ export interface UseAnnualPaymentFormReturn {
   validate: () => boolean;
 }
 
-export function useAnnualPaymentForm(initialValues?: Partial<AnnualPaymentFormData>): UseAnnualPaymentFormReturn {
+export function useAnnualPaymentForm(
+  initialValues?: Partial<AnnualPaymentFormData>,
+  prices?: AnnualPaymentPrices | null,
+): UseAnnualPaymentFormReturn {
   const [formData, setFormData] = useState<AnnualPaymentFormData>({
     ...defaultFormValues,
     ...initialValues,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const totals = useMemo(() => calculateTotals(formData), [formData]);
+  const totals = useMemo(
+    () => calculateTotals(formData, prices ?? ZERO_PRICES),
+    [formData, prices]
+  );
 
   const setField = useCallback(<K extends keyof AnnualPaymentFormData>(
     field: K,

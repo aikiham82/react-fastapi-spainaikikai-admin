@@ -1,22 +1,11 @@
 import { z } from 'zod';
 
-// Pricing constants matching backend
-export const ANNUAL_PAYMENT_PRICES = {
-  club_fee: 100.0,
-  kyu: 15.0,
-  kyu_infantil: 5.0,
-  dan: 20.0,
-  fukushidoin_shidoin: 70.0,
-  seguro_accidentes: 15.0,
-  seguro_rc: 35.0,
-} as const;
-
 // Maximum quantity limits
 export const QUANTITY_LIMITS = {
   max_per_item: 200,
 } as const;
 
-// Price labels for display
+// Price labels for display (used as fallback if descriptions not loaded)
 export const ANNUAL_PAYMENT_LABELS = {
   club_fee: 'Cuota de Club',
   kyu: 'Licencia KYU (adulto)',
@@ -27,7 +16,57 @@ export const ANNUAL_PAYMENT_LABELS = {
   seguro_rc: 'Seguro RC',
 } as const;
 
-export type AnnualPaymentItemType = keyof typeof ANNUAL_PAYMENT_PRICES;
+export type AnnualPaymentItemType = keyof typeof ANNUAL_PAYMENT_LABELS;
+
+// Prices fetched from the API
+export interface AnnualPaymentPrices {
+  club_fee: number;
+  kyu: number;
+  kyu_infantil: number;
+  dan: number;
+  fukushidoin_shidoin: number;
+  seguro_accidentes: number;
+  seguro_rc: number;
+}
+
+// Maps API price config keys to item types
+const PRICE_KEY_TO_ITEM_TYPE: Record<string, keyof AnnualPaymentPrices> = {
+  'club_fee': 'club_fee',
+  'kyu-none-adulto': 'kyu',
+  'kyu-none-infantil': 'kyu_infantil',
+  'dan-none-adulto': 'dan',
+  'dan-fukushidoin_shidoin-adulto': 'fukushidoin_shidoin',
+  'seguro_accidentes': 'seguro_accidentes',
+  'seguro_rc': 'seguro_rc',
+};
+
+// Response from the API endpoint
+export interface PriceConfigItem {
+  id: string;
+  key: string;
+  price: number;
+  description: string;
+  category: string;
+  is_active: boolean;
+  valid_from: string | null;
+  valid_until: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AnnualPaymentPricesResponse = Record<string, PriceConfigItem>;
+
+// Transform API response to simple prices object
+export function transformPricesResponse(response: AnnualPaymentPricesResponse): AnnualPaymentPrices {
+  const prices: Partial<AnnualPaymentPrices> = {};
+  for (const [key, config] of Object.entries(response)) {
+    const itemType = PRICE_KEY_TO_ITEM_TYPE[key];
+    if (itemType) {
+      prices[itemType] = config.price;
+    }
+  }
+  return prices as AnnualPaymentPrices;
+}
 
 export interface AnnualPaymentLineItem {
   item_type: string;
@@ -135,16 +174,16 @@ export const annualPaymentFormSchema = z.object({
 
 export type AnnualPaymentFormSchema = z.infer<typeof annualPaymentFormSchema>;
 
-// Helper function to calculate totals
-export function calculateTotals(formData: AnnualPaymentFormData): PaymentTotals {
+// Helper function to calculate totals with dynamic prices
+export function calculateTotals(formData: AnnualPaymentFormData, prices: AnnualPaymentPrices): PaymentTotals {
   const subtotals = {
-    club_fee: formData.include_club_fee ? ANNUAL_PAYMENT_PRICES.club_fee : 0,
-    kyu: formData.kyu_count * ANNUAL_PAYMENT_PRICES.kyu,
-    kyu_infantil: formData.kyu_infantil_count * ANNUAL_PAYMENT_PRICES.kyu_infantil,
-    dan: formData.dan_count * ANNUAL_PAYMENT_PRICES.dan,
-    fukushidoin_shidoin: formData.fukushidoin_shidoin_count * ANNUAL_PAYMENT_PRICES.fukushidoin_shidoin,
-    seguro_accidentes: formData.seguro_accidentes_count * ANNUAL_PAYMENT_PRICES.seguro_accidentes,
-    seguro_rc: formData.seguro_rc_count * ANNUAL_PAYMENT_PRICES.seguro_rc,
+    club_fee: formData.include_club_fee ? prices.club_fee : 0,
+    kyu: formData.kyu_count * prices.kyu,
+    kyu_infantil: formData.kyu_infantil_count * prices.kyu_infantil,
+    dan: formData.dan_count * prices.dan,
+    fukushidoin_shidoin: formData.fukushidoin_shidoin_count * prices.fukushidoin_shidoin,
+    seguro_accidentes: formData.seguro_accidentes_count * prices.seguro_accidentes,
+    seguro_rc: formData.seguro_rc_count * prices.seguro_rc,
   };
 
   const total = Object.values(subtotals).reduce((sum, value) => sum + value, 0);

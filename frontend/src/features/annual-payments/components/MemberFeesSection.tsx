@@ -1,9 +1,9 @@
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
 import { QuantityInput } from './QuantityInput';
-import { ANNUAL_PAYMENT_PRICES, ANNUAL_PAYMENT_LABELS } from '../data/schemas/annual-payment.schema';
+import { ANNUAL_PAYMENT_LABELS } from '../data/schemas/annual-payment.schema';
 
 export const MemberFeesSection: React.FC = () => {
-  const { formData, incrementField, decrementField, isSubmitting } = useAnnualPaymentContext();
+  const { formData, incrementField, decrementField, isSubmitting, prices } = useAnnualPaymentContext();
 
   return (
     <div className="space-y-4">
@@ -13,7 +13,7 @@ export const MemberFeesSection: React.FC = () => {
         <QuantityInput
           label={ANNUAL_PAYMENT_LABELS.kyu}
           value={formData.kyu_count}
-          unitPrice={ANNUAL_PAYMENT_PRICES.kyu}
+          unitPrice={prices?.kyu ?? 0}
           onIncrement={() => incrementField('kyu_count')}
           onDecrement={() => decrementField('kyu_count')}
           disabled={isSubmitting}
@@ -22,7 +22,7 @@ export const MemberFeesSection: React.FC = () => {
         <QuantityInput
           label={ANNUAL_PAYMENT_LABELS.kyu_infantil}
           value={formData.kyu_infantil_count}
-          unitPrice={ANNUAL_PAYMENT_PRICES.kyu_infantil}
+          unitPrice={prices?.kyu_infantil ?? 0}
           onIncrement={() => incrementField('kyu_infantil_count')}
           onDecrement={() => decrementField('kyu_infantil_count')}
           disabled={isSubmitting}
@@ -31,7 +31,7 @@ export const MemberFeesSection: React.FC = () => {
         <QuantityInput
           label={ANNUAL_PAYMENT_LABELS.dan}
           value={formData.dan_count}
-          unitPrice={ANNUAL_PAYMENT_PRICES.dan}
+          unitPrice={prices?.dan ?? 0}
           onIncrement={() => incrementField('dan_count')}
           onDecrement={() => decrementField('dan_count')}
           disabled={isSubmitting}
@@ -40,7 +40,7 @@ export const MemberFeesSection: React.FC = () => {
         <QuantityInput
           label={ANNUAL_PAYMENT_LABELS.fukushidoin_shidoin}
           value={formData.fukushidoin_shidoin_count}
-          unitPrice={ANNUAL_PAYMENT_PRICES.fukushidoin_shidoin}
+          unitPrice={prices?.fukushidoin_shidoin ?? 0}
           onIncrement={() => incrementField('fukushidoin_shidoin_count')}
           onDecrement={() => decrementField('fukushidoin_shidoin_count')}
           disabled={isSubmitting}

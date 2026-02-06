@@ -1,10 +1,11 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
-import { ANNUAL_PAYMENT_PRICES } from '../data/schemas/annual-payment.schema';
 
 export const ClubFeeSection: React.FC = () => {
-  const { formData, setField, isSubmitting } = useAnnualPaymentContext();
+  const { formData, setField, isSubmitting, prices } = useAnnualPaymentContext();
+
+  const clubFeePrice = prices?.club_fee ?? 0;
 
   return (
     <div className="space-y-4">
@@ -26,7 +27,7 @@ export const ClubFeeSection: React.FC = () => {
           </Label>
         </div>
         <span className="font-semibold text-slate-900">
-          {ANNUAL_PAYMENT_PRICES.club_fee.toFixed(2)}€
+          {clubFeePrice.toFixed(2)}€
         </span>
       </div>
     </div>

@@ -2,9 +2,11 @@ import { apiClient } from '@/core/data/apiClient';
 import type {
   InitiateAnnualPaymentRequest,
   InitiateAnnualPaymentResponse,
+  AnnualPaymentPricesResponse,
 } from '../schemas/annual-payment.schema';
 
 const BASE_URL = '/api/v1/payments';
+const PRICE_CONFIG_URL = '/api/v1/price-configurations';
 
 export const initiateAnnualPayment = async (
   data: InitiateAnnualPaymentRequest
@@ -15,6 +17,13 @@ export const initiateAnnualPayment = async (
   );
 };
 
+export const getAnnualPaymentPrices = async (): Promise<AnnualPaymentPricesResponse> => {
+  return await apiClient.get<AnnualPaymentPricesResponse>(
+    `${PRICE_CONFIG_URL}/annual-payment-prices`
+  );
+};
+
 export const annualPaymentService = {
   initiateAnnualPayment,
+  getAnnualPaymentPrices,
 };

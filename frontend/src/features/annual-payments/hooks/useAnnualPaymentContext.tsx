@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useCallback, useMemo, useState, useRef, useEffect, type ReactNode } from 'react';
 import { useAnnualPaymentForm, type UseAnnualPaymentFormReturn } from './useAnnualPaymentForm';
 import { useInitiateAnnualPaymentMutation } from './mutations/useInitiateAnnualPayment.mutation';
+import { useAnnualPaymentPricesQuery } from './queries/useAnnualPaymentPricesQuery';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { Club } from '@/features/clubs/data/schemas/club.schema';
 import type { Member } from '@/features/members/data/schemas/member.schema';
-import type { InitiateAnnualPaymentRequest, MemberPaymentAssignment } from '../data/schemas/annual-payment.schema';
+import type { AnnualPaymentPrices, InitiateAnnualPaymentRequest, MemberPaymentAssignment } from '../data/schemas/annual-payment.schema';
 
 interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   clubs: Club[];
@@ -18,6 +19,10 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   isSubmitting: boolean;
   submitError: string | null;
   submitPayment: () => void;
+  // Prices from API
+  prices: AnnualPaymentPrices | null;
+  isLoadingPrices: boolean;
+  pricesError: string | null;
   // Member selection
   isMemberSelectionOpen: boolean;
   openMemberSelection: () => void;
@@ -36,6 +41,17 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   const { data: clubsData, isLoading: isLoadingClubs } = useClubsQuery({});
   const initiatePaymentMutation = useInitiateAnnualPaymentMutation();
 
+  // Fetch prices from API
+  const { data: prices, isLoading: isLoadingPrices, error: pricesQueryError } = useAnnualPaymentPricesQuery();
+
+  const pricesError = useMemo(() => {
+    if (pricesQueryError) {
+      const err = pricesQueryError as Error & { response?: { data?: { detail?: string } } };
+      return err.response?.data?.detail || err.message || 'Error al cargar los precios';
+    }
+    return null;
+  }, [pricesQueryError]);
+
   const isClubAdmin = userRole === 'club_admin';
   const userClubId = clubId ?? null;
 
@@ -47,7 +63,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     return {};
   }, [isClubAdmin, userClubId]);
 
-  const form = useAnnualPaymentForm(initialFormValues);
+  const form = useAnnualPaymentForm(initialFormValues, prices);
 
   // Fetch members for the selected club
   const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
@@ -135,6 +151,9 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     isSubmitting: initiatePaymentMutation.isPending,
     submitError,
     submitPayment,
+    prices: prices ?? null,
+    isLoadingPrices,
+    pricesError,
     isMemberSelectionOpen,
     openMemberSelection,
     closeMemberSelection,
