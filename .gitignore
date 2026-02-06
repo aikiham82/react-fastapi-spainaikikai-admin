@@ -8,3 +8,6 @@ testsprite_tests/
 
 # Database backups
 backups/
+
+# Git worktrees
+.worktrees/
