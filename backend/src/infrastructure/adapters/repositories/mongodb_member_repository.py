@@ -23,12 +23,17 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         # Read club_role with fallback to default "member" for existing documents
         club_role_val = doc.get("club_role", "member")
 
+        # Sanitize "null" strings from MariaDB migration
+        email = doc.get("email", "")
+        if email is None or email == "null":
+            email = ""
+
         return Member(
             id=str(doc.get("_id")),
             first_name=doc.get("first_name", ""),
             last_name=doc.get("last_name", ""),
             dni=doc.get("dni", ""),
-            email=doc.get("email", ""),
+            email=email,
             phone=doc.get("phone", ""),
             address=doc.get("address", ""),
             city=doc.get("city", ""),
