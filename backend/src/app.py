@@ -21,6 +21,7 @@ from src.infrastructure.web.routers.notifications import router as notifications
 from src.infrastructure.web.routers.password_reset import router as password_reset_router
 from src.infrastructure.web.routers.member_payments import router as member_payments_router
 from src.config.logfire import configure_logfire
+from src.config.settings import AppSettings
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -68,16 +69,20 @@ def create_app() -> FastAPI:
     configure_logfire(app)
 
     # Configure CORS
+    settings = AppSettings()
+    cors_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",  # frontend-mobile dev
+        "http://127.0.0.1:5174",
+        "capacitor://localhost",  # iOS Capacitor
+        "http://localhost",       # Android WebView
+    ]
+    if settings.frontend_base_url and settings.frontend_base_url not in cors_origins:
+        cors_origins.append(settings.frontend_base_url)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            "http://localhost:5174",  # frontend-mobile dev
-            "http://127.0.0.1:5174",
-            "capacitor://localhost",  # iOS Capacitor
-            "http://localhost",       # Android WebView
-        ],
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
