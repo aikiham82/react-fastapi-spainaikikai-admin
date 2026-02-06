@@ -8,12 +8,23 @@ from dataclasses import dataclass
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
 from src.domain.exceptions.payment import DuplicatePaymentForYearError
 from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.redsys_service import (
     RedsysServicePort,
     RedsysPaymentRequest,
     RedsysPaymentFormData
 )
-from src.config.annual_payment_prices import ANNUAL_PAYMENT_PRICES, ANNUAL_PAYMENT_LABELS
+
+# Maps annual payment item_type to price_configuration key
+PAYMENT_TYPE_TO_PRICE_KEY = {
+    "club_fee": "club_fee",
+    "kyu": "kyu-none-adulto",
+    "kyu_infantil": "kyu-none-infantil",
+    "dan": "dan-none-adulto",
+    "fukushidoin_shidoin": "dan-fukushidoin_shidoin-adulto",
+    "seguro_accidentes": "seguro_accidentes",
+    "seguro_rc": "seguro_rc",
+}
 
 
 @dataclass
@@ -66,10 +77,49 @@ class InitiateAnnualPaymentUseCase:
     def __init__(
         self,
         payment_repository: PaymentRepositoryPort,
-        redsys_service: RedsysServicePort
+        redsys_service: RedsysServicePort,
+        price_repository: PriceConfigurationRepositoryPort,
     ):
         self.payment_repository = payment_repository
         self.redsys_service = redsys_service
+        self.price_repository = price_repository
+
+    async def _get_prices(self) -> Dict[str, float]:
+        """Fetch all annual payment prices from database.
+
+        Returns:
+            Dict mapping item_type -> price.
+
+        Raises:
+            ValueError: If any required prices are missing.
+        """
+        price_keys = list(PAYMENT_TYPE_TO_PRICE_KEY.values())
+        configs = await self.price_repository.find_by_keys(price_keys)
+        key_to_config = {c.key: c for c in configs}
+
+        missing = [k for k in price_keys if k not in key_to_config]
+        if missing:
+            raise ValueError(
+                f"Faltan configuraciones de precios: {', '.join(missing)}"
+            )
+
+        # Map back to item_type -> price
+        return {
+            item_type: key_to_config[price_key].price
+            for item_type, price_key in PAYMENT_TYPE_TO_PRICE_KEY.items()
+        }
+
+    async def _get_descriptions(self) -> Dict[str, str]:
+        """Fetch descriptions from price configurations."""
+        price_keys = list(PAYMENT_TYPE_TO_PRICE_KEY.values())
+        configs = await self.price_repository.find_by_keys(price_keys)
+        key_to_config = {c.key: c for c in configs}
+
+        return {
+            item_type: key_to_config[price_key].description
+            for item_type, price_key in PAYMENT_TYPE_TO_PRICE_KEY.items()
+            if price_key in key_to_config
+        }
 
     async def execute(
         self,
@@ -88,28 +138,7 @@ class InitiateAnnualPaymentUseCase:
         webhook_url: str = "",
         member_assignments: Optional[List[MemberAssignment]] = None
     ) -> InitiateAnnualPaymentResult:
-        """
-        Execute the use case and return Redsys form data for annual payment.
-
-        Args:
-            payer_name: Name of the payer
-            club_id: Club ID
-            payment_year: Year the payment covers
-            include_club_fee: Whether to include club annual fee
-            kyu_count: Number of KYU licenses
-            kyu_infantil_count: Number of KYU infantil licenses
-            dan_count: Number of DAN licenses
-            fukushidoin_shidoin_count: Number of FUKUSHIDOIN/SHIDOIN licenses
-            seguro_accidentes_count: Number of accident insurances
-            seguro_rc_count: Number of RC insurances
-            success_url: URL to redirect on successful payment
-            failure_url: URL to redirect on failed payment
-            webhook_url: URL for Redsys to send payment notifications
-            member_assignments: Optional list of member payment assignments
-
-        Returns:
-            InitiateAnnualPaymentResult with payment ID, order ID, line items and form data
-        """
+        """Execute the use case and return Redsys form data for annual payment."""
         # Validate at least one item is selected
         has_items = (
             include_club_fee or
@@ -130,86 +159,36 @@ class InitiateAnnualPaymentUseCase:
         if existing:
             raise DuplicatePaymentForYearError(club_id, "annual_quota", payment_year)
 
+        # Fetch prices from database
+        prices = await self._get_prices()
+        descriptions = await self._get_descriptions()
+
         # Build line items and calculate total
         line_items: List[AnnualPaymentLineItem] = []
         total_amount = 0.0
 
-        if include_club_fee:
-            price = ANNUAL_PAYMENT_PRICES["club_fee"]
-            line_items.append(AnnualPaymentLineItem(
-                item_type="club_fee",
-                description=ANNUAL_PAYMENT_LABELS["club_fee"],
-                quantity=1,
-                unit_price=price,
-                total=price
-            ))
-            total_amount += price
+        items_config = [
+            ("club_fee", 1 if include_club_fee else 0),
+            ("kyu", kyu_count),
+            ("kyu_infantil", kyu_infantil_count),
+            ("dan", dan_count),
+            ("fukushidoin_shidoin", fukushidoin_shidoin_count),
+            ("seguro_accidentes", seguro_accidentes_count),
+            ("seguro_rc", seguro_rc_count),
+        ]
 
-        if kyu_count > 0:
-            price = ANNUAL_PAYMENT_PRICES["kyu"]
-            line_items.append(AnnualPaymentLineItem(
-                item_type="kyu",
-                description=ANNUAL_PAYMENT_LABELS["kyu"],
-                quantity=kyu_count,
-                unit_price=price,
-                total=price * kyu_count
-            ))
-            total_amount += price * kyu_count
-
-        if kyu_infantil_count > 0:
-            price = ANNUAL_PAYMENT_PRICES["kyu_infantil"]
-            line_items.append(AnnualPaymentLineItem(
-                item_type="kyu_infantil",
-                description=ANNUAL_PAYMENT_LABELS["kyu_infantil"],
-                quantity=kyu_infantil_count,
-                unit_price=price,
-                total=price * kyu_infantil_count
-            ))
-            total_amount += price * kyu_infantil_count
-
-        if dan_count > 0:
-            price = ANNUAL_PAYMENT_PRICES["dan"]
-            line_items.append(AnnualPaymentLineItem(
-                item_type="dan",
-                description=ANNUAL_PAYMENT_LABELS["dan"],
-                quantity=dan_count,
-                unit_price=price,
-                total=price * dan_count
-            ))
-            total_amount += price * dan_count
-
-        if fukushidoin_shidoin_count > 0:
-            price = ANNUAL_PAYMENT_PRICES["fukushidoin_shidoin"]
-            line_items.append(AnnualPaymentLineItem(
-                item_type="fukushidoin_shidoin",
-                description=ANNUAL_PAYMENT_LABELS["fukushidoin_shidoin"],
-                quantity=fukushidoin_shidoin_count,
-                unit_price=price,
-                total=price * fukushidoin_shidoin_count
-            ))
-            total_amount += price * fukushidoin_shidoin_count
-
-        if seguro_accidentes_count > 0:
-            price = ANNUAL_PAYMENT_PRICES["seguro_accidentes"]
-            line_items.append(AnnualPaymentLineItem(
-                item_type="seguro_accidentes",
-                description=ANNUAL_PAYMENT_LABELS["seguro_accidentes"],
-                quantity=seguro_accidentes_count,
-                unit_price=price,
-                total=price * seguro_accidentes_count
-            ))
-            total_amount += price * seguro_accidentes_count
-
-        if seguro_rc_count > 0:
-            price = ANNUAL_PAYMENT_PRICES["seguro_rc"]
-            line_items.append(AnnualPaymentLineItem(
-                item_type="seguro_rc",
-                description=ANNUAL_PAYMENT_LABELS["seguro_rc"],
-                quantity=seguro_rc_count,
-                unit_price=price,
-                total=price * seguro_rc_count
-            ))
-            total_amount += price * seguro_rc_count
+        for item_type, quantity in items_config:
+            if quantity > 0:
+                price = prices[item_type]
+                description = descriptions.get(item_type, item_type)
+                line_items.append(AnnualPaymentLineItem(
+                    item_type=item_type,
+                    description=description,
+                    quantity=quantity,
+                    unit_price=price,
+                    total=price * quantity
+                ))
+                total_amount += price * quantity
 
         # Serialize line items to JSON for storage
         line_items_data = json.dumps([item.to_dict() for item in line_items])
@@ -288,12 +267,7 @@ class InitiateAnnualPaymentUseCase:
         seguro_accidentes_count: int,
         seguro_rc_count: int
     ) -> None:
-        """Validate that member assignments match the quantities specified.
-
-        This ensures that the total number of members assigned for each type
-        does not exceed the quantity being paid for.
-        """
-        # Count assignments per type
+        """Validate that member assignments match the quantities specified."""
         type_counts: Dict[str, int] = {
             "kyu": 0,
             "kyu_infantil": 0,
@@ -308,7 +282,6 @@ class InitiateAnnualPaymentUseCase:
                 if ptype in type_counts:
                     type_counts[ptype] += 1
 
-        # Validate counts don't exceed quantities
         expected_counts = {
             "kyu": kyu_count,
             "kyu_infantil": kyu_infantil_count,

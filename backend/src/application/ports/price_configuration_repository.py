@@ -63,3 +63,15 @@ class PriceConfigurationRepositoryPort(ABC):
     async def exists_by_key(self, key: str) -> bool:
         """Check if a price configuration exists by key."""
         pass
+
+    @abstractmethod
+    async def find_by_keys(self, keys: List[str]) -> List[PriceConfiguration]:
+        """Find price configurations by a list of keys.
+
+        Args:
+            keys: List of price configuration keys to find.
+
+        Returns:
+            List of active price configurations matching the keys.
+        """
+        pass

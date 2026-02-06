@@ -1,6 +1,6 @@
 """Price Configuration routes."""
 
-from typing import List
+from typing import Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -17,10 +17,11 @@ from src.infrastructure.web.dependencies import (
     get_create_price_configuration_use_case,
     get_update_price_configuration_use_case,
     get_delete_price_configuration_use_case,
-    get_license_price_use_case
+    get_license_price_use_case,
+    get_annual_payment_prices_use_case,
 )
 from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext
+from src.infrastructure.web.authorization import AuthContext, require_super_admin
 from src.domain.exceptions.price_configuration import (
     PriceConfigurationNotFoundError,
     PriceConfigurationAlreadyExistsError,
@@ -30,6 +31,22 @@ from src.domain.exceptions.price_configuration import (
 router = APIRouter(prefix="/price-configurations", tags=["price-configurations"])
 
 
+def _to_response(p) -> PriceConfigurationResponse:
+    """Map domain entity to response DTO."""
+    return PriceConfigurationResponse(
+        id=p.id,
+        key=p.key,
+        price=p.price,
+        description=p.description,
+        category=p.category,
+        is_active=p.is_active,
+        valid_from=p.valid_from,
+        valid_until=p.valid_until,
+        created_at=p.created_at,
+        updated_at=p.updated_at
+    )
+
+
 @router.get("", response_model=List[PriceConfigurationResponse])
 async def get_all_prices(
     active_only: bool = False,
@@ -37,22 +54,10 @@ async def get_all_prices(
     get_all_use_case = Depends(get_all_prices_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get all price configurations."""
+    """Get all price configurations. Requires super_admin."""
+    require_super_admin(ctx)
     prices = await get_all_use_case.execute(active_only=active_only, limit=limit)
-    return [
-        PriceConfigurationResponse(
-            id=p.id,
-            key=p.key,
-            price=p.price,
-            description=p.description,
-            is_active=p.is_active,
-            valid_from=p.valid_from,
-            valid_until=p.valid_until,
-            created_at=p.created_at,
-            updated_at=p.updated_at
-        )
-        for p in prices
-    ]
+    return [_to_response(p) for p in prices]
 
 
 @router.get("/license-price", response_model=LicensePriceResponse)
@@ -82,26 +87,33 @@ async def get_license_price(
         )
 
 
+@router.get("/annual-payment-prices", response_model=Dict[str, PriceConfigurationResponse])
+async def get_annual_payment_prices(
+    use_case = Depends(get_annual_payment_prices_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Get all prices needed for the annual payment form."""
+    try:
+        prices = await use_case.execute()
+        return {key: _to_response(p) for key, p in prices.items()}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
+
+
 @router.get("/{price_id}", response_model=PriceConfigurationResponse)
 async def get_price_configuration(
     price_id: str,
     get_price_use_case = Depends(get_price_configuration_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get price configuration by ID."""
+    """Get price configuration by ID. Requires super_admin."""
+    require_super_admin(ctx)
     try:
         price_config = await get_price_use_case.execute(price_id)
-        return PriceConfigurationResponse(
-            id=price_config.id,
-            key=price_config.key,
-            price=price_config.price,
-            description=price_config.description,
-            is_active=price_config.is_active,
-            valid_from=price_config.valid_from,
-            valid_until=price_config.valid_until,
-            created_at=price_config.created_at,
-            updated_at=price_config.updated_at
-        )
+        return _to_response(price_config)
     except PriceConfigurationNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -115,27 +127,19 @@ async def create_price_configuration(
     create_use_case = Depends(get_create_price_configuration_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Create a new price configuration."""
+    """Create a new price configuration. Requires super_admin."""
+    require_super_admin(ctx)
     try:
         price_config = await create_use_case.execute(
             key=price_data.key,
             price=price_data.price,
             description=price_data.description,
+            category=price_data.category,
             is_active=price_data.is_active,
             valid_from=price_data.valid_from,
             valid_until=price_data.valid_until
         )
-        return PriceConfigurationResponse(
-            id=price_config.id,
-            key=price_config.key,
-            price=price_config.price,
-            description=price_config.description,
-            is_active=price_config.is_active,
-            valid_from=price_config.valid_from,
-            valid_until=price_config.valid_until,
-            created_at=price_config.created_at,
-            updated_at=price_config.updated_at
-        )
+        return _to_response(price_config)
     except PriceConfigurationAlreadyExistsError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -150,7 +154,8 @@ async def update_price_configuration(
     update_use_case = Depends(get_update_price_configuration_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Update a price configuration."""
+    """Update a price configuration. Requires super_admin."""
+    require_super_admin(ctx)
     try:
         price_config = await update_use_case.execute(
             price_id=price_id,
@@ -160,17 +165,7 @@ async def update_price_configuration(
             valid_from=price_data.valid_from,
             valid_until=price_data.valid_until
         )
-        return PriceConfigurationResponse(
-            id=price_config.id,
-            key=price_config.key,
-            price=price_config.price,
-            description=price_config.description,
-            is_active=price_config.is_active,
-            valid_from=price_config.valid_from,
-            valid_until=price_config.valid_until,
-            created_at=price_config.created_at,
-            updated_at=price_config.updated_at
-        )
+        return _to_response(price_config)
     except PriceConfigurationNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -184,7 +179,8 @@ async def delete_price_configuration(
     delete_use_case = Depends(get_delete_price_configuration_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Delete a price configuration."""
+    """Delete a price configuration. Requires super_admin."""
+    require_super_admin(ctx)
     try:
         await delete_use_case.execute(price_id)
         return None

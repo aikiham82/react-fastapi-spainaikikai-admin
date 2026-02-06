@@ -28,7 +28,8 @@ from src.domain.entities.member_payment import (
     MemberPaymentType,
     ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
 )
-from src.config.annual_payment_prices import ANNUAL_PAYMENT_PRICES
+from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
+from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
 
 
 @dataclass
@@ -52,7 +53,8 @@ class ProcessRedsysWebhookUseCase:
         member_repository: Optional[MemberRepositoryPort] = None,
         member_payment_repository: Optional[MemberPaymentRepositoryPort] = None,
         email_service: Optional[EmailServicePort] = None,
-        pdf_service: Optional[PDFServicePort] = None
+        pdf_service: Optional[PDFServicePort] = None,
+        price_configuration_repository: Optional[PriceConfigurationRepositoryPort] = None,
     ):
         self.payment_repository = payment_repository
         self.redsys_service = redsys_service
@@ -62,6 +64,7 @@ class ProcessRedsysWebhookUseCase:
         self.member_payment_repository = member_payment_repository
         self.email_service = email_service
         self.pdf_service = pdf_service
+        self.price_configuration_repository = price_configuration_repository
 
     async def execute(
         self,
@@ -360,8 +363,14 @@ class ProcessRedsysWebhookUseCase:
                 if not member_payment_type:
                     continue
 
-                # Get price for this payment type
-                price = ANNUAL_PAYMENT_PRICES.get(ptype, 0.0)
+                # Get price for this payment type from database
+                price = 0.0
+                if self.price_configuration_repository:
+                    price_key = PAYMENT_TYPE_TO_PRICE_KEY.get(ptype)
+                    if price_key:
+                        price_config = await self.price_configuration_repository.find_by_key(price_key)
+                        if price_config:
+                            price = price_config.price
 
                 member_payments.append(MemberPayment(
                     payment_id=payment.id,

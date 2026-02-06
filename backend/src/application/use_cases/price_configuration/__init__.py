@@ -6,6 +6,7 @@ from .create_price_configuration_use_case import CreatePriceConfigurationUseCase
 from .update_price_configuration_use_case import UpdatePriceConfigurationUseCase
 from .delete_price_configuration_use_case import DeletePriceConfigurationUseCase
 from .get_license_price_use_case import GetLicensePriceUseCase
+from .get_annual_payment_prices_use_case import GetAnnualPaymentPricesUseCase
 
 __all__ = [
     "GetPriceConfigurationUseCase",
@@ -13,5 +14,6 @@ __all__ = [
     "CreatePriceConfigurationUseCase",
     "UpdatePriceConfigurationUseCase",
     "DeletePriceConfigurationUseCase",
-    "GetLicensePriceUseCase"
+    "GetLicensePriceUseCase",
+    "GetAnnualPaymentPricesUseCase",
 ]

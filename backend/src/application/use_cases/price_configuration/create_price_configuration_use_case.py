@@ -18,6 +18,7 @@ class CreatePriceConfigurationUseCase:
         key: str,
         price: float,
         description: str = "",
+        category: str = "license",
         is_active: bool = True,
         valid_from: Optional[str] = None,
         valid_until: Optional[str] = None
@@ -31,6 +32,7 @@ class CreatePriceConfigurationUseCase:
             key=key,
             price=price,
             description=description,
+            category=category,
             is_active=is_active,
             valid_from=valid_from,
             valid_until=valid_until

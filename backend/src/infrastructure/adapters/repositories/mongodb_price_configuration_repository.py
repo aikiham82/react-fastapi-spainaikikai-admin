@@ -24,6 +24,7 @@ class MongoDBPriceConfigurationRepository(PriceConfigurationRepositoryPort):
             key=doc.get("key", ""),
             price=doc.get("price", 0.0),
             description=doc.get("description", ""),
+            category=doc.get("category", "license"),  # Default for backward compatibility
             is_active=doc.get("is_active", True),
             valid_from=doc.get("valid_from"),
             valid_until=doc.get("valid_until"),
@@ -36,6 +37,7 @@ class MongoDBPriceConfigurationRepository(PriceConfigurationRepositoryPort):
             "key": price_config.key,
             "price": price_config.price,
             "description": price_config.description,
+            "category": price_config.category,
             "is_active": price_config.is_active,
             "valid_from": price_config.valid_from,
             "valid_until": price_config.valid_until,
@@ -118,3 +120,18 @@ class MongoDBPriceConfigurationRepository(PriceConfigurationRepositoryPort):
     async def exists_by_key(self, key: str) -> bool:
         count = await self.collection.count_documents({"key": key})
         return count > 0
+
+    async def find_by_keys(self, keys: List[str]) -> List[PriceConfiguration]:
+        """Find price configurations by a list of keys.
+
+        Only returns active configurations.
+
+        Args:
+            keys: List of price configuration keys to find.
+
+        Returns:
+            List of active price configurations matching the keys.
+        """
+        cursor = self.collection.find({"key": {"$in": keys}, "is_active": True})
+        documents = await cursor.to_list(length=len(keys))
+        return [self._to_domain(doc) for doc in documents]

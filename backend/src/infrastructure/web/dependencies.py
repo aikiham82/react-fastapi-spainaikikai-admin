@@ -84,7 +84,8 @@ from src.application.use_cases.price_configuration import (
     CreatePriceConfigurationUseCase,
     UpdatePriceConfigurationUseCase,
     DeletePriceConfigurationUseCase,
-    GetLicensePriceUseCase
+    GetLicensePriceUseCase,
+    GetAnnualPaymentPricesUseCase,
 )
 from src.application.use_cases.invoice import (
     GetInvoiceUseCase,
@@ -323,7 +324,8 @@ def get_initiate_annual_payment_use_case() -> InitiateAnnualPaymentUseCase:
     """Initiate annual payment use case."""
     return InitiateAnnualPaymentUseCase(
         get_payment_repository(),
-        get_redsys_service()
+        get_redsys_service(),
+        get_price_configuration_repository(),
     )
 
 @lru_cache()
@@ -337,7 +339,8 @@ def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
         member_repository=get_member_repository(),
         member_payment_repository=get_member_payment_repository(),
         email_service=get_email_service(),
-        pdf_service=get_pdf_service()
+        pdf_service=get_pdf_service(),
+        price_configuration_repository=get_price_configuration_repository(),
     )
 
 @lru_cache()
@@ -424,6 +427,11 @@ def get_delete_price_configuration_use_case() -> DeletePriceConfigurationUseCase
 def get_license_price_use_case() -> GetLicensePriceUseCase:
     """Get license price use case."""
     return GetLicensePriceUseCase(get_price_configuration_repository())
+
+@lru_cache()
+def get_annual_payment_prices_use_case() -> GetAnnualPaymentPricesUseCase:
+    """Get annual payment prices use case."""
+    return GetAnnualPaymentPricesUseCase(get_price_configuration_repository())
 
 # Invoice repository and use cases
 @lru_cache()

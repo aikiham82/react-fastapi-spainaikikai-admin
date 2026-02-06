@@ -10,6 +10,7 @@ class PriceConfigurationBase(BaseModel):
     key: str
     price: float
     description: str = ""
+    category: str = "license"
     is_active: bool = True
     valid_from: Optional[str] = None
     valid_until: Optional[str] = None
