@@ -137,9 +137,18 @@ class ProcessRedsysWebhookUseCase:
                     member_payments, payment.id, payment.payment_year
                 )
 
+            # Update payment status BEFORE invoice/email so it's always persisted
+            payment = await self.payment_repository.update(payment)
+
             # Create invoice if repositories are available
             if self.invoice_repository and self.member_repository:
-                invoice = await self._create_invoice(payment)
+                try:
+                    invoice = await self._create_invoice(payment)
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).exception(
+                        "Failed to create invoice for payment %s", payment.id
+                    )
 
             # Send confirmation email
             if self.email_service and self.member_repository:
@@ -152,12 +161,12 @@ class ProcessRedsysWebhookUseCase:
             payment.fail_payment(error_message)
             message = error_message
 
+            # Persist FAILED status
+            payment = await self.payment_repository.update(payment)
+
             # Send failure notification
             if self.email_service and self.member_repository:
                 await self._send_failure_email(payment, error_message)
-
-        # Update payment
-        payment = await self.payment_repository.update(payment)
 
         return WebhookProcessResult(
             payment=payment,
