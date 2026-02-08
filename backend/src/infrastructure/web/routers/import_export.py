@@ -227,7 +227,7 @@ async def export_members(
         ws.cell(row=row_idx, column=1, value=member.id)
         ws.cell(row=row_idx, column=2, value=member.first_name)
         ws.cell(row=row_idx, column=3, value=member.last_name or '')
-        ws.cell(row=row_idx, column=4, value=member.dni or '')
+        ws.cell(row=row_idx, column=4, value='' if not member.dni or member.dni == 'null' else member.dni)
         ws.cell(row=row_idx, column=5, value=member.email)
         ws.cell(row=row_idx, column=6, value=member.phone or '')
         ws.cell(row=row_idx, column=7, value=member.birth_date.strftime('%d/%m/%Y') if member.birth_date else '')
@@ -344,7 +344,8 @@ async def export_licenses(
         ws.cell(row=row_idx, column=1, value=lic.license_number)
         ws.cell(row=row_idx, column=2, value=member.first_name if member else '')
         ws.cell(row=row_idx, column=3, value=member.last_name if member else '')
-        ws.cell(row=row_idx, column=4, value=member.dni if member else '')
+        member_dni = (member.dni if member else '') or ''
+        ws.cell(row=row_idx, column=4, value='' if member_dni == 'null' else member_dni)
         ws.cell(row=row_idx, column=5, value=member.club_id if member else '')
         ws.cell(row=row_idx, column=6, value=lic.technical_grade.value if lic.technical_grade else '')
         ws.cell(row=row_idx, column=7, value=lic.instructor_category.value if lic.instructor_category else '')
@@ -447,7 +448,8 @@ async def export_insurances(
         ws.cell(row=row_idx, column=1, value=ins.policy_number)
         ws.cell(row=row_idx, column=2, value=member.first_name if member else '')
         ws.cell(row=row_idx, column=3, value=member.last_name if member else '')
-        ws.cell(row=row_idx, column=4, value=member.dni if member else '')
+        member_dni = (member.dni if member else '') or ''
+        ws.cell(row=row_idx, column=4, value='' if member_dni == 'null' else member_dni)
         ws.cell(row=row_idx, column=5, value=member.club_id if member else '')
         ws.cell(row=row_idx, column=6, value=ins.insurance_type.value if ins.insurance_type else '')
         ws.cell(row=row_idx, column=7, value=ins.insurance_company or '')
@@ -847,7 +849,8 @@ async def export_payments(
             ws.cell(row=row_idx, column=1, value=club.name)
             ws.cell(row=row_idx, column=2, value=member.first_name if member else '')
             ws.cell(row=row_idx, column=3, value=member.last_name if member else '')
-            ws.cell(row=row_idx, column=4, value=member.dni if member else '')
+            dni = (member.dni or '') if member else ''
+            ws.cell(row=row_idx, column=4, value='' if dni == 'null' else dni)
             ws.cell(row=row_idx, column=5, value=PAYMENT_TYPE_LABELS.get(payment.payment_type.value, payment.payment_type.value))
             ws.cell(row=row_idx, column=6, value=payment.concept)
             ws.cell(row=row_idx, column=7, value=payment.amount)
@@ -902,6 +905,9 @@ async def import_payments(
     for idx, row in enumerate(request.payments):
         try:
             dni = row.get('dni') or row.get('DNI') or row.get('Dni') or ''
+            # Treat the string "null" as empty (bad data in DB)
+            if isinstance(dni, str) and dni.strip().lower() == 'null':
+                dni = ''
             tipo_pago = row.get('tipo_pago') or row.get('Tipo Pago') or row.get('payment_type') or ''
             year_raw = row.get('ano') or row.get('Año') or row.get('Ano') or row.get('payment_year') or ''
             monto_raw = row.get('monto') or row.get('Monto') or row.get('amount') or 0
@@ -909,6 +915,9 @@ async def import_payments(
             concepto = row.get('concepto') or row.get('Concepto') or row.get('concept') or ''
 
             if not dni:
+                if is_upsert:
+                    # In upsert mode, skip rows without DNI (can't match member)
+                    continue
                 errors.append(f"Fila {idx + 1}: DNI es obligatorio")
                 failed += 1
                 continue
