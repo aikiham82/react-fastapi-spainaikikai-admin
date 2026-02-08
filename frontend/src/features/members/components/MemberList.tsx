@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
 import type { Member } from '../data/schemas/member.schema';
-import { Users, Plus, Search, Edit, Trash2, Eye, CreditCard } from 'lucide-react';
+import { Users, Plus, Search, Trash2, Eye, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -181,7 +181,13 @@ export const MemberList = () => {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-medium text-gray-900">
-                  {member.first_name} {member.last_name}
+                  <button
+                    type="button"
+                    className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+                    onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
+                  >
+                    {member.first_name} {member.last_name}
+                  </button>
                 </h3>
                 <p className="text-sm text-gray-600">{member.phone}</p>
                 <p className="text-sm text-gray-600">{member.email}</p>
@@ -215,11 +221,6 @@ export const MemberList = () => {
                   <MemberQuickViewContent member={member} />
                 </DialogContent>
               </Dialog>
-              {canAccess({ resource: 'members', action: 'update' }) && (
-                <Button variant="ghost" size="icon" onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }} aria-label="Editar miembro">
-                  <Edit className="w-4 h-4" />
-                </Button>
-              )}
               {canAccess({ resource: 'members', action: 'delete' }) && (
                 <Button variant="ghost" size="icon" onClick={() => setMemberToDelete(member)} aria-label="Eliminar miembro">
                   <Trash2 className="w-4 h-4 text-red-600" />
@@ -251,9 +252,13 @@ export const MemberList = () => {
                 <tr key={member.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <button
+                        type="button"
+                        className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
+                        onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
+                      >
                         {member.first_name} {member.last_name}
-                      </p>
+                      </button>
                       <p className="text-sm text-gray-600">{member.phone}</p>
                     </div>
                   </td>
@@ -303,17 +308,6 @@ export const MemberList = () => {
                           <MemberQuickViewContent member={member} />
                         </DialogContent>
                       </Dialog>
-
-                      {canAccess({ resource: 'members', action: 'update' }) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
-                          aria-label="Editar miembro"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      )}
 
                       {canAccess({ resource: 'members', action: 'delete' }) && (
                         <Button

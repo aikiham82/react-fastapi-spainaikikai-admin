@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
 import type { Club } from '../data/schemas/club.schema';
-import { Building2, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Building2, Plus, Search, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -91,7 +91,15 @@ export const ClubList = () => {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg">{club.name}</CardTitle>
+                  <CardTitle className="text-lg">
+                    <button
+                      type="button"
+                      className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+                      onClick={() => { setSelectedClubForEdit(club); setIsFormOpen(true); }}
+                    >
+                      {club.name}
+                    </button>
+                  </CardTitle>
                   <CardDescription className="flex items-center gap-2 mt-1">
                     <Building2 className="w-4 h-4" />
                     {club.city}
@@ -140,17 +148,6 @@ export const ClubList = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
-
-                  {canAccess({ resource: 'clubs', action: 'update' }) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => { setSelectedClubForEdit(club); setIsFormOpen(true); }}
-                      aria-label="Editar club"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  )}
 
                   {canAccess({ resource: 'clubs', action: 'delete' }) && (
                     <Button

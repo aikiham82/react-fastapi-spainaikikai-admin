@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
 import type { Insurance } from '../data/schemas/insurance.schema';
-import { Shield, Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Shield, Plus, Search, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -158,7 +158,13 @@ export const InsuranceList = () => {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-medium text-gray-900">
-                  {INSURANCE_TYPE_LABELS[insurance.insurance_type] || insurance.insurance_type}
+                  <button
+                    type="button"
+                    className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+                    onClick={() => { setSelectedInsuranceForEdit(insurance); setIsFormOpen(true); }}
+                  >
+                    {INSURANCE_TYPE_LABELS[insurance.insurance_type] || insurance.insurance_type}
+                  </button>
                 </h3>
                 <p className="text-sm text-gray-600">{insurance.member_name || '-'}</p>
                 <p className="text-sm text-gray-600">Póliza: {insurance.policy_number}</p>
@@ -211,11 +217,6 @@ export const InsuranceList = () => {
                   </div>
                 </DialogContent>
               </Dialog>
-              {canAccess({ resource: 'insurance', action: 'update' }) && (
-                <Button variant="ghost" size="icon" onClick={() => { setSelectedInsuranceForEdit(insurance); setIsFormOpen(true); }} aria-label="Editar seguro">
-                  <Edit className="w-4 h-4" />
-                </Button>
-              )}
               {canAccess({ resource: 'insurance', action: 'delete' }) && (
                 <Button variant="ghost" size="icon" onClick={() => setInsuranceToDelete(insurance)} aria-label="Eliminar seguro">
                   <Trash2 className="w-4 h-4 text-red-600" />
@@ -246,9 +247,13 @@ export const InsuranceList = () => {
               {insuranceList.map((insurance) => (
                 <tr key={insurance.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
-                    <p className="font-medium text-gray-900">
+                    <button
+                      type="button"
+                      className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
+                      onClick={() => { setSelectedInsuranceForEdit(insurance); setIsFormOpen(true); }}
+                    >
                       {INSURANCE_TYPE_LABELS[insurance.insurance_type] || insurance.insurance_type}
-                    </p>
+                    </button>
                   </td>
                   <td className="p-4 text-gray-600">{insurance.policy_number}</td>
                   <td className="p-4 text-gray-600">{insurance.member_name || '-'}</td>
@@ -335,17 +340,6 @@ export const InsuranceList = () => {
                           </div>
                         </DialogContent>
                       </Dialog>
-
-                      {canAccess({ resource: 'insurance', action: 'update' }) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => { setSelectedInsuranceForEdit(insurance); setIsFormOpen(true); }}
-                          aria-label="Editar seguro"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      )}
 
                       {canAccess({ resource: 'insurance', action: 'delete' }) && (
                         <Button

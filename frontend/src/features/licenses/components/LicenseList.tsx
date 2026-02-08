@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLicenseContext } from '../hooks/useLicenseContext';
 import { useMemberContext } from '../../members/hooks/useMemberContext';
 import type { License } from '../data/schemas/license.schema';
-import { IdCard, Plus, Search, Edit, Trash2, Eye, RotateCw } from 'lucide-react';
+import { IdCard, Plus, Search, Trash2, Eye, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -128,7 +128,15 @@ export const LicenseList = () => {
           <div key={license.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-medium text-gray-900">{license.license_number}</h3>
+                <h3 className="font-medium text-gray-900">
+                  <button
+                    type="button"
+                    className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+                    onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
+                  >
+                    {license.license_number}
+                  </button>
+                </h3>
                 <p className="text-sm text-gray-600">{license.member_name || '-'}</p>
               </div>
               <Badge
@@ -184,11 +192,6 @@ export const LicenseList = () => {
                   </div>
                 </DialogContent>
               </Dialog>
-              {canAccess({ resource: 'licenses', action: 'update' }) && (
-                <Button variant="ghost" size="icon" onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }} aria-label="Editar licencia">
-                  <Edit className="w-4 h-4" />
-                </Button>
-              )}
               {canAccess({ resource: 'licenses', action: 'delete' }) && (
                 <Button variant="ghost" size="icon" onClick={() => setLicenseToDelete(license)} aria-label="Eliminar licencia">
                   <Trash2 className="w-4 h-4 text-red-600" />
@@ -218,7 +221,13 @@ export const LicenseList = () => {
               {licenses.map((license) => (
                 <tr key={license.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
-                    <p className="font-medium text-gray-900">{license.license_number}</p>
+                    <button
+                      type="button"
+                      className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
+                      onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
+                    >
+                      {license.license_number}
+                    </button>
                   </td>
                   <td className="p-4 text-gray-600">{license.member_name || '-'}</td>
                   <td className="p-4 text-gray-600">
@@ -302,17 +311,6 @@ export const LicenseList = () => {
                           </div>
                         </DialogContent>
                       </Dialog>
-
-                      {canAccess({ resource: 'licenses', action: 'update' }) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
-                          aria-label="Editar licencia"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      )}
 
                       {canAccess({ resource: 'licenses', action: 'delete' }) && (
                         <Button

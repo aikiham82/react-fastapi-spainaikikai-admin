@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSeminarContext } from '../hooks/useSeminarContext';
 import type { Seminar } from '../data/schemas/seminar.schema';
-import { Calendar, Plus, Search, Edit, Trash2, Eye, Users, MapPin, Clock, User } from 'lucide-react';
+import { Calendar, Plus, Search, Trash2, Eye, Users, MapPin, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -132,8 +132,14 @@ export const SeminarList = () => {
             <div className="p-6 space-y-4">
               <div>
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-bold text-gray-900 flex-1">
-                    {seminar.title}
+                  <h3 className="text-lg font-bold flex-1">
+                    <button
+                      type="button"
+                      className="text-left text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
+                      onClick={() => { setSelectedSeminarForEdit(seminar); setIsFormOpen(true); }}
+                    >
+                      {seminar.title}
+                    </button>
                   </h3>
                   <Badge
                     variant={
@@ -267,16 +273,6 @@ export const SeminarList = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-
-                {canAccess({ resource: 'seminars', action: 'update' }) && (
-                  <Button
-                    variant="outline"
-                    onClick={() => { setSelectedSeminarForEdit(seminar); setIsFormOpen(true); }}
-                    aria-label="Editar seminario"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                )}
 
                 {canAccess({ resource: 'seminars', action: 'delete' }) && (
                   <Button
