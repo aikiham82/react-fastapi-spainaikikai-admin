@@ -36,7 +36,7 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
 
         # Note: club_id is no longer stored in License entity
         # It should be derived from the member's club_id
-        return License(
+        license = License(
             id=str(doc.get("_id")),
             license_number=doc.get("license_number", ""),
             member_id=doc.get("member_id"),
@@ -55,6 +55,10 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
             age_category=AgeCategory(age_category_val),
             last_payment_id=doc.get("last_payment_id")
         )
+        # Update status based on expiration date so expired licenses
+        # are not returned as "active"
+        license.check_and_update_status()
+        return license
 
     def _to_document(self, license: License) -> dict:
         # Note: club_id is no longer stored - it's derived via member
