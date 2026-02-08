@@ -183,7 +183,8 @@ async def get_club_payment_summary(
                     member_name=m.member_name,
                     license_paid=m.license_paid,
                     insurance_paid=m.insurance_paid,
-                    total_paid=m.total_paid
+                    total_paid=m.total_paid,
+                    grade_group=m.grade_group
                 ) for m in result.members
             ]
         )

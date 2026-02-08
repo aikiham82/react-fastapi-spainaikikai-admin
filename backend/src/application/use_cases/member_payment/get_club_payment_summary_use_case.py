@@ -5,10 +5,13 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from src.domain.entities.member_payment import MemberPaymentStatus
+from src.domain.entities.license import InstructorCategory, TechnicalGrade
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
+
+GRADE_GROUP_ORDER = {"shidoin": 0, "fukushidoin": 1, "dan": 2, "kyu": 3, "unknown": 4}
 
 
 @dataclass
@@ -27,6 +30,7 @@ class MemberPaymentSummary:
     license_paid: bool
     insurance_paid: bool
     total_paid: float
+    grade_group: str = "unknown"
 
 
 @dataclass
@@ -100,14 +104,32 @@ class GetClubPaymentSummaryUseCase:
             status=MemberPaymentStatus.COMPLETED
         )
 
-        # Determine license_paid from license expiration dates
+        # Determine license_paid and grade_group from license data
         license_by_member: Dict[str, bool] = {}
+        grade_group_by_member: Dict[str, str] = {}
         year_end = datetime(payment_year, 12, 31)
         if self.license_repository:
             licenses = await self.license_repository.find_by_member_ids(member_ids, limit=0)
             for lic in licenses:
-                if lic.member_id and lic.expiration_date and lic.expiration_date >= year_end:
+                if not lic.member_id:
+                    continue
+                is_valid = lic.expiration_date and lic.expiration_date >= year_end
+                if is_valid:
                     license_by_member[lic.member_id] = True
+                # Classify grade group from valid licenses only
+                if is_valid:
+                    group = "unknown"
+                    if lic.instructor_category == InstructorCategory.SHIDOIN:
+                        group = "shidoin"
+                    elif lic.instructor_category == InstructorCategory.FUKUSHIDOIN:
+                        group = "fukushidoin"
+                    elif lic.technical_grade == TechnicalGrade.DAN:
+                        group = "dan"
+                    elif lic.technical_grade == TechnicalGrade.KYU:
+                        group = "kyu"
+                    current = grade_group_by_member.get(lic.member_id, "unknown")
+                    if GRADE_GROUP_ORDER.get(group, 4) < GRADE_GROUP_ORDER.get(current, 4):
+                        grade_group_by_member[lic.member_id] = group
 
         # Build member-level payment map (insurance_paid still from MemberPayments)
         member_payments: Dict[str, Dict] = {}
@@ -146,8 +168,14 @@ class GetClubPaymentSummaryUseCase:
                 member_name=member.get_full_name(),
                 license_paid=has_license,
                 insurance_paid=payment_data["insurance_paid"],
-                total_paid=payment_data["total_paid"]
+                total_paid=payment_data["total_paid"],
+                grade_group=grade_group_by_member.get(member.id, "unknown")
             ))
+
+        # Sort members: by grade group priority, then alphabetically by name
+        member_summaries.sort(
+            key=lambda m: (GRADE_GROUP_ORDER.get(m.grade_group, 4), m.member_name.lower())
+        )
 
         # Build payment type summaries
         by_payment_type = []

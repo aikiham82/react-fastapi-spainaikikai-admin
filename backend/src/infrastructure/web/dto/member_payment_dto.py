@@ -63,6 +63,7 @@ class MemberPaymentSummaryResponse(BaseModel):
     license_paid: bool
     insurance_paid: bool
     total_paid: float
+    grade_group: str = "unknown"
 
 
 class ClubPaymentSummaryResponse(BaseModel):

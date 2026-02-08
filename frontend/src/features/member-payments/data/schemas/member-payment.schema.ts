@@ -83,6 +83,7 @@ export const memberPaymentSummarySchema = z.object({
   license_paid: z.boolean(),
   insurance_paid: z.boolean(),
   total_paid: z.number(),
+  grade_group: z.string().optional().default('unknown'),
 });
 
 export type MemberPaymentSummary = z.infer<typeof memberPaymentSummarySchema>;
