@@ -68,14 +68,14 @@ export const SeminarList = () => {
     );
   }
 
-  if (seminars.length === 0) {
+  const hasActiveFilters = !!searchTerm || (!!statusFilter && statusFilter !== 'all');
+
+  if (seminars.length === 0 && !hasActiveFilters) {
     return (
       <div className="text-center py-12">
         <Calendar className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No hay seminarios</h3>
-        <p className="text-gray-600 mb-4">
-          {searchTerm ? 'No se encontraron resultados para tu b\u00fasqueda' : 'No hay seminarios registrados'}
-        </p>
+        <p className="text-gray-600 mb-4">No hay seminarios registrados</p>
         {canAccess({ resource: 'seminars', action: 'create' }) && (
           <Button onClick={() => { setSelectedSeminarForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
@@ -126,6 +126,12 @@ export const SeminarList = () => {
         )}
       </div>
 
+      {seminars.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+        </div>
+      ) : (
+      <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {seminars.map((seminar) => (
           <div key={seminar.id} className="border rounded-lg hover:shadow-lg transition-shadow bg-white">
@@ -288,6 +294,8 @@ export const SeminarList = () => {
           </div>
         ))}
       </div>
+      </>
+      )}
 
       {total > limit && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">

@@ -111,6 +111,12 @@ export const InvoiceList = () => {
         </Select>
       </div>
 
+      {invoices.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+        </div>
+      ) : (
+      <>
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
         {invoices.map((invoice) => (
@@ -178,6 +184,8 @@ export const InvoiceList = () => {
           </table>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

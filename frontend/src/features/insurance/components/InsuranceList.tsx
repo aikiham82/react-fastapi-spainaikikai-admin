@@ -83,14 +83,14 @@ export const InsuranceList = () => {
     );
   }
 
-  if (insuranceList.length === 0) {
+  const hasActiveFilters = !!searchTerm || (!!insuranceTypeFilter && insuranceTypeFilter !== 'all') || (!!statusFilter && statusFilter !== 'all');
+
+  if (insuranceList.length === 0 && !hasActiveFilters) {
     return (
       <div className="text-center py-12">
         <Shield className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No hay seguros</h3>
-        <p className="text-gray-600 mb-4">
-          {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay seguros registrados'}
-        </p>
+        <p className="text-gray-600 mb-4">No hay seguros registrados</p>
         {canAccess({ resource: 'insurance', action: 'create' }) && (
           <Button onClick={() => { setSelectedInsuranceForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
@@ -153,6 +153,12 @@ export const InsuranceList = () => {
         </div>
       </div>
 
+      {insuranceList.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+        </div>
+      ) : (
+      <>
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
         {insuranceList.map((insurance) => (
@@ -361,6 +367,8 @@ export const InsuranceList = () => {
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {total > limit && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
