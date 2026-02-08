@@ -4,7 +4,7 @@ import { defaultFormValues, calculateTotals, annualPaymentFormSchema, QUANTITY_L
 
 const ZERO_PRICES: AnnualPaymentPrices = {
   club_fee: 0, kyu: 0, kyu_infantil: 0, dan: 0,
-  fukushidoin_shidoin: 0, seguro_accidentes: 0, seguro_rc: 0,
+  fukushidoin: 0, shidoin: 0, seguro_accidentes: 0, seguro_rc: 0,
 };
 
 export interface UseAnnualPaymentFormReturn {
@@ -15,11 +15,11 @@ export interface UseAnnualPaymentFormReturn {
   setField: <K extends keyof AnnualPaymentFormData>(field: K, value: AnnualPaymentFormData[K]) => void;
   incrementField: (field: keyof Pick<AnnualPaymentFormData,
     'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
+    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
   >) => void;
   decrementField: (field: keyof Pick<AnnualPaymentFormData,
     'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
+    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
   >) => void;
   reset: () => void;
   validate: () => boolean;
@@ -55,7 +55,7 @@ export function useAnnualPaymentForm(
 
   const incrementField = useCallback((field: keyof Pick<AnnualPaymentFormData,
     'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
+    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
   >) => {
     setFormData((prev) => ({
       ...prev,
@@ -65,7 +65,7 @@ export function useAnnualPaymentForm(
 
   const decrementField = useCallback((field: keyof Pick<AnnualPaymentFormData,
     'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
+    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
   >) => {
     setFormData((prev) => ({
       ...prev,

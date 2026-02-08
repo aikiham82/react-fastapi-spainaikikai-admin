@@ -92,7 +92,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     form.setField('kyu_count', prefillData.kyu_count);
     form.setField('kyu_infantil_count', prefillData.kyu_infantil_count);
     form.setField('dan_count', prefillData.dan_count);
-    form.setField('fukushidoin_shidoin_count', prefillData.fukushidoin_shidoin_count);
+    form.setField('fukushidoin_count', prefillData.fukushidoin_count);
+    form.setField('shidoin_count', prefillData.shidoin_count);
     form.setField('seguro_accidentes_count', prefillData.seguro_accidentes_count);
     form.setField('seguro_rc_count', prefillData.seguro_rc_count);
     if (prefillData.member_assignments.length > 0) {
@@ -145,7 +146,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       kyu: 0,
       kyu_infantil: 0,
       dan: 0,
-      fukushidoin_shidoin: 0,
+      fukushidoin: 0,
+      shidoin: 0,
       seguro_accidentes: 0,
       seguro_rc: 0,
     };
@@ -161,7 +163,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     form.setField('kyu_count', counts.kyu);
     form.setField('kyu_infantil_count', counts.kyu_infantil);
     form.setField('dan_count', counts.dan);
-    form.setField('fukushidoin_shidoin_count', counts.fukushidoin_shidoin);
+    form.setField('fukushidoin_count', counts.fukushidoin);
+    form.setField('shidoin_count', counts.shidoin);
     form.setField('seguro_accidentes_count', counts.seguro_accidentes);
     form.setField('seguro_rc_count', counts.seguro_rc);
     form.setField('member_assignments', assignments);
@@ -177,7 +180,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       kyu: form.formData.kyu_count,
       kyu_infantil: form.formData.kyu_infantil_count,
       dan: form.formData.dan_count,
-      fukushidoin_shidoin: form.formData.fukushidoin_shidoin_count,
+      fukushidoin: form.formData.fukushidoin_count,
+      shidoin: form.formData.shidoin_count,
       seguro_accidentes: form.formData.seguro_accidentes_count,
       seguro_rc: form.formData.seguro_rc_count,
     };
@@ -198,7 +202,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       kyu_count: form.formData.kyu_count,
       kyu_infantil_count: form.formData.kyu_infantil_count,
       dan_count: form.formData.dan_count,
-      fukushidoin_shidoin_count: form.formData.fukushidoin_shidoin_count,
+      fukushidoin_count: form.formData.fukushidoin_count,
+      shidoin_count: form.formData.shidoin_count,
       seguro_accidentes_count: form.formData.seguro_accidentes_count,
       seguro_rc_count: form.formData.seguro_rc_count,
       member_assignments: cleanedAssignments.length > 0
