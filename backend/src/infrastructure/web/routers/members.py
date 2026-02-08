@@ -118,24 +118,32 @@ async def _enrich_members_with_summaries(
 async def get_members(
     limit: int = 100,
     club_id: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
     get_all_use_case = Depends(get_all_members_use_case),
+    get_search_use_case = Depends(get_search_members_use_case),
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),
     insurance_repo = Depends(get_insurance_repository),
 ):
-    """Get all members, optionally filtered by club."""
-    # Club admins are forced to their club only
-    effective_club_id = get_club_filter_ctx(ctx)
-
-    if effective_club_id is not None:
-        # Club admin - use their club_id (ignore query param)
-        members = await get_all_use_case.execute(limit, effective_club_id)
-    elif club_id:
-        # Association admin with explicit club filter
-        members = await get_all_use_case.execute(limit, club_id)
+    """Get all members, optionally filtered by club or search term."""
+    if search:
+        members = await get_search_use_case.execute(search, limit)
+        # For club admins, filter to only return members from their club
+        effective_club_id = get_club_filter_ctx(ctx)
+        if effective_club_id is not None:
+            members = [m for m in members if m.club_id == effective_club_id]
+        elif club_id:
+            members = [m for m in members if m.club_id == club_id]
     else:
-        # Association admin - see all members
-        members = await get_all_use_case.execute(limit, None)
+        # Club admins are forced to their club only
+        effective_club_id = get_club_filter_ctx(ctx)
+
+        if effective_club_id is not None:
+            members = await get_all_use_case.execute(limit, effective_club_id)
+        elif club_id:
+            members = await get_all_use_case.execute(limit, club_id)
+        else:
+            members = await get_all_use_case.execute(limit, None)
 
     responses = MemberMapper.to_response_list(members)
     return await _enrich_members_with_summaries(responses, license_repo, insurance_repo)

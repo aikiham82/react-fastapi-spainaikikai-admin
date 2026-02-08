@@ -121,13 +121,11 @@ export const MemberList = () => {
     );
   }
 
-  if (members.length === 0) {
+  if (members.length === 0 && !searchTerm && !licenseStatusFilter?.replace('all', '')) {
     return (
       <div className="text-center py-12">
         <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <p className="text-gray-600 mb-4">
-          {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay miembros registrados'}
-        </p>
+        <p className="text-gray-600 mb-4">No hay miembros registrados</p>
         {canAccess({ resource: 'members', action: 'create' }) && (
           <Button onClick={() => { setSelectedMemberForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
@@ -182,6 +180,13 @@ export const MemberList = () => {
           )}
         </div>
       </div>
+
+      {members.length === 0 && (
+        <div className="text-center py-12">
+          <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+        </div>
+      )}
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">

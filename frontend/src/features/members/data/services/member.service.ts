@@ -4,12 +4,6 @@ import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters } 
 const BASE_URL = '/api/v1/members';
 
 export const getMembers = async (filters?: MemberFilters): Promise<Member[]> => {
-  if (filters?.search) {
-    const { search, ...rest } = filters;
-    return await apiClient.get<Member[]>(`${BASE_URL}/search`, {
-      params: { name: search, ...rest },
-    });
-  }
   return await apiClient.get<Member[]>(BASE_URL, { params: filters });
 };
 
