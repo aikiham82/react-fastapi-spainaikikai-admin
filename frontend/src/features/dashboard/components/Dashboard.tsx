@@ -218,7 +218,7 @@ export const Dashboard = () => {
                 </Button>
               )}
               {canAccess({ resource: 'payments', action: 'read' }) && (
-                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/annual-payments')}>
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/club-payments')}>
                   <CreditCard className="mr-2 h-4 w-4" />
                   Ver Pagos
                 </Button>
@@ -230,7 +230,7 @@ export const Dashboard = () => {
                 </Button>
               )}
               {canAccess({ resource: 'licenses', action: 'read' }) && (
-                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/licenses')}>
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/annual-payments')}>
                   <Shield className="mr-2 h-4 w-4" />
                   Renovar Licencias
                 </Button>
