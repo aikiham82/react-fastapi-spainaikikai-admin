@@ -288,20 +288,21 @@ export const ImportExportPage = () => {
                 <p className="text-sm font-medium text-gray-900">Filtros de exportación:</p>
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Filtros actuales:</span>
-                  {Object.entries(memberFilters).length === 0 ? (
-                    <span className="text-gray-500"> Ninguno</span>
-                  ) : (
-                    <div className="mt-2 space-y-1">
-                      {Object.entries(memberFilters).map(
-                        ([key, value]) =>
-                          value && (
-                            <div key={key} className="text-xs">
-                              <span className="font-medium">{key}:</span> {String(value)}
-                            </div>
-                          )
-                      )}
-                    </div>
-                  )}
+                  {(() => {
+                    const { limit: _l, offset: _o, ...displayFilters } = memberFilters as any;
+                    const activeFilters = Object.entries(displayFilters).filter(([, v]) => v);
+                    return activeFilters.length === 0 ? (
+                      <span className="text-gray-500"> Ninguno</span>
+                    ) : (
+                      <div className="mt-2 space-y-1">
+                        {activeFilters.map(([key, value]) => (
+                          <div key={key} className="text-xs">
+                            <span className="font-medium">{key}:</span> {String(value)}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
