@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useClubPaymentsContext } from '../hooks/useClubPaymentsContext';
-import { Search, Building2, ChevronRight } from 'lucide-react';
+import { Search, Building2, ChevronRight, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
@@ -115,6 +115,12 @@ export const AllClubsSummaryTable = () => {
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
+                  <span className="text-gray-600">Cuota Club: </span>
+                  <span className={`font-medium ${club.has_club_fee ? 'text-green-600' : 'text-red-500'}`}>
+                    {club.has_club_fee ? 'Pagada' : 'Pendiente'}
+                  </span>
+                </div>
+                <div>
                   <span className="text-gray-600">Licencias: </span>
                   <span className="font-medium">{club.members_with_license}</span>
                 </div>
@@ -139,6 +145,7 @@ export const AllClubsSummaryTable = () => {
             <thead>
               <tr className="border-b bg-gray-50">
                 <th className="text-left p-4 font-medium text-gray-900">Club</th>
+                <th className="text-center p-4 font-medium text-gray-900">Cuota Club</th>
                 <th className="text-center p-4 font-medium text-gray-900">Miembros</th>
                 <th className="text-center p-4 font-medium text-gray-900">Con Licencia</th>
                 <th className="text-center p-4 font-medium text-gray-900">Con Seguro</th>
@@ -161,6 +168,13 @@ export const AllClubsSummaryTable = () => {
                   >
                     <td className="p-4">
                       <p className="font-medium text-gray-900">{club.club_name}</p>
+                    </td>
+                    <td className="p-4 text-center">
+                      {club.has_club_fee ? (
+                        <Check className="w-5 h-5 text-green-600 mx-auto" />
+                      ) : (
+                        <X className="w-5 h-5 text-red-400 mx-auto" />
+                      )}
                     </td>
                     <td className="p-4 text-center text-gray-700">{club.total_members}</td>
                     <td className="p-4 text-center text-gray-700">
@@ -186,6 +200,9 @@ export const AllClubsSummaryTable = () => {
               {/* Totals row */}
               <tr className="bg-gray-100 font-medium">
                 <td className="p-4 text-gray-900">Total</td>
+                <td className="p-4 text-center text-gray-900">
+                  {clubs.filter((c) => c.has_club_fee).length}/{clubs.length}
+                </td>
                 <td className="p-4 text-center text-gray-900">{allClubsSummary?.grand_total_members ?? 0}</td>
                 <td className="p-4 text-center text-gray-900">
                   {clubs.reduce((sum, c) => sum + c.members_with_license, 0)}
