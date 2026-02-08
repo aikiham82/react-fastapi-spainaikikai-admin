@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
+import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
 import { Users, Plus, Search, Trash2, Eye, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -79,16 +80,16 @@ export const MemberList = () => {
   const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
   const [selectedMemberForPayments, setSelectedMemberForPayments] = useState<Member | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setFilters({ ...filters, search: value || undefined, offset: 0 });
-  };
+  useEffect(() => {
+    setFilters({ ...filters, search: debouncedSearch || undefined, offset: 0 });
+  }, [debouncedSearch]);
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
@@ -147,7 +148,7 @@ export const MemberList = () => {
             type="text"
             placeholder="Buscar miembros por nombre o email..."
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>

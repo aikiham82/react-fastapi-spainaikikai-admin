@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
+import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Club } from '../data/schemas/club.schema';
 import { Building2, Plus, Search, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,14 +16,14 @@ export const ClubList = () => {
   const { clubs, isLoading, error, filters, setFilters, deleteClub, selectClub } = useClubContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedClubForEdit, setSelectedClubForEdit] = useState<Club | null>(null);
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setFilters({ ...filters, search: value || undefined });
-  };
+  useEffect(() => {
+    setFilters({ ...filters, search: debouncedSearch || undefined });
+  }, [debouncedSearch]);
 
   if (isLoading) {
     return (
@@ -73,7 +74,7 @@ export const ClubList = () => {
             type="text"
             placeholder="Buscar clubs por nombre o ciudad..."
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLicenseContext } from '../hooks/useLicenseContext';
+import { useDebounce } from '@/core/hooks/useDebounce';
 import { useMemberContext } from '../../members/hooks/useMemberContext';
 import type { License } from '../data/schemas/license.schema';
 import { IdCard, Plus, Search, Trash2, Eye, RotateCw } from 'lucide-react';
@@ -27,10 +28,11 @@ export const LicenseList = () => {
     name: `${member.first_name} ${member.last_name || ''}`.trim()
   }));
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setFilters({ ...filters, member_id: value || undefined, offset: 0 });
-  };
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
+  useEffect(() => {
+    setFilters({ ...filters, member_id: debouncedSearch || undefined, offset: 0 });
+  }, [debouncedSearch]);
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
@@ -97,7 +99,7 @@ export const LicenseList = () => {
             type="text"
             placeholder="Buscar licencias por nombre de miembro..."
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>

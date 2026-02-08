@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
+import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Insurance } from '../data/schemas/insurance.schema';
 import { Shield, Plus, Search, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,10 +40,11 @@ export const InsuranceList = () => {
     name: `${m.first_name} ${m.last_name}`
   }));
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setFilters({ ...filters, member_id: value || undefined, offset: 0 });
-  };
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
+  useEffect(() => {
+    setFilters({ ...filters, member_id: debouncedSearch || undefined, offset: 0 });
+  }, [debouncedSearch]);
 
   const handleFilterInsuranceType = (value: string) => {
     setInsuranceTypeFilter(value);
@@ -114,7 +116,7 @@ export const InsuranceList = () => {
             type="text"
             placeholder="Buscar seguros por nombre de miembro..."
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
