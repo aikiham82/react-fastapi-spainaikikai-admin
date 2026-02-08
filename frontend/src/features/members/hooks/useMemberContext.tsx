@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useMembersQuery } from './queries/useMemberQueries';
-import { useCreateMemberMutation, useUpdateMemberMutation, useDeleteMemberMutation } from './mutations/useMemberMutations';
+import { useCreateMemberMutation, useUpdateMemberMutation, useDeleteMemberMutation, useChangeMemberStatusMutation } from './mutations/useMemberMutations';
 import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters } from '../data/schemas/member.schema';
 
 interface MemberContextType {
@@ -16,6 +16,7 @@ interface MemberContextType {
   createMember: (data: CreateMemberRequest) => void;
   updateMember: (id: string, data: UpdateMemberRequest) => void;
   deleteMember: (id: string) => void;
+  changeMemberStatus: (id: string, status: 'active' | 'inactive') => void;
   selectMember: (member: Member | null) => void;
   setFilters: (filters: MemberFilters) => void;
   setPagination: (offset: number, limit: number) => void;
@@ -30,6 +31,7 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const createMutation = useCreateMemberMutation();
   const updateMutation = useUpdateMemberMutation();
   const deleteMutation = useDeleteMemberMutation();
+  const changeStatusMutation = useChangeMemberStatusMutation();
 
   const handleCreateMember = useCallback((data: CreateMemberRequest) => {
     createMutation.mutate(data);
@@ -42,6 +44,10 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const handleDeleteMember = useCallback((id: string) => {
     deleteMutation.mutate(id);
   }, [deleteMutation]);
+
+  const handleChangeMemberStatus = useCallback((id: string, status: 'active' | 'inactive') => {
+    changeStatusMutation.mutate({ id, data: { status } });
+  }, [changeStatusMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {
     setFilters({ ...filters, offset, limit });
@@ -60,6 +66,7 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     createMember: handleCreateMember,
     updateMember: handleUpdateMember,
     deleteMember: handleDeleteMember,
+    changeMemberStatus: handleChangeMemberStatus,
     selectMember: setSelectedMember,
     setFilters,
     setPagination: handleSetPagination,

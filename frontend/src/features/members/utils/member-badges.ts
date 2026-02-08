@@ -60,6 +60,16 @@ export function getInsuranceStatusLabel(has: boolean, status: string | null | un
   }
 }
 
+export function getMemberStatusLabel(status: string | null | undefined): string | null {
+  if (status === 'inactive') return 'Baja';
+  return null;
+}
+
+export function getMemberStatusVariant(status: string | null | undefined): BadgeVariant {
+  if (status === 'inactive') return 'secondary';
+  return 'secondary';
+}
+
 export function getTechnicalGradeLabel(grade: string | null | undefined): string {
   switch (grade) {
     case 'dan': return 'Dan';

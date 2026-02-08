@@ -62,6 +62,19 @@ class MemberUpdate(BaseModel):
         return v
 
 
+class MemberStatusChange(BaseModel):
+    """DTO for changing a member's status."""
+    status: str
+
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v):
+        allowed = {'active', 'inactive'}
+        if v not in allowed:
+            raise ValueError(f"Status must be one of: {', '.join(allowed)}")
+        return v
+
+
 class LicenseSummary(BaseModel):
     """Summary of a member's primary license."""
     grade: Optional[str] = None

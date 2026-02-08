@@ -14,6 +14,7 @@ from .member.search_members_use_case import SearchMembersUseCase
 from .member.create_member_use_case import CreateMemberUseCase
 from .member.update_member_use_case import UpdateMemberUseCase
 from .member.delete_member_use_case import DeleteMemberUseCase
+from .member.change_member_status_use_case import ChangeMemberStatusUseCase
 
 # License Use Cases
 from .license.get_license_use_case import GetLicenseUseCase
@@ -61,7 +62,7 @@ __all__ = [
     "GetMemberUseCase", "GetAllMembersUseCase",
     "SearchMembersUseCase",
     "CreateMemberUseCase", "UpdateMemberUseCase",
-    "DeleteMemberUseCase",
+    "DeleteMemberUseCase", "ChangeMemberStatusUseCase",
     # License
     "GetLicenseUseCase", "GetAllLicensesUseCase",
     "GetExpiringLicensesUseCase",

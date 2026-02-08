@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { memberService } from '../../data/services/member.service';
-import type { UpdateMemberRequest } from '../../data/schemas/member.schema';
+import type { UpdateMemberRequest, ChangeMemberStatusRequest } from '../../data/schemas/member.schema';
 import { toast } from 'sonner';
 
 export const useCreateMemberMutation = () => {
@@ -45,6 +45,28 @@ export const useDeleteMemberMutation = () => {
     },
     onError: () => {
       toast.error('Error al eliminar el miembro');
+    },
+  });
+};
+
+export const useChangeMemberStatusMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ChangeMemberStatusRequest }) =>
+      memberService.changeMemberStatus(id, data),
+    onSuccess: (_data, variables) => {
+      const message = variables.data.status === 'inactive'
+        ? 'Miembro dado de baja exitosamente'
+        : 'Miembro reactivado exitosamente';
+      toast.success(message);
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+    },
+    onError: (_error, variables) => {
+      const message = variables.data.status === 'inactive'
+        ? 'Error al dar de baja al miembro'
+        : 'Error al reactivar al miembro';
+      toast.error(message);
     },
   });
 };

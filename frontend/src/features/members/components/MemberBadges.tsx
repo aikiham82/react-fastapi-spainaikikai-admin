@@ -9,7 +9,23 @@ import {
   getLicenseStatusLabel,
   getInsuranceStatusVariant,
   getInsuranceStatusLabel,
+  getMemberStatusLabel,
+  getMemberStatusVariant,
 } from '../utils/member-badges';
+
+interface MemberStatusBadgeProps {
+  status?: string;
+}
+
+export function MemberStatusBadge({ status }: MemberStatusBadgeProps) {
+  const label = getMemberStatusLabel(status);
+  if (!label) return null;
+  return (
+    <Badge variant={getMemberStatusVariant(status)}>
+      {label}
+    </Badge>
+  );
+}
 
 interface GradeBadgeProps {
   licenseSummary?: LicenseSummary;

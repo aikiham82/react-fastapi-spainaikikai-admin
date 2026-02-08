@@ -26,6 +26,7 @@ export interface Member {
   province: string;
   postal_code: string;
   country: string;
+  status: 'active' | 'inactive' | 'pending' | 'suspended';
   license_number?: string;
   license_status: 'active' | 'expired' | 'pending';
   club_id: string;
@@ -53,9 +54,14 @@ export interface CreateMemberRequest {
 
 export interface UpdateMemberRequest extends Partial<CreateMemberRequest> { }
 
+export interface ChangeMemberStatusRequest {
+  status: 'active' | 'inactive';
+}
+
 export interface MemberFilters {
   search?: string;
   club_id?: string;
+  status?: string;
   license_status?: 'active' | 'expired' | 'pending';
   date_from?: string;
   date_to?: string;

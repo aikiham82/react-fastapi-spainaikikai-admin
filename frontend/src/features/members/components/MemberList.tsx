@@ -2,32 +2,57 @@ import { useState, useEffect } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
-import { Users, Plus, Search, Trash2, CreditCard, Loader2 } from 'lucide-react';
+import { Users, Plus, Search, Trash2, CreditCard, Loader2, MoreVertical, UserX, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge } from './MemberBadges';
+import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, MemberStatusBadge } from './MemberBadges';
+import { cn } from '@/lib/utils';
 
 export const MemberList = () => {
-  const { members, isLoading, isFetching, error, filters, setFilters, total, limit, offset, deleteMember, setPagination } = useMemberContext();
+  const { members, isLoading, isFetching, error, filters, setFilters, total, limit, offset, deleteMember, changeMemberStatus, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
+  const [memberStatusFilter, setMemberStatusFilter] = useState<string>('active');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
   const [selectedMemberForPayments, setSelectedMemberForPayments] = useState<Member | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const [memberToChangeStatus, setMemberToChangeStatus] = useState<Member | null>(null);
 
   useEffect(() => {
     setFilters({ ...filters, search: debouncedSearch || undefined, offset: 0 });
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    const statusValue = memberStatusFilter === 'all' ? undefined : memberStatusFilter;
+    setFilters({ ...filters, status: statusValue, offset: 0 });
+  }, [memberStatusFilter]);
 
   const sortedMembers = [...members].sort((a, b) =>
     (a.first_name || '').localeCompare(b.first_name || '', 'es') || (a.last_name || '').localeCompare(b.last_name || '', 'es')
@@ -59,7 +84,7 @@ export const MemberList = () => {
     );
   }
 
-  if (members.length === 0 && !searchTerm && !licenseStatusFilter?.replace('all', '')) {
+  if (members.length === 0 && !searchTerm && !licenseStatusFilter?.replace('all', '') && memberStatusFilter === 'active') {
     return (
       <div className="text-center py-12">
         <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
@@ -97,6 +122,17 @@ export const MemberList = () => {
           />
         </div>
 
+        <Select value={memberStatusFilter} onValueChange={setMemberStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Estado del miembro" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Activos</SelectItem>
+            <SelectItem value="inactive">Inactivos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
+          </SelectContent>
+        </Select>
+
         <Select value={licenseStatusFilter} onValueChange={handleFilterStatus}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Estado de licencia" />
@@ -129,7 +165,7 @@ export const MemberList = () => {
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
         {sortedMembers.map((member) => (
-          <div key={member.id} className="border rounded-lg p-4 space-y-3">
+          <div key={member.id} className={cn("border rounded-lg p-4 space-y-3", member.status === 'inactive' && "opacity-60")}>
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-medium text-gray-900">
@@ -144,7 +180,10 @@ export const MemberList = () => {
                 <p className="text-sm text-gray-600">{member.phone}</p>
                 <p className="text-sm text-gray-600">{member.email}</p>
               </div>
-              <LicenseStatusBadge licenseSummary={member.license_summary} />
+              <div className="flex items-center gap-1 flex-wrap">
+                <MemberStatusBadge status={member.status} />
+                <LicenseStatusBadge licenseSummary={member.license_summary} />
+              </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>{member.club_name || '-'}</span>
@@ -160,11 +199,38 @@ export const MemberList = () => {
               <Button variant="ghost" size="icon" onClick={() => setSelectedMemberForPayments(member)} aria-label="Ver pagos">
                 <CreditCard className="w-4 h-4" />
               </Button>
-              {canAccess({ resource: 'members', action: 'delete' }) && (
-                <Button variant="ghost" size="icon" onClick={() => setMemberToDelete(member)} aria-label="Eliminar miembro">
-                  <Trash2 className="w-4 h-4 text-red-600" />
-                </Button>
-              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Más acciones">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {member.status === 'active' ? (
+                    <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
+                      <UserX className="w-4 h-4 mr-2" />
+                      Dar de baja
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
+                      <UserCheck className="w-4 h-4 mr-2" />
+                      Reactivar
+                    </DropdownMenuItem>
+                  )}
+                  {canAccess({ resource: 'members', action: 'delete' }) && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setMemberToDelete(member)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         ))}
@@ -188,17 +254,20 @@ export const MemberList = () => {
             </thead>
             <tbody>
               {sortedMembers.map((member) => (
-                <tr key={member.id} className="border-b hover:bg-gray-50">
+                <tr key={member.id} className={cn("border-b hover:bg-gray-50", member.status === 'inactive' && "opacity-60")}>
                   <td className="p-4">
-                    <div>
-                      <button
-                        type="button"
-                        className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
-                        onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
-                      >
-                        {member.first_name} {member.last_name}
-                      </button>
-                      <p className="text-sm text-gray-600">{member.phone}</p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <button
+                          type="button"
+                          className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
+                          onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
+                        >
+                          {member.first_name} {member.last_name}
+                        </button>
+                        <p className="text-sm text-gray-600">{member.phone}</p>
+                      </div>
+                      <MemberStatusBadge status={member.status} />
                     </div>
                   </td>
                   <td className="p-4 text-gray-600">{member.email}</td>
@@ -235,16 +304,38 @@ export const MemberList = () => {
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {canAccess({ resource: 'members', action: 'delete' }) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setMemberToDelete(member)}
-                          aria-label="Eliminar miembro"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
-                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" aria-label="Más acciones">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {member.status === 'active' ? (
+                            <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
+                              <UserX className="w-4 h-4 mr-2" />
+                              Dar de baja
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
+                              <UserCheck className="w-4 h-4 mr-2" />
+                              Reactivar
+                            </DropdownMenuItem>
+                          )}
+                          {canAccess({ resource: 'members', action: 'delete' }) && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setMemberToDelete(member)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </td>
                 </tr>
@@ -314,6 +405,37 @@ export const MemberList = () => {
           }
         }}
       />
+
+      {/* Status Change Confirmation Dialog */}
+      <AlertDialog open={!!memberToChangeStatus} onOpenChange={(open) => !open && setMemberToChangeStatus(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {memberToChangeStatus?.status === 'active' ? 'Dar de baja' : 'Reactivar miembro'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {memberToChangeStatus?.status === 'active'
+                ? `Se dará de baja a "${memberToChangeStatus?.first_name} ${memberToChangeStatus?.last_name}". El miembro quedará inactivo y será excluido de los pagos anuales. Esta acción es reversible.`
+                : `Se reactivará a "${memberToChangeStatus?.first_name} ${memberToChangeStatus?.last_name}". El miembro volverá a estar activo y será incluido en los pagos anuales.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (memberToChangeStatus) {
+                  const newStatus = memberToChangeStatus.status === 'active' ? 'inactive' : 'active';
+                  changeMemberStatus(memberToChangeStatus.id, newStatus);
+                  setMemberToChangeStatus(null);
+                }
+              }}
+            >
+              {memberToChangeStatus?.status === 'active' ? 'Dar de baja' : 'Reactivar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

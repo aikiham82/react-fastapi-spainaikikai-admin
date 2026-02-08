@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters } from '../schemas/member.schema';
+import type { Member, CreateMemberRequest, UpdateMemberRequest, ChangeMemberStatusRequest, MemberFilters } from '../schemas/member.schema';
 
 const BASE_URL = '/api/v1/members';
 
@@ -31,10 +31,15 @@ export const deleteMember = async (id: string): Promise<void> => {
   return await apiClient.delete<void>(`${BASE_URL}/${id}`);
 };
 
+export const changeMemberStatus = async (id: string, data: ChangeMemberStatusRequest): Promise<Member> => {
+  return await apiClient.patch<Member>(`${BASE_URL}/${id}/status`, data);
+};
+
 export const memberService = {
   getMembers,
   getMember,
   createMember,
   updateMember,
   deleteMember,
+  changeMemberStatus,
 };

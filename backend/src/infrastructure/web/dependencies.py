@@ -44,6 +44,7 @@ from src.application.use_cases import (
     CreateMemberUseCase,
     UpdateMemberUseCase,
     DeleteMemberUseCase,
+    ChangeMemberStatusUseCase,
     # License use cases
     GetLicenseUseCase,
     GetAllLicensesUseCase,
@@ -180,6 +181,11 @@ def get_update_member_use_case() -> UpdateMemberUseCase:
 def get_delete_member_use_case() -> DeleteMemberUseCase:
     """Delete member use case."""
     return DeleteMemberUseCase(get_member_repository())
+
+@lru_cache()
+def get_change_member_status_use_case() -> ChangeMemberStatusUseCase:
+    """Change member status use case."""
+    return ChangeMemberStatusUseCase(get_member_repository())
 
 # License repository and use cases
 @lru_cache()

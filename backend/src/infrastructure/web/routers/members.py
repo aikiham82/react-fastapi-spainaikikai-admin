@@ -10,6 +10,7 @@ from src.domain.entities.insurance import Insurance
 from src.infrastructure.web.dto.member_dto import (
     MemberCreate,
     MemberUpdate,
+    MemberStatusChange,
     MemberResponse,
     LicenseSummary,
     InsuranceSummary,
@@ -22,6 +23,7 @@ from src.infrastructure.web.dependencies import (
     get_create_member_use_case,
     get_update_member_use_case,
     get_delete_member_use_case,
+    get_change_member_status_use_case,
     get_auth_context,
     get_license_repository,
     get_insurance_repository,
@@ -119,13 +121,14 @@ async def get_members(
     limit: int = 100,
     club_id: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
     get_all_use_case = Depends(get_all_members_use_case),
     get_search_use_case = Depends(get_search_members_use_case),
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),
     insurance_repo = Depends(get_insurance_repository),
 ):
-    """Get all members, optionally filtered by club or search term."""
+    """Get all members, optionally filtered by club, search term, or status."""
     if search:
         members = await get_search_use_case.execute(search, limit)
         # For club admins, filter to only return members from their club
@@ -144,6 +147,9 @@ async def get_members(
             members = await get_all_use_case.execute(limit, club_id)
         else:
             members = await get_all_use_case.execute(limit, None)
+
+    if status:
+        members = [m for m in members if m.status.value == status]
 
     responses = MemberMapper.to_response_list(members)
     return await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
@@ -282,6 +288,33 @@ async def update_member(
 
     member = await get_update_use_case.execute(member_id, **update_data)
     return MemberMapper.to_response_dto(member)
+
+
+@router.patch("/{member_id}/status", response_model=MemberResponse)
+async def change_member_status(
+    member_id: str,
+    status_data: MemberStatusChange,
+    get_member_use_case_instance = Depends(get_member_use_case),
+    change_status_use_case = Depends(get_change_member_status_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+    license_repo = Depends(get_license_repository),
+    insurance_repo = Depends(get_insurance_repository),
+):
+    """Change member status (activate/deactivate)."""
+    existing_member = await get_member_use_case_instance.execute(member_id)
+
+    if existing_member.club_id:
+        check_club_access_ctx(ctx, existing_member.club_id)
+    elif ctx.is_club_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this member"
+        )
+
+    member = await change_status_use_case.execute(member_id, status_data.status)
+    response = MemberMapper.to_response_dto(member)
+    enriched = await _enrich_members_with_summaries([response], license_repo, insurance_repo)
+    return enriched[0]
 
 
 @router.delete("/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
