@@ -92,7 +92,7 @@ export const MemberList = () => {
   }, [debouncedSearch]);
 
   const sortedMembers = [...members].sort((a, b) =>
-    (a.last_name || '').localeCompare(b.last_name || '', 'es') || (a.first_name || '').localeCompare(b.first_name || '', 'es')
+    (a.first_name || '').localeCompare(b.first_name || '', 'es') || (a.last_name || '').localeCompare(b.last_name || '', 'es')
   );
 
   const handleFilterStatus = (value: string) => {
