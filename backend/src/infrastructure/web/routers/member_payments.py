@@ -13,16 +13,19 @@ from src.infrastructure.web.dto.member_payment_dto import (
     PaymentTypeSummaryResponse,
     MemberPaymentSummaryResponse,
     UnpaidMembersResponse,
-    UnpaidMemberResponse
+    UnpaidMemberResponse,
+    AllClubsPaymentSummaryResponse,
+    ClubSummaryItemResponse,
 )
 from src.infrastructure.web.dependencies import (
     get_member_payment_status_use_case,
     get_member_payment_history_use_case,
     get_club_payment_summary_use_case,
     get_unpaid_members_use_case,
+    get_all_clubs_payment_summary_use_case,
     get_auth_context
 )
-from src.infrastructure.web.authorization import AuthContext
+from src.infrastructure.web.authorization import AuthContext, require_super_admin
 
 router = APIRouter(prefix="/member-payments", tags=["member-payments"])
 
@@ -110,6 +113,35 @@ async def get_member_payment_history(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+
+
+@router.get("/all-clubs/summary", response_model=AllClubsPaymentSummaryResponse)
+async def get_all_clubs_payment_summary(
+    payment_year: Optional[int] = None,
+    use_case=Depends(get_all_clubs_payment_summary_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Get payment summary for all clubs. Super Admin only."""
+    require_super_admin(ctx)
+
+    result = await use_case.execute(payment_year=payment_year)
+
+    return AllClubsPaymentSummaryResponse(
+        payment_year=result.payment_year,
+        clubs=[
+            ClubSummaryItemResponse(
+                club_id=c.club_id,
+                club_name=c.club_name,
+                total_members=c.total_members,
+                members_with_license=c.members_with_license,
+                members_with_insurance=c.members_with_insurance,
+                total_collected=c.total_collected,
+                has_club_fee=c.has_club_fee,
+            ) for c in result.clubs
+        ],
+        grand_total_collected=result.grand_total_collected,
+        grand_total_members=result.grand_total_members,
+    )
 
 
 @router.get("/club/{club_id}/summary", response_model=ClubPaymentSummaryResponse)

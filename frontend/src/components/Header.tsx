@@ -26,6 +26,8 @@ const getPageTitle = (pathname: string) => {
       return 'Facturas';
     case '/annual-payments':
       return 'Pagos Anuales';
+    case '/club-payments':
+      return 'Pagos';
     case '/import-export':
       return 'Importar/Exportar';
     case '/price-configurations':

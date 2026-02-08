@@ -33,6 +33,7 @@ const InvoicesPage = lazy(() => import("./pages/invoices.page").then(m => ({ def
 const PaymentSuccessPage = lazy(() => import("./pages/payment-success.page").then(m => ({ default: m.PaymentSuccessPage })));
 const PaymentFailurePage = lazy(() => import("./pages/payment-failure.page").then(m => ({ default: m.PaymentFailurePage })));
 const AnnualPaymentsPage = lazy(() => import("./pages/annual-payments.page").then(m => ({ default: m.AnnualPaymentsPage })));
+const ClubPaymentsPageRoute = lazy(() => import("./pages/club-payments.page").then(m => ({ default: m.ClubPaymentsPageRoute })));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-screen">
@@ -62,6 +63,7 @@ function App() {
                   <Route path="/licenses" element={<LicensesPage />} />
                   <Route path="/invoices" element={<InvoicesPage />} />
                   <Route path="/annual-payments" element={<AnnualPaymentsPage />} />
+                  <Route path="/club-payments" element={<ClubPaymentsPageRoute />} />
                   <Route path="/seminars" element={<SeminarsPage />} />
                   <Route path="/insurance" element={<InsurancePage />} />
                   <Route path="/import-export" element={<ImportExportPage />} />

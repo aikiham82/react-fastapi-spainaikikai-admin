@@ -95,6 +95,25 @@ class UnpaidMembersResponse(BaseModel):
     total_count: int
 
 
+class ClubSummaryItemResponse(BaseModel):
+    """DTO for a single club's payment summary."""
+    club_id: str
+    club_name: str
+    total_members: int
+    members_with_license: int
+    members_with_insurance: int
+    total_collected: float
+    has_club_fee: bool
+
+
+class AllClubsPaymentSummaryResponse(BaseModel):
+    """DTO for all clubs payment summary response."""
+    payment_year: int
+    clubs: List[ClubSummaryItemResponse]
+    grand_total_collected: float
+    grand_total_members: int
+
+
 # Request DTOs for member assignment in annual payments
 class MemberPaymentAssignment(BaseModel):
     """DTO for assigning a payment to a specific member."""

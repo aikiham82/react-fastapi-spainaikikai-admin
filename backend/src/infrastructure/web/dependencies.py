@@ -105,6 +105,7 @@ from src.application.use_cases.member_payment import (
     GetClubPaymentSummaryUseCase,
     GetUnpaidMembersUseCase
 )
+from src.application.use_cases.member_payment.get_all_clubs_payment_summary_use_case import GetAllClubsPaymentSummaryUseCase
 from src.config.settings import get_app_settings
 
 @lru_cache()
@@ -634,5 +635,15 @@ def get_unpaid_members_use_case() -> GetUnpaidMembersUseCase:
     """Get unpaid members use case."""
     return GetUnpaidMembersUseCase(
         member_payment_repository=get_member_payment_repository(),
+        member_repository=get_member_repository()
+    )
+
+
+@lru_cache()
+def get_all_clubs_payment_summary_use_case() -> GetAllClubsPaymentSummaryUseCase:
+    """Get all clubs payment summary use case."""
+    return GetAllClubsPaymentSummaryUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        club_repository=get_club_repository(),
         member_repository=get_member_repository()
     )
