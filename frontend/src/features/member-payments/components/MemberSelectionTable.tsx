@@ -10,14 +10,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Users } from 'lucide-react';
@@ -272,17 +270,17 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         </div>
 
         {/* Table */}
-        <ScrollArea className="h-[400px] border rounded-md">
-          <Table>
-            <TableHeader>
+        <div className="h-[400px] overflow-auto border rounded-md">
+          <table className="w-full caption-bottom text-sm">
+            <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow>
-                <TableHead className="sticky top-0 bg-background">
+                <TableHead>
                   Miembro
                 </TableHead>
                 {PAYMENT_TYPE_OPTIONS.map((opt) => (
                   <TableHead
                     key={opt.value}
-                    className="text-center sticky top-0 bg-background cursor-pointer hover:bg-muted"
+                    className="text-center cursor-pointer hover:bg-muted"
                     onClick={() => toggleAllOfType(opt.value)}
                     title={`Clic para seleccionar/deseleccionar todos (${opt.label})`}
                   >
@@ -328,8 +326,8 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                 );
               })}
             </TableBody>
-          </Table>
-        </ScrollArea>
+          </table>
+        </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
