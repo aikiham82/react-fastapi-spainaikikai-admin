@@ -90,10 +90,11 @@ async def get_licenses(
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
     search: Optional[str] = None,
+    status: Optional[str] = None,
     get_all_use_case = Depends(get_all_licenses_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get all licenses, optionally filtered by club, member, or member name search."""
+    """Get all licenses, optionally filtered by club, member, status, or member name search."""
     # Club admins are forced to their club only
     effective_club_id = get_club_filter_ctx(ctx)
 
@@ -130,11 +131,17 @@ async def get_licenses(
     else:
         licenses = await get_all_use_case.execute(limit, None, effective_member_id)
 
+    # Filter by status after domain conversion (status is computed from expiry date)
+    if status:
+        licenses = [lic for lic in licenses if lic.status.value == status]
+
     items = LicenseMapper.to_response_list(licenses)
     items = await _populate_member_names(items)
+    total = len(items)
+    items = items[offset:offset + limit]
     return LicenseListResponse(
         items=items,
-        total=len(items),
+        total=total,
         offset=offset,
         limit=limit
     )
