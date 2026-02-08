@@ -12,28 +12,44 @@ import { AppLayout } from "./components/AppLayout";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "sonner";
 
+// Retry dynamic imports with full page reload on chunk load failure (stale deployments)
+function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType }>) {
+  return lazy(() =>
+    factory().catch((error) => {
+      const hasReloaded = sessionStorage.getItem("chunk_reload");
+      if (!hasReloaded) {
+        sessionStorage.setItem("chunk_reload", "1");
+        window.location.reload();
+        return new Promise(() => {}); // never resolves — page is reloading
+      }
+      sessionStorage.removeItem("chunk_reload");
+      throw error;
+    })
+  );
+}
+
 // Pages with default exports
-const LoginPage = lazy(() => import("./pages/login.page"));
-const RegisterPage = lazy(() => import("./pages/register.page"));
-const HomePage = lazy(() => import("./pages/home.page"));
-const ForgotPasswordPage = lazy(() => import("./pages/forgot-password.page"));
-const ResetPasswordPage = lazy(() => import("./pages/reset-password.page"));
-const UnauthorizedPage = lazy(() => import("./pages/unauthorized.page"));
+const LoginPage = lazyWithRetry(() => import("./pages/login.page"));
+const RegisterPage = lazyWithRetry(() => import("./pages/register.page"));
+const HomePage = lazyWithRetry(() => import("./pages/home.page"));
+const ForgotPasswordPage = lazyWithRetry(() => import("./pages/forgot-password.page"));
+const ResetPasswordPage = lazyWithRetry(() => import("./pages/reset-password.page"));
+const UnauthorizedPage = lazyWithRetry(() => import("./pages/unauthorized.page"));
 
 // Pages with named exports
-const ClubsPage = lazy(() => import("./pages/clubs.page").then(m => ({ default: m.ClubsPage })));
-const MembersPage = lazy(() => import("./pages/members.page").then(m => ({ default: m.MembersPage })));
-const LicensesPage = lazy(() => import("./pages/licenses.page").then(m => ({ default: m.LicensesPage })));
-const SeminarsPage = lazy(() => import("./pages/seminars.page").then(m => ({ default: m.SeminarsPage })));
-const InsurancePage = lazy(() => import("./pages/insurance.page").then(m => ({ default: m.InsurancePage })));
-const ImportExportPage = lazy(() => import("./pages/import-export.page").then(m => ({ default: m.ImportExportPage })));
-const SettingsPage = lazy(() => import("./pages/settings.page").then(m => ({ default: m.SettingsPage })));
-const PriceConfigurationsPage = lazy(() => import("./pages/price-configurations.page").then(m => ({ default: m.PriceConfigurationsPage })));
-const InvoicesPage = lazy(() => import("./pages/invoices.page").then(m => ({ default: m.InvoicesPage })));
-const PaymentSuccessPage = lazy(() => import("./pages/payment-success.page").then(m => ({ default: m.PaymentSuccessPage })));
-const PaymentFailurePage = lazy(() => import("./pages/payment-failure.page").then(m => ({ default: m.PaymentFailurePage })));
-const AnnualPaymentsPage = lazy(() => import("./pages/annual-payments.page").then(m => ({ default: m.AnnualPaymentsPage })));
-const ClubPaymentsPageRoute = lazy(() => import("./pages/club-payments.page").then(m => ({ default: m.ClubPaymentsPageRoute })));
+const ClubsPage = lazyWithRetry(() => import("./pages/clubs.page").then(m => ({ default: m.ClubsPage })));
+const MembersPage = lazyWithRetry(() => import("./pages/members.page").then(m => ({ default: m.MembersPage })));
+const LicensesPage = lazyWithRetry(() => import("./pages/licenses.page").then(m => ({ default: m.LicensesPage })));
+const SeminarsPage = lazyWithRetry(() => import("./pages/seminars.page").then(m => ({ default: m.SeminarsPage })));
+const InsurancePage = lazyWithRetry(() => import("./pages/insurance.page").then(m => ({ default: m.InsurancePage })));
+const ImportExportPage = lazyWithRetry(() => import("./pages/import-export.page").then(m => ({ default: m.ImportExportPage })));
+const SettingsPage = lazyWithRetry(() => import("./pages/settings.page").then(m => ({ default: m.SettingsPage })));
+const PriceConfigurationsPage = lazyWithRetry(() => import("./pages/price-configurations.page").then(m => ({ default: m.PriceConfigurationsPage })));
+const InvoicesPage = lazyWithRetry(() => import("./pages/invoices.page").then(m => ({ default: m.InvoicesPage })));
+const PaymentSuccessPage = lazyWithRetry(() => import("./pages/payment-success.page").then(m => ({ default: m.PaymentSuccessPage })));
+const PaymentFailurePage = lazyWithRetry(() => import("./pages/payment-failure.page").then(m => ({ default: m.PaymentFailurePage })));
+const AnnualPaymentsPage = lazyWithRetry(() => import("./pages/annual-payments.page").then(m => ({ default: m.AnnualPaymentsPage })));
+const ClubPaymentsPageRoute = lazyWithRetry(() => import("./pages/club-payments.page").then(m => ({ default: m.ClubPaymentsPageRoute })));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-screen">
