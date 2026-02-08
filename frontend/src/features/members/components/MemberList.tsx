@@ -2,82 +2,20 @@ import { useState, useEffect } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
-import { Users, Plus, Search, Trash2, Eye, CreditCard, Loader2 } from 'lucide-react';
+import { Users, Plus, Search, Trash2, CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge } from './MemberBadges';
 
-function MemberQuickViewContent({ member }: { member: Member }) {
-  return (
-    <div className="space-y-4 py-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm font-medium text-gray-900">Email</p>
-          <p className="text-sm text-gray-600">{member.email}</p>
-        </div>
-        <div>
-          <p className="text-sm font-medium text-gray-900">Teléfono</p>
-          <p className="text-sm text-gray-600">{member.phone}</p>
-        </div>
-      </div>
-      <div>
-        <p className="text-sm font-medium text-gray-900">Dirección</p>
-        <p className="text-sm text-gray-600">{member.address}</p>
-        <p className="text-sm text-gray-600">{member.postal_code}, {member.city}</p>
-      </div>
-      <div>
-        <p className="text-sm font-medium text-gray-900">Fecha de Nacimiento</p>
-        <p className="text-sm text-gray-600">
-          {member.birth_date
-            ? new Date(member.birth_date).toLocaleDateString('es-ES')
-            : 'No especificada'}
-        </p>
-      </div>
-
-      <Separator />
-
-      <div>
-        <p className="text-sm font-medium text-gray-900 mb-2">Licencia</p>
-        <div className="flex items-center gap-2 flex-wrap">
-          <GradeBadge licenseSummary={member.license_summary} />
-          <LicenseStatusBadge licenseSummary={member.license_summary} />
-        </div>
-        {member.license_summary?.expiration_date && (
-          <p className="text-xs text-gray-500 mt-1">
-            Vence: {new Date(member.license_summary.expiration_date).toLocaleDateString('es-ES')}
-          </p>
-        )}
-      </div>
-
-      <Separator />
-
-      <div>
-        <p className="text-sm font-medium text-gray-900 mb-2">Seguros</p>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Responsabilidad Civil</p>
-            <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Accidentes</p>
-            <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export const MemberList = () => {
-  const { members, isLoading, isFetching, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
+  const { members, isLoading, isFetching, error, filters, setFilters, total, limit, offset, deleteMember, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -222,19 +160,6 @@ export const MemberList = () => {
               <Button variant="ghost" size="icon" onClick={() => setSelectedMemberForPayments(member)} aria-label="Ver pagos">
                 <CreditCard className="w-4 h-4" />
               </Button>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => selectMember(member)} aria-label="Ver detalles del miembro">
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{member.first_name} {member.last_name}</DialogTitle>
-                  </DialogHeader>
-                  <MemberQuickViewContent member={member} />
-                </DialogContent>
-              </Dialog>
               {canAccess({ resource: 'members', action: 'delete' }) && (
                 <Button variant="ghost" size="icon" onClick={() => setMemberToDelete(member)} aria-label="Eliminar miembro">
                   <Trash2 className="w-4 h-4 text-red-600" />
@@ -310,22 +235,6 @@ export const MemberList = () => {
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => selectMember(member)} aria-label="Ver detalles del miembro">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              {member.first_name} {member.last_name}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <MemberQuickViewContent member={member} />
-                        </DialogContent>
-                      </Dialog>
-
                       {canAccess({ resource: 'members', action: 'delete' }) && (
                         <Button
                           variant="ghost"

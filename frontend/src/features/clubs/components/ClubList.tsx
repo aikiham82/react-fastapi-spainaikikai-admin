@@ -2,18 +2,16 @@ import { useState, useMemo } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Club } from '../data/schemas/club.schema';
-import { Building2, Plus, Search, Trash2, Eye } from 'lucide-react';
+import { Building2, Plus, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export const ClubList = () => {
-  const { clubs, isLoading, error, deleteClub, selectClub } = useClubContext();
+  const { clubs, isLoading, error, deleteClub } = useClubContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -117,49 +115,6 @@ export const ClubList = () => {
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => selectClub(club)} aria-label="Ver detalles del club">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{club.name}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Dirección</p>
-                          <p className="text-sm text-gray-600">{club.address}</p>
-                          <p className="text-sm text-gray-600">{club.postal_code} {club.city}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">Teléfono</p>
-                            <p className="text-sm text-gray-600">{club.phone}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">Email</p>
-                            <p className="text-sm text-gray-600">{club.email}</p>
-                          </div>
-                        </div>
-                        {club.website && (
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">Sitio Web</p>
-                            <a href={club.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
-                              {club.website}
-                            </a>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-4">
-                          <Badge variant="secondary">
-                            {club.member_count || 0} miembros
-                          </Badge>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-
                   {canAccess({ resource: 'clubs', action: 'delete' }) && (
                     <Button
                       variant="ghost"
