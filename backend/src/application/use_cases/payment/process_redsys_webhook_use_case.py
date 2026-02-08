@@ -349,6 +349,7 @@ class ProcessRedsysWebhookUseCase:
             return []
 
         member_payments: List[MemberPayment] = []
+        club_fee_created = False
 
         for assignment in assignments:
             member_id = assignment.get("member_id")
@@ -375,6 +376,12 @@ class ProcessRedsysWebhookUseCase:
                 member_payment_type = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get(ptype)
                 if not member_payment_type:
                     continue
+
+                # Club fee is per-club, only create one record
+                if ptype == "club_fee":
+                    if club_fee_created:
+                        continue
+                    club_fee_created = True
 
                 # Get price for this payment type from database
                 price = 0.0

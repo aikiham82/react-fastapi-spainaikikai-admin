@@ -137,7 +137,7 @@ class MemberPaymentAssignment(BaseModel):
         valid_types = [
             'licencia_kyu', 'licencia_kyu_infantil', 'licencia_dan',
             'titulo_fukushidoin', 'titulo_shidoin',
-            'seguro_accidentes', 'seguro_rc'
+            'seguro_accidentes', 'seguro_rc', 'cuota_club'
         ]
         for ptype in v:
             if ptype not in valid_types:

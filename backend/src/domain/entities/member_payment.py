@@ -34,6 +34,7 @@ ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE = {
     "shidoin": MemberPaymentType.TITULO_SHIDOIN,
     "seguro_accidentes": MemberPaymentType.SEGURO_ACCIDENTES,
     "seguro_rc": MemberPaymentType.SEGURO_RC,
+    "club_fee": MemberPaymentType.CUOTA_CLUB,
 }
 
 

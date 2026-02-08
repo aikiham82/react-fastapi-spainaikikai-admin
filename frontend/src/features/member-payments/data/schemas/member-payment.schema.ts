@@ -9,6 +9,7 @@ export const MEMBER_PAYMENT_TYPES = {
   titulo_shidoin: 'Titulo Shidoin',
   seguro_accidentes: 'Seguro de Accidentes',
   seguro_rc: 'Seguro RC',
+  cuota_club: 'Cuota de Club',
 } as const;
 
 export type MemberPaymentType = keyof typeof MEMBER_PAYMENT_TYPES;
