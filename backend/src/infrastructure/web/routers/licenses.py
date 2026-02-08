@@ -59,6 +59,13 @@ def _get_expiration_date(license_data: LicenseCreate) -> Optional[datetime]:
     return license_data.expiration_date or license_data.expiry_date
 
 
+async def _get_club_member_ids(club_id: str) -> set:
+    """Get the set of member ID strings for a given club."""
+    db = get_database()
+    member_ids = await db["members"].distinct("_id", {"club_id": club_id})
+    return {str(m) for m in member_ids}
+
+
 async def _populate_member_names(items: List[LicenseResponse]) -> List[LicenseResponse]:
     """Populate member_name for license items."""
     db = get_database()
@@ -82,22 +89,46 @@ async def get_licenses(
     offset: int = 0,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
+    search: Optional[str] = None,
     get_all_use_case = Depends(get_all_licenses_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get all licenses, optionally filtered by club or member."""
+    """Get all licenses, optionally filtered by club, member, or member name search."""
     # Club admins are forced to their club only
     effective_club_id = get_club_filter_ctx(ctx)
 
-    if effective_club_id is not None:
-        # Club admin - use their club_id (ignore query param)
-        licenses = await get_all_use_case.execute(limit, effective_club_id, member_id)
+    # If search is provided, find matching member IDs first
+    effective_member_id = member_id
+    member_ids_from_search: Optional[List[str]] = None
+    if search:
+        db = get_database()
+        member_query = {
+            "$or": [
+                {"first_name": {"$regex": search, "$options": "i"}},
+                {"last_name": {"$regex": search, "$options": "i"}}
+            ]
+        }
+        matching_members = await db["members"].find(member_query, {"_id": 1}).to_list(length=None)
+        member_ids_from_search = [str(m["_id"]) for m in matching_members]
+        if not member_ids_from_search:
+            return LicenseListResponse(items=[], total=0, offset=offset, limit=limit)
+
+    if member_ids_from_search is not None:
+        # Search by member name - use find_by_member_ids
+        licenses = await get_all_use_case.license_repository.find_by_member_ids(member_ids_from_search, limit)
+        # Apply club filter
+        if effective_club_id is not None:
+            club_member_ids = await _get_club_member_ids(effective_club_id)
+            licenses = [lic for lic in licenses if lic.member_id in club_member_ids]
+        elif club_id:
+            club_member_ids = await _get_club_member_ids(club_id)
+            licenses = [lic for lic in licenses if lic.member_id in club_member_ids]
+    elif effective_club_id is not None:
+        licenses = await get_all_use_case.execute(limit, effective_club_id, effective_member_id)
     elif club_id:
-        # Super admin with explicit club filter
-        licenses = await get_all_use_case.execute(limit, club_id, member_id)
+        licenses = await get_all_use_case.execute(limit, club_id, effective_member_id)
     else:
-        # Super admin - see all licenses
-        licenses = await get_all_use_case.execute(limit, None, member_id)
+        licenses = await get_all_use_case.execute(limit, None, effective_member_id)
 
     items = LicenseMapper.to_response_list(licenses)
     items = await _populate_member_names(items)

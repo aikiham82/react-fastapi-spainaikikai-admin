@@ -22,6 +22,7 @@ export interface CreateLicenseRequest {
 export interface UpdateLicenseRequest extends Partial<CreateLicenseRequest> {}
 
 export interface LicenseFilters {
+  search?: string;
   member_id?: string;
   club_id?: string;
   status?: 'active' | 'expired' | 'pending';

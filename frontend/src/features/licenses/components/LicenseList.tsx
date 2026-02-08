@@ -31,7 +31,7 @@ export const LicenseList = () => {
   const debouncedSearch = useDebounce(searchTerm, 300);
 
   useEffect(() => {
-    setFilters({ ...filters, member_id: debouncedSearch || undefined, offset: 0 });
+    setFilters({ ...filters, search: debouncedSearch || undefined, offset: 0 });
   }, [debouncedSearch]);
 
   const sortedLicenses = [...licenses].sort((a, b) =>
