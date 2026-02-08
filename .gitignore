@@ -5,6 +5,7 @@ latest_news_links/*
 testsprite_tests/
 .claude/sessions
 .claude/doc
+.claude/plans
 docs/
 
 # Git worktrees
