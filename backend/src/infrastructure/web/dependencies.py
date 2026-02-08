@@ -344,6 +344,7 @@ def get_prefill_annual_payment_use_case() -> PrefillAnnualPaymentUseCase:
         get_license_repository(),
         get_insurance_repository(),
         get_payment_repository(),
+        get_member_payment_repository(),
     )
 
 @lru_cache()

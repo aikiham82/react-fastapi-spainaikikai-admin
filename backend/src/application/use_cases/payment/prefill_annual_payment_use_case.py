@@ -8,9 +8,11 @@ from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.domain.entities.license import TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType
 from src.domain.entities.payment import PaymentType, PaymentStatus
+from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymentType
 
 
 @dataclass
@@ -48,11 +50,13 @@ class PrefillAnnualPaymentUseCase:
         license_repository: LicenseRepositoryPort,
         insurance_repository: InsuranceRepositoryPort,
         payment_repository: PaymentRepositoryPort,
+        member_payment_repository: MemberPaymentRepositoryPort = None,
     ):
         self._member_repo = member_repository
         self._license_repo = license_repository
         self._insurance_repo = insurance_repository
         self._payment_repo = payment_repository
+        self._member_payment_repo = member_payment_repository
 
     async def execute(
         self,
@@ -99,7 +103,34 @@ class PrefillAnnualPaymentUseCase:
             elif ins.insurance_type == InsuranceType.CIVIL_LIABILITY:
                 member_insurance_map[mid].add("seguro_rc")
 
-        # 5. Classify members and build counts + assignments
+        # 5. Get already-paid member payment types for this year
+        paid_set: set = set()
+        if self._member_payment_repo and member_ids:
+            existing_mp = await self._member_payment_repo.find_by_member_ids_year(
+                member_ids, payment_year, status=MemberPaymentStatus.COMPLETED
+            )
+            # Map MemberPaymentType back to prefill item_type
+            mp_type_to_item = {
+                MemberPaymentType.LICENCIA_KYU: "kyu",
+                MemberPaymentType.LICENCIA_KYU_INFANTIL: "kyu_infantil",
+                MemberPaymentType.LICENCIA_DAN: "dan",
+                MemberPaymentType.TITULO_FUKUSHIDOIN: "fukushidoin",
+                MemberPaymentType.TITULO_SHIDOIN: "shidoin",
+                MemberPaymentType.SEGURO_ACCIDENTES: "seguro_accidentes",
+                MemberPaymentType.SEGURO_RC: "seguro_rc",
+            }
+            for mp in existing_mp:
+                item_type = mp_type_to_item.get(mp.payment_type)
+                if item_type:
+                    paid_set.add((mp.member_id, item_type))
+                # Fukushidoin/Shidoin include RC insurance implicitly
+                if mp.payment_type in (
+                    MemberPaymentType.TITULO_FUKUSHIDOIN,
+                    MemberPaymentType.TITULO_SHIDOIN,
+                ):
+                    paid_set.add((mp.member_id, "seguro_rc"))
+
+        # 6. Classify members and build counts + assignments (excluding already paid)
         counts = {
             "kyu": 0, "kyu_infantil": 0, "dan": 0,
             "fukushidoin": 0, "shidoin": 0,
@@ -113,26 +144,32 @@ class PrefillAnnualPaymentUseCase:
 
             if lic:
                 if lic.instructor_category == InstructorCategory.FUKUSHIDOIN:
-                    member_types.append("fukushidoin")
-                    counts["fukushidoin"] += 1
+                    if (member.id, "fukushidoin") not in paid_set:
+                        member_types.append("fukushidoin")
+                        counts["fukushidoin"] += 1
                 elif lic.instructor_category == InstructorCategory.SHIDOIN:
-                    member_types.append("shidoin")
-                    counts["shidoin"] += 1
+                    if (member.id, "shidoin") not in paid_set:
+                        member_types.append("shidoin")
+                        counts["shidoin"] += 1
                 elif lic.technical_grade == TechnicalGrade.DAN:
-                    member_types.append("dan")
-                    counts["dan"] += 1
+                    if (member.id, "dan") not in paid_set:
+                        member_types.append("dan")
+                        counts["dan"] += 1
                 elif lic.technical_grade == TechnicalGrade.KYU:
                     if lic.age_category == AgeCategory.INFANTIL:
-                        member_types.append("kyu_infantil")
-                        counts["kyu_infantil"] += 1
+                        if (member.id, "kyu_infantil") not in paid_set:
+                            member_types.append("kyu_infantil")
+                            counts["kyu_infantil"] += 1
                     else:
-                        member_types.append("kyu")
-                        counts["kyu"] += 1
+                        if (member.id, "kyu") not in paid_set:
+                            member_types.append("kyu")
+                            counts["kyu"] += 1
 
             ins_types = member_insurance_map.get(member.id, set())
             for it in ins_types:
-                member_types.append(it)
-                counts[it] += 1
+                if (member.id, it) not in paid_set:
+                    member_types.append(it)
+                    counts[it] += 1
 
             if member_types:
                 assignments.append(PrefillMemberAssignment(
@@ -141,7 +178,7 @@ class PrefillAnnualPaymentUseCase:
                     payment_types=member_types,
                 ))
 
-        # 6. Determine club fee
+        # 7. Determine club fee
         existing_payment = await self._payment_repo.find_by_club_type_year(
             club_id, PaymentType.ANNUAL_QUOTA, payment_year
         )
