@@ -20,7 +20,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Users, AlertCircle } from 'lucide-react';
+import { Search, Users } from 'lucide-react';
 import type { Member } from '@/features/members/data/schemas/member.schema';
 import type { MemberPaymentAssignment } from '../data/schemas/member-payment.schema';
 
@@ -40,7 +40,7 @@ interface MemberSelectionTableProps {
   members: Member[];
   initialAssignments?: MemberPaymentAssignment[];
   onConfirm: (assignments: MemberPaymentAssignment[]) => void;
-  maxQuantities: {
+  maxQuantities?: {
     kyu: number;
     kyu_infantil: number;
     dan: number;
@@ -101,17 +101,6 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
     return counts;
   }, [assignments]);
 
-  // Check if a type can be added (not exceeding max)
-  const canAddType = useCallback(
-    (type: string, memberId: string) => {
-      const memberTypes = assignments.get(memberId) || new Set();
-      if (memberTypes.has(type)) return true; // Already selected
-      const max = maxQuantities[type as keyof typeof maxQuantities] || 0;
-      return currentCounts[type] < max;
-    },
-    [assignments, currentCounts, maxQuantities]
-  );
-
   // Toggle payment type for a member
   const togglePaymentType = useCallback(
     (memberId: string, paymentType: string) => {
@@ -122,7 +111,6 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         if (memberTypes.has(paymentType)) {
           memberTypes.delete(paymentType);
         } else {
-          if (!canAddType(paymentType, memberId)) return prev;
           memberTypes.add(paymentType);
         }
 
@@ -134,15 +122,12 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         return newMap;
       });
     },
-    [canAddType]
+    []
   );
 
   // Toggle all of a type for visible members
   const toggleAllOfType = useCallback(
     (paymentType: string) => {
-      const max = maxQuantities[paymentType as keyof typeof maxQuantities] || 0;
-      const currentCount = currentCounts[paymentType];
-
       setAssignments((prev) => {
         const newMap = new Map(prev);
 
@@ -163,16 +148,13 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
             }
           });
         } else {
-          // Add to members up to max
-          let added = currentCount;
+          // Add to all visible members that don't have it
           filteredMembers.forEach((m) => {
-            if (added >= max) return;
             const types = newMap.get(m.id);
             if (!types?.has(paymentType)) {
               const memberTypes = new Set(types || []);
               memberTypes.add(paymentType);
               newMap.set(m.id, memberTypes);
-              added++;
             }
           });
         }
@@ -180,7 +162,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         return newMap;
       });
     },
-    [filteredMembers, maxQuantities, currentCounts]
+    [filteredMembers]
   );
 
   // Get member name for assignment
@@ -231,32 +213,22 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         {/* Quantity Summary */}
         <div className="flex flex-wrap gap-2 py-2">
           {PAYMENT_TYPE_OPTIONS.map((opt) => {
-            const max = maxQuantities[opt.value as keyof typeof maxQuantities] || 0;
             const current = currentCounts[opt.value] || 0;
-            const isFull = current >= max;
+            const max = maxQuantities?.[opt.value as keyof typeof maxQuantities];
+            const hasMax = max !== undefined && max > 0;
+            const matchesMax = hasMax && current === max;
 
             return (
               <Badge
                 key={opt.value}
-                variant={isFull && max > 0 ? 'default' : 'outline'}
-                className={isFull && max > 0 ? 'bg-green-600' : ''}
+                variant={matchesMax ? 'default' : current > 0 ? 'default' : 'outline'}
+                className={matchesMax ? 'bg-green-600' : current > 0 ? 'bg-blue-600' : ''}
               >
-                {opt.label}: {current}/{max}
+                {opt.label}: {current}{hasMax ? `/${max}` : ''}
               </Badge>
             );
           })}
         </div>
-
-        {/* Validation Warning */}
-        {Object.entries(currentCounts).some(
-          ([type, count]) =>
-            count > (maxQuantities[type as keyof typeof maxQuantities] || 0)
-        ) && (
-          <div className="flex items-center gap-2 text-destructive text-sm">
-            <AlertCircle className="h-4 w-4" />
-            Hay tipos de pago que exceden la cantidad máxima permitida.
-          </div>
-        )}
 
         {/* Search */}
         <div className="relative">
@@ -306,16 +278,11 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                     </TableCell>
                     {PAYMENT_TYPE_OPTIONS.map((opt) => {
                       const isChecked = memberTypes.has(opt.value);
-                      const max =
-                        maxQuantities[opt.value as keyof typeof maxQuantities] || 0;
-                      const canAdd = canAddType(opt.value, member.id);
-                      const isDisabled = !isChecked && (!canAdd || max === 0);
 
                       return (
                         <TableCell key={opt.value} className="text-center">
                           <Checkbox
                             checked={isChecked}
-                            disabled={isDisabled}
                             onCheckedChange={() =>
                               togglePaymentType(member.id, opt.value)
                             }

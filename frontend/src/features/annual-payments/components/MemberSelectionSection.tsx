@@ -50,7 +50,7 @@ export const MemberSelectionSection: React.FC = () => {
     );
   }
 
-  if (!hasQuantities) {
+  if (!hasQuantities && !hasAssignments) {
     return (
       <div className="border rounded-lg p-4 bg-muted/50">
         <h3 className="font-medium mb-2 flex items-center gap-2">
