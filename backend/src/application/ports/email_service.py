@@ -30,6 +30,11 @@ class EmailServicePort(ABC):
     """Port for email service operations."""
 
     @abstractmethod
+    def is_available(self) -> bool:
+        """Check if the email service is configured and available."""
+        pass
+
+    @abstractmethod
     async def send_email(self, message: EmailMessage) -> bool:
         """Send an email message."""
         pass

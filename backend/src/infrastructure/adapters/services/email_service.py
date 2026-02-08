@@ -219,6 +219,10 @@ class EmailService(EmailServicePort):
         self.settings = get_email_settings()
         self.jinja_env = Environment(loader=BaseLoader())
 
+    def is_available(self) -> bool:
+        """Check if SMTP settings are properly configured."""
+        return self.settings.is_configured
+
     def _render_template(self, template: str, **kwargs) -> str:
         """Render a Jinja2 template with the given context."""
         tmpl = self.jinja_env.from_string(template)

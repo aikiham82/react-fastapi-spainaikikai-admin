@@ -11,13 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 export const ForgotPasswordForm = () => {
   const [email, setEmail] = useState("");
-  const { requestResetAsync, isLoading, isSuccess, error, reset } =
+  const { requestResetAsync, isLoading, isSuccess, error, data, reset } =
     useRequestPasswordResetMutation();
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -29,8 +29,47 @@ export const ForgotPasswordForm = () => {
     }
   };
 
-  // Show success message after submission
-  if (isSuccess) {
+  // Show email sending error (API returned 200 but success=false)
+  if (isSuccess && data && !data.success) {
+    return (
+      <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+        <CardHeader className="space-y-1 pb-6">
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-center text-gray-900">
+            Error al enviar
+          </CardTitle>
+          <CardDescription className="text-center text-gray-600">
+            {data.message}
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="flex flex-col space-y-4 pt-6">
+          <Button
+            variant="outline"
+            className="w-full h-12 font-medium transition-all duration-200"
+            onClick={() => {
+              reset();
+            }}
+          >
+            Intentar de nuevo
+          </Button>
+          <Link to="/login" className="w-full">
+            <Button
+              variant="ghost"
+              className="w-full h-10 font-medium transition-all duration-200 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver al inicio de sesion
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // Show success message only when email was actually sent
+  if (isSuccess && data?.success) {
     return (
       <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="space-y-1 pb-6">
