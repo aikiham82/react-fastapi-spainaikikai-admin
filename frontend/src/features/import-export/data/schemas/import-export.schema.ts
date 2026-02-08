@@ -47,3 +47,13 @@ export interface ExportInsurancesFilters {
   status?: string;
   insurance_type?: string;
 }
+
+// Payment import/export
+export interface ImportPaymentsRequest {
+  payments: Array<Record<string, unknown>>;
+  mode?: 'create' | 'upsert';
+}
+
+export interface ExportPaymentsFilters {
+  payment_year: number;
+}

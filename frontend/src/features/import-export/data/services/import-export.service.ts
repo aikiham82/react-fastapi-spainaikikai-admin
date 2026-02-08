@@ -7,6 +7,8 @@ import type {
   ExportLicensesFilters,
   ImportInsurancesRequest,
   ExportInsurancesFilters,
+  ImportPaymentsRequest,
+  ExportPaymentsFilters,
 } from '../schemas/import-export.schema';
 import * as XLSX from 'xlsx';
 
@@ -81,6 +83,18 @@ export const exportInsurances = async (filters?: ExportInsurancesFilters): Promi
   });
 };
 
+// Payment import/export
+export const importPayments = async (data: ImportPaymentsRequest): Promise<ImportMembersResponse> => {
+  return await apiClient.post<ImportMembersResponse>(`${BASE_URL}/payments/import`, data);
+};
+
+export const exportPayments = async (filters: ExportPaymentsFilters): Promise<Blob> => {
+  return await apiClient.get<Blob>(`${BASE_URL}/payments/export`, {
+    params: filters,
+    responseType: 'blob',
+  });
+};
+
 export const importExportService = {
   importMembers,
   exportMembers,
@@ -88,6 +102,8 @@ export const importExportService = {
   exportLicenses,
   importInsurances,
   exportInsurances,
+  importPayments,
+  exportPayments,
   parseExcelFile,
   exportToExcel,
 };

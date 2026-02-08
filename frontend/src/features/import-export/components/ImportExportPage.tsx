@@ -6,10 +6,12 @@ import {
   useExportLicensesMutation,
   useImportInsurancesMutation,
   useExportInsurancesMutation,
+  useImportPaymentsMutation,
+  useExportPaymentsMutation,
 } from '../hooks/mutations/useImportExportMutations';
 import { useMemberContext } from '@/features/members/hooks/useMemberContext';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import { Upload, Download, FileSpreadsheet, Check, X, Users, Shield, HeartPulse } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, Check, X, Users, Shield, HeartPulse, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -218,6 +220,14 @@ export const ImportExportPage = () => {
   const importInsurancesMutation = useImportInsurancesMutation();
   const exportInsurancesMutation = useExportInsurancesMutation();
   const [insuranceFilters, setInsuranceFilters] = useState<Record<string, string>>({});
+
+  // Payments
+  const importPaymentsMutation = useImportPaymentsMutation();
+  const exportPaymentsMutation = useExportPaymentsMutation();
+  const currentYear = new Date().getFullYear();
+  const [paymentExportYear, setPaymentExportYear] = useState<number>(currentYear);
+  const paymentYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
   const [activeTab, setActiveTab] = useState('members');
 
   const handleImportMembers = async (data: Record<string, unknown>[]): Promise<ImportResults> => {
@@ -253,6 +263,17 @@ export const ImportExportPage = () => {
     };
   };
 
+  const handleImportPayments = async (data: Record<string, unknown>[]): Promise<ImportResults> => {
+    const result = await importPaymentsMutation.mutateAsync({ payments: data, mode: 'upsert' });
+    return {
+      success: result.success,
+      imported: result.imported,
+      updated: result.updated || 0,
+      failed: result.failed,
+      errors: result.errors || [],
+    };
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
@@ -269,6 +290,10 @@ export const ImportExportPage = () => {
             <TabsTrigger value="insurances" className="gap-1.5">
               <HeartPulse className="w-4 h-4" />
               Seguros
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="gap-1.5">
+              <CreditCard className="w-4 h-4" />
+              Pagos
             </TabsTrigger>
           </>
         )}
@@ -462,7 +487,7 @@ export const ImportExportPage = () => {
               description="Importa seguros desde un archivo Excel. Requiere DNI del miembro."
               entityLabel="seguros"
               isPending={importInsurancesMutation.isPending}
-  
+
               onImport={handleImportInsurances}
             />
 
@@ -540,6 +565,65 @@ export const ImportExportPage = () => {
 
                 <div className="text-xs text-gray-500">
                   Incluye nombre y DNI del miembro en la exportación
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      )}
+
+      {/* Payments Tab */}
+      {isSuperAdmin && (
+        <TabsContent value="payments">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ImportCard
+              title="Importar Pagos"
+              description="Importa pagos de miembros desde un archivo Excel. Requiere DNI del miembro. Columnas: DNI, Tipo Pago, Año, Monto, Estado, Concepto"
+              entityLabel="pagos"
+              isPending={importPaymentsMutation.isPending}
+              onImport={handleImportPayments}
+            />
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Download className="w-5 h-5 text-green-600" />
+                  <CardTitle>Exportar Pagos</CardTitle>
+                </div>
+                <CardDescription>Exporta pagos a un archivo Excel con dos hojas: resumen por club y detalle por miembro</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-900">Filtros de exportación:</p>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-700">Año</label>
+                    <Select
+                      value={String(paymentExportYear)}
+                      onValueChange={(value) => setPaymentExportYear(Number(value))}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentYears.map((y) => (
+                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => exportPaymentsMutation.mutate({ payment_year: paymentExportYear })}
+                  disabled={exportPaymentsMutation.isPending}
+                  className="w-full"
+                >
+                  {exportPaymentsMutation.isPending ? 'Exportando...' : 'Exportar Pagos'}
+                </Button>
+
+                <div className="text-xs text-gray-500">
+                  Genera un Excel con hoja de resumen por club y detalle por miembro
                 </div>
               </CardContent>
             </Card>

@@ -48,6 +48,12 @@ class ImportInsurancesRequest(BaseModel):
     mode: str = "upsert"  # "create" or "upsert"
 
 
+class ImportPaymentsRequest(BaseModel):
+    """DTO for importing member payments."""
+    payments: List[dict]
+    mode: str = "upsert"  # "create" or "upsert"
+
+
 class MemberExportRow(BaseModel):
     """DTO for a single member export row."""
     id: str

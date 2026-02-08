@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
-from src.domain.entities.member_payment import MemberPaymentStatus
+from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymentType
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
@@ -91,11 +91,14 @@ class GetAllClubsPaymentSummaryUseCase:
 
             license_members = set()
             insurance_members = set()
+            has_club_fee = False
             for payment in payments:
                 if payment.is_license_payment:
                     license_members.add(payment.member_id)
                 if payment.is_insurance_payment:
                     insurance_members.add(payment.member_id)
+                if payment.payment_type == MemberPaymentType.CUOTA_CLUB:
+                    has_club_fee = True
 
             total_collected = summary.get("total_amount", 0.0)
 
@@ -106,7 +109,7 @@ class GetAllClubsPaymentSummaryUseCase:
                 members_with_license=len(license_members),
                 members_with_insurance=len(insurance_members),
                 total_collected=total_collected,
-                has_club_fee=False,
+                has_club_fee=has_club_fee,
             ))
 
             grand_total += total_collected

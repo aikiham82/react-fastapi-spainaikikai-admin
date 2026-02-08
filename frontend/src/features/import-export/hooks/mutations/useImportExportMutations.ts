@@ -127,3 +127,45 @@ export const useExportInsurancesMutation = () => {
     },
   });
 };
+
+// Payment mutations
+export const useImportPaymentsMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importExportService.importPayments,
+    onSuccess: (response) => {
+      const parts = [];
+      if (response.imported > 0) parts.push(`${response.imported} creados`);
+      if (response.updated > 0) parts.push(`${response.updated} actualizados`);
+      toast.success(`Pagos: ${parts.length > 0 ? parts.join(', ') : '0 procesados'}`);
+      queryClient.invalidateQueries({ queryKey: ['club-payments'] });
+    },
+    onError: (error: any) => {
+      toast.error('Error al importar pagos');
+      if (error.response?.data?.errors) {
+        error.response.data.errors.forEach((err: string) => {
+          toast.error(err);
+        });
+      }
+    },
+  });
+};
+
+export const useExportPaymentsMutation = () => {
+  return useMutation({
+    mutationFn: (filters: { payment_year: number }) => importExportService.exportPayments(filters),
+    onSuccess: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `pagos_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Pagos exportados exitosamente');
+    },
+    onError: () => {
+      toast.error('Error al exportar pagos');
+    },
+  });
+};

@@ -13,7 +13,8 @@ from src.infrastructure.web.dto.import_export_dto import (
     ImportMembersRequest,
     ImportMembersResponse,
     ImportLicensesRequest,
-    ImportInsurancesRequest
+    ImportInsurancesRequest,
+    ImportPaymentsRequest
 )
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
@@ -27,12 +28,16 @@ from src.infrastructure.web.dependencies import (
     get_update_insurance_use_case,
     get_member_repository,
     get_license_repository,
-    get_insurance_repository
+    get_insurance_repository,
+    get_member_payment_repository,
+    get_all_clubs_payment_summary_use_case,
+    get_club_repository
 )
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx
 from src.domain.entities.license import LicenseStatus, TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType, InsuranceStatus
+from src.domain.entities.member_payment import MemberPaymentType, MemberPaymentStatus, MemberPayment
 
 router = APIRouter(prefix="/import-export", tags=["import-export"])
 
@@ -756,6 +761,277 @@ async def import_insurances(
                 insurance_type=ins_type_normalized,
                 coverage_amount=coverage_amount
             )
+            imported += 1
+
+        except Exception as e:
+            failed += 1
+            errors.append(f"Fila {idx + 1}: {str(e)}")
+
+    return ImportMembersResponse(
+        success=failed == 0,
+        imported=imported,
+        updated=updated,
+        failed=failed,
+        errors=errors
+    )
+
+
+# --- Payment type display labels ---
+PAYMENT_TYPE_LABELS = {
+    "licencia_kyu": "Licencia KYU",
+    "licencia_kyu_infantil": "Licencia KYU Infantil",
+    "licencia_dan": "Licencia DAN",
+    "titulo_fukushidoin": "Título Fukushidoin",
+    "titulo_shidoin": "Título Shidoin",
+    "seguro_accidentes": "Seguro Accidentes",
+    "seguro_rc": "Seguro RC",
+    "cuota_club": "Cuota Club",
+}
+
+PAYMENT_TYPE_FROM_LABEL = {v.lower(): k for k, v in PAYMENT_TYPE_LABELS.items()}
+PAYMENT_TYPE_FROM_LABEL.update({k: k for k in PAYMENT_TYPE_LABELS})
+
+
+@router.get("/payments/export")
+async def export_payments(
+    payment_year: int = Query(..., description="Year to export payments for"),
+    summary_use_case=Depends(get_all_clubs_payment_summary_use_case),
+    member_payment_repo=Depends(get_member_payment_repository),
+    member_repo=Depends(get_member_repository),
+    club_repo=Depends(get_club_repository),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Export payments to multi-sheet Excel. Super admin only."""
+    if not ctx.is_super_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los super administradores pueden exportar pagos"
+        )
+
+    summary_result = await summary_use_case.execute(payment_year=payment_year)
+    clubs = await club_repo.find_all()
+
+    wb = openpyxl.Workbook()
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4A5568", end_color="4A5568", fill_type="solid")
+
+    # --- Sheet 1: Resumen por Club ---
+    ws1 = wb.active
+    ws1.title = "Resumen por Club"
+
+    headers1 = [
+        "Club", "Miembros", "Cuota Club", "Licencias Pagadas",
+        "Seguros Pagados", "Total Cobrado"
+    ]
+    for col, header in enumerate(headers1, 1):
+        cell = ws1.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center")
+
+    for row_idx, club_summary in enumerate(summary_result.clubs, 2):
+        ws1.cell(row=row_idx, column=1, value=club_summary.club_name)
+        ws1.cell(row=row_idx, column=2, value=club_summary.total_members)
+        ws1.cell(row=row_idx, column=3, value="Sí" if club_summary.has_club_fee else "No")
+        ws1.cell(row=row_idx, column=4, value=f"{club_summary.members_with_license}/{club_summary.total_members}")
+        ws1.cell(row=row_idx, column=5, value=f"{club_summary.members_with_insurance}/{club_summary.total_members}")
+        ws1.cell(row=row_idx, column=6, value=club_summary.total_collected)
+
+    total_row = len(summary_result.clubs) + 2
+    ws1.cell(row=total_row, column=1, value="TOTAL")
+    ws1.cell(row=total_row, column=1).font = Font(bold=True)
+    ws1.cell(row=total_row, column=2, value=summary_result.grand_total_members)
+    ws1.cell(row=total_row, column=6, value=summary_result.grand_total_collected)
+
+    for col in ws1.columns:
+        max_length = 0
+        column_letter = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws1.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+    # --- Sheet 2: Detalle por Miembro ---
+    ws2 = wb.create_sheet("Detalle por Miembro")
+
+    headers2 = [
+        "Club", "Nombre", "Apellidos", "DNI", "Tipo Pago",
+        "Concepto", "Monto", "Estado", "Año"
+    ]
+    for col, header in enumerate(headers2, 1):
+        cell = ws2.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center")
+
+    row_idx = 2
+    for club in clubs:
+        if not club.id or not club.is_active:
+            continue
+
+        members = await member_repo.find_by_club_id(club.id)
+        member_map = {m.id: m for m in members if m.id}
+        member_ids = list(member_map.keys())
+
+        if not member_ids:
+            continue
+
+        payments = await member_payment_repo.find_by_member_ids_year(
+            member_ids=member_ids,
+            payment_year=payment_year
+        )
+
+        for payment in payments:
+            member = member_map.get(payment.member_id)
+            ws2.cell(row=row_idx, column=1, value=club.name)
+            ws2.cell(row=row_idx, column=2, value=member.first_name if member else '')
+            ws2.cell(row=row_idx, column=3, value=member.last_name if member else '')
+            ws2.cell(row=row_idx, column=4, value=member.dni if member else '')
+            ws2.cell(row=row_idx, column=5, value=PAYMENT_TYPE_LABELS.get(payment.payment_type.value, payment.payment_type.value))
+            ws2.cell(row=row_idx, column=6, value=payment.concept)
+            ws2.cell(row=row_idx, column=7, value=payment.amount)
+            ws2.cell(row=row_idx, column=8, value=payment.status.value)
+            ws2.cell(row=row_idx, column=9, value=payment.payment_year)
+            row_idx += 1
+
+    for col in ws2.columns:
+        max_length = 0
+        column_letter = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws2.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"pagos_export_{payment_year}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.post("/payments/import", response_model=ImportMembersResponse)
+async def import_payments(
+    request: ImportPaymentsRequest,
+    member_payment_repo=Depends(get_member_payment_repository),
+    member_repo=Depends(get_member_repository),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Import member payments from Excel data. Super admin only."""
+    if not ctx.is_super_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Solo los super administradores pueden importar pagos"
+        )
+
+    imported = 0
+    updated = 0
+    failed = 0
+    errors = []
+    is_upsert = request.mode == "upsert"
+
+    for idx, row in enumerate(request.payments):
+        try:
+            dni = row.get('dni') or row.get('DNI') or row.get('Dni') or ''
+            tipo_pago = row.get('tipo_pago') or row.get('Tipo Pago') or row.get('payment_type') or ''
+            year_raw = row.get('ano') or row.get('Año') or row.get('Ano') or row.get('payment_year') or ''
+            monto_raw = row.get('monto') or row.get('Monto') or row.get('amount') or 0
+            estado = row.get('estado') or row.get('Estado') or row.get('status') or 'completed'
+            concepto = row.get('concepto') or row.get('Concepto') or row.get('concept') or ''
+
+            if not dni:
+                errors.append(f"Fila {idx + 1}: DNI es obligatorio")
+                failed += 1
+                continue
+
+            if not tipo_pago:
+                errors.append(f"Fila {idx + 1}: Tipo de pago es obligatorio")
+                failed += 1
+                continue
+
+            try:
+                payment_year = int(year_raw)
+            except (ValueError, TypeError):
+                errors.append(f"Fila {idx + 1}: Año inválido '{year_raw}'")
+                failed += 1
+                continue
+
+            try:
+                amount = float(str(monto_raw).replace(',', '.'))
+            except (ValueError, TypeError):
+                errors.append(f"Fila {idx + 1}: Monto inválido '{monto_raw}'")
+                failed += 1
+                continue
+
+            tipo_normalized = tipo_pago.lower().strip()
+            payment_type_value = PAYMENT_TYPE_FROM_LABEL.get(tipo_normalized, tipo_normalized)
+            try:
+                payment_type = MemberPaymentType(payment_type_value)
+            except ValueError:
+                valid = ', '.join(PAYMENT_TYPE_LABELS.values())
+                errors.append(f"Fila {idx + 1}: Tipo de pago inválido '{tipo_pago}'. Use: {valid}")
+                failed += 1
+                continue
+
+            estado_normalized = estado.lower().strip()
+            try:
+                payment_status = MemberPaymentStatus(estado_normalized)
+            except ValueError:
+                errors.append(f"Fila {idx + 1}: Estado inválido '{estado}'. Use: pending, completed, refunded")
+                failed += 1
+                continue
+
+            member = await member_repo.find_by_dni(dni)
+            if not member:
+                errors.append(f"Fila {idx + 1}: No se encontró miembro con DNI {dni}")
+                failed += 1
+                continue
+
+            if is_upsert:
+                existing_payments = await member_payment_repo.find_by_member_year(
+                    member_id=member.id,
+                    payment_year=payment_year
+                )
+                existing = None
+                for ep in existing_payments:
+                    if ep.payment_type == payment_type:
+                        existing = ep
+                        break
+
+                if existing:
+                    existing.amount = amount
+                    existing.status = payment_status
+                    if concepto:
+                        existing.concept = concepto
+                    existing.updated_at = datetime.utcnow()
+                    await member_payment_repo.update(existing)
+                    updated += 1
+                    continue
+
+            if not concepto:
+                concepto = f"{PAYMENT_TYPE_LABELS.get(payment_type.value, payment_type.value)} {payment_year}"
+
+            new_payment = MemberPayment(
+                payment_id=f"import_{datetime.now().strftime('%Y%m%d%H%M%S')}_{idx}",
+                member_id=member.id,
+                payment_year=payment_year,
+                payment_type=payment_type,
+                concept=concepto,
+                amount=amount,
+                status=payment_status
+            )
+            await member_payment_repo.create(new_payment)
             imported += 1
 
         except Exception as e:

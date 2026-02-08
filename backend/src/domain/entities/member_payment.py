@@ -22,6 +22,7 @@ class MemberPaymentType(str, Enum):
     TITULO_SHIDOIN = "titulo_shidoin"
     SEGURO_ACCIDENTES = "seguro_accidentes"
     SEGURO_RC = "seguro_rc"
+    CUOTA_CLUB = "cuota_club"
 
 
 # Mapping from annual payment item types to member payment types
