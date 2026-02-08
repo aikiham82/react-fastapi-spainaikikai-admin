@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Lock } from 'lucide-react';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
 
@@ -45,25 +46,16 @@ export const PayerDataSection: React.FC = () => {
         <div className="space-y-2">
           <Label htmlFor="club_id">Club *</Label>
           <div className="relative">
-            <Select
+            <SearchableSelect
+              options={clubs.map((club) => ({ value: club.id, label: club.name }))}
               value={formData.club_id}
               onValueChange={(value) => setField('club_id', value)}
               disabled={isClubAdmin || isLoadingClubs}
-            >
-              <SelectTrigger
-                id="club_id"
-                className={errors.club_id ? 'border-red-500' : ''}
-              >
-                <SelectValue placeholder={isLoadingClubs ? 'Cargando...' : 'Seleccionar club'} />
-              </SelectTrigger>
-              <SelectContent>
-                {clubs.map((club) => (
-                  <SelectItem key={club.id} value={club.id}>
-                    {club.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder={isLoadingClubs ? 'Cargando...' : 'Seleccionar club'}
+              searchPlaceholder="Buscar club..."
+              emptyMessage="No se encontraron clubs."
+              className={errors.club_id ? 'border-red-500' : ''}
+            />
             {isClubAdmin && (
               <Lock className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             )}

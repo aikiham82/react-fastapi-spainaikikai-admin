@@ -5,13 +5,7 @@ import type { Member, CreateMemberRequest } from '../data/schemas/member.schema'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   Dialog,
   DialogContent,
@@ -218,21 +212,14 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="club_id">Club</Label>
-              <Select
+              <SearchableSelect
+                options={clubs.map((club) => ({ value: club.id, label: club.name }))}
                 value={formData.club_id}
                 onValueChange={(value) => handleChange('club_id', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clubs.map((club) => (
-                    <SelectItem key={club.id} value={club.id}>
-                      {club.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Selecciona un club"
+                searchPlaceholder="Buscar club..."
+                emptyMessage="No se encontraron clubs."
+              />
             </div>
           </div>
 

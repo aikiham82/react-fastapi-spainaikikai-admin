@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
   Dialog,
   DialogContent,
@@ -117,21 +118,15 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="member_id">Miembro *</Label>
-            <Select
+            <SearchableSelect
+              options={memberOptions.map((m) => ({ value: m.id, label: m.name }))}
               value={formData.member_id}
               onValueChange={(value) => handleChange('member_id', value)}
-            >
-              <SelectTrigger className={errors.member_id ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Selecciona un miembro" />
-              </SelectTrigger>
-              <SelectContent>
-                {memberOptions.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Selecciona un miembro"
+              searchPlaceholder="Buscar miembro..."
+              emptyMessage="No se encontraron miembros."
+              className={errors.member_id ? 'border-red-500' : ''}
+            />
             {errors.member_id && <p className="text-sm text-red-500">{errors.member_id}</p>}
           </div>
 
