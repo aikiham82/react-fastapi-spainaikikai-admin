@@ -73,16 +73,23 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
     }
   );
 
-  // Filter members by search term
+  // Filter and sort members alphabetically
   const filteredMembers = useMemo(() => {
-    if (!searchTerm) return members;
-    const term = searchTerm.toLowerCase();
-    return members.filter(
-      (m) =>
-        m.first_name.toLowerCase().includes(term) ||
-        m.last_name.toLowerCase().includes(term) ||
-        m.dni?.toLowerCase().includes(term)
-    );
+    const filtered = searchTerm
+      ? members.filter((m) => {
+          const term = searchTerm.toLowerCase();
+          return (
+            m.first_name.toLowerCase().includes(term) ||
+            m.last_name.toLowerCase().includes(term) ||
+            m.dni?.toLowerCase().includes(term)
+          );
+        })
+      : [...members];
+    return filtered.sort((a, b) => {
+      const lastNameCmp = a.last_name.localeCompare(b.last_name, 'es');
+      if (lastNameCmp !== 0) return lastNameCmp;
+      return a.first_name.localeCompare(b.first_name, 'es');
+    });
   }, [members, searchTerm]);
 
   // Calculate current counts per type
