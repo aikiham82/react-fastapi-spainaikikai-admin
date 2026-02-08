@@ -98,10 +98,13 @@ async def import_members(
                 except Exception:
                     pass
 
-            # In upsert mode, try to find existing member by DNI or email and update
+            # In upsert mode, try to find existing member by ID, DNI or email
             if is_upsert:
                 existing = None
-                if dni:
+                member_id = row.get('id') or row.get('ID') or row.get('Id') or ''
+                if member_id:
+                    existing = await member_repo.find_by_id(str(member_id))
+                if not existing and dni:
                     existing = await member_repo.find_by_dni(dni)
                 if not existing and email:
                     existing = await member_repo.find_by_email(email)
