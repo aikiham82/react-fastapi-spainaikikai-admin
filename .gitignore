@@ -10,5 +10,6 @@ docs/
 # Git worktrees
 .worktrees/
 
-.idea
+.ideaPone
 *.png
+.idea
