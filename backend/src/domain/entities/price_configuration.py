@@ -35,7 +35,7 @@ class PriceConfiguration:
 
     # Valid values for license category keys (using English names internally)
     VALID_TECHNICAL_GRADE = {"dan", "kyu"}
-    VALID_INSTRUCTOR_CATEGORY = {"none", "fukushidoin", "shidoin"}
+    VALID_INSTRUCTOR_CATEGORY = {"none", "fukushidoin", "shidoin", "fukushidoin_shidoin"}
     VALID_AGE_CATEGORY = {"infantil", "adulto"}
 
     def __post_init__(self):
