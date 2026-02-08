@@ -81,8 +81,9 @@ class GetClubPaymentSummaryUseCase:
         if not club:
             raise ValueError(f"Club with ID {club_id} not found")
 
-        # Get all club members
-        members = await self.member_repository.find_by_club_id(club_id)
+        # Get only active club members (exclude deactivated members)
+        all_members = await self.member_repository.find_by_club_id(club_id)
+        members = [m for m in all_members if m.is_active]
         total_members = len(members)
         member_ids = [m.id for m in members if m.id]
 

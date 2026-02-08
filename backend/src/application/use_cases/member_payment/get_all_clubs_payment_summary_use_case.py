@@ -61,7 +61,8 @@ class GetAllClubsPaymentSummaryUseCase:
             if not club.id or not club.is_active:
                 continue
 
-            members = await self.member_repository.find_by_club_id(club.id)
+            all_members = await self.member_repository.find_by_club_id(club.id)
+            members = [m for m in all_members if m.is_active]
             total_members = len(members)
             member_ids = [m.id for m in members if m.id]
 
