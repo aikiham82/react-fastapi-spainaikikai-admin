@@ -13,7 +13,7 @@ import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 export const ClubList = () => {
-  const { clubs, isLoading, error, filters, setFilters, deleteClub, selectClub } = useClubContext();
+  const { clubs, isLoading, error, deleteClub, selectClub } = useClubContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);

@@ -104,7 +104,7 @@ export const MemberList = () => {
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(offset / limit) + 1;
 
-  if (isLoading) {
+  if (isLoading && members.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
@@ -147,10 +147,14 @@ export const MemberList = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex-1 w-full relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          {isFetching ? (
+            <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          )}
           <Input
             type="text"
-            placeholder="Buscar miembros por nombre o email..."
+            placeholder="Buscar miembros por nombre..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
