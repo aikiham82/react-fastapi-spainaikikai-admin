@@ -13,7 +13,10 @@
       "mcp__playwright__browser_run_code",
       "mcp__chrome-devtools__list_pages",
       "mcp__chrome-devtools__navigate_page",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
