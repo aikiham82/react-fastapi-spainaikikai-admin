@@ -8,7 +8,10 @@ export const useImportMembersMutation = () => {
   return useMutation({
     mutationFn: importExportService.importMembers,
     onSuccess: (response) => {
-      toast.success(`${response.imported} miembros importados exitosamente`);
+      const parts = [];
+      if (response.imported > 0) parts.push(`${response.imported} creados`);
+      if (response.updated > 0) parts.push(`${response.updated} actualizados`);
+      toast.success(`Miembros: ${parts.length > 0 ? parts.join(', ') : '0 procesados'}`);
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['licenses'] });
     },

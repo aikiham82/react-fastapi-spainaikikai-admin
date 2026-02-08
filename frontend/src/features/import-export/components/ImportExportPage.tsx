@@ -20,6 +20,7 @@ import * as XLSX from 'xlsx';
 interface ImportResults {
   success: boolean;
   imported: number;
+  updated: number;
   failed: number;
   errors: string[];
 }
@@ -29,13 +30,15 @@ interface ImportCardProps {
   description: string;
   entityLabel: string;
   isPending: boolean;
-  onImport: (data: Record<string, unknown>[]) => Promise<ImportResults>;
+  supportsUpsert?: boolean;
+  onImport: (data: Record<string, unknown>[], mode: 'create' | 'upsert') => Promise<ImportResults>;
 }
 
-function ImportCard({ title, description, entityLabel, isPending, onImport }: ImportCardProps) {
+function ImportCard({ title, description, entityLabel, isPending, supportsUpsert, onImport }: ImportCardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [importResults, setImportResults] = useState<ImportResults | null>(null);
+  const [upsertMode, setUpsertMode] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -73,12 +76,13 @@ function ImportCard({ title, description, entityLabel, isPending, onImport }: Im
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
 
-      const result = await onImport(jsonData);
+      const result = await onImport(jsonData, upsertMode ? 'upsert' : 'create');
       setImportResults(result);
     } catch {
       setImportResults({
         success: false,
         imported: 0,
+        updated: 0,
         failed: 0,
         errors: ['Error al procesar el archivo'],
       });
@@ -142,6 +146,21 @@ function ImportCard({ title, description, entityLabel, isPending, onImport }: Im
               </div>
             )}
 
+            {supportsUpsert && (
+              <label className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={upsertMode}
+                  onChange={(e) => setUpsertMode(e.target.checked)}
+                  className="rounded border-amber-300"
+                />
+                <div>
+                  <span className="text-sm font-medium text-amber-900">Actualizar existentes</span>
+                  <p className="text-xs text-amber-700">Si un miembro ya existe (por DNI o email), se actualizarán sus datos</p>
+                </div>
+              </label>
+            )}
+
             <Button
               onClick={() => file && processFile(file)}
               disabled={!file || isPending}
@@ -157,7 +176,12 @@ function ImportCard({ title, description, entityLabel, isPending, onImport }: Im
                 <Check className="w-5 h-5 text-green-600" />
                 <div>
                   <p className="text-sm font-medium text-green-900">Importación completada exitosamente</p>
-                  <p className="text-xs text-green-700">{importResults.imported} {entityLabel} importados</p>
+                  <p className="text-xs text-green-700">
+                    {importResults.imported > 0 && `${importResults.imported} ${entityLabel} creados`}
+                    {importResults.imported > 0 && importResults.updated > 0 && ', '}
+                    {importResults.updated > 0 && `${importResults.updated} ${entityLabel} actualizados`}
+                    {importResults.imported === 0 && importResults.updated === 0 && `0 ${entityLabel} procesados`}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -213,11 +237,12 @@ export const ImportExportPage = () => {
   const [insuranceFilters, setInsuranceFilters] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState('members');
 
-  const handleImportMembers = async (data: Record<string, unknown>[]): Promise<ImportResults> => {
-    const result = await importMembersMutation.mutateAsync({ members: data as any });
+  const handleImportMembers = async (data: Record<string, unknown>[], mode: 'create' | 'upsert'): Promise<ImportResults> => {
+    const result = await importMembersMutation.mutateAsync({ members: data as any, mode });
     return {
       success: result.success,
       imported: result.imported,
+      updated: result.updated || 0,
       failed: result.failed,
       errors: result.errors || [],
     };
@@ -228,6 +253,7 @@ export const ImportExportPage = () => {
     return {
       success: result.success,
       imported: result.imported,
+      updated: 0,
       failed: result.failed,
       errors: result.errors || [],
     };
@@ -238,6 +264,7 @@ export const ImportExportPage = () => {
     return {
       success: result.success,
       imported: result.imported,
+      updated: 0,
       failed: result.failed,
       errors: result.errors || [],
     };
@@ -272,6 +299,7 @@ export const ImportExportPage = () => {
             description="Importa datos de miembros desde un archivo Excel (.xlsx o .xls)"
             entityLabel="miembros"
             isPending={importMembersMutation.isPending}
+            supportsUpsert
             onImport={handleImportMembers}
           />
 

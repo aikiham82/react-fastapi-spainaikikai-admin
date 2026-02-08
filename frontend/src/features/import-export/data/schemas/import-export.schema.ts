@@ -1,19 +1,12 @@
 export interface ImportMembersRequest {
-  members: Array<{
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    date_of_birth: string;
-    address: string;
-    city: string;
-    postal_code: string;
-  }>;
+  members: Array<Record<string, unknown>>;
+  mode?: 'create' | 'upsert';
 }
 
 export interface ImportMembersResponse {
   success: boolean;
   imported: number;
+  updated: number;
   failed: number;
   errors: string[];
 }
