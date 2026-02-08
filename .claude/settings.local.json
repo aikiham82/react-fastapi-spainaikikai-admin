@@ -16,7 +16,8 @@
       "Bash(lsof:*)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(poetry run python:*)"
     ]
   }
 }
