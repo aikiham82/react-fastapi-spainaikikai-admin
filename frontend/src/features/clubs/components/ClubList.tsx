@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Club } from '../data/schemas/club.schema';
@@ -21,9 +21,16 @@ export const ClubList = () => {
   const [selectedClubForEdit, setSelectedClubForEdit] = useState<Club | null>(null);
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
 
-  useEffect(() => {
-    setFilters({ ...filters, search: debouncedSearch || undefined });
-  }, [debouncedSearch]);
+  const filteredClubs = useMemo(() => {
+    const sorted = [...clubs].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    if (!debouncedSearch) return sorted;
+    const term = debouncedSearch.toLowerCase();
+    return sorted.filter(
+      (club) =>
+        club.name.toLowerCase().includes(term) ||
+        club.city?.toLowerCase().includes(term)
+    );
+  }, [clubs, debouncedSearch]);
 
   if (isLoading) {
     return (
@@ -42,14 +49,12 @@ export const ClubList = () => {
     );
   }
 
-  if (clubs.length === 0) {
+  if (clubs.length === 0 && !searchTerm) {
     return (
       <div className="text-center py-12">
         <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No hay clubs</h3>
-        <p className="text-gray-600 mb-4">
-          {searchTerm ? 'No se encontraron resultados para tu búsqueda' : 'No hay clubs registrados'}
-        </p>
+        <p className="text-gray-600 mb-4">No hay clubs registrados</p>
         {canAccess({ resource: 'clubs', action: 'create' }) && (
           <Button onClick={() => { setSelectedClubForEdit(null); setIsFormOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" />
@@ -86,8 +91,13 @@ export const ClubList = () => {
         )}
       </div>
 
+      {filteredClubs.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clubs.map((club) => (
+        {filteredClubs.map((club) => (
           <Card key={club.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -172,6 +182,7 @@ export const ClubList = () => {
           </Card>
         ))}
       </div>
+      )}
 
       <ClubForm
         open={isFormOpen}

@@ -7,6 +7,7 @@ interface MemberContextType {
   members: Member[];
   selectedMember: Member | null;
   isLoading: boolean;
+  isFetching: boolean;
   error: Error | null;
   filters: MemberFilters;
   total: number;
@@ -25,7 +26,7 @@ const MemberContext = createContext<MemberContextType | undefined>(undefined);
 export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [filters, setFilters] = useState<MemberFilters>({ limit: 20, offset: 0 });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const { data: membersData, isLoading, error } = useMembersQuery(filters);
+  const { data: membersData, isLoading, isFetching, error } = useMembersQuery(filters);
   const createMutation = useCreateMemberMutation();
   const updateMutation = useUpdateMemberMutation();
   const deleteMutation = useDeleteMemberMutation();
@@ -50,6 +51,7 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     members: membersData || [],
     selectedMember,
     isLoading,
+    isFetching,
     error,
     filters,
     total: membersData?.length || 0,

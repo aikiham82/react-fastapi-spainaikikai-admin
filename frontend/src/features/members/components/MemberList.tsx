@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
-import { Users, Plus, Search, Trash2, Eye, CreditCard } from 'lucide-react';
+import { Users, Plus, Search, Trash2, Eye, CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -77,7 +77,7 @@ function MemberQuickViewContent({ member }: { member: Member }) {
 }
 
 export const MemberList = () => {
-  const { members, isLoading, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
+  const { members, isLoading, isFetching, error, filters, setFilters, total, limit, offset, deleteMember, selectMember, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -90,6 +90,10 @@ export const MemberList = () => {
   useEffect(() => {
     setFilters({ ...filters, search: debouncedSearch || undefined, offset: 0 });
   }, [debouncedSearch]);
+
+  const sortedMembers = [...members].sort((a, b) =>
+    (a.last_name || '').localeCompare(b.last_name || '', 'es') || (a.first_name || '').localeCompare(b.first_name || '', 'es')
+  );
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
@@ -177,7 +181,7 @@ export const MemberList = () => {
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {members.map((member) => (
+        {sortedMembers.map((member) => (
           <div key={member.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
@@ -249,7 +253,7 @@ export const MemberList = () => {
               </tr>
             </thead>
             <tbody>
-              {members.map((member) => (
+              {sortedMembers.map((member) => (
                 <tr key={member.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <div>

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { clubService } from '../../data/services/club.service';
 import type { ClubFilters } from '../../data/schemas/club.schema';
 
@@ -7,6 +7,7 @@ export const useClubsQuery = (filters?: ClubFilters) => {
     queryKey: ['clubs', filters],
     queryFn: () => clubService.getClubs(filters),
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 };
 

@@ -34,6 +34,10 @@ export const LicenseList = () => {
     setFilters({ ...filters, member_id: debouncedSearch || undefined, offset: 0 });
   }, [debouncedSearch]);
 
+  const sortedLicenses = [...licenses].sort((a, b) =>
+    (a.member_name || '').localeCompare(b.member_name || '', 'es')
+  );
+
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
     setFilters({ ...filters, status: value === 'all' ? undefined : value as "active" | "expired" | "pending", offset: 0 });
@@ -126,7 +130,7 @@ export const LicenseList = () => {
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {licenses.map((license) => (
+        {sortedLicenses.map((license) => (
           <div key={license.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
@@ -220,7 +224,7 @@ export const LicenseList = () => {
               </tr>
             </thead>
             <tbody>
-              {licenses.map((license) => (
+              {sortedLicenses.map((license) => (
                 <tr key={license.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <button

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { memberService } from '../../data/services/member.service';
 import type { MemberFilters } from '../../data/schemas/member.schema';
 
@@ -14,6 +14,7 @@ export const useMembersQuery = (
     queryKey: ['members', filters],
     queryFn: () => memberService.getMembers(filters),
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
     enabled: options?.enabled ?? true,
   });
 };
