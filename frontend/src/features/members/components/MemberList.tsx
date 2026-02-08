@@ -279,7 +279,10 @@ export const MemberList = () => {
                   <td className="p-4 text-gray-600">{member.email}</td>
                   <td className="p-4 text-gray-600">{member.club_name || '-'}</td>
                   <td className="p-4">
-                    <GradeBadge licenseSummary={member.license_summary} />
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <GradeBadge licenseSummary={member.license_summary} />
+                      <LicenseStatusBadge licenseSummary={member.license_summary} />
+                    </div>
                   </td>
                   <td className="p-4">
                     <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
