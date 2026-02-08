@@ -65,7 +65,7 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - app-networky
+      - app-network
 
 volumes:
   mongodb_data:

@@ -25,7 +25,7 @@ from src.infrastructure.web.dependencies import (
     get_member_repository
 )
 from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext
+from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx
 from src.domain.entities.license import LicenseStatus, TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType, InsuranceStatus
 
@@ -133,7 +133,17 @@ async def export_members(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Export members to Excel file."""
-    members = await get_all_use_case.execute(limit, club_id)
+    # Enforce club isolation: club users can only export their own club's members
+    effective_club_id = get_club_filter_ctx(ctx)
+    if effective_club_id is not None:
+        # Club user - force their club_id (ignore query param)
+        members = await get_all_use_case.execute(limit, effective_club_id)
+    elif club_id:
+        # Super admin with explicit club filter
+        members = await get_all_use_case.execute(limit, club_id)
+    else:
+        # Super admin - export all
+        members = await get_all_use_case.execute(limit, None)
 
     # Create Excel workbook
     wb = openpyxl.Workbook()
