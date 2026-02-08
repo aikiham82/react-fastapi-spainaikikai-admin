@@ -1,6 +1,7 @@
 """Create License use case."""
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from typing import Optional
 
 from src.domain.entities.license import License, LicenseStatus, LicenseType
@@ -30,6 +31,10 @@ class CreateLicenseUseCase:
         existing = await self.license_repository.find_by_license_number(license_number)
         if existing:
             raise LicenseAlreadyExistsError("License with this number already exists")
+
+        # Licenses are annual: if no expiration_date, calculate issue_date + 1 year
+        if not expiration_date and issue_date:
+            expiration_date = issue_date + relativedelta(years=1)
 
         license = License(
             license_number=license_number,

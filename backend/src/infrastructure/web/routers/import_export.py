@@ -18,6 +18,7 @@ from src.infrastructure.web.dto.import_export_dto import (
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
     get_create_member_use_case,
+    get_update_member_use_case,
     get_all_licenses_use_case,
     get_all_insurances_use_case,
     get_create_license_use_case,
@@ -51,12 +52,16 @@ def _parse_date(value) -> Optional[datetime]:
 async def import_members(
     request: ImportMembersRequest,
     create_member_use_case=Depends(get_create_member_use_case),
+    update_member_use_case=Depends(get_update_member_use_case),
+    member_repo=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Import members from Excel data."""
+    """Import members from Excel data. Supports 'create' and 'upsert' modes."""
     imported = 0
+    updated = 0
     failed = 0
     errors = []
+    is_upsert = request.mode == "upsert"
 
     for idx, row in enumerate(request.members):
         try:
@@ -86,7 +91,6 @@ async def import_members(
                     if isinstance(birth_date_str, datetime):
                         birth_date = birth_date_str
                     elif isinstance(birth_date_str, str):
-                        # Try different date formats
                         for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y']:
                             try:
                                 birth_date = datetime.strptime(birth_date_str, fmt)
@@ -95,6 +99,33 @@ async def import_members(
                                 continue
                 except Exception:
                     pass
+
+            # In upsert mode, check if member exists by DNI or email and update
+            if is_upsert:
+                existing = None
+                if dni:
+                    existing = await member_repo.find_by_dni(dni)
+                if not existing and email:
+                    existing = await member_repo.find_by_email(email)
+
+                if existing:
+                    await update_member_use_case.execute(
+                        member_id=existing.id,
+                        first_name=first_name,
+                        last_name=last_name,
+                        dni=dni,
+                        email=email,
+                        phone=phone,
+                        address=address,
+                        city=city,
+                        province=province,
+                        postal_code=postal_code,
+                        country=country,
+                        club_id=club_id,
+                        birth_date=birth_date
+                    )
+                    updated += 1
+                    continue
 
             await create_member_use_case.execute(
                 first_name=first_name,
@@ -119,6 +150,7 @@ async def import_members(
     return ImportMembersResponse(
         success=failed == 0,
         imported=imported,
+        updated=updated,
         failed=failed,
         errors=errors
     )

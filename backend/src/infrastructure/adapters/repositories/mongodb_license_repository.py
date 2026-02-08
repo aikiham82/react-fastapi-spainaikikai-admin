@@ -3,6 +3,7 @@
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from src.domain.entities.license import (
     License, LicenseStatus, LicenseType,
@@ -28,6 +29,12 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         instructor_category_val = doc.get("instructor_category") or doc.get("categoria_instructor", "none")
         age_category_val = doc.get("age_category") or doc.get("categoria_edad", "adulto")
 
+        # Licenses are annual: if expiration_date is missing, derive from issue_date + 1 year
+        issue_date = doc.get("issue_date")
+        expiration_date = doc.get("expiration_date")
+        if not expiration_date and issue_date:
+            expiration_date = issue_date + relativedelta(years=1)
+
         # Note: club_id is no longer stored in License entity
         # It should be derived from the member's club_id
         return License(
@@ -38,8 +45,8 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
             license_type=LicenseType(doc.get("license_type", "kyu")),
             grade=doc.get("grade", ""),
             status=LicenseStatus(doc.get("status", "active")),
-            issue_date=doc.get("issue_date"),
-            expiration_date=doc.get("expiration_date"),
+            issue_date=issue_date,
+            expiration_date=expiration_date,
             renewal_date=doc.get("renewal_date"),
             is_renewed=doc.get("is_renewed", False),
             created_at=doc.get("created_at"),

@@ -24,12 +24,14 @@ class MemberImportRow(BaseModel):
 class ImportMembersRequest(BaseModel):
     """DTO for importing members."""
     members: List[dict]
+    mode: str = "create"  # "create" or "upsert"
 
 
 class ImportMembersResponse(BaseModel):
     """DTO for import response."""
     success: bool
     imported: int
+    updated: int = 0
     failed: int
     errors: List[str]
 
