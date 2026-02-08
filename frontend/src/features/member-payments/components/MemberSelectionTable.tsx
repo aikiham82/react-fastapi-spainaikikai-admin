@@ -73,7 +73,20 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
     }
   );
 
-  // Filter and sort members alphabetically
+  // Determine member group priority: F/S(0) > DAN(1) > KYU(2) > KYU Inf.(3) > None(4)
+  const getGroupPriority = useCallback((member: Member): number => {
+    const ls = member.license_summary;
+    if (!ls) return 4;
+    const ic = ls.instructor_category;
+    if (ic === 'fukushidoin' || ic === 'shidoin') return 0;
+    if (ls.technical_grade === 'dan') return 1;
+    if (ls.technical_grade === 'kyu') {
+      return ls.grade?.toLowerCase().includes('infantil') ? 3 : 2;
+    }
+    return 4;
+  }, []);
+
+  // Filter and sort members by group priority, then alphabetically
   const filteredMembers = useMemo(() => {
     const filtered = searchTerm
       ? members.filter((m) => {
@@ -86,11 +99,13 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         })
       : [...members];
     return filtered.sort((a, b) => {
+      const groupCmp = getGroupPriority(a) - getGroupPriority(b);
+      if (groupCmp !== 0) return groupCmp;
       const lastNameCmp = a.last_name.localeCompare(b.last_name, 'es');
       if (lastNameCmp !== 0) return lastNameCmp;
       return a.first_name.localeCompare(b.first_name, 'es');
     });
-  }, [members, searchTerm]);
+  }, [members, searchTerm, getGroupPriority]);
 
   // Calculate current counts per type
   const currentCounts = useMemo(() => {
