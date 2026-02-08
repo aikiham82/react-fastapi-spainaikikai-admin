@@ -85,22 +85,35 @@ async def get_dashboard_stats(
     total_members = await db["members"].count_documents(member_filter)
     active_members = await db["members"].count_documents({**member_filter, "status": "active"})
 
-    # Annual member payments (current year) - uses member_payments collection
-    # to be coherent with "Resumen de Pagos" page
+    # Annual member payments (current year) - based on active members
     current_year = now.year
-    mp_filter: dict = {"payment_year": current_year}
-    if club_id:
-        member_ids_cursor = db["members"].find(
-            {"club_id": club_id}, {"_id": 1}
-        )
-        member_docs = await member_ids_cursor.to_list(length=10000)
-        member_id_strs = [str(doc["_id"]) for doc in member_docs]
-        mp_filter["member_id"] = {"$in": member_id_strs}
-    annual_payments = await db["member_payments"].count_documents(mp_filter)
-    pending_payments = await db["member_payments"].count_documents({
-        **mp_filter,
-        "status": "pending"
-    })
+
+    # annual_payments = count of active members (members who should pay)
+    annual_payments = active_members
+
+    # pending_payments = active members without completed payment for current year
+    # Get active member IDs for the filter
+    active_members_cursor = db["members"].find(
+        {**member_filter, "status": "active"}, {"_id": 1}
+    )
+    active_member_docs = await active_members_cursor.to_list(length=10000)
+    active_member_ids = [str(doc["_id"]) for doc in active_member_docs]
+
+    # Get member IDs with completed payments for current year
+    # MongoDB returns empty cursor for non-existent collections, no error handling needed
+    paid_members_cursor = db["member_payments"].find(
+        {
+            "payment_year": current_year,
+            "member_id": {"$in": active_member_ids},
+            "status": "completed"
+        },
+        {"member_id": 1}
+    )
+    paid_member_docs = await paid_members_cursor.to_list(length=10000)
+    paid_member_ids = {doc["member_id"] for doc in paid_member_docs}
+
+    # pending_payments = active members - members with completed payment
+    pending_payments = len(set(active_member_ids) - paid_member_ids)
 
     # Upcoming seminars (next 30 days)
     upcoming_seminars_count = await db["seminars"].count_documents({
