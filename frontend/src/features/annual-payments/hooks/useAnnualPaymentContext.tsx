@@ -140,6 +140,30 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   }, []);
 
   const setMemberAssignments = useCallback((assignments: MemberPaymentAssignment[]) => {
+    // Count assignments per payment type
+    const counts: Record<string, number> = {
+      kyu: 0,
+      kyu_infantil: 0,
+      dan: 0,
+      fukushidoin_shidoin: 0,
+      seguro_accidentes: 0,
+      seguro_rc: 0,
+    };
+    assignments.forEach((a) => {
+      a.payment_types.forEach((type) => {
+        if (counts[type] !== undefined) {
+          counts[type]++;
+        }
+      });
+    });
+
+    // Update quantity fields to match actual assignments
+    form.setField('kyu_count', counts.kyu);
+    form.setField('kyu_infantil_count', counts.kyu_infantil);
+    form.setField('dan_count', counts.dan);
+    form.setField('fukushidoin_shidoin_count', counts.fukushidoin_shidoin);
+    form.setField('seguro_accidentes_count', counts.seguro_accidentes);
+    form.setField('seguro_rc_count', counts.seguro_rc);
     form.setField('member_assignments', assignments);
   }, [form]);
 
