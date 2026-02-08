@@ -39,9 +39,9 @@ export const AnnualPaymentForm: React.FC = () => {
       <div className="lg:col-span-2 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Pagos Anuales</CardTitle>
+            <CardTitle>Nuevo Pago</CardTitle>
             <CardDescription>
-              Complete el formulario para realizar el pago anual del club y sus miembros
+              Complete el formulario para realizar el pago del club y sus miembros
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
