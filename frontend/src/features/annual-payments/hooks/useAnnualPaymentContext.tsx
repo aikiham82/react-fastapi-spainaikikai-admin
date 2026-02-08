@@ -113,6 +113,24 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       return;
     }
 
+    // Build map of which types have non-zero quantities
+    const activeCounts: Record<string, number> = {
+      kyu: form.formData.kyu_count,
+      kyu_infantil: form.formData.kyu_infantil_count,
+      dan: form.formData.dan_count,
+      fukushidoin_shidoin: form.formData.fukushidoin_shidoin_count,
+      seguro_accidentes: form.formData.seguro_accidentes_count,
+      seguro_rc: form.formData.seguro_rc_count,
+    };
+
+    // Filter out stale member assignments whose payment_types reference zero-count items
+    const cleanedAssignments = form.formData.member_assignments
+      .map((a) => ({
+        ...a,
+        payment_types: a.payment_types.filter((t) => (activeCounts[t] ?? 0) > 0),
+      }))
+      .filter((a) => a.payment_types.length > 0);
+
     const request: InitiateAnnualPaymentRequest = {
       payer_name: form.formData.payer_name,
       club_id: form.formData.club_id,
@@ -124,8 +142,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       fukushidoin_shidoin_count: form.formData.fukushidoin_shidoin_count,
       seguro_accidentes_count: form.formData.seguro_accidentes_count,
       seguro_rc_count: form.formData.seguro_rc_count,
-      member_assignments: form.formData.member_assignments.length > 0
-        ? form.formData.member_assignments
+      member_assignments: cleanedAssignments.length > 0
+        ? cleanedAssignments
         : undefined,
     };
 

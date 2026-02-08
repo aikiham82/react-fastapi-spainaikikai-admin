@@ -155,11 +155,11 @@ export const useImportPaymentsMutation = () => {
 export const useExportPaymentsMutation = () => {
   return useMutation({
     mutationFn: (filters: { payment_year: number }) => importExportService.exportPayments(filters),
-    onSuccess: (blob: Blob) => {
+    onSuccess: (blob: Blob, variables) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `pagos_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.download = `pagos_export_${variables.payment_year}_${new Date().toISOString().split('T')[0]}.xlsx`;
       link.click();
       window.URL.revokeObjectURL(url);
       toast.success('Pagos exportados exitosamente');
