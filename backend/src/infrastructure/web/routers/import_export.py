@@ -68,12 +68,6 @@ async def import_members(
             # Map Excel column names to entity fields
             first_name = row.get('first_name') or row.get('Nombre') or row.get('nombre') or ''
             email = row.get('email') or row.get('Email') or row.get('EMAIL') or ''
-
-            if not first_name or not email:
-                errors.append(f"Fila {idx + 1}: Nombre y email son obligatorios")
-                failed += 1
-                continue
-
             last_name = row.get('last_name') or row.get('Apellidos') or row.get('apellidos') or ''
             dni = row.get('dni') or row.get('DNI') or row.get('Dni') or ''
             phone = row.get('phone') or row.get('Teléfono') or row.get('telefono') or ''
@@ -100,7 +94,7 @@ async def import_members(
                 except Exception:
                     pass
 
-            # In upsert mode, check if member exists by DNI or email and update
+            # In upsert mode, try to find existing member by DNI or email and update
             if is_upsert:
                 existing = None
                 if dni:
@@ -109,23 +103,45 @@ async def import_members(
                     existing = await member_repo.find_by_email(email)
 
                 if existing:
-                    await update_member_use_case.execute(
-                        member_id=existing.id,
-                        first_name=first_name,
-                        last_name=last_name,
-                        dni=dni,
-                        email=email,
-                        phone=phone,
-                        address=address,
-                        city=city,
-                        province=province,
-                        postal_code=postal_code,
-                        country=country,
-                        club_id=club_id,
-                        birth_date=birth_date
-                    )
+                    update_fields = {}
+                    if first_name:
+                        update_fields['first_name'] = first_name
+                    if last_name:
+                        update_fields['last_name'] = last_name
+                    if dni:
+                        update_fields['dni'] = dni
+                    if email:
+                        update_fields['email'] = email
+                    if phone:
+                        update_fields['phone'] = phone
+                    if address:
+                        update_fields['address'] = address
+                    if city:
+                        update_fields['city'] = city
+                    if province:
+                        update_fields['province'] = province
+                    if postal_code:
+                        update_fields['postal_code'] = postal_code
+                    if country:
+                        update_fields['country'] = country
+                    if club_id:
+                        update_fields['club_id'] = club_id
+                    if birth_date:
+                        update_fields['birth_date'] = birth_date
+
+                    if update_fields:
+                        await update_member_use_case.execute(
+                            member_id=existing.id,
+                            **update_fields
+                        )
                     updated += 1
                     continue
+
+            # For create mode, name and email are required
+            if not first_name or not email:
+                errors.append(f"Fila {idx + 1}: Nombre y email son obligatorios")
+                failed += 1
+                continue
 
             await create_member_use_case.execute(
                 first_name=first_name,
