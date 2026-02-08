@@ -91,7 +91,11 @@ async def get_dashboard_stats(
         **payment_filter,
         "payment_year": current_year
     })
-    pending_payments = await db["payments"].count_documents({**payment_filter, "status": "pending"})
+    pending_payments = await db["payments"].count_documents({
+        **payment_filter,
+        "status": "pending",
+        "payment_year": current_year
+    })
 
     # Upcoming seminars (next 30 days)
     upcoming_seminars_count = await db["seminars"].count_documents({
