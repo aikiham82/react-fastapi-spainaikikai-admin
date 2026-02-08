@@ -103,7 +103,7 @@ export default function RegisterPage() {
           <div className="w-full max-w-md">
             {/* Mobile Hero Text */}
             <div className="text-center mb-8 lg:hidden">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h2>
               <p className="text-gray-600">Join thousands of innovators using AI</p>
             </div>
             

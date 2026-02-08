@@ -63,11 +63,6 @@ body {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
 /* Base button styles removed to prevent conflicts with UI components */
 
 @media (prefers-color-scheme: light) {

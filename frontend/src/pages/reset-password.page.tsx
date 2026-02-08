@@ -105,9 +105,9 @@ export default function ResetPasswordPage() {
               <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                 <ShieldCheck className="w-8 h-8 text-slate-700" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Nueva contrasena
-              </h1>
+              </h2>
               <p className="text-gray-600">
                 Introduce tu nueva contrasena segura
               </p>

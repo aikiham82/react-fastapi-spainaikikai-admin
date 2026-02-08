@@ -109,7 +109,7 @@ export default function LoginPage() {
           <div className="w-full max-w-md">
             {/* Mobile Hero Text */}
             <div className="text-center mb-8 lg:hidden">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Bienvenido</h1>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Bienvenido</h2>
               <p className="text-gray-600">Inicia sesión para acceder al panel de administración</p>
             </div>
 

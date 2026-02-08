@@ -45,8 +45,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const title = getPageTitle(location.pathname);
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-      <div className="flex items-center gap-4">
+    <header className="h-14 sm:h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
         <Button
           variant="ghost"
           size="icon"
@@ -55,10 +55,10 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         >
           <Menu className="w-6 h-6" />
         </Button>
-        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+        <h1 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 truncate">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
         <Button variant="ghost" size="icon" className="relative" aria-label="Notificaciones">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
