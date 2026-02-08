@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle, Info } from 'lucide-react';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
 import { PayerDataSection } from './PayerDataSection';
 import { ClubFeeSection } from './ClubFeeSection';
@@ -9,7 +9,7 @@ import { MemberSelectionSection } from './MemberSelectionSection';
 import { PaymentSummary } from './PaymentSummary';
 
 export const AnnualPaymentForm: React.FC = () => {
-  const { isLoadingPrices, pricesError } = useAnnualPaymentContext();
+  const { isLoadingPrices, pricesError, prefillSource, isLoadingPrefill } = useAnnualPaymentContext();
 
   if (isLoadingPrices) {
     return (
@@ -45,6 +45,20 @@ export const AnnualPaymentForm: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
+            {isLoadingPrefill && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Cargando datos del club...
+              </div>
+            )}
+            {prefillSource && !isLoadingPrefill && (
+              <div className="flex items-center gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                <Info className="h-4 w-4 shrink-0" />
+                {prefillSource === 'members'
+                  ? 'Datos precargados a partir de los miembros y licencias del club'
+                  : 'Datos precargados a partir del pago del año anterior'}
+              </div>
+            )}
             <PayerDataSection />
             <ClubFeeSection />
             <MemberFeesSection />

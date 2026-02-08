@@ -17,7 +17,9 @@ from src.infrastructure.web.dto.annual_payment_dto import (
     InitiateAnnualPaymentRequest,
     InitiateAnnualPaymentResponse,
     AnnualPaymentLineItem,
-    MemberPaymentAssignment
+    MemberPaymentAssignment,
+    PrefillAnnualPaymentResponse,
+    PrefillMemberAssignment as PrefillMemberAssignmentDTO
 )
 from src.application.use_cases.payment.initiate_annual_payment_use_case import MemberAssignment
 from src.infrastructure.web.mappers_payment import PaymentMapper
@@ -27,6 +29,7 @@ from src.infrastructure.web.dependencies import (
     get_create_payment_use_case,
     get_initiate_redsys_payment_use_case,
     get_initiate_annual_payment_use_case,
+    get_prefill_annual_payment_use_case,
     get_refund_payment_use_case,
     get_delete_payment_use_case,
     get_process_redsys_webhook_use_case
@@ -51,6 +54,41 @@ async def get_payments(
     """Get all payments, optionally filtered by club, member, or year."""
     payments = await get_all_use_case.execute(limit, club_id, member_id, payment_year)
     return PaymentMapper.to_response_list(payments)
+
+
+@router.get("/annual/prefill", response_model=PrefillAnnualPaymentResponse)
+async def prefill_annual_payment(
+    club_id: str,
+    payment_year: int,
+    get_prefill_use_case=Depends(get_prefill_annual_payment_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Get prefill data for the annual payment form based on club members."""
+    result = await get_prefill_use_case.execute(
+        club_id=club_id,
+        payment_year=payment_year,
+        payer_name=ctx.user.username if ctx.user else "",
+    )
+
+    return PrefillAnnualPaymentResponse(
+        payer_name=result.payer_name,
+        include_club_fee=result.include_club_fee,
+        kyu_count=result.kyu_count,
+        kyu_infantil_count=result.kyu_infantil_count,
+        dan_count=result.dan_count,
+        fukushidoin_shidoin_count=result.fukushidoin_shidoin_count,
+        seguro_accidentes_count=result.seguro_accidentes_count,
+        seguro_rc_count=result.seguro_rc_count,
+        member_assignments=[
+            PrefillMemberAssignmentDTO(
+                member_id=a.member_id,
+                member_name=a.member_name,
+                payment_types=a.payment_types,
+            )
+            for a in result.member_assignments
+        ],
+        source=result.source,
+    )
 
 
 @router.get("/{payment_id}", response_model=PaymentResponse)

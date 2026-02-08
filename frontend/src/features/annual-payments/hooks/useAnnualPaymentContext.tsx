@@ -2,6 +2,7 @@ import React, { createContext, useContext, useCallback, useMemo, useState, useRe
 import { useAnnualPaymentForm, type UseAnnualPaymentFormReturn } from './useAnnualPaymentForm';
 import { useInitiateAnnualPaymentMutation } from './mutations/useInitiateAnnualPayment.mutation';
 import { useAnnualPaymentPricesQuery } from './queries/useAnnualPaymentPricesQuery';
+import { useAnnualPaymentPrefillQuery } from './queries/useAnnualPaymentPrefillQuery';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
@@ -23,6 +24,9 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   prices: AnnualPaymentPrices | null;
   isLoadingPrices: boolean;
   pricesError: string | null;
+  // Prefill
+  prefillSource: 'members' | 'previous_payment' | null;
+  isLoadingPrefill: boolean;
   // Member selection
   isMemberSelectionOpen: boolean;
   openMemberSelection: () => void;
@@ -65,20 +69,51 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
 
   const form = useAnnualPaymentForm(initialFormValues, prices);
 
+  // Fetch prefill data when club and year are set
+  const {
+    data: prefillData,
+    isLoading: isLoadingPrefill,
+  } = useAnnualPaymentPrefillQuery(form.formData.club_id, form.formData.payment_year);
+
+  // Apply prefill data to form (once per club+year combination)
+  const prefillAppliedRef = useRef<string>('');
+
+  useEffect(() => {
+    if (!prefillData) return;
+
+    const prefillKey = `${form.formData.club_id}-${form.formData.payment_year}`;
+    if (prefillAppliedRef.current === prefillKey) return;
+    prefillAppliedRef.current = prefillKey;
+
+    if (prefillData.payer_name) {
+      form.setField('payer_name', prefillData.payer_name);
+    }
+    form.setField('include_club_fee', prefillData.include_club_fee);
+    form.setField('kyu_count', prefillData.kyu_count);
+    form.setField('kyu_infantil_count', prefillData.kyu_infantil_count);
+    form.setField('dan_count', prefillData.dan_count);
+    form.setField('fukushidoin_shidoin_count', prefillData.fukushidoin_shidoin_count);
+    form.setField('seguro_accidentes_count', prefillData.seguro_accidentes_count);
+    form.setField('seguro_rc_count', prefillData.seguro_rc_count);
+    if (prefillData.member_assignments.length > 0) {
+      form.setField('member_assignments', prefillData.member_assignments);
+    }
+  }, [prefillData, form]);
+
   // Fetch members for the selected club
   const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
     { club_id: form.formData.club_id },
     { enabled: !!form.formData.club_id }
   );
 
-  // Clear member assignments when club changes
+  // Clear member assignments and reset prefill when club changes
   const previousClubIdRef = useRef(form.formData.club_id);
   useEffect(() => {
     if (previousClubIdRef.current !== form.formData.club_id) {
-      // Club changed, clear member assignments
       if (form.formData.member_assignments.length > 0) {
         form.setField('member_assignments', []);
       }
+      prefillAppliedRef.current = '';
       previousClubIdRef.current = form.formData.club_id;
     }
   }, [form.formData.club_id, form.formData.member_assignments.length, form]);
@@ -172,6 +207,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     prices: prices ?? null,
     isLoadingPrices,
     pricesError,
+    prefillSource: prefillData?.source ?? null,
+    isLoadingPrefill,
     isMemberSelectionOpen,
     openMemberSelection,
     closeMemberSelection,

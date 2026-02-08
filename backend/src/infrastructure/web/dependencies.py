@@ -106,6 +106,7 @@ from src.application.use_cases.member_payment import (
     GetUnpaidMembersUseCase
 )
 from src.application.use_cases.member_payment.get_all_clubs_payment_summary_use_case import GetAllClubsPaymentSummaryUseCase
+from src.application.use_cases.payment.prefill_annual_payment_use_case import PrefillAnnualPaymentUseCase
 from src.config.settings import get_app_settings
 
 @lru_cache()
@@ -327,6 +328,16 @@ def get_initiate_annual_payment_use_case() -> InitiateAnnualPaymentUseCase:
         get_payment_repository(),
         get_redsys_service(),
         get_price_configuration_repository(),
+    )
+
+@lru_cache()
+def get_prefill_annual_payment_use_case() -> PrefillAnnualPaymentUseCase:
+    """Prefill annual payment use case."""
+    return PrefillAnnualPaymentUseCase(
+        get_member_repository(),
+        get_license_repository(),
+        get_insurance_repository(),
+        get_payment_repository(),
     )
 
 @lru_cache()

@@ -3,6 +3,7 @@ import type {
   InitiateAnnualPaymentRequest,
   InitiateAnnualPaymentResponse,
   AnnualPaymentPricesResponse,
+  PrefillAnnualPaymentResponse,
 } from '../schemas/annual-payment.schema';
 
 const BASE_URL = '/api/v1/payments';
@@ -23,7 +24,18 @@ export const getAnnualPaymentPrices = async (): Promise<AnnualPaymentPricesRespo
   );
 };
 
+export const getAnnualPaymentPrefill = async (
+  clubId: string,
+  paymentYear: number,
+): Promise<PrefillAnnualPaymentResponse> => {
+  return await apiClient.get<PrefillAnnualPaymentResponse>(
+    `${BASE_URL}/annual/prefill`,
+    { params: { club_id: clubId, payment_year: paymentYear } }
+  );
+};
+
 export const annualPaymentService = {
   initiateAnnualPayment,
   getAnnualPaymentPrices,
+  getAnnualPaymentPrefill,
 };

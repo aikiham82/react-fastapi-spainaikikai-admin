@@ -205,3 +205,16 @@ export const defaultFormValues: AnnualPaymentFormData = {
   seguro_rc_count: 0,
   member_assignments: [],
 };
+
+export interface PrefillAnnualPaymentResponse {
+  payer_name: string;
+  include_club_fee: boolean;
+  kyu_count: number;
+  kyu_infantil_count: number;
+  dan_count: number;
+  fukushidoin_shidoin_count: number;
+  seguro_accidentes_count: number;
+  seguro_rc_count: number;
+  member_assignments: MemberPaymentAssignment[];
+  source: 'members' | 'previous_payment';
+}

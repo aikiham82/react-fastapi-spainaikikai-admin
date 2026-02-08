@@ -95,3 +95,24 @@ class InitiateAnnualPaymentResponse(BaseModel):
     ds_signature_version: str
     ds_merchant_parameters: str
     ds_signature: str
+
+
+class PrefillMemberAssignment(BaseModel):
+    """Pre-computed member assignment for prefill."""
+    member_id: str
+    member_name: str
+    payment_types: List[str]
+
+
+class PrefillAnnualPaymentResponse(BaseModel):
+    """Response for annual payment prefill data."""
+    payer_name: str = ""
+    include_club_fee: bool = False
+    kyu_count: int = 0
+    kyu_infantil_count: int = 0
+    dan_count: int = 0
+    fukushidoin_shidoin_count: int = 0
+    seguro_accidentes_count: int = 0
+    seguro_rc_count: int = 0
+    member_assignments: List[PrefillMemberAssignment] = []
+    source: str = "members"  # "members" or "previous_payment"
