@@ -44,9 +44,16 @@ PRICE_CONFIGS = [
         "is_active": True,
     },
     {
-        "key": "dan-fukushidoin_shidoin-adulto",
+        "key": "dan-fukushidoin-adulto",
         "price": 70.0,
-        "description": "FUKUSHIDOIN/SHIDOIN (incluye RC + DAN)",
+        "description": "FUKUSHIDOIN (incluye RC + DAN)",
+        "category": "license",
+        "is_active": True,
+    },
+    {
+        "key": "dan-shidoin-adulto",
+        "price": 70.0,
+        "description": "SHIDOIN (incluye RC + DAN)",
         "category": "license",
         "is_active": True,
     },

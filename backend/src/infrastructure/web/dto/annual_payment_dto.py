@@ -36,7 +36,7 @@ class MemberPaymentAssignment(BaseModel):
         if not v:
             raise ValueError('At least one payment type is required')
         valid_types = [
-            'kyu', 'kyu_infantil', 'dan', 'fukushidoin_shidoin',
+            'kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin',
             'seguro_accidentes', 'seguro_rc'
         ]
         for ptype in v:
@@ -54,7 +54,8 @@ class InitiateAnnualPaymentRequest(BaseModel):
     kyu_count: int = 0
     kyu_infantil_count: int = 0
     dan_count: int = 0
-    fukushidoin_shidoin_count: int = 0
+    fukushidoin_count: int = 0
+    shidoin_count: int = 0
     seguro_accidentes_count: int = 0
     seguro_rc_count: int = 0
     member_assignments: Optional[List[MemberPaymentAssignment]] = None
@@ -75,7 +76,7 @@ class InitiateAnnualPaymentRequest(BaseModel):
         return v.strip()
 
     @field_validator('kyu_count', 'kyu_infantil_count', 'dan_count',
-                     'fukushidoin_shidoin_count', 'seguro_accidentes_count', 'seguro_rc_count')
+                     'fukushidoin_count', 'shidoin_count', 'seguro_accidentes_count', 'seguro_rc_count')
     @classmethod
     def validate_quantity(cls, v: int) -> int:
         if v < 0:
@@ -111,7 +112,8 @@ class PrefillAnnualPaymentResponse(BaseModel):
     kyu_count: int = 0
     kyu_infantil_count: int = 0
     dan_count: int = 0
-    fukushidoin_shidoin_count: int = 0
+    fukushidoin_count: int = 0
+    shidoin_count: int = 0
     seguro_accidentes_count: int = 0
     seguro_rc_count: int = 0
     member_assignments: List[PrefillMemberAssignment] = []

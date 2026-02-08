@@ -21,7 +21,8 @@ PAYMENT_TYPE_TO_PRICE_KEY = {
     "kyu": "kyu-none-adulto",
     "kyu_infantil": "kyu-none-infantil",
     "dan": "dan-none-adulto",
-    "fukushidoin_shidoin": "dan-fukushidoin_shidoin-adulto",
+    "fukushidoin": "dan-fukushidoin-adulto",
+    "shidoin": "dan-shidoin-adulto",
     "seguro_accidentes": "seguro_accidentes",
     "seguro_rc": "seguro_rc",
 }
@@ -130,7 +131,8 @@ class InitiateAnnualPaymentUseCase:
         kyu_count: int = 0,
         kyu_infantil_count: int = 0,
         dan_count: int = 0,
-        fukushidoin_shidoin_count: int = 0,
+        fukushidoin_count: int = 0,
+        shidoin_count: int = 0,
         seguro_accidentes_count: int = 0,
         seguro_rc_count: int = 0,
         success_url: str = "",
@@ -145,7 +147,8 @@ class InitiateAnnualPaymentUseCase:
             kyu_count > 0 or
             kyu_infantil_count > 0 or
             dan_count > 0 or
-            fukushidoin_shidoin_count > 0 or
+            fukushidoin_count > 0 or
+            shidoin_count > 0 or
             seguro_accidentes_count > 0 or
             seguro_rc_count > 0
         )
@@ -172,7 +175,8 @@ class InitiateAnnualPaymentUseCase:
             ("kyu", kyu_count),
             ("kyu_infantil", kyu_infantil_count),
             ("dan", dan_count),
-            ("fukushidoin_shidoin", fukushidoin_shidoin_count),
+            ("fukushidoin", fukushidoin_count),
+            ("shidoin", shidoin_count),
             ("seguro_accidentes", seguro_accidentes_count),
             ("seguro_rc", seguro_rc_count),
         ]
@@ -202,7 +206,8 @@ class InitiateAnnualPaymentUseCase:
                 kyu_count,
                 kyu_infantil_count,
                 dan_count,
-                fukushidoin_shidoin_count,
+                fukushidoin_count,
+                shidoin_count,
                 seguro_accidentes_count,
                 seguro_rc_count
             )
@@ -263,7 +268,8 @@ class InitiateAnnualPaymentUseCase:
         kyu_count: int,
         kyu_infantil_count: int,
         dan_count: int,
-        fukushidoin_shidoin_count: int,
+        fukushidoin_count: int,
+        shidoin_count: int,
         seguro_accidentes_count: int,
         seguro_rc_count: int
     ) -> None:
@@ -272,7 +278,8 @@ class InitiateAnnualPaymentUseCase:
             "kyu": 0,
             "kyu_infantil": 0,
             "dan": 0,
-            "fukushidoin_shidoin": 0,
+            "fukushidoin": 0,
+            "shidoin": 0,
             "seguro_accidentes": 0,
             "seguro_rc": 0
         }
@@ -286,7 +293,8 @@ class InitiateAnnualPaymentUseCase:
             "kyu": kyu_count,
             "kyu_infantil": kyu_infantil_count,
             "dan": dan_count,
-            "fukushidoin_shidoin": fukushidoin_shidoin_count,
+            "fukushidoin": fukushidoin_count,
+            "shidoin": shidoin_count,
             "seguro_accidentes": seguro_accidentes_count,
             "seguro_rc": seguro_rc_count
         }

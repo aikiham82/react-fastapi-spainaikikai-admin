@@ -6,13 +6,14 @@ from src.domain.entities.price_configuration import PriceConfiguration
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 
 
-# The 7 price keys required for annual payments
+# The 8 price keys required for annual payments
 ANNUAL_PAYMENT_PRICE_KEYS = [
     "club_fee",
     "kyu-none-adulto",
     "kyu-none-infantil",
     "dan-none-adulto",
-    "dan-fukushidoin_shidoin-adulto",
+    "dan-fukushidoin-adulto",
+    "dan-shidoin-adulto",
     "seguro_accidentes",
     "seguro_rc",
 ]
@@ -25,7 +26,7 @@ class GetAnnualPaymentPricesUseCase:
         self.price_repository = price_repository
 
     async def execute(self) -> Dict[str, PriceConfiguration]:
-        """Get all 7 annual payment price configurations.
+        """Get all 8 annual payment price configurations.
 
         Returns:
             Dict mapping key -> PriceConfiguration for all annual payment prices.

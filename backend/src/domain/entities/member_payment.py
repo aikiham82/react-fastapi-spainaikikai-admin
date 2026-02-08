@@ -30,7 +30,8 @@ ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE = {
     "kyu": MemberPaymentType.LICENCIA_KYU,
     "kyu_infantil": MemberPaymentType.LICENCIA_KYU_INFANTIL,
     "dan": MemberPaymentType.LICENCIA_DAN,
-    "fukushidoin_shidoin": MemberPaymentType.TITULO_FUKUSHIDOIN,
+    "fukushidoin": MemberPaymentType.TITULO_FUKUSHIDOIN,
+    "shidoin": MemberPaymentType.TITULO_SHIDOIN,
     "seguro_accidentes": MemberPaymentType.SEGURO_ACCIDENTES,
     "seguro_rc": MemberPaymentType.SEGURO_RC,
 }

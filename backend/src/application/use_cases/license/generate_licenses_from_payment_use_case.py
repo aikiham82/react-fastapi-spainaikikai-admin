@@ -41,7 +41,14 @@ PAYMENT_TYPE_TO_LICENSE_ATTRS = {
         "instructor_category": InstructorCategory.FUKUSHIDOIN,
         "age_category": AgeCategory.ADULTO,
         "license_type": LicenseType.INSTRUCTOR,
-        "grade": "Fukushidoin/Shidoin",
+        "grade": "Fukushidoin",
+    },
+    MemberPaymentType.TITULO_SHIDOIN: {
+        "technical_grade": TechnicalGrade.DAN,
+        "instructor_category": InstructorCategory.SHIDOIN,
+        "age_category": AgeCategory.ADULTO,
+        "license_type": LicenseType.INSTRUCTOR,
+        "grade": "Shidoin",
     },
 }
 

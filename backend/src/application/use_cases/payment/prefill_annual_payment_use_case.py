@@ -27,7 +27,8 @@ class PrefillResult:
     kyu_count: int
     kyu_infantil_count: int
     dan_count: int
-    fukushidoin_shidoin_count: int
+    fukushidoin_count: int
+    shidoin_count: int
     seguro_accidentes_count: int
     seguro_rc_count: int
     member_assignments: List[PrefillMemberAssignment]
@@ -101,7 +102,8 @@ class PrefillAnnualPaymentUseCase:
         # 5. Classify members and build counts + assignments
         counts = {
             "kyu": 0, "kyu_infantil": 0, "dan": 0,
-            "fukushidoin_shidoin": 0, "seguro_accidentes": 0, "seguro_rc": 0,
+            "fukushidoin": 0, "shidoin": 0,
+            "seguro_accidentes": 0, "seguro_rc": 0,
         }
         assignments: List[PrefillMemberAssignment] = []
 
@@ -110,12 +112,12 @@ class PrefillAnnualPaymentUseCase:
             lic = member_license_map.get(member.id)
 
             if lic:
-                if lic.instructor_category in (
-                    InstructorCategory.FUKUSHIDOIN,
-                    InstructorCategory.SHIDOIN,
-                ):
-                    member_types.append("fukushidoin_shidoin")
-                    counts["fukushidoin_shidoin"] += 1
+                if lic.instructor_category == InstructorCategory.FUKUSHIDOIN:
+                    member_types.append("fukushidoin")
+                    counts["fukushidoin"] += 1
+                elif lic.instructor_category == InstructorCategory.SHIDOIN:
+                    member_types.append("shidoin")
+                    counts["shidoin"] += 1
                 elif lic.technical_grade == TechnicalGrade.DAN:
                     member_types.append("dan")
                     counts["dan"] += 1
@@ -153,7 +155,8 @@ class PrefillAnnualPaymentUseCase:
             kyu_count=counts["kyu"],
             kyu_infantil_count=counts["kyu_infantil"],
             dan_count=counts["dan"],
-            fukushidoin_shidoin_count=counts["fukushidoin_shidoin"],
+            fukushidoin_count=counts["fukushidoin"],
+            shidoin_count=counts["shidoin"],
             seguro_accidentes_count=counts["seguro_accidentes"],
             seguro_rc_count=counts["seguro_rc"],
             member_assignments=assignments,
@@ -176,14 +179,16 @@ class PrefillAnnualPaymentUseCase:
                 payer_name=payer_name,
                 include_club_fee=True,
                 kyu_count=0, kyu_infantil_count=0, dan_count=0,
-                fukushidoin_shidoin_count=0, seguro_accidentes_count=0, seguro_rc_count=0,
+                fukushidoin_count=0, shidoin_count=0,
+                seguro_accidentes_count=0, seguro_rc_count=0,
                 member_assignments=[],
                 source="previous_payment",
             )
 
         counts = {
             "kyu": 0, "kyu_infantil": 0, "dan": 0,
-            "fukushidoin_shidoin": 0, "seguro_accidentes": 0, "seguro_rc": 0,
+            "fukushidoin": 0, "shidoin": 0,
+            "seguro_accidentes": 0, "seguro_rc": 0,
         }
         if prev_payment.line_items_data:
             try:
@@ -214,7 +219,8 @@ class PrefillAnnualPaymentUseCase:
             kyu_count=counts["kyu"],
             kyu_infantil_count=counts["kyu_infantil"],
             dan_count=counts["dan"],
-            fukushidoin_shidoin_count=counts["fukushidoin_shidoin"],
+            fukushidoin_count=counts["fukushidoin"],
+            shidoin_count=counts["shidoin"],
             seguro_accidentes_count=counts["seguro_accidentes"],
             seguro_rc_count=counts["seguro_rc"],
             member_assignments=prev_assignments,

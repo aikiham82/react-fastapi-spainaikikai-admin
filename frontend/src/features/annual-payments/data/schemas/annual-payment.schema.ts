@@ -11,7 +11,8 @@ export const ANNUAL_PAYMENT_LABELS = {
   kyu: 'Licencia KYU (adulto)',
   kyu_infantil: 'Licencia KYU Infantil (≤14 años)',
   dan: 'Licencia DAN',
-  fukushidoin_shidoin: 'FUKUSHIDOIN/SHIDOIN (incluye RC + DAN)',
+  fukushidoin: 'FUKUSHIDOIN (incluye RC + DAN)',
+  shidoin: 'SHIDOIN (incluye RC + DAN)',
   seguro_accidentes: 'Seguro de Accidentes',
   seguro_rc: 'Seguro RC',
 } as const;
@@ -24,7 +25,8 @@ export interface AnnualPaymentPrices {
   kyu: number;
   kyu_infantil: number;
   dan: number;
-  fukushidoin_shidoin: number;
+  fukushidoin: number;
+  shidoin: number;
   seguro_accidentes: number;
   seguro_rc: number;
 }
@@ -35,7 +37,8 @@ const PRICE_KEY_TO_ITEM_TYPE: Record<string, keyof AnnualPaymentPrices> = {
   'kyu-none-adulto': 'kyu',
   'kyu-none-infantil': 'kyu_infantil',
   'dan-none-adulto': 'dan',
-  'dan-fukushidoin_shidoin-adulto': 'fukushidoin_shidoin',
+  'dan-fukushidoin-adulto': 'fukushidoin',
+  'dan-shidoin-adulto': 'shidoin',
   'seguro_accidentes': 'seguro_accidentes',
   'seguro_rc': 'seguro_rc',
 };
@@ -91,7 +94,8 @@ export interface InitiateAnnualPaymentRequest {
   kyu_count: number;
   kyu_infantil_count: number;
   dan_count: number;
-  fukushidoin_shidoin_count: number;
+  fukushidoin_count: number;
+  shidoin_count: number;
   seguro_accidentes_count: number;
   seguro_rc_count: number;
   member_assignments?: MemberPaymentAssignment[];
@@ -116,7 +120,8 @@ export interface AnnualPaymentFormData {
   kyu_count: number;
   kyu_infantil_count: number;
   dan_count: number;
-  fukushidoin_shidoin_count: number;
+  fukushidoin_count: number;
+  shidoin_count: number;
   seguro_accidentes_count: number;
   seguro_rc_count: number;
   member_assignments: MemberPaymentAssignment[];
@@ -150,7 +155,7 @@ export const annualPaymentFormSchema = z.object({
   kyu_count: z.number().min(0).max(QUANTITY_LIMITS.max_per_item, maxQtyError),
   kyu_infantil_count: z.number().min(0).max(QUANTITY_LIMITS.max_per_item, maxQtyError),
   dan_count: z.number().min(0).max(QUANTITY_LIMITS.max_per_item, maxQtyError),
-  fukushidoin_shidoin_count: z.number().min(0).max(QUANTITY_LIMITS.max_per_item, maxQtyError),
+  fukushidoin_count: z.number().min(0).max(QUANTITY_LIMITS.max_per_item, maxQtyError),
   seguro_accidentes_count: z.number().min(0).max(QUANTITY_LIMITS.max_per_item, maxQtyError),
   seguro_rc_count: z.number().min(0).max(QUANTITY_LIMITS.max_per_item, maxQtyError),
 }).refine(
@@ -161,7 +166,7 @@ export const annualPaymentFormSchema = z.object({
       data.kyu_count > 0 ||
       data.kyu_infantil_count > 0 ||
       data.dan_count > 0 ||
-      data.fukushidoin_shidoin_count > 0 ||
+      data.fukushidoin_count > 0 ||
       data.seguro_accidentes_count > 0 ||
       data.seguro_rc_count > 0
     );
@@ -181,7 +186,7 @@ export function calculateTotals(formData: AnnualPaymentFormData, prices: AnnualP
     kyu: formData.kyu_count * prices.kyu,
     kyu_infantil: formData.kyu_infantil_count * prices.kyu_infantil,
     dan: formData.dan_count * prices.dan,
-    fukushidoin_shidoin: formData.fukushidoin_shidoin_count * prices.fukushidoin_shidoin,
+    fukushidoin_shidoin: formData.fukushidoin_count * prices.fukushidoin_shidoin,
     seguro_accidentes: formData.seguro_accidentes_count * prices.seguro_accidentes,
     seguro_rc: formData.seguro_rc_count * prices.seguro_rc,
   };
@@ -200,7 +205,7 @@ export const defaultFormValues: AnnualPaymentFormData = {
   kyu_count: 0,
   kyu_infantil_count: 0,
   dan_count: 0,
-  fukushidoin_shidoin_count: 0,
+  fukushidoin_count: 0,
   seguro_accidentes_count: 0,
   seguro_rc_count: 0,
   member_assignments: [],
@@ -212,7 +217,7 @@ export interface PrefillAnnualPaymentResponse {
   kyu_count: number;
   kyu_infantil_count: number;
   dan_count: number;
-  fukushidoin_shidoin_count: number;
+  fukushidoin_count: number;
   seguro_accidentes_count: number;
   seguro_rc_count: number;
   member_assignments: MemberPaymentAssignment[];
