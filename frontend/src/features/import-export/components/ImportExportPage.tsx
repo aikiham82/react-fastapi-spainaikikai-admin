@@ -72,8 +72,7 @@ function ImportCard({ title, description, entityLabel, isPending, onImport }: Im
     try {
       const data = await selectedFile.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
 
       const result = await onImport(jsonData);
@@ -590,7 +589,7 @@ export const ImportExportPage = () => {
                   <Download className="w-5 h-5 text-green-600" />
                   <CardTitle>Exportar Pagos</CardTitle>
                 </div>
-                <CardDescription>Exporta pagos a un archivo Excel con dos hojas: resumen por club y detalle por miembro</CardDescription>
+                <CardDescription>Exporta pagos a un archivo Excel con detalle por miembro</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
@@ -623,7 +622,7 @@ export const ImportExportPage = () => {
                 </Button>
 
                 <div className="text-xs text-gray-500">
-                  Genera un Excel con hoja de resumen por club y detalle por miembro
+                  Genera un Excel con el detalle de pagos por miembro
                 </div>
               </CardContent>
             </Card>

@@ -30,7 +30,6 @@ from src.infrastructure.web.dependencies import (
     get_license_repository,
     get_insurance_repository,
     get_member_payment_repository,
-    get_all_clubs_payment_summary_use_case,
     get_club_repository
 )
 from src.infrastructure.web.dependencies import get_auth_context
@@ -795,74 +794,33 @@ PAYMENT_TYPE_FROM_LABEL.update({k: k for k in PAYMENT_TYPE_LABELS})
 @router.get("/payments/export")
 async def export_payments(
     payment_year: int = Query(..., description="Year to export payments for"),
-    summary_use_case=Depends(get_all_clubs_payment_summary_use_case),
     member_payment_repo=Depends(get_member_payment_repository),
     member_repo=Depends(get_member_repository),
     club_repo=Depends(get_club_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Export payments to multi-sheet Excel. Super admin only."""
+    """Export payments to Excel. Super admin only."""
     if not ctx.is_super_admin:
         raise HTTPException(
             status_code=403,
             detail="Solo los super administradores pueden exportar pagos"
         )
 
-    summary_result = await summary_use_case.execute(payment_year=payment_year)
     clubs = await club_repo.find_all()
 
     wb = openpyxl.Workbook()
     header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill(start_color="4A5568", end_color="4A5568", fill_type="solid")
 
-    # --- Sheet 1: Resumen por Club ---
-    ws1 = wb.active
-    ws1.title = "Resumen por Club"
+    ws = wb.active
+    ws.title = "Pagos"
 
-    headers1 = [
-        "Club", "Miembros", "Cuota Club", "Licencias Pagadas",
-        "Seguros Pagados", "Total Cobrado"
-    ]
-    for col, header in enumerate(headers1, 1):
-        cell = ws1.cell(row=1, column=col, value=header)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center")
-
-    for row_idx, club_summary in enumerate(summary_result.clubs, 2):
-        ws1.cell(row=row_idx, column=1, value=club_summary.club_name)
-        ws1.cell(row=row_idx, column=2, value=club_summary.total_members)
-        ws1.cell(row=row_idx, column=3, value="Sí" if club_summary.has_club_fee else "No")
-        ws1.cell(row=row_idx, column=4, value=f"{club_summary.members_with_license}/{club_summary.total_members}")
-        ws1.cell(row=row_idx, column=5, value=f"{club_summary.members_with_insurance}/{club_summary.total_members}")
-        ws1.cell(row=row_idx, column=6, value=club_summary.total_collected)
-
-    total_row = len(summary_result.clubs) + 2
-    ws1.cell(row=total_row, column=1, value="TOTAL")
-    ws1.cell(row=total_row, column=1).font = Font(bold=True)
-    ws1.cell(row=total_row, column=2, value=summary_result.grand_total_members)
-    ws1.cell(row=total_row, column=6, value=summary_result.grand_total_collected)
-
-    for col in ws1.columns:
-        max_length = 0
-        column_letter = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        ws1.column_dimensions[column_letter].width = min(max_length + 2, 50)
-
-    # --- Sheet 2: Detalle por Miembro ---
-    ws2 = wb.create_sheet("Detalle por Miembro")
-
-    headers2 = [
+    headers = [
         "Club", "Nombre", "Apellidos", "DNI", "Tipo Pago",
         "Concepto", "Monto", "Estado", "Año"
     ]
-    for col, header in enumerate(headers2, 1):
-        cell = ws2.cell(row=1, column=col, value=header)
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="center")
@@ -886,18 +844,18 @@ async def export_payments(
 
         for payment in payments:
             member = member_map.get(payment.member_id)
-            ws2.cell(row=row_idx, column=1, value=club.name)
-            ws2.cell(row=row_idx, column=2, value=member.first_name if member else '')
-            ws2.cell(row=row_idx, column=3, value=member.last_name if member else '')
-            ws2.cell(row=row_idx, column=4, value=member.dni if member else '')
-            ws2.cell(row=row_idx, column=5, value=PAYMENT_TYPE_LABELS.get(payment.payment_type.value, payment.payment_type.value))
-            ws2.cell(row=row_idx, column=6, value=payment.concept)
-            ws2.cell(row=row_idx, column=7, value=payment.amount)
-            ws2.cell(row=row_idx, column=8, value=payment.status.value)
-            ws2.cell(row=row_idx, column=9, value=payment.payment_year)
+            ws.cell(row=row_idx, column=1, value=club.name)
+            ws.cell(row=row_idx, column=2, value=member.first_name if member else '')
+            ws.cell(row=row_idx, column=3, value=member.last_name if member else '')
+            ws.cell(row=row_idx, column=4, value=member.dni if member else '')
+            ws.cell(row=row_idx, column=5, value=PAYMENT_TYPE_LABELS.get(payment.payment_type.value, payment.payment_type.value))
+            ws.cell(row=row_idx, column=6, value=payment.concept)
+            ws.cell(row=row_idx, column=7, value=payment.amount)
+            ws.cell(row=row_idx, column=8, value=payment.status.value)
+            ws.cell(row=row_idx, column=9, value=payment.payment_year)
             row_idx += 1
 
-    for col in ws2.columns:
+    for col in ws.columns:
         max_length = 0
         column_letter = col[0].column_letter
         for cell in col:
@@ -906,7 +864,7 @@ async def export_payments(
                     max_length = len(str(cell.value))
             except:
                 pass
-        ws2.column_dimensions[column_letter].width = min(max_length + 2, 50)
+        ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
 
     output = BytesIO()
     wb.save(output)
