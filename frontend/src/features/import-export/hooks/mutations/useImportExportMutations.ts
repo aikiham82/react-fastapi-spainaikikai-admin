@@ -51,7 +51,10 @@ export const useImportLicensesMutation = () => {
   return useMutation({
     mutationFn: importExportService.importLicenses,
     onSuccess: (response) => {
-      toast.success(`${response.imported} licencias importadas exitosamente`);
+      const parts = [];
+      if (response.imported > 0) parts.push(`${response.imported} creadas`);
+      if (response.updated > 0) parts.push(`${response.updated} actualizadas`);
+      toast.success(`Licencias: ${parts.length > 0 ? parts.join(', ') : '0 procesadas'}`);
       queryClient.invalidateQueries({ queryKey: ['licenses'] });
     },
     onError: (error: any) => {
@@ -90,7 +93,10 @@ export const useImportInsurancesMutation = () => {
   return useMutation({
     mutationFn: importExportService.importInsurances,
     onSuccess: (response) => {
-      toast.success(`${response.imported} seguros importados exitosamente`);
+      const parts = [];
+      if (response.imported > 0) parts.push(`${response.imported} creados`);
+      if (response.updated > 0) parts.push(`${response.updated} actualizados`);
+      toast.success(`Seguros: ${parts.length > 0 ? parts.join(', ') : '0 procesados'}`);
       queryClient.invalidateQueries({ queryKey: ['insurances'] });
     },
     onError: (error: any) => {

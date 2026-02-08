@@ -26,6 +26,7 @@ export interface ExportDataResponse {
 // License import/export
 export interface ImportLicensesRequest {
   licenses: Array<Record<string, unknown>>;
+  mode?: 'create' | 'upsert';
 }
 
 export interface ExportLicensesFilters {
@@ -38,6 +39,7 @@ export interface ExportLicensesFilters {
 // Insurance import/export
 export interface ImportInsurancesRequest {
   insurances: Array<Record<string, unknown>>;
+  mode?: 'create' | 'upsert';
 }
 
 export interface ExportInsurancesFilters {

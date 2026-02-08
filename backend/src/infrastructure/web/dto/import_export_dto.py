@@ -39,11 +39,13 @@ class ImportMembersResponse(BaseModel):
 class ImportLicensesRequest(BaseModel):
     """DTO for importing licenses."""
     licenses: List[dict]
+    mode: str = "create"  # "create" or "upsert"
 
 
 class ImportInsurancesRequest(BaseModel):
     """DTO for importing insurances."""
     insurances: List[dict]
+    mode: str = "create"  # "create" or "upsert"
 
 
 class MemberExportRow(BaseModel):

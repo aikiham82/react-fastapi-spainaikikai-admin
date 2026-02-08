@@ -248,23 +248,23 @@ export const ImportExportPage = () => {
     };
   };
 
-  const handleImportLicenses = async (data: Record<string, unknown>[]): Promise<ImportResults> => {
-    const result = await importLicensesMutation.mutateAsync({ licenses: data });
+  const handleImportLicenses = async (data: Record<string, unknown>[], mode: 'create' | 'upsert'): Promise<ImportResults> => {
+    const result = await importLicensesMutation.mutateAsync({ licenses: data, mode });
     return {
       success: result.success,
       imported: result.imported,
-      updated: 0,
+      updated: result.updated || 0,
       failed: result.failed,
       errors: result.errors || [],
     };
   };
 
-  const handleImportInsurances = async (data: Record<string, unknown>[]): Promise<ImportResults> => {
-    const result = await importInsurancesMutation.mutateAsync({ insurances: data });
+  const handleImportInsurances = async (data: Record<string, unknown>[], mode: 'create' | 'upsert'): Promise<ImportResults> => {
+    const result = await importInsurancesMutation.mutateAsync({ insurances: data, mode });
     return {
       success: result.success,
       imported: result.imported,
-      updated: 0,
+      updated: result.updated || 0,
       failed: result.failed,
       errors: result.errors || [],
     };
@@ -362,6 +362,7 @@ export const ImportExportPage = () => {
               description="Importa licencias desde un archivo Excel. Requiere DNI del miembro."
               entityLabel="licencias"
               isPending={importLicensesMutation.isPending}
+              supportsUpsert
               onImport={handleImportLicenses}
             />
 
@@ -478,6 +479,7 @@ export const ImportExportPage = () => {
               description="Importa seguros desde un archivo Excel. Requiere DNI del miembro."
               entityLabel="seguros"
               isPending={importInsurancesMutation.isPending}
+              supportsUpsert
               onImport={handleImportInsurances}
             />
 

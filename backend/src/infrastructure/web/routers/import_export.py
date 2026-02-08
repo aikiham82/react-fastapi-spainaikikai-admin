@@ -22,8 +22,12 @@ from src.infrastructure.web.dependencies import (
     get_all_licenses_use_case,
     get_all_insurances_use_case,
     get_create_license_use_case,
+    get_update_license_use_case,
     get_create_insurance_use_case,
-    get_member_repository
+    get_update_insurance_use_case,
+    get_member_repository,
+    get_license_repository,
+    get_insurance_repository
 )
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx
@@ -476,6 +480,8 @@ async def export_insurances(
 async def import_licenses(
     request: ImportLicensesRequest,
     create_license_use_case=Depends(get_create_license_use_case),
+    update_license_use_case=Depends(get_update_license_use_case),
+    license_repo=Depends(get_license_repository),
     member_repo=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
@@ -487,25 +493,69 @@ async def import_licenses(
         )
 
     imported = 0
+    updated = 0
     failed = 0
     errors = []
+    is_upsert = request.mode == "upsert"
 
     for idx, row in enumerate(request.licenses):
         try:
             license_number = row.get('license_number') or row.get('Nº Licencia') or row.get('nº licencia') or ''
             dni = row.get('dni') or row.get('DNI') or row.get('Dni') or ''
-            grade = row.get('grade') or row.get('Grado') or row.get('grado') or ''
+            grade = row.get('grade') or row.get('Grado') or row.get('Grado Técnico') or row.get('grado') or ''
             technical_grade = row.get('technical_grade') or row.get('Grado Técnico') or row.get('grado_tecnico') or 'kyu'
             instructor_category = row.get('instructor_category') or row.get('Cat. Instructor') or row.get('cat_instructor') or 'none'
             age_category = row.get('age_category') or row.get('Cat. Edad') or row.get('cat_edad') or 'adulto'
             issue_date_str = row.get('issue_date') or row.get('Fecha Emisión') or row.get('fecha_emision') or None
             expiration_date_str = row.get('expiration_date') or row.get('Fecha Expiración') or row.get('fecha_expiracion') or None
+            is_renewed_raw = row.get('is_renewed') or row.get('Renovada') or row.get('renovada') or None
 
             if not license_number:
                 errors.append(f"Fila {idx + 1}: Nº de licencia es obligatorio")
                 failed += 1
                 continue
 
+            # In upsert mode, find existing license by license_number and update
+            if is_upsert:
+                existing = await license_repo.find_by_license_number(license_number)
+                if existing:
+                    update_fields = {}
+                    issue_date = _parse_date(issue_date_str)
+                    expiration_date = _parse_date(expiration_date_str)
+
+                    if grade:
+                        update_fields['grade'] = grade
+                    if technical_grade:
+                        try:
+                            update_fields['technical_grade'] = TechnicalGrade(technical_grade.lower())
+                        except ValueError:
+                            pass
+                    if instructor_category:
+                        try:
+                            update_fields['instructor_category'] = InstructorCategory(instructor_category.lower())
+                        except ValueError:
+                            pass
+                    if age_category:
+                        try:
+                            update_fields['age_category'] = AgeCategory(age_category.lower())
+                        except ValueError:
+                            pass
+                    if issue_date:
+                        update_fields['issue_date'] = issue_date
+                    if expiration_date:
+                        update_fields['expiration_date'] = expiration_date
+                    if is_renewed_raw is not None:
+                        update_fields['is_renewed'] = str(is_renewed_raw).lower() in ('sí', 'si', 'yes', 'true', '1')
+
+                    if update_fields:
+                        await update_license_use_case.execute(
+                            license_id=existing.id,
+                            **update_fields
+                        )
+                    updated += 1
+                    continue
+
+            # For create mode, grade and DNI are required
             if not grade:
                 errors.append(f"Fila {idx + 1}: Grado es obligatorio")
                 failed += 1
@@ -566,6 +616,7 @@ async def import_licenses(
     return ImportMembersResponse(
         success=failed == 0,
         imported=imported,
+        updated=updated,
         failed=failed,
         errors=errors
     )
@@ -575,6 +626,8 @@ async def import_licenses(
 async def import_insurances(
     request: ImportInsurancesRequest,
     create_insurance_use_case=Depends(get_create_insurance_use_case),
+    update_insurance_use_case=Depends(get_update_insurance_use_case),
+    insurance_repo=Depends(get_insurance_repository),
     member_repo=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
@@ -586,8 +639,10 @@ async def import_insurances(
         )
 
     imported = 0
+    updated = 0
     failed = 0
     errors = []
+    is_upsert = request.mode == "upsert"
 
     for idx, row in enumerate(request.insurances):
         try:
@@ -604,6 +659,45 @@ async def import_insurances(
                 failed += 1
                 continue
 
+            # In upsert mode, find existing insurance by policy_number and update
+            if is_upsert:
+                existing = await insurance_repo.find_by_policy_number(policy_number)
+                if existing:
+                    update_fields = {}
+                    start_date = _parse_date(start_date_str)
+                    end_date = _parse_date(end_date_str)
+
+                    if ins_type:
+                        ins_type_normalized = ins_type.lower().replace(' ', '_')
+                        if ins_type_normalized in ('accidente', 'accident'):
+                            ins_type_normalized = 'accident'
+                        elif ins_type_normalized in ('rc', 'responsabilidad_civil', 'civil_liability'):
+                            ins_type_normalized = 'civil_liability'
+                        try:
+                            update_fields['insurance_type'] = InsuranceType(ins_type_normalized)
+                        except ValueError:
+                            pass
+                    if company:
+                        update_fields['insurance_company'] = company
+                    if start_date:
+                        update_fields['start_date'] = start_date
+                    if end_date:
+                        update_fields['end_date'] = end_date
+                    if coverage_str:
+                        try:
+                            update_fields['coverage_amount'] = float(str(coverage_str).replace(',', '.'))
+                        except (ValueError, TypeError):
+                            pass
+
+                    if update_fields:
+                        await update_insurance_use_case.execute(
+                            insurance_id=existing.id,
+                            **update_fields
+                        )
+                    updated += 1
+                    continue
+
+            # For create mode, company and DNI are required
             if not company:
                 errors.append(f"Fila {idx + 1}: Compañía es obligatoria")
                 failed += 1
@@ -668,6 +762,7 @@ async def import_insurances(
     return ImportMembersResponse(
         success=failed == 0,
         imported=imported,
+        updated=updated,
         failed=failed,
         errors=errors
     )
