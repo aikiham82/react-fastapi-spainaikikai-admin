@@ -142,9 +142,9 @@ export const LicenseList = () => {
               </Badge>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-              <span>Exp: {new Date(license.expiry_date).toLocaleDateString('es-ES')}</span>
+              <span>Exp: {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}</span>
               <span>{license.dan_grade === 0 ? 'Kyû' : `Dan ${license.dan_grade}`}</span>
-              {isExpiringSoon(license.expiry_date) && (
+              {license.expiry_date && isExpiringSoon(license.expiry_date) && (
                 <Badge variant="outline" className="border-yellow-500 text-yellow-700">
                   <RotateCw className="w-3 h-3 mr-1" />
                   Expira pronto
@@ -170,11 +170,11 @@ export const LicenseList = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-900">Fecha Emisión</p>
-                        <p className="text-sm text-gray-600">{new Date(license.issue_date).toLocaleDateString('es-ES')}</p>
+                        <p className="text-sm text-gray-600">{license.issue_date ? new Date(license.issue_date).toLocaleDateString('es-ES') : '-'}</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">Fecha Expiración</p>
-                        <p className="text-sm text-gray-600">{new Date(license.expiry_date).toLocaleDateString('es-ES')}</p>
+                        <p className="text-sm text-gray-600">{license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}</p>
                       </div>
                     </div>
                     <div>
@@ -222,14 +222,14 @@ export const LicenseList = () => {
                   </td>
                   <td className="p-4 text-gray-600">{license.member_name || '-'}</td>
                   <td className="p-4 text-gray-600">
-                    {new Date(license.issue_date).toLocaleDateString('es-ES')}
+                    {license.issue_date ? new Date(license.issue_date).toLocaleDateString('es-ES') : '-'}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <span className="text-gray-600">
-                        {new Date(license.expiry_date).toLocaleDateString('es-ES')}
+                        {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}
                       </span>
-                      {isExpiringSoon(license.expiry_date) && (
+                      {license.expiry_date && isExpiringSoon(license.expiry_date) && (
                         <Badge variant="outline" className="border-yellow-500 text-yellow-700">
                           <RotateCw className="w-3 h-3 mr-1" />
                           Expira pronto
@@ -272,13 +272,13 @@ export const LicenseList = () => {
                               <div>
                                 <p className="text-sm font-medium text-gray-900">Fecha Emisión</p>
                                 <p className="text-sm text-gray-600">
-                                  {new Date(license.issue_date).toLocaleDateString('es-ES')}
+                                  {license.issue_date ? new Date(license.issue_date).toLocaleDateString('es-ES') : '-'}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-900">Fecha Expiración</p>
                                 <p className="text-sm text-gray-600">
-                                  {new Date(license.expiry_date).toLocaleDateString('es-ES')}
+                                  {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}
                                 </p>
                               </div>
                             </div>

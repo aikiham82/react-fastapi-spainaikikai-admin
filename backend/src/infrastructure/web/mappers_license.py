@@ -1,6 +1,6 @@
 """License mapper for DTO to Entity conversion."""
 
-from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 from src.domain.entities.license import (
     License, LicenseStatus, LicenseType,
@@ -28,10 +28,10 @@ class LicenseMapper:
         instructor_category = InstructorCategory(dto.instructor_category) if dto.instructor_category else InstructorCategory.NONE
         age_category = AgeCategory(dto.age_category) if dto.age_category else AgeCategory.ADULTO
 
-        # Licenses are annual: calculate expiration if not provided
+        # Licenses are annual: expire on Dec 31 of the issue year
         expiration_date = dto.expiration_date
         if not expiration_date and dto.issue_date:
-            expiration_date = dto.issue_date + relativedelta(years=1)
+            expiration_date = datetime(dto.issue_date.year, 12, 31, 23, 59, 59)
 
         return License(
             license_number=dto.license_number,
