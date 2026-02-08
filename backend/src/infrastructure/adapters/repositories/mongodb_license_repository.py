@@ -79,8 +79,10 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         return doc
 
     async def find_all(self, limit: int = 100) -> List[License]:
-        cursor = self.collection.find().limit(limit)
-        documents = await cursor.to_list(length=limit)
+        cursor = self.collection.find()
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, license_id: str) -> Optional[License]:
@@ -103,11 +105,13 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         """Find licenses by a list of member IDs."""
         if not member_ids:
             return []
-        cursor = self.collection.find({"member_id": {"$in": member_ids}}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        cursor = self.collection.find({"member_id": {"$in": member_ids}})
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[License]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[License]:
         """Find licenses by club ID.
 
         Since club_id is no longer stored in licenses, this method:
@@ -127,8 +131,10 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         member_id_strings = [str(m) for m in member_ids]
 
         # Find licenses for these members
-        cursor = self.collection.find({"member_id": {"$in": member_id_strings}}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        cursor = self.collection.find({"member_id": {"$in": member_id_strings}})
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_status(self, status: LicenseStatus, limit: int = 100) -> List[License]:

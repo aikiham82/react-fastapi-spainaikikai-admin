@@ -306,7 +306,10 @@ export const ImportExportPage = () => {
               </div>
 
               <Button
-                onClick={() => exportMembersMutation.mutate(memberFilters)}
+                onClick={() => {
+                  const { limit: _l, offset: _o, ...exportFilters } = memberFilters as any;
+                  exportMembersMutation.mutate(exportFilters);
+                }}
                 disabled={exportMembersMutation.isPending}
                 className="w-full"
               >

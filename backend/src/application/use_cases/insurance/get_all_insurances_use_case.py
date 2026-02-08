@@ -38,7 +38,7 @@ class GetAllInsurancesUseCase:
             return await self.insurance_repository.find_by_member_id(member_id, limit)
         if club_id:
             # Get all member IDs for the club, then find their insurances
-            members = await self.member_repository.find_by_club_id(club_id, limit=1000)
+            members = await self.member_repository.find_by_club_id(club_id, limit=0)
             member_ids = [m.id for m in members if m.id]
             if not member_ids:
                 return []

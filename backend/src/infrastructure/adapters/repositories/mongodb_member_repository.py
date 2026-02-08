@@ -23,9 +23,9 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         # Read club_role with fallback to default "member" for existing documents
         club_role_val = doc.get("club_role", "member")
 
-        # Sanitize "null" strings from MariaDB migration
+        # Sanitize invalid email values from MariaDB migration
         email = doc.get("email", "")
-        if email is None or email == "null":
+        if email is None or email == "null" or (email and "@" not in email):
             email = ""
 
         return Member(
@@ -77,8 +77,10 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         return doc
 
     async def find_all(self, limit: int = 100) -> List[Member]:
-        cursor = self.collection.find().limit(limit)
-        documents = await cursor.to_list(length=limit)
+        cursor = self.collection.find()
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, member_id: str) -> Optional[Member]:
@@ -97,8 +99,10 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         return self._to_domain(doc) if doc else None
 
     async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Member]:
-        cursor = self.collection.find({"club_id": club_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        cursor = self.collection.find({"club_id": club_id})
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_status(self, status: MemberStatus, limit: int = 100) -> List[Member]:

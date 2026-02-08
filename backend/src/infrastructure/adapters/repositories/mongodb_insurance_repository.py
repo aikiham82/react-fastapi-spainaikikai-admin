@@ -58,8 +58,10 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         return doc
 
     async def find_all(self, limit: int = 100) -> List[Insurance]:
-        cursor = self.collection.find().limit(limit)
-        documents = await cursor.to_list(length=limit)
+        cursor = self.collection.find()
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, insurance_id: str) -> Optional[Insurance]:
@@ -78,8 +80,10 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         """Find insurances by a list of member IDs."""
         if not member_ids:
             return []
-        cursor = self.collection.find({"member_id": {"$in": member_ids}}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        cursor = self.collection.find({"member_id": {"$in": member_ids}})
+        if limit > 0:
+            cursor = cursor.limit(limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_policy_number(self, policy_number: str) -> Optional[Insurance]:

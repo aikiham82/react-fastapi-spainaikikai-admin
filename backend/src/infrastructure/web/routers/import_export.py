@@ -126,24 +126,19 @@ async def import_members(
 
 @router.get("/members/export")
 async def export_members(
-    limit: int = Query(1000, ge=1, le=10000),
-    offset: int = Query(0, ge=0),
     club_id: Optional[str] = Query(None),
     get_all_use_case=Depends(get_all_members_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Export members to Excel file."""
+    """Export members to Excel file. No limit — exports all matching members."""
     # Enforce club isolation: club users can only export their own club's members
     effective_club_id = get_club_filter_ctx(ctx)
     if effective_club_id is not None:
-        # Club user - force their club_id (ignore query param)
-        members = await get_all_use_case.execute(limit, effective_club_id)
+        members = await get_all_use_case.execute(0, effective_club_id)
     elif club_id:
-        # Super admin with explicit club filter
-        members = await get_all_use_case.execute(limit, club_id)
+        members = await get_all_use_case.execute(0, club_id)
     else:
-        # Super admin - export all
-        members = await get_all_use_case.execute(limit, None)
+        members = await get_all_use_case.execute(0, None)
 
     # Create Excel workbook
     wb = openpyxl.Workbook()
@@ -218,8 +213,6 @@ async def export_members(
 
 @router.get("/licenses/export")
 async def export_licenses(
-    limit: int = Query(1000, ge=1, le=10000),
-    offset: int = Query(0, ge=0),
     club_id: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     technical_grade: Optional[str] = Query(None),
@@ -228,14 +221,14 @@ async def export_licenses(
     member_repo=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Export licenses to Excel file. Super admin only."""
+    """Export licenses to Excel file. No limit — exports all. Super admin only."""
     if not ctx.is_super_admin:
         raise HTTPException(
             status_code=403,
             detail="Solo los super administradores pueden exportar licencias"
         )
 
-    licenses = await get_all_use_case.execute(limit=limit, club_id=club_id)
+    licenses = await get_all_use_case.execute(limit=0, club_id=club_id)
 
     # Post-filter by status, technical_grade, age_category
     if status:
@@ -331,8 +324,6 @@ async def export_licenses(
 
 @router.get("/insurances/export")
 async def export_insurances(
-    limit: int = Query(1000, ge=1, le=10000),
-    offset: int = Query(0, ge=0),
     club_id: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     insurance_type: Optional[str] = Query(None),
@@ -340,14 +331,14 @@ async def export_insurances(
     member_repo=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Export insurances to Excel file. Super admin only."""
+    """Export insurances to Excel file. No limit — exports all. Super admin only."""
     if not ctx.is_super_admin:
         raise HTTPException(
             status_code=403,
             detail="Solo los super administradores pueden exportar seguros"
         )
 
-    insurances = await get_all_use_case.execute(limit=limit, club_id=club_id)
+    insurances = await get_all_use_case.execute(limit=0, club_id=club_id)
 
     # Post-filter by status, insurance_type
     if status:
