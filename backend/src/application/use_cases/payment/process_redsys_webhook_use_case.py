@@ -401,6 +401,12 @@ class ProcessRedsysWebhookUseCase:
 
         return member_payments
 
+    # Instructor payment types that implicitly include RC insurance
+    INSTRUCTOR_TYPES_WITH_RC = {
+        MemberPaymentType.TITULO_FUKUSHIDOIN,
+        MemberPaymentType.TITULO_SHIDOIN,
+    }
+
     async def _generate_licenses_and_insurance(
         self,
         member_payments: List[MemberPayment],
@@ -411,9 +417,34 @@ class ProcessRedsysWebhookUseCase:
 
         Filters member payments into license and insurance types, then
         delegates to the respective use cases for creation.
+
+        Fukushidoin and Shidoin payments implicitly include RC insurance,
+        so synthetic SEGURO_RC payments are created for those members
+        unless an explicit SEGURO_RC payment already exists.
         """
         license_payments = [mp for mp in member_payments if mp.is_license_payment]
         insurance_payments = [mp for mp in member_payments if mp.is_insurance_payment]
+
+        # Also generate RC insurance for instructor types (fukushidoin/shidoin include RC)
+        instructor_payments = [
+            mp for mp in member_payments
+            if mp.payment_type in self.INSTRUCTOR_TYPES_WITH_RC
+        ]
+        for ip in instructor_payments:
+            already_has_rc = any(
+                mp.member_id == ip.member_id and mp.payment_type == MemberPaymentType.SEGURO_RC
+                for mp in member_payments
+            )
+            if not already_has_rc:
+                insurance_payments.append(MemberPayment(
+                    payment_id=ip.payment_id,
+                    member_id=ip.member_id,
+                    payment_year=ip.payment_year,
+                    payment_type=MemberPaymentType.SEGURO_RC,
+                    concept=f"Seguro RC (incluido en {ip.payment_type.value})",
+                    amount=0.0,
+                    status=ip.status,
+                ))
 
         # Generate licenses
         if license_payments and self.license_repository:
