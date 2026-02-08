@@ -626,7 +626,8 @@ def get_club_payment_summary_use_case() -> GetClubPaymentSummaryUseCase:
     return GetClubPaymentSummaryUseCase(
         member_payment_repository=get_member_payment_repository(),
         club_repository=get_club_repository(),
-        member_repository=get_member_repository()
+        member_repository=get_member_repository(),
+        license_repository=get_license_repository(),
     )
 
 

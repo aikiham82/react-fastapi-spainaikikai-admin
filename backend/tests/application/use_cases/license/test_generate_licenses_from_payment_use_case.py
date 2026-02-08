@@ -20,8 +20,10 @@ def mock_license_repository():
     """Mock license repository for use case testing."""
     mock_repo = MagicMock()
     mock_repo.find_active_by_member_year = AsyncMock(return_value=None)
+    mock_repo.find_by_member_id = AsyncMock(return_value=[])
     mock_repo.count_by_license_number_prefix = AsyncMock(return_value=0)
     mock_repo.create = AsyncMock()
+    mock_repo.update = AsyncMock()
     return mock_repo
 
 
@@ -546,6 +548,72 @@ class TestGenerateLicensesFromPaymentUseCase:
         # Assert
         assert len(result) == 2  # Only KYU and DAN processed
         assert mock_license_repository.create.call_count == 2
+
+    async def test_execute_renews_existing_license_instead_of_skipping(self, mock_license_repository):
+        """Test that when an older license exists for a member, it renews it."""
+        # Arrange
+        member_payment = MemberPayment(
+            payment_id="new_payment_456",
+            member_id="member123",
+            payment_year=2026,
+            payment_type=MemberPaymentType.LICENCIA_KYU,
+            concept="Licencia Kyu",
+            amount=50.0,
+            status=MemberPaymentStatus.COMPLETED
+        )
+
+        existing_license = License(
+            id="existing_lic_id",
+            license_number="LIC-2025-0001",
+            member_id="member123",
+            license_type=LicenseType.KYU,
+            grade="Kyu",
+            status=LicenseStatus.EXPIRED,
+            issue_date=datetime(2025, 1, 1),
+            expiration_date=datetime(2025, 12, 31, 23, 59, 59),
+            technical_grade=TechnicalGrade.KYU,
+            instructor_category=InstructorCategory.NONE,
+            age_category=AgeCategory.ADULTO,
+            last_payment_id="old_payment_123"
+        )
+
+        mock_license_repository.find_active_by_member_year.return_value = None
+        mock_license_repository.find_by_member_id.return_value = [existing_license]
+        mock_license_repository.update = AsyncMock(side_effect=lambda lic: lic)
+
+        use_case = GenerateLicensesFromPaymentUseCase(mock_license_repository)
+
+        # Act
+        result = await use_case.execute([member_payment], "new_payment_456", 2026)
+
+        # Assert — license was renewed, not created
+        assert len(result) == 1
+        mock_license_repository.create.assert_not_called()
+        mock_license_repository.update.assert_called_once()
+
+        renewed = mock_license_repository.update.call_args[0][0]
+        assert renewed.id == "existing_lic_id"
+        assert renewed.expiration_date == datetime(2026, 12, 31, 23, 59, 59)
+        assert renewed.status == LicenseStatus.ACTIVE
+        assert renewed.is_renewed is True
+        assert renewed.last_payment_id == "new_payment_456"
+
+    async def test_execute_creates_new_license_when_no_existing_license_for_member(self, mock_license_repository, sample_member_payment, sample_license):
+        """Test that when no license exists at all for the member, a new one is created."""
+        # Arrange
+        mock_license_repository.find_active_by_member_year.return_value = None
+        mock_license_repository.find_by_member_id.return_value = []
+        mock_license_repository.count_by_license_number_prefix.return_value = 0
+        mock_license_repository.create.return_value = sample_license
+
+        use_case = GenerateLicensesFromPaymentUseCase(mock_license_repository)
+
+        # Act
+        result = await use_case.execute([sample_member_payment], "payment123", 2026)
+
+        # Assert
+        assert len(result) == 1
+        mock_license_repository.create.assert_called_once()
 
 
 @pytest.mark.unit

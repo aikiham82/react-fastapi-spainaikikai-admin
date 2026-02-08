@@ -8,6 +8,7 @@ from src.domain.entities.member_payment import MemberPaymentStatus
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.ports.license_repository import LicenseRepositoryPort
 
 
 @dataclass
@@ -49,11 +50,13 @@ class GetClubPaymentSummaryUseCase:
         self,
         member_payment_repository: MemberPaymentRepositoryPort,
         club_repository: ClubRepositoryPort,
-        member_repository: MemberRepositoryPort
+        member_repository: MemberRepositoryPort,
+        license_repository: Optional[LicenseRepositoryPort] = None,
     ):
         self.member_payment_repository = member_payment_repository
         self.club_repository = club_repository
         self.member_repository = member_repository
+        self.license_repository = license_repository
 
     async def execute(
         self,
@@ -96,18 +99,24 @@ class GetClubPaymentSummaryUseCase:
             status=MemberPaymentStatus.COMPLETED
         )
 
-        # Build member-level payment map
+        # Determine license_paid from license expiration dates
+        license_by_member: Dict[str, bool] = {}
+        year_end = datetime(payment_year, 12, 31)
+        if self.license_repository:
+            licenses = await self.license_repository.find_by_member_ids(member_ids, limit=0)
+            for lic in licenses:
+                if lic.member_id and lic.expiration_date and lic.expiration_date >= year_end:
+                    license_by_member[lic.member_id] = True
+
+        # Build member-level payment map (insurance_paid still from MemberPayments)
         member_payments: Dict[str, Dict] = {}
         for payment in payments:
             if payment.member_id not in member_payments:
                 member_payments[payment.member_id] = {
-                    "license_paid": False,
                     "insurance_paid": False,
                     "total_paid": 0.0
                 }
 
-            if payment.is_license_payment:
-                member_payments[payment.member_id]["license_paid"] = True
             if payment.is_insurance_payment:
                 member_payments[payment.member_id]["insurance_paid"] = True
 
@@ -119,23 +128,24 @@ class GetClubPaymentSummaryUseCase:
         members_with_insurance = 0
 
         for member in members:
-            member_data = member_payments.get(member.id, {
-                "license_paid": False,
+            payment_data = member_payments.get(member.id, {
                 "insurance_paid": False,
                 "total_paid": 0.0
             })
 
-            if member_data["license_paid"]:
+            has_license = license_by_member.get(member.id, False)
+
+            if has_license:
                 members_with_license += 1
-            if member_data["insurance_paid"]:
+            if payment_data["insurance_paid"]:
                 members_with_insurance += 1
 
             member_summaries.append(MemberPaymentSummary(
                 member_id=member.id,
                 member_name=member.get_full_name(),
-                license_paid=member_data["license_paid"],
-                insurance_paid=member_data["insurance_paid"],
-                total_paid=member_data["total_paid"]
+                license_paid=has_license,
+                insurance_paid=payment_data["insurance_paid"],
+                total_paid=payment_data["total_paid"]
             ))
 
         # Build payment type summaries

@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from src.domain.entities.license import (
     License, LicenseType, LicenseStatus,
@@ -91,30 +91,65 @@ class GenerateLicensesFromPaymentUseCase:
                 )
                 continue
 
-            # Generate auto-incremental license number
-            prefix = f"LIC-{payment_year}-"
-            count = await self.license_repository.count_by_license_number_prefix(prefix)
-            license_number = f"{prefix}{count + 1:04d}"
+            # Try to find an existing license for this member to renew
+            member_licenses = await self.license_repository.find_by_member_id(mp.member_id)
+            renewable = self._find_renewable_license(member_licenses, attrs)
 
-            license = License(
-                license_number=license_number,
-                member_id=mp.member_id,
-                license_type=attrs["license_type"],
-                grade=attrs["grade"],
-                status=LicenseStatus.ACTIVE,
-                issue_date=issue_date,
-                expiration_date=expiration_date,
-                technical_grade=attrs["technical_grade"],
-                instructor_category=attrs["instructor_category"],
-                age_category=attrs["age_category"],
-                last_payment_id=payment_id,
-            )
+            if renewable:
+                # Renew the existing license
+                renewable.expiration_date = expiration_date
+                renewable.renewal_date = datetime.now()
+                renewable.is_renewed = True
+                renewable.status = LicenseStatus.ACTIVE
+                renewable.last_payment_id = payment_id
+                updated = await self.license_repository.update(renewable)
+                created_licenses.append(updated)
+                logger.info(
+                    "Renewed license %s for member %s (type: %s, year: %d)",
+                    renewable.license_number, mp.member_id, mp.payment_type.value, payment_year
+                )
+            else:
+                # No existing license — create a new one
+                prefix = f"LIC-{payment_year}-"
+                count = await self.license_repository.count_by_license_number_prefix(prefix)
+                license_number = f"{prefix}{count + 1:04d}"
 
-            created = await self.license_repository.create(license)
-            created_licenses.append(created)
-            logger.info(
-                "Created license %s for member %s (type: %s, year: %d)",
-                license_number, mp.member_id, mp.payment_type.value, payment_year
-            )
+                license = License(
+                    license_number=license_number,
+                    member_id=mp.member_id,
+                    license_type=attrs["license_type"],
+                    grade=attrs["grade"],
+                    status=LicenseStatus.ACTIVE,
+                    issue_date=issue_date,
+                    expiration_date=expiration_date,
+                    technical_grade=attrs["technical_grade"],
+                    instructor_category=attrs["instructor_category"],
+                    age_category=attrs["age_category"],
+                    last_payment_id=payment_id,
+                )
+
+                created = await self.license_repository.create(license)
+                created_licenses.append(created)
+                logger.info(
+                    "Created license %s for member %s (type: %s, year: %d)",
+                    license_number, mp.member_id, mp.payment_type.value, payment_year
+                )
 
         return created_licenses
+
+    @staticmethod
+    def _find_renewable_license(
+        licenses: List[License], attrs: dict
+    ) -> Optional[License]:
+        """Find the best license to renew matching the given attributes.
+
+        Prefers the license with the latest expiration_date.
+        """
+        candidates = [
+            lic for lic in licenses
+            if lic.technical_grade == attrs["technical_grade"]
+            and lic.instructor_category == attrs["instructor_category"]
+        ]
+        if not candidates:
+            return None
+        return max(candidates, key=lambda l: l.expiration_date or datetime.min)
