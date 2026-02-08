@@ -214,7 +214,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
               <Label htmlFor="club_id">Club</Label>
               <SearchableSelect
                 options={clubs.map((club) => ({ value: club.id, label: club.name }))}
-                value={formData.club_id}
+                value={formData.club_id ?? ''}
                 onValueChange={(value) => handleChange('club_id', value)}
                 placeholder="Selecciona un club"
                 searchPlaceholder="Buscar club..."

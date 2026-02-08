@@ -135,7 +135,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
             <Label htmlFor="member_id">Miembro *</Label>
             <SearchableSelect
               options={memberOptions.map((m) => ({ value: m.id, label: m.name }))}
-              value={formData.member_id}
+              value={formData.member_id ?? ''}
               onValueChange={(value) => handleChange('member_id', value)}
               placeholder="Selecciona un miembro"
               searchPlaceholder="Buscar miembro..."
