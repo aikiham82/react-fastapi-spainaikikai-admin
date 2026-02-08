@@ -38,7 +38,7 @@ async def clear_collections(db):
     """Clear all collections before seeding."""
     collections = [
         "associations", "clubs", "members", "licenses",
-        "insurances", "payments", "seminars", "users"
+        "insurances", "transactions", "seminars", "users"
     ]
     for collection in collections:
         await db[collection].delete_many({})
@@ -376,13 +376,15 @@ async def seed_payments(db, members: List[dict]):
                 "refund_amount": None,
                 "refund_date": None,
                 "related_entity_id": None,
+                "payment_year": payment_date.year,
+                "member_assignments": [],
                 "created_at": payment_date,
                 "updated_at": datetime.utcnow()
             }
             payments.append(payment)
 
     if payments:
-        await db.payments.insert_many(payments)
+        await db.transactions.insert_many(payments)
     print(f"  Created {len(payments)} payments")
 
 

@@ -14,7 +14,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
 
     def __init__(self):
         self.db = get_database()
-        self.collection = self.db["payments"]
+        self.collection = self.db["transactions"]
 
     def _to_domain(self, doc: dict) -> Optional[Payment]:
         if doc is None:

@@ -85,16 +85,21 @@ async def get_dashboard_stats(
     total_members = await db["members"].count_documents(member_filter)
     active_members = await db["members"].count_documents({**member_filter, "status": "active"})
 
-    # Annual payments (current year)
+    # Annual member payments (current year) - uses member_payments collection
+    # to be coherent with "Resumen de Pagos" page
     current_year = now.year
-    annual_payments = await db["payments"].count_documents({
-        **payment_filter,
-        "payment_year": current_year
-    })
-    pending_payments = await db["payments"].count_documents({
-        **payment_filter,
-        "status": "pending",
-        "payment_year": current_year
+    mp_filter: dict = {"payment_year": current_year}
+    if club_id:
+        member_ids_cursor = db["members"].find(
+            {"club_id": club_id}, {"_id": 1}
+        )
+        member_docs = await member_ids_cursor.to_list(length=10000)
+        member_id_strs = [str(doc["_id"]) for doc in member_docs]
+        mp_filter["member_id"] = {"$in": member_id_strs}
+    annual_payments = await db["member_payments"].count_documents(mp_filter)
+    pending_payments = await db["member_payments"].count_documents({
+        **mp_filter,
+        "status": "pending"
     })
 
     # Upcoming seminars (next 30 days)
@@ -196,7 +201,7 @@ async def get_dashboard_stats(
         ))
 
     # Recent payments (last 24 hours)
-    recent_payments_cursor = db["payments"].find({
+    recent_payments_cursor = db["transactions"].find({
         **payment_filter,
         "created_at": {"$gte": now - timedelta(hours=24)}
     }).sort("created_at", -1).limit(3)
