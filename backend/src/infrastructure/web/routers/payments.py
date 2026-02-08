@@ -83,8 +83,8 @@ async def initiate_payment(
             club_id=payment_request.club_id,
             payment_type=payment_request.payment_type,
             amount=payment_request.amount,
-            success_url=f"{frontend_url}/payments/success",
-            failure_url=f"{frontend_url}/payments/failure",
+            success_url=f"{frontend_url}/payment/success",
+            failure_url=f"{frontend_url}/payment/failure",
             webhook_url=f"{base_url}/api/v1/payments/webhook",
             related_entity_id=payment_request.related_entity_id,
             description=payment_request.description,
@@ -142,8 +142,8 @@ async def initiate_annual_payment(
             fukushidoin_shidoin_count=payment_request.fukushidoin_shidoin_count,
             seguro_accidentes_count=payment_request.seguro_accidentes_count,
             seguro_rc_count=payment_request.seguro_rc_count,
-            success_url=f"{frontend_url}/payments/success",
-            failure_url=f"{frontend_url}/payments/failure",
+            success_url=f"{frontend_url}/payment/success",
+            failure_url=f"{frontend_url}/payment/failure",
             webhook_url=f"{base_url}/api/v1/payments/webhook",
             member_assignments=member_assignments
         )
