@@ -66,12 +66,14 @@ export const MemberSelectionSection: React.FC = () => {
 
   return (
     <div className="border rounded-lg p-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h3 className="font-medium flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Asignacion de Miembros
+          <Users className="h-5 w-5 shrink-0" />
+          <span className="truncate">Asignacion de Miembros</span>
           {hasAssignments && (
-            <Badge variant="secondary">{formData.member_assignments.length} asignados</Badge>
+            <Badge variant="secondary" className="shrink-0">
+              {formData.member_assignments.length} asignados
+            </Badge>
           )}
         </h3>
         <div className="flex gap-2">
@@ -81,9 +83,10 @@ export const MemberSelectionSection: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setMemberAssignments([])}
+              aria-label="Limpiar asignaciones"
             >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Limpiar
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:inline">Limpiar</span>
             </Button>
           )}
           <Button
@@ -92,9 +95,12 @@ export const MemberSelectionSection: React.FC = () => {
             size="sm"
             onClick={openMemberSelection}
             disabled={isLoadingMembers}
+            aria-label={hasAssignments ? 'Modificar asignaciones' : 'Seleccionar miembros'}
           >
-            <UserPlus className="h-4 w-4 mr-1" />
-            {hasAssignments ? 'Modificar' : 'Seleccionar Miembros'}
+            <UserPlus className="h-4 w-4" />
+            <span className="sr-only sm:not-sr-only sm:inline">
+              {hasAssignments ? 'Modificar' : 'Seleccionar Miembros'}
+            </span>
           </Button>
         </div>
       </div>
@@ -115,10 +121,12 @@ export const MemberSelectionSection: React.FC = () => {
             {formData.member_assignments.map((assignment) => (
               <div
                 key={assignment.member_id}
-                className="flex items-center justify-between text-sm p-2 bg-muted rounded"
+                className="flex flex-wrap items-center justify-between gap-1 text-sm p-2 bg-muted rounded"
               >
-                <span className="font-medium">{assignment.member_name}</span>
-                <div className="flex gap-1">
+                <span className="font-medium truncate min-w-0 max-w-[60%] sm:max-w-none">
+                  {assignment.member_name}
+                </span>
+                <div className="flex flex-wrap gap-1">
                   {assignment.payment_types.map((type) => (
                     <Badge key={type} variant="secondary" className="text-xs">
                       {type}
