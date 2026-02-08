@@ -20,11 +20,6 @@ export const SettingsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Configuraciones</h1>
-        <p className="text-gray-600 mt-1">Gestiona las configuraciones de la aplicación</p>
-      </div>
-
       <div className="grid gap-6">
         <Card>
           <CardHeader>

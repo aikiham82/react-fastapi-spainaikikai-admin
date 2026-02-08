@@ -22,8 +22,14 @@ const getPageTitle = (pathname: string) => {
       return 'Seminarios';
     case '/insurance':
       return 'Seguros';
+    case '/invoices':
+      return 'Facturas';
+    case '/annual-payments':
+      return 'Pagos Anuales';
     case '/import-export':
       return 'Importar/Exportar';
+    case '/price-configurations':
+      return 'Precios';
     case '/settings':
       return 'Configuración';
     default:
