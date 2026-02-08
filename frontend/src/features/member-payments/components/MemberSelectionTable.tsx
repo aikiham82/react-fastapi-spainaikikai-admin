@@ -34,6 +34,9 @@ const PAYMENT_TYPE_OPTIONS = [
   { value: 'seguro_rc', label: 'Seg. RC' },
 ] as const;
 
+// License types are mutually exclusive - only one can be selected per member
+const EXCLUSIVE_LICENSE_TYPES = new Set(['kyu', 'kyu_infantil', 'dan', 'fukushidoin_shidoin']);
+
 interface MemberSelectionTableProps {
   isOpen: boolean;
   onClose: () => void;
@@ -111,6 +114,10 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         if (memberTypes.has(paymentType)) {
           memberTypes.delete(paymentType);
         } else {
+          // If selecting an exclusive license type, remove any other license type first
+          if (EXCLUSIVE_LICENSE_TYPES.has(paymentType)) {
+            EXCLUSIVE_LICENSE_TYPES.forEach((lt) => memberTypes.delete(lt));
+          }
           memberTypes.add(paymentType);
         }
 
@@ -153,6 +160,10 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
             const types = newMap.get(m.id);
             if (!types?.has(paymentType)) {
               const memberTypes = new Set(types || []);
+              // If adding an exclusive license type, remove any other license type first
+              if (EXCLUSIVE_LICENSE_TYPES.has(paymentType)) {
+                EXCLUSIVE_LICENSE_TYPES.forEach((lt) => memberTypes.delete(lt));
+              }
               memberTypes.add(paymentType);
               newMap.set(m.id, memberTypes);
             }
