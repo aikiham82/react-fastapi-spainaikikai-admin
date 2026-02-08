@@ -135,7 +135,8 @@ class TestPrefillAnnualPaymentUseCase:
         assert result.kyu_count == 1
         assert result.kyu_infantil_count == 1
         assert result.dan_count == 1
-        assert result.fukushidoin_shidoin_count == 0
+        assert result.fukushidoin_count == 0
+        assert result.shidoin_count == 0
         assert result.seguro_accidentes_count == 0
         assert result.seguro_rc_count == 0
         assert result.payer_name == "Test Payer"
@@ -265,7 +266,7 @@ class TestPrefillAnnualPaymentUseCase:
         """Test prefilling with FUKUSHIDOIN instructor category.
 
         Verifies:
-        - fukushidoin_shidoin_count=1 for instructor
+        - fukushidoin_count=1 for fukushidoin instructor
         - instructor classification takes precedence over technical grade
         """
         # Arrange
@@ -303,18 +304,19 @@ class TestPrefillAnnualPaymentUseCase:
 
         # Assert
         assert result.source == "members"
-        assert result.fukushidoin_shidoin_count == 1
+        assert result.fukushidoin_count == 1
+        assert result.shidoin_count == 0
         assert result.dan_count == 0  # Instructor category takes precedence
         assert result.kyu_count == 0
 
         member1_assignment = result.member_assignments[0]
-        assert member1_assignment.payment_types == ["fukushidoin_shidoin"]
+        assert member1_assignment.payment_types == ["fukushidoin"]
 
     async def test_prefill_shidoin_detection(self, use_case, mock_repos):
         """Test prefilling with SHIDOIN instructor category.
 
         Verifies:
-        - fukushidoin_shidoin_count=1 for shidoin instructor
+        - shidoin_count=1 for shidoin instructor
         """
         # Arrange
         club_id = "club-999"
@@ -350,7 +352,8 @@ class TestPrefillAnnualPaymentUseCase:
         result = await use_case.execute(club_id, payment_year)
 
         # Assert
-        assert result.fukushidoin_shidoin_count == 1
+        assert result.shidoin_count == 1
+        assert result.fukushidoin_count == 0
         assert result.dan_count == 0
 
     async def test_prefill_fallback_to_previous_payment(self, use_case, mock_repos):
@@ -401,7 +404,8 @@ class TestPrefillAnnualPaymentUseCase:
         assert result.kyu_count == 5
         assert result.dan_count == 2
         assert result.kyu_infantil_count == 0
-        assert result.fukushidoin_shidoin_count == 0
+        assert result.fukushidoin_count == 0
+        assert result.shidoin_count == 0
         assert result.seguro_accidentes_count == 3
         assert result.seguro_rc_count == 0
         assert result.payer_name == "Previous Payer"
@@ -444,7 +448,8 @@ class TestPrefillAnnualPaymentUseCase:
         assert result.kyu_count == 0
         assert result.kyu_infantil_count == 0
         assert result.dan_count == 0
-        assert result.fukushidoin_shidoin_count == 0
+        assert result.fukushidoin_count == 0
+        assert result.shidoin_count == 0
         assert result.seguro_accidentes_count == 0
         assert result.seguro_rc_count == 0
         assert result.payer_name == "New Payer"

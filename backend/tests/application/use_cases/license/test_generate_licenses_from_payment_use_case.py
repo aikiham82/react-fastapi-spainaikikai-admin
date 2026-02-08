@@ -204,7 +204,7 @@ class TestGenerateLicensesFromPaymentUseCase:
             license_number="LIC-2026-0001",
             member_id="member999",
             license_type=LicenseType.INSTRUCTOR,
-            grade="Fukushidoin/Shidoin",
+            grade="Fukushidoin",
             status=LicenseStatus.ACTIVE,
             issue_date=datetime(2026, 1, 1),
             expiration_date=datetime(2026, 12, 31, 23, 59, 59),
@@ -226,7 +226,7 @@ class TestGenerateLicensesFromPaymentUseCase:
         assert created_license.technical_grade == TechnicalGrade.DAN
         assert created_license.instructor_category == InstructorCategory.FUKUSHIDOIN
         assert created_license.license_type == LicenseType.INSTRUCTOR
-        assert created_license.grade == "Fukushidoin/Shidoin"
+        assert created_license.grade == "Fukushidoin"
 
     async def test_execute_skips_license_if_already_exists_for_member_year_type(self, mock_license_repository, sample_member_payment):
         """Test idempotency: skips license creation if one already exists for the member+year+type."""
@@ -257,10 +257,9 @@ class TestGenerateLicensesFromPaymentUseCase:
         mock_license_repository.count_by_license_number_prefix.assert_not_called()
         mock_license_repository.create.assert_not_called()
 
-    async def test_execute_skips_unrecognized_payment_types(self, mock_license_repository):
-        """Test that execute skips payment types not in the mapping."""
+    async def test_execute_creates_shidoin_license_successfully(self, mock_license_repository):
+        """Test that execute creates a SHIDOIN instructor license with correct categories."""
         # Arrange
-        # TITULO_SHIDOIN is not in PAYMENT_TYPE_TO_LICENSE_ATTRS mapping
         member_payment = MemberPayment(
             payment_id="payment123",
             member_id="member123",
@@ -268,6 +267,37 @@ class TestGenerateLicensesFromPaymentUseCase:
             payment_type=MemberPaymentType.TITULO_SHIDOIN,
             concept="Título Shidoin",
             amount=200.0,
+            status=MemberPaymentStatus.COMPLETED
+        )
+
+        def create_side_effect(license):
+            return license
+
+        mock_license_repository.create.side_effect = create_side_effect
+        mock_license_repository.count_by_license_number_prefix.return_value = 0
+        use_case = GenerateLicensesFromPaymentUseCase(mock_license_repository)
+
+        # Act
+        result = await use_case.execute([member_payment], "payment123", 2026)
+
+        # Assert
+        assert len(result) == 1
+        created_license = mock_license_repository.create.call_args[0][0]
+        assert created_license.technical_grade == TechnicalGrade.DAN
+        assert created_license.instructor_category == InstructorCategory.SHIDOIN
+        assert created_license.license_type == LicenseType.INSTRUCTOR
+        assert created_license.grade == "Shidoin"
+
+    async def test_execute_skips_unrecognized_payment_types(self, mock_license_repository):
+        """Test that execute skips payment types not in the mapping (insurance types)."""
+        # Arrange
+        member_payment = MemberPayment(
+            payment_id="payment123",
+            member_id="member123",
+            payment_year=2026,
+            payment_type=MemberPaymentType.SEGURO_ACCIDENTES,
+            concept="Seguro Accidentes",
+            amount=20.0,
             status=MemberPaymentStatus.COMPLETED
         )
 
@@ -518,7 +548,7 @@ class TestGenerateLicensesFromPaymentUseCase:
                 payment_id="payment123",
                 member_id="member2",
                 payment_year=2026,
-                payment_type=MemberPaymentType.TITULO_SHIDOIN,  # Not in mapping
+                payment_type=MemberPaymentType.TITULO_SHIDOIN,
                 concept="Título Shidoin",
                 amount=200.0,
                 status=MemberPaymentStatus.COMPLETED
@@ -527,9 +557,9 @@ class TestGenerateLicensesFromPaymentUseCase:
                 payment_id="payment123",
                 member_id="member3",
                 payment_year=2026,
-                payment_type=MemberPaymentType.LICENCIA_DAN,
-                concept="Licencia Dan",
-                amount=100.0,
+                payment_type=MemberPaymentType.SEGURO_ACCIDENTES,  # Not in license mapping
+                concept="Seguro Accidentes",
+                amount=20.0,
                 status=MemberPaymentStatus.COMPLETED
             )
         ]
@@ -546,7 +576,7 @@ class TestGenerateLicensesFromPaymentUseCase:
         result = await use_case.execute(member_payments, "payment123", 2026)
 
         # Assert
-        assert len(result) == 2  # Only KYU and DAN processed
+        assert len(result) == 2  # KYU and SHIDOIN processed, SEGURO skipped
         assert mock_license_repository.create.call_count == 2
 
     async def test_execute_renews_existing_license_instead_of_skipping(self, mock_license_repository):
@@ -627,6 +657,7 @@ class TestPaymentTypeToLicenseAttrsMapping:
             MemberPaymentType.LICENCIA_KYU_INFANTIL,
             MemberPaymentType.LICENCIA_DAN,
             MemberPaymentType.TITULO_FUKUSHIDOIN,
+            MemberPaymentType.TITULO_SHIDOIN,
         ]
 
         for payment_type in expected_types:
@@ -671,7 +702,17 @@ class TestPaymentTypeToLicenseAttrsMapping:
         assert attrs["instructor_category"] == InstructorCategory.FUKUSHIDOIN
         assert attrs["age_category"] == AgeCategory.ADULTO
         assert attrs["license_type"] == LicenseType.INSTRUCTOR
-        assert attrs["grade"] == "Fukushidoin/Shidoin"
+        assert attrs["grade"] == "Fukushidoin"
+
+    def test_mapping_shidoin_has_correct_attributes(self):
+        """Test that SHIDOIN mapping has correct attributes."""
+        attrs = PAYMENT_TYPE_TO_LICENSE_ATTRS[MemberPaymentType.TITULO_SHIDOIN]
+
+        assert attrs["technical_grade"] == TechnicalGrade.DAN
+        assert attrs["instructor_category"] == InstructorCategory.SHIDOIN
+        assert attrs["age_category"] == AgeCategory.ADULTO
+        assert attrs["license_type"] == LicenseType.INSTRUCTOR
+        assert attrs["grade"] == "Shidoin"
 
     def test_mapping_does_not_contain_insurance_payment_types(self):
         """Test that insurance payment types are not in the license mapping."""

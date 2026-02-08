@@ -27,16 +27,18 @@ const PAYMENT_TYPE_OPTIONS = [
   { value: 'kyu', label: 'KYU' },
   { value: 'kyu_infantil', label: 'KYU Inf.' },
   { value: 'dan', label: 'DAN' },
-  { value: 'fukushidoin_shidoin', label: 'F/S' },
+  { value: 'fukushidoin', label: 'Fuku.' },
+  { value: 'shidoin', label: 'Shido.' },
   { value: 'seguro_accidentes', label: 'Seg. Acc.' },
   { value: 'seguro_rc', label: 'Seg. RC' },
 ] as const;
 
 // License types are mutually exclusive - only one can be selected per member
-const EXCLUSIVE_LICENSE_TYPES = new Set(['kyu', 'kyu_infantil', 'dan', 'fukushidoin_shidoin']);
+const EXCLUSIVE_LICENSE_TYPES = new Set(['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin']);
 
-// F/S already includes Seguro RC, so selecting F/S excludes Seg. RC
-const FS_EXCLUDES = new Set(['seguro_rc']);
+// Instructor types (fukushidoin/shidoin) already include Seguro RC
+const INSTRUCTOR_TYPES = new Set(['fukushidoin', 'shidoin']);
+const INSTRUCTOR_EXCLUDES_RC = new Set(['seguro_rc']);
 
 interface MemberSelectionTableProps {
   isOpen: boolean;
@@ -48,7 +50,8 @@ interface MemberSelectionTableProps {
     kyu: number;
     kyu_infantil: number;
     dan: number;
-    fukushidoin_shidoin: number;
+    fukushidoin: number;
+    shidoin: number;
     seguro_accidentes: number;
     seguro_rc: number;
   };
@@ -78,7 +81,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
     const ls = member.license_summary;
     if (!ls) return 4;
     const ic = ls.instructor_category;
-    if (ic === 'fukushidoin' || ic === 'shidoin') return 0;
+    if (ic && INSTRUCTOR_TYPES.has(ic)) return 0;
     if (ls.technical_grade === 'dan') return 1;
     if (ls.technical_grade === 'kyu') {
       return ls.grade?.toLowerCase().includes('infantil') ? 3 : 2;
@@ -113,7 +116,8 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
       kyu: 0,
       kyu_infantil: 0,
       dan: 0,
-      fukushidoin_shidoin: 0,
+      fukushidoin: 0,
+      shidoin: 0,
       seguro_accidentes: 0,
       seguro_rc: 0,
     };
@@ -137,17 +141,17 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         if (memberTypes.has(paymentType)) {
           memberTypes.delete(paymentType);
         } else {
-          // Block Seg. RC if F/S is already selected (F/S includes RC)
-          if (FS_EXCLUDES.has(paymentType) && memberTypes.has('fukushidoin_shidoin')) {
+          // Block Seg. RC if an instructor type is already selected (includes RC)
+          if (INSTRUCTOR_EXCLUDES_RC.has(paymentType) && [...INSTRUCTOR_TYPES].some((t) => memberTypes.has(t))) {
             return prev;
           }
           // If selecting an exclusive license type, remove any other license type first
           if (EXCLUSIVE_LICENSE_TYPES.has(paymentType)) {
             EXCLUSIVE_LICENSE_TYPES.forEach((lt) => memberTypes.delete(lt));
           }
-          // If selecting F/S, also remove Seg. RC (already included in F/S)
-          if (paymentType === 'fukushidoin_shidoin') {
-            FS_EXCLUDES.forEach((ex) => memberTypes.delete(ex));
+          // If selecting an instructor type, also remove Seg. RC (already included)
+          if (INSTRUCTOR_TYPES.has(paymentType)) {
+            INSTRUCTOR_EXCLUDES_RC.forEach((ex) => memberTypes.delete(ex));
           }
           memberTypes.add(paymentType);
         }
@@ -189,8 +193,8 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
           // Add to all visible members that don't have it
           filteredMembers.forEach((m) => {
             const types = newMap.get(m.id);
-            // Skip if member already has F/S and we're trying to add Seg. RC
-            if (FS_EXCLUDES.has(paymentType) && types?.has('fukushidoin_shidoin')) {
+            // Skip if member already has an instructor type and we're trying to add Seg. RC
+            if (INSTRUCTOR_EXCLUDES_RC.has(paymentType) && [...INSTRUCTOR_TYPES].some((t) => types?.has(t))) {
               return;
             }
             if (!types?.has(paymentType)) {
@@ -199,9 +203,9 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
               if (EXCLUSIVE_LICENSE_TYPES.has(paymentType)) {
                 EXCLUSIVE_LICENSE_TYPES.forEach((lt) => memberTypes.delete(lt));
               }
-              // If adding F/S, also remove Seg. RC (already included)
-              if (paymentType === 'fukushidoin_shidoin') {
-                FS_EXCLUDES.forEach((ex) => memberTypes.delete(ex));
+              // If adding an instructor type, also remove Seg. RC (already included)
+              if (INSTRUCTOR_TYPES.has(paymentType)) {
+                INSTRUCTOR_EXCLUDES_RC.forEach((ex) => memberTypes.delete(ex));
               }
               memberTypes.add(paymentType);
               newMap.set(m.id, memberTypes);
@@ -248,7 +252,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
+      <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -328,8 +332,8 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                     </TableCell>
                     {PAYMENT_TYPE_OPTIONS.map((opt) => {
                       const isChecked = memberTypes.has(opt.value);
-                      // Disable Seg. RC when F/S is selected (F/S includes RC)
-                      const isDisabled = FS_EXCLUDES.has(opt.value) && memberTypes.has('fukushidoin_shidoin');
+                      // Disable Seg. RC when an instructor type is selected (includes RC)
+                      const isDisabled = INSTRUCTOR_EXCLUDES_RC.has(opt.value) && [...INSTRUCTOR_TYPES].some((t) => memberTypes.has(t));
 
                       return (
                         <TableCell key={opt.value} className="text-center">
@@ -339,7 +343,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                             onCheckedChange={() =>
                               togglePaymentType(member.id, opt.value)
                             }
-                            title={isDisabled ? 'Incluido en F/S' : undefined}
+                            title={isDisabled ? 'Incluido en Fukushidoin/Shidoin' : undefined}
                           />
                         </TableCell>
                       );

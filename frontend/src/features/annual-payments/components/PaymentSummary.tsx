@@ -49,10 +49,17 @@ export const PaymentSummary: React.FC = () => {
           </div>
         )}
 
-        {formData.fukushidoin_shidoin_count > 0 && (
+        {formData.fukushidoin_count > 0 && (
           <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.fukushidoin_shidoin} x{formData.fukushidoin_shidoin_count}</span>
-            <span>{totals.subtotals.fukushidoin_shidoin.toFixed(2)}€</span>
+            <span>{ANNUAL_PAYMENT_LABELS.fukushidoin} x{formData.fukushidoin_count}</span>
+            <span>{totals.subtotals.fukushidoin.toFixed(2)}€</span>
+          </div>
+        )}
+
+        {formData.shidoin_count > 0 && (
+          <div className="flex justify-between text-sm">
+            <span>{ANNUAL_PAYMENT_LABELS.shidoin} x{formData.shidoin_count}</span>
+            <span>{totals.subtotals.shidoin.toFixed(2)}€</span>
           </div>
         )}
 

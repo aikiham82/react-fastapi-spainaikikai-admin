@@ -19,7 +19,8 @@ export const MemberSelectionSection: React.FC = () => {
     formData.kyu_count > 0 ||
     formData.kyu_infantil_count > 0 ||
     formData.dan_count > 0 ||
-    formData.fukushidoin_shidoin_count > 0 ||
+    formData.fukushidoin_count > 0 ||
+    formData.shidoin_count > 0 ||
     formData.seguro_accidentes_count > 0 ||
     formData.seguro_rc_count > 0;
 
@@ -155,7 +156,8 @@ export const MemberSelectionSection: React.FC = () => {
           kyu: formData.kyu_count,
           kyu_infantil: formData.kyu_infantil_count,
           dan: formData.dan_count,
-          fukushidoin_shidoin: formData.fukushidoin_shidoin_count,
+          fukushidoin: formData.fukushidoin_count,
+          shidoin: formData.shidoin_count,
           seguro_accidentes: formData.seguro_accidentes_count,
           seguro_rc: formData.seguro_rc_count,
         }}

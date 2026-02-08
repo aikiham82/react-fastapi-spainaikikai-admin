@@ -38,11 +38,20 @@ export const MemberFeesSection: React.FC = () => {
         />
 
         <QuantityInput
-          label={ANNUAL_PAYMENT_LABELS.fukushidoin_shidoin}
-          value={formData.fukushidoin_shidoin_count}
-          unitPrice={prices?.fukushidoin_shidoin ?? 0}
-          onIncrement={() => incrementField('fukushidoin_shidoin_count')}
-          onDecrement={() => decrementField('fukushidoin_shidoin_count')}
+          label={ANNUAL_PAYMENT_LABELS.fukushidoin}
+          value={formData.fukushidoin_count}
+          unitPrice={prices?.fukushidoin ?? 0}
+          onIncrement={() => incrementField('fukushidoin_count')}
+          onDecrement={() => decrementField('fukushidoin_count')}
+          disabled={isSubmitting}
+        />
+
+        <QuantityInput
+          label={ANNUAL_PAYMENT_LABELS.shidoin}
+          value={formData.shidoin_count}
+          unitPrice={prices?.shidoin ?? 0}
+          onIncrement={() => incrementField('shidoin_count')}
+          onDecrement={() => decrementField('shidoin_count')}
           disabled={isSubmitting}
         />
       </div>
