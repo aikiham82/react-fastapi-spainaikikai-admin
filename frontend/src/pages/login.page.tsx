@@ -33,9 +33,9 @@ export default function LoginPage() {
           {/* Hero Content */}
           <div className="space-y-6 max-w-lg">
             <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
-              Sistema de Gestión
+              Panel de
               <span className="block bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-                Federativo
+                Administración
               </span>
             </h1>
 
