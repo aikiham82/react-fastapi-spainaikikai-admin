@@ -2,10 +2,10 @@ export interface DashboardStats {
   total_clubs: number;
   total_members: number;
   active_members: number;
-  annual_payments: number;
-  pending_payments: number;
+  clubs_paid: number;
+  clubs_pending: number;
   upcoming_seminars: number;
-  expiring_licenses: number;
+  expired_licenses: number;
 }
 
 export interface ExpiringLicense {

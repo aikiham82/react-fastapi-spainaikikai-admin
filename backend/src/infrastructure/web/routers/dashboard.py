@@ -124,10 +124,10 @@ async def get_dashboard_stats(
         total_clubs=total_clubs,
         total_members=total_members,
         active_members=active_members,
-        annual_payments=annual_payments,
-        pending_payments=pending_payments,
+        clubs_paid=clubs_paid,
+        clubs_pending=clubs_pending,
         upcoming_seminars=upcoming_seminars_count,
-        expiring_licenses=expiring_licenses_count
+        expired_licenses=expired_licenses_count
     )
 
     # Get expiring licenses details
@@ -215,20 +215,30 @@ async def get_dashboard_stats(
     for payment in recent_payments:
         created_at = payment.get("created_at")
         time_diff = _format_time_diff(now, created_at)
-        # Get member name
+        # Get payer name: member if available, otherwise club
         member_id = payment.get("member_id")
-        member = None
+        payer_name = "Desconocido"
         if member_id:
             try:
                 member = await db["members"].find_one({"_id": ObjectId(member_id)})
+                if member:
+                    payer_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip()
             except Exception:
                 pass
-        member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip() if member else "Desconocido"
+        if payer_name == "Desconocido":
+            payment_club_id = payment.get("club_id")
+            if payment_club_id:
+                try:
+                    club = await db["clubs"].find_one({"_id": ObjectId(payment_club_id)})
+                    if club:
+                        payer_name = club.get("name", "Desconocido")
+                except Exception:
+                    pass
         recent_activity.append(RecentActivity(
             id=str(payment.get("_id")),
             type="payment",
             message="Pago recibido",
-            user=member_name,
+            user=payer_name,
             time=time_diff
         ))
 

@@ -87,8 +87,18 @@ export const Dashboard = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums">{stats?.annual_payments ?? 0}</div>
-            <p className="text-xs text-muted-foreground">{stats?.pending_payments ?? 0} pendientes</p>
+            <div className="text-2xl font-bold tabular-nums">{stats?.clubs_paid ?? 0}/{stats?.total_clubs ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Clubs al día</p>
+            <div className="mt-2 space-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-orange-500" />
+                {stats?.clubs_pending ?? 0} clubs pendientes
+              </p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
+                {stats?.expired_licenses ?? 0} licencias expiradas
+              </p>
+            </div>
           </CardContent>
         </Card>
 
