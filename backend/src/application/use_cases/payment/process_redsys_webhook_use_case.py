@@ -359,7 +359,9 @@ class ProcessRedsysWebhookUseCase:
 
         member_payments: List[MemberPayment] = []
         club_fee_created = False
-        first_member_id = None
+        # Priority for club fee assignment: admin(3) > shidoin(2) > fukushidoin(1) > first(0)
+        club_fee_member_id = None
+        club_fee_priority = -1
 
         for assignment in assignments:
             member_id = assignment.get("member_id")
@@ -371,6 +373,7 @@ class ProcessRedsysWebhookUseCase:
                 continue
 
             # Verify member still exists (handle deleted members gracefully)
+            member = None
             if self.member_repository:
                 try:
                     member = await self.member_repository.find_by_id(member_id)
@@ -381,9 +384,17 @@ class ProcessRedsysWebhookUseCase:
                     # If lookup fails, skip this member
                     continue
 
-            # Track first valid member for club fee assignment
-            if first_member_id is None:
-                first_member_id = member_id
+            # Determine best member for club fee assignment
+            priority = 0  # default: first valid member
+            if member and getattr(member, 'club_role', '') == 'admin':
+                priority = 3
+            elif "shidoin" in payment_types:
+                priority = 2
+            elif "fukushidoin" in payment_types:
+                priority = 1
+            if priority > club_fee_priority:
+                club_fee_member_id = member_id
+                club_fee_priority = priority
 
             for ptype in payment_types:
                 # Map item type to member payment type
@@ -419,7 +430,7 @@ class ProcessRedsysWebhookUseCase:
         # Create club fee MemberPayment from line_items_data if not already
         # created from member_assignments (club_fee is a club-level item that
         # may not appear in any member's payment_types)
-        if not club_fee_created and first_member_id and payment.line_items_data:
+        if not club_fee_created and club_fee_member_id and payment.line_items_data:
             try:
                 line_items = json.loads(payment.line_items_data)
                 has_club_fee_item = any(
@@ -436,7 +447,7 @@ class ProcessRedsysWebhookUseCase:
 
                     member_payments.append(MemberPayment(
                         payment_id=payment.id,
-                        member_id=first_member_id,
+                        member_id=club_fee_member_id,
                         payment_year=payment.payment_year,
                         payment_type=MemberPaymentType.CUOTA_CLUB,
                         concept=f"cuota_club - {payment.payment_year}",
