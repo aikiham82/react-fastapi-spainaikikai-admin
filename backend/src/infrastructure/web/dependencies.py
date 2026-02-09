@@ -334,6 +334,7 @@ def get_initiate_annual_payment_use_case() -> InitiateAnnualPaymentUseCase:
         get_payment_repository(),
         get_redsys_service(),
         get_price_configuration_repository(),
+        get_member_payment_repository(),
     )
 
 @lru_cache()

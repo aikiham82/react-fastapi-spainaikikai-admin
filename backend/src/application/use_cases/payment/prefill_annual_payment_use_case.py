@@ -105,6 +105,7 @@ class PrefillAnnualPaymentUseCase:
 
         # 5. Get already-paid member payment types for this year
         paid_set: set = set()
+        existing_mp = []
         if self._member_payment_repo and member_ids:
             existing_mp = await self._member_payment_repo.find_by_member_ids_year(
                 member_ids, payment_year, status=MemberPaymentStatus.COMPLETED
@@ -178,13 +179,12 @@ class PrefillAnnualPaymentUseCase:
                     payment_types=member_types,
                 ))
 
-        # 7. Determine club fee
-        existing_payment = await self._payment_repo.find_by_club_type_year(
-            club_id, PaymentType.ANNUAL_QUOTA, payment_year
+        # 7. Determine club fee (check if CUOTA_CLUB already paid via MemberPayment)
+        club_fee_already_paid = any(
+            mp.payment_type == MemberPaymentType.CUOTA_CLUB
+            for mp in existing_mp
         )
-        include_club_fee = not (
-            existing_payment and existing_payment.status == PaymentStatus.COMPLETED
-        )
+        include_club_fee = not club_fee_already_paid
 
         return PrefillResult(
             payer_name=payer_name,

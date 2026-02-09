@@ -20,6 +20,7 @@ from src.domain.entities.license import (
 )
 from src.domain.entities.insurance import Insurance, InsuranceType, InsuranceStatus
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
+from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 
 
 @pytest.fixture
@@ -456,11 +457,11 @@ class TestPrefillAnnualPaymentUseCase:
         assert result.include_club_fee is True
         assert len(result.member_assignments) == 0
 
-    async def test_prefill_club_fee_already_paid(self, use_case, mock_repos):
-        """Test club fee determination when payment already completed for year.
+    async def test_prefill_club_fee_already_paid(self, mock_repos):
+        """Test club fee determination when CUOTA_CLUB MemberPayment exists for year.
 
         Verifies:
-        - include_club_fee=False when completed payment exists for current year
+        - include_club_fee=False when a CUOTA_CLUB MemberPayment is completed
         """
         # Arrange
         club_id = "club-123"
@@ -486,33 +487,42 @@ class TestPrefillAnnualPaymentUseCase:
             created_at=datetime(2025, 1, 1),
         )
 
-        # Existing completed payment for current year
-        existing_payment = Payment(
-            id="payment-2026",
-            club_id=club_id,
-            payment_type=PaymentType.ANNUAL_QUOTA,
+        # Existing completed CUOTA_CLUB MemberPayment for this year
+        cuota_club_mp = MemberPayment(
+            id="mp-cuota",
+            payment_id="payment-2026",
+            member_id="member-1",
             payment_year=2026,
-            status=PaymentStatus.COMPLETED,
-            amount=200.0,
+            payment_type=MemberPaymentType.CUOTA_CLUB,
+            concept="Cuota de club",
+            amount=50.0,
+            status=MemberPaymentStatus.COMPLETED,
+        )
+
+        # Setup mock member_payment_repo
+        mock_member_payment_repo = AsyncMock()
+        mock_member_payment_repo.find_by_member_ids_year.return_value = [cuota_club_mp]
+
+        # Create use case with member_payment_repository
+        uc = PrefillAnnualPaymentUseCase(
+            mock_repos["member_repo"],
+            mock_repos["license_repo"],
+            mock_repos["insurance_repo"],
+            mock_repos["payment_repo"],
+            mock_member_payment_repo,
         )
 
         # Setup mocks
         mock_repos["member_repo"].find_by_club_id.return_value = [member1]
         mock_repos["license_repo"].find_by_member_ids.return_value = [license1]
         mock_repos["insurance_repo"].find_by_member_ids.return_value = []
-        mock_repos["payment_repo"].find_by_club_type_year.return_value = existing_payment
 
         # Act
-        result = await use_case.execute(club_id, payment_year)
+        result = await uc.execute(club_id, payment_year)
 
         # Assert
         assert result.include_club_fee is False
         assert result.source == "members"
-
-        # Verify it checked for current year's payment
-        mock_repos["payment_repo"].find_by_club_type_year.assert_called_once_with(
-            club_id, PaymentType.ANNUAL_QUOTA, 2026
-        )
 
     async def test_prefill_club_fee_not_paid(self, use_case, mock_repos):
         """Test club fee determination when no payment for current year.

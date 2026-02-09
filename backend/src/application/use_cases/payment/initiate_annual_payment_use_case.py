@@ -6,8 +6,9 @@ from typing import Optional, List, Dict
 from dataclasses import dataclass
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
-from src.domain.exceptions.payment import DuplicatePaymentForYearError
+from src.domain.entities.member_payment import MemberPaymentStatus, ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
 from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.redsys_service import (
     RedsysServicePort,
@@ -80,10 +81,12 @@ class InitiateAnnualPaymentUseCase:
         payment_repository: PaymentRepositoryPort,
         redsys_service: RedsysServicePort,
         price_repository: PriceConfigurationRepositoryPort,
+        member_payment_repository: MemberPaymentRepositoryPort = None,
     ):
         self.payment_repository = payment_repository
         self.redsys_service = redsys_service
         self.price_repository = price_repository
+        self.member_payment_repository = member_payment_repository
 
     async def _get_prices(self) -> Dict[str, float]:
         """Fetch all annual payment prices from database.
@@ -155,12 +158,32 @@ class InitiateAnnualPaymentUseCase:
         if not has_items:
             raise ValueError("Al menos un concepto debe ser seleccionado")
 
-        # Check for duplicate payment (same club + year + ANNUAL_QUOTA)
-        existing = await self.payment_repository.find_by_club_type_year(
-            club_id, PaymentType.ANNUAL_QUOTA, payment_year
-        )
-        if existing:
-            raise DuplicatePaymentForYearError(club_id, "annual_quota", payment_year)
+        # Check for duplicate member-level payments (same member + item_type + year)
+        if member_assignments and self.member_payment_repository:
+            assigned_member_ids = [a.member_id for a in member_assignments]
+            existing_mp = await self.member_payment_repository.find_by_member_ids_year(
+                assigned_member_ids, payment_year, status=MemberPaymentStatus.COMPLETED
+            )
+            # Build set of already-paid (member_id, item_type) pairs
+            mp_type_to_item = {v: k for k, v in ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.items()}
+            already_paid: set = set()
+            for mp in existing_mp:
+                item_type = mp_type_to_item.get(mp.payment_type)
+                if item_type:
+                    already_paid.add((mp.member_id, item_type))
+
+            # Check for conflicts
+            conflicts = []
+            for assignment in member_assignments:
+                for ptype in assignment.payment_types:
+                    if (assignment.member_id, ptype) in already_paid:
+                        conflicts.append(f"{assignment.member_name} ({ptype})")
+
+            if conflicts:
+                raise ValueError(
+                    f"Los siguientes miembros ya tienen pagos completados para este año: "
+                    f"{', '.join(conflicts)}"
+                )
 
         # Fetch prices from database
         prices = await self._get_prices()
