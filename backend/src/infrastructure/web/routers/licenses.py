@@ -116,6 +116,11 @@ async def get_licenses(
     # Club admins are forced to their club only
     effective_club_id = get_club_filter_ctx(ctx)
 
+    # Status is computed in-domain (based on expiration_date), so we must
+    # fetch all matching licenses from the DB and filter/paginate in memory.
+    # Use 0 (unlimited) for the DB query; pagination is applied later.
+    db_limit = 0
+
     # If search is provided, find matching member IDs first
     effective_member_id = member_id
     member_ids_from_search: Optional[List[str]] = None
@@ -134,7 +139,7 @@ async def get_licenses(
 
     if member_ids_from_search is not None:
         # Search by member name - use find_by_member_ids
-        licenses = await get_all_use_case.license_repository.find_by_member_ids(member_ids_from_search, limit)
+        licenses = await get_all_use_case.license_repository.find_by_member_ids(member_ids_from_search, db_limit)
         # Apply club filter
         if effective_club_id is not None:
             club_member_ids = await _get_club_member_ids(effective_club_id)
@@ -143,11 +148,11 @@ async def get_licenses(
             club_member_ids = await _get_club_member_ids(club_id)
             licenses = [lic for lic in licenses if lic.member_id in club_member_ids]
     elif effective_club_id is not None:
-        licenses = await get_all_use_case.execute(limit, effective_club_id, effective_member_id)
+        licenses = await get_all_use_case.execute(db_limit, effective_club_id, effective_member_id)
     elif club_id:
-        licenses = await get_all_use_case.execute(limit, club_id, effective_member_id)
+        licenses = await get_all_use_case.execute(db_limit, club_id, effective_member_id)
     else:
-        licenses = await get_all_use_case.execute(limit, None, effective_member_id)
+        licenses = await get_all_use_case.execute(db_limit, None, effective_member_id)
 
     # Filter by status after domain conversion (status is computed from expiry date)
     if status:
