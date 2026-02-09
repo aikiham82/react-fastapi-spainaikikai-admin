@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useClubPaymentsContext } from '../hooks/useClubPaymentsContext';
-import { ArrowLeft, Search, Users, IdCard, Shield, Wallet, Check, X } from 'lucide-react';
+import { ArrowLeft, Search, Users, IdCard, Shield, Wallet, Check, X, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -84,13 +84,22 @@ export const ClubPaymentDetail = () => {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-4 h-4 text-green-600" />
             <p className="text-sm text-gray-600">Total Cobrado</p>
           </div>
           <p className="text-2xl font-bold text-green-600">{formatCurrency(clubDetail.total_collected)}</p>
+        </div>
+        <div className="bg-white border rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Building2 className="w-4 h-4 text-indigo-600" />
+            <p className="text-sm text-gray-600">Cuota Club</p>
+          </div>
+          <p className={`text-2xl font-bold ${clubDetail.has_club_fee ? 'text-green-600' : 'text-red-500'}`}>
+            {clubDetail.has_club_fee ? 'Pagada' : 'Pendiente'}
+          </p>
         </div>
         <div className="bg-white border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-1">

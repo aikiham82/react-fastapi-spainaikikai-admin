@@ -170,6 +170,7 @@ async def get_club_payment_summary(
             members_with_license=result.members_with_license,
             members_with_insurance=result.members_with_insurance,
             total_collected=result.total_collected,
+            has_club_fee=result.has_club_fee,
             by_payment_type=[
                 PaymentTypeSummaryResponse(
                     payment_type=pt.payment_type,

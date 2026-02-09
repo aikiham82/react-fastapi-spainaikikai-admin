@@ -97,6 +97,7 @@ export const clubPaymentSummarySchema = z.object({
   members_with_license: z.number(),
   members_with_insurance: z.number(),
   total_collected: z.number(),
+  has_club_fee: z.boolean(),
   by_payment_type: z.array(paymentTypeSummarySchema),
   members: z.array(memberPaymentSummarySchema),
 });

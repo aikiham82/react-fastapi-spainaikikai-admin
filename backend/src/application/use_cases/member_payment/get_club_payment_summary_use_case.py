@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from src.domain.entities.member_payment import MemberPaymentStatus
+from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.license import InstructorCategory, TechnicalGrade
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
@@ -43,6 +43,7 @@ class ClubPaymentSummaryResult:
     members_with_license: int
     members_with_insurance: int
     total_collected: float
+    has_club_fee: bool
     by_payment_type: List[PaymentTypeSummary]
     members: List[MemberPaymentSummary]
 
@@ -133,6 +134,7 @@ class GetClubPaymentSummaryUseCase:
 
         # Build member-level payment map (insurance_paid still from MemberPayments)
         member_payments: Dict[str, Dict] = {}
+        has_club_fee = False
         for payment in payments:
             if payment.member_id not in member_payments:
                 member_payments[payment.member_id] = {
@@ -142,6 +144,9 @@ class GetClubPaymentSummaryUseCase:
 
             if payment.is_insurance_payment:
                 member_payments[payment.member_id]["insurance_paid"] = True
+
+            if payment.payment_type == MemberPaymentType.CUOTA_CLUB:
+                has_club_fee = True
 
             member_payments[payment.member_id]["total_paid"] += payment.amount
 
@@ -194,6 +199,7 @@ class GetClubPaymentSummaryUseCase:
             members_with_license=members_with_license,
             members_with_insurance=members_with_insurance,
             total_collected=summary.get("total_amount", 0.0),
+            has_club_fee=has_club_fee,
             by_payment_type=by_payment_type,
             members=member_summaries
         )

@@ -75,6 +75,7 @@ class ClubPaymentSummaryResponse(BaseModel):
     members_with_license: int
     members_with_insurance: int
     total_collected: float
+    has_club_fee: bool
     by_payment_type: List[PaymentTypeSummaryResponse]
     members: List[MemberPaymentSummaryResponse]
 
