@@ -32,7 +32,8 @@ from src.infrastructure.web.dependencies import (
 from src.infrastructure.web.authorization import (
     AuthContext,
     check_club_access_ctx,
-    get_club_filter_ctx
+    get_club_filter_ctx,
+    require_super_admin
 )
 from src.domain.exceptions.license import LicenseNotFoundError, LicenseImageGenerationError
 from src.domain.exceptions.member import MemberNotFoundError
@@ -281,22 +282,10 @@ async def create_license(
     get_create_use_case = Depends(get_create_license_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Create a new license."""
-    # Determine effective club_id
-    effective_club_id = license_data.club_id
+    """Create a new license (Super Admin only)."""
+    require_super_admin(ctx)
 
-    if ctx.is_club_admin:
-        # Club admin must create licenses in their own club
-        if license_data.club_id and license_data.club_id != ctx.club_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot create license in another club"
-            )
-        # Force club_id to be the user's club
-        effective_club_id = ctx.club_id
-    elif license_data.club_id:
-        # Super admin with explicit club - verify access
-        check_club_access_ctx(ctx, license_data.club_id)
+    effective_club_id = license_data.club_id
 
     license = await get_create_use_case.execute(
         license_number=license_data.license_number or _generate_license_number(),
@@ -316,19 +305,10 @@ async def renew_license(
     license_id: str,
     renew_data: LicenseRenewRequest,
     get_renew_use_case = Depends(get_renew_license_use_case),
-    get_license_use_case_instance = Depends(get_license_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Renew license."""
-    # First verify access to the license
-    existing_license = await get_license_use_case_instance.execute(license_id)
-    if existing_license.club_id:
-        check_club_access_ctx(ctx, existing_license.club_id)
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this license"
-        )
+    """Renew license (Super Admin only)."""
+    require_super_admin(ctx)
 
     expiration_date = datetime.fromisoformat(renew_data.expiration_date) if isinstance(renew_data.expiration_date, str) else renew_data.expiration_date
     license = await get_renew_use_case.execute(license_id, expiration_date)
@@ -340,29 +320,12 @@ async def update_license(
     license_id: str,
     license_data: LicenseUpdate,
     get_update_use_case = Depends(get_update_license_use_case),
-    get_license_use_case_instance = Depends(get_license_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Update license."""
-    # First verify access to the license
-    existing_license = await get_license_use_case_instance.execute(license_id)
-    if existing_license.club_id:
-        check_club_access_ctx(ctx, existing_license.club_id)
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this license"
-        )
+    """Update license (Super Admin only)."""
+    require_super_admin(ctx)
 
-    # Prevent club_id change by club_admin
     update_data = license_data.model_dump(exclude_none=True)
-    if ctx.is_club_admin and 'club_id' in update_data:
-        if update_data['club_id'] != ctx.club_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot transfer license to another club"
-            )
-
     license = await get_update_use_case.execute(license_id, **update_data)
     return LicenseMapper.to_response_dto(license)
 
@@ -371,19 +334,10 @@ async def update_license(
 async def delete_license(
     license_id: str,
     get_delete_use_case = Depends(get_delete_license_use_case),
-    get_license_use_case_instance = Depends(get_license_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Delete license."""
-    # First verify access to the license
-    existing_license = await get_license_use_case_instance.execute(license_id)
-    if existing_license.club_id:
-        check_club_access_ctx(ctx, existing_license.club_id)
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this license"
-        )
+    """Delete license (Super Admin only)."""
+    require_super_admin(ctx)
 
     await get_delete_use_case.execute(license_id)
     return None

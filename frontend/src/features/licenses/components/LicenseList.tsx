@@ -145,13 +145,17 @@ export const LicenseList = () => {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-medium text-gray-900">
-                  <button
-                    type="button"
-                    className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
-                    onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
-                  >
-                    {license.license_number}
-                  </button>
+                  {canAccess({ resource: 'licenses', action: 'update' }) ? (
+                    <button
+                      type="button"
+                      className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+                      onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
+                    >
+                      {license.license_number}
+                    </button>
+                  ) : (
+                    <span>{license.license_number}</span>
+                  )}
                 </h3>
                 <p className="text-sm text-gray-600">{license.member_name || '-'}</p>
               </div>
@@ -237,13 +241,17 @@ export const LicenseList = () => {
               {licenses.map((license) => (
                 <tr key={license.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
-                    <button
-                      type="button"
-                      className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
-                      onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
-                    >
-                      {license.license_number}
-                    </button>
+                    {canAccess({ resource: 'licenses', action: 'update' }) ? (
+                      <button
+                        type="button"
+                        className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
+                        onClick={() => { setSelectedLicenseForEdit(license); setIsFormOpen(true); }}
+                      >
+                        {license.license_number}
+                      </button>
+                    ) : (
+                      <span className="font-medium text-gray-900">{license.license_number}</span>
+                    )}
                   </td>
                   <td className="p-4 text-gray-600">{license.member_name || '-'}</td>
                   <td className="p-4 text-gray-600">

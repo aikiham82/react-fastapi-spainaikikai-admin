@@ -24,7 +24,7 @@ const rolePermissions: Record<
   club_admin: {
     clubs: ['read', 'update'],
     members: ['read', 'create', 'update', 'delete'],
-    licenses: ['read', 'create', 'update', 'delete'],
+    licenses: ['read'],
     payments: ['read', 'create', 'update'],
     invoices: ['read'],
     seminars: ['read', 'create', 'update'],
