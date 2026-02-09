@@ -19,10 +19,10 @@ class DashboardStats(BaseModel):
     total_clubs: int
     total_members: int
     active_members: int
-    annual_payments: int
-    pending_payments: int
+    clubs_paid: int
+    clubs_pending: int
     upcoming_seminars: int
-    expiring_licenses: int
+    expired_licenses: int
 
 
 class ExpiringLicense(BaseModel):
@@ -85,35 +85,28 @@ async def get_dashboard_stats(
     total_members = await db["members"].count_documents(member_filter)
     active_members = await db["members"].count_documents({**member_filter, "status": "active"})
 
-    # Annual member payments (current year) - based on active members
+    # Club-level payment stats (current year)
     current_year = now.year
 
-    # annual_payments = count of active members (members who should pay)
-    annual_payments = active_members
-
-    # pending_payments = active members without completed payment for current year
-    # Get active member IDs for the filter
-    active_members_cursor = db["members"].find(
-        {**member_filter, "status": "active"}, {"_id": 1}
-    )
-    active_member_docs = await active_members_cursor.to_list(length=10000)
-    active_member_ids = [str(doc["_id"]) for doc in active_member_docs]
-
-    # Get member IDs with completed payments for current year
-    # MongoDB returns empty cursor for non-existent collections, no error handling needed
-    paid_members_cursor = db["member_payments"].find(
-        {
+    if club_id:
+        # Club admin: check if their club has any completed payment this year
+        clubs_paid_count = await db["transactions"].count_documents({
+            "club_id": club_id,
             "payment_year": current_year,
-            "member_id": {"$in": active_member_ids},
             "status": "completed"
-        },
-        {"member_id": 1}
-    )
-    paid_member_docs = await paid_members_cursor.to_list(length=10000)
-    paid_member_ids = {doc["member_id"] for doc in paid_member_docs}
+        })
+        clubs_paid = 1 if clubs_paid_count > 0 else 0
+    else:
+        # Super admin: count distinct clubs with completed payments
+        pipeline = [
+            {"$match": {"payment_year": current_year, "status": "completed"}},
+            {"$group": {"_id": "$club_id"}},
+            {"$count": "total"}
+        ]
+        result = await db["transactions"].aggregate(pipeline).to_list(length=1)
+        clubs_paid = result[0]["total"] if result else 0
 
-    # pending_payments = active members - members with completed payment
-    pending_payments = len(set(active_member_ids) - paid_member_ids)
+    clubs_pending = total_clubs - clubs_paid
 
     # Upcoming seminars (next 30 days)
     upcoming_seminars_count = await db["seminars"].count_documents({
@@ -121,11 +114,10 @@ async def get_dashboard_stats(
         "status": {"$ne": "cancelled"}
     })
 
-    # Expiring licenses (next 30 days)
-    expiring_licenses_count = await db["licenses"].count_documents({
+    # Expired licenses
+    expired_licenses_count = await db["licenses"].count_documents({
         **license_filter,
-        "expiration_date": {"$gte": now, "$lte": now + timedelta(days=30)},
-        "status": "active"
+        "status": "expired"
     })
 
     stats = DashboardStats(
