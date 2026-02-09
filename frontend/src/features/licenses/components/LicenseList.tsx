@@ -16,7 +16,8 @@ import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 const getGradeDisplay = (license: License): string => {
   if (license.instructor_category === 'shidoin') return 'Shidoin';
   if (license.instructor_category === 'fukushidoin') return 'Fukushidoin';
-  if (license.dan_grade > 0) return `Dan ${license.dan_grade}`;
+  if (license.technical_grade === 'kyu') return license.dan_grade > 0 ? `${license.dan_grade}º Kyu` : 'Kyu';
+  if (license.dan_grade > 0) return `${license.dan_grade}º Dan`;
   return 'Kyu';
 };
 

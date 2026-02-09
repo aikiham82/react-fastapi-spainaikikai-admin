@@ -19,6 +19,7 @@ export interface CreateLicenseRequest {
   issue_date: string;
   expiry_date: string;
   dan_grade: number;
+  technical_grade?: 'dan' | 'kyu';
 }
 
 export interface UpdateLicenseRequest extends Partial<CreateLicenseRequest> {}

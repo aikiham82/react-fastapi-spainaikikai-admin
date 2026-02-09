@@ -64,8 +64,10 @@ def _get_grade_string(license_data: LicenseCreate) -> str:
     """Get grade string from either grade or dan_grade field."""
     if license_data.grade:
         return license_data.grade
-    if license_data.dan_grade is not None:
-        return f"{license_data.dan_grade} Dan" if license_data.dan_grade > 0 else "Kyu"
+    if license_data.dan_grade is not None and license_data.dan_grade > 0:
+        if license_data.technical_grade == "kyu":
+            return f"{license_data.dan_grade}º Kyu"
+        return f"{license_data.dan_grade}º Dan"
     return "Kyu"
 
 

@@ -36,7 +36,8 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
     member_id: '',
     issue_date: '',
     expiry_date: '',
-    dan_grade: 6,
+    dan_grade: 1,
+    technical_grade: 'dan',
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateLicenseRequest, string>>>({});
@@ -47,14 +48,16 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
         member_id: license.member_id || '',
         issue_date: license.issue_date?.split('T')[0] || '',
         expiry_date: license.expiry_date?.split('T')[0] || '',
-        dan_grade: license.dan_grade || 6,
+        dan_grade: license.dan_grade || 1,
+        technical_grade: license.technical_grade || 'dan',
       });
     } else {
       setFormData({
         member_id: '',
         issue_date: '',
         expiry_date: '',
-        dan_grade: 6,
+        dan_grade: 1,
+        technical_grade: 'dan',
       });
     }
     setErrors({});
@@ -74,8 +77,9 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
     } else if (new Date(formData.expiry_date) <= new Date(formData.issue_date)) {
       newErrors.expiry_date = 'La fecha de vencimiento debe ser posterior a la fecha de emisión';
     }
-    if (formData.dan_grade < 0 || formData.dan_grade > 10) {
-      newErrors.dan_grade = 'El grado debe estar entre 0 y 10';
+    const maxGrade = formData.technical_grade === 'kyu' ? 6 : 10;
+    if (formData.dan_grade < 1 || formData.dan_grade > maxGrade) {
+      newErrors.dan_grade = `El grado debe estar entre 1 y ${maxGrade}`;
     }
 
     setErrors(newErrors);
@@ -156,24 +160,50 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dan_grade">Grado Dan *</Label>
-            <Select
-              value={formData.dan_grade.toString()}
-              onValueChange={(value) => handleChange('dan_grade', parseInt(value))}
-            >
-              <SelectTrigger className={errors.dan_grade ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Selecciona el grado" />
-              </SelectTrigger>
-              <SelectContent>
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((grade) => (
-                  <SelectItem key={grade} value={grade.toString()}>
-                    {grade === 0 ? 'Kyu (0)' : `${grade}º Dan`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.dan_grade && <p className="text-sm text-red-500">{errors.dan_grade}</p>}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="technical_grade">Tipo de Grado *</Label>
+              <Select
+                value={formData.technical_grade || 'dan'}
+                onValueChange={(value) => {
+                  const newGrade = value as 'dan' | 'kyu';
+                  const maxGrade = newGrade === 'kyu' ? 6 : 10;
+                  const currentGrade = formData.dan_grade > maxGrade ? 1 : formData.dan_grade;
+                  setFormData(prev => ({ ...prev, technical_grade: newGrade, dan_grade: currentGrade }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dan">Dan</SelectItem>
+                  <SelectItem value="kyu">Kyu</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dan_grade">Grado *</Label>
+              <Select
+                value={formData.dan_grade.toString()}
+                onValueChange={(value) => handleChange('dan_grade', parseInt(value))}
+              >
+                <SelectTrigger className={errors.dan_grade ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Selecciona el grado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(formData.technical_grade === 'kyu'
+                    ? [1, 2, 3, 4, 5, 6]
+                    : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                  ).map((grade) => (
+                    <SelectItem key={grade} value={grade.toString()}>
+                      {`${grade}º ${formData.technical_grade === 'kyu' ? 'Kyu' : 'Dan'}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.dan_grade && <p className="text-sm text-red-500">{errors.dan_grade}</p>}
+            </div>
           </div>
 
           <DialogFooter>
