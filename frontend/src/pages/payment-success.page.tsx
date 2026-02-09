@@ -12,7 +12,7 @@ export const PaymentSuccessPage = () => {
   useEffect(() => {
     // Auto-redirect after 10 seconds
     const timer = setTimeout(() => {
-      navigate('/annual-payments');
+      navigate('/club-payments');
     }, 10000);
 
     return () => clearTimeout(timer);
@@ -42,7 +42,7 @@ export const PaymentSuccessPage = () => {
           </div>
 
           <div className="space-y-2">
-            <Button onClick={() => navigate('/annual-payments')} className="w-full">
+            <Button onClick={() => navigate('/club-payments')} className="w-full">
               Ver Mis Pagos
             </Button>
             <Button onClick={() => navigate('/licenses')} variant="outline" className="w-full">
