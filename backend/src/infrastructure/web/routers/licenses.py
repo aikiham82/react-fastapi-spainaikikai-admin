@@ -39,6 +39,21 @@ from src.domain.exceptions.member import MemberNotFoundError
 
 router = APIRouter(prefix="/licenses", tags=["licenses"])
 
+GRADE_GROUP_ORDER = {"shidoin": 0, "fukushidoin": 1, "dan": 2, "kyu": 3, "unknown": 4}
+
+
+def _get_sort_key(item: LicenseResponse):
+    """Sort key: expiry_date desc, grade priority asc, dan_grade desc, member_name asc."""
+    expiry_ts = item.expiry_date.timestamp() if item.expiry_date else 0
+    if item.instructor_category in ("shidoin", "fukushidoin"):
+        grade_group = item.instructor_category
+    elif item.dan_grade > 0:
+        grade_group = "dan"
+    else:
+        grade_group = "kyu"
+    grade_priority = GRADE_GROUP_ORDER.get(grade_group, 4)
+    return (-expiry_ts, grade_priority, -item.dan_grade, (item.member_name or "").lower())
+
 
 def _generate_license_number() -> str:
     """Generate a unique license number."""
@@ -137,6 +152,7 @@ async def get_licenses(
 
     items = LicenseMapper.to_response_list(licenses)
     items = await _populate_member_names(items)
+    items.sort(key=_get_sort_key)
     total = len(items)
     items = items[offset:offset + limit]
     return LicenseListResponse(

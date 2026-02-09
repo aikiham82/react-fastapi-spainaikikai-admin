@@ -13,6 +13,13 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { LicenseForm } from './LicenseForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
+const getGradeDisplay = (license: License): string => {
+  if (license.instructor_category === 'shidoin') return 'Shidoin';
+  if (license.instructor_category === 'fukushidoin') return 'Fukushidoin';
+  if (license.dan_grade > 0) return `Dan ${license.dan_grade}`;
+  return 'Kyu';
+};
+
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
   const { members } = useMemberContext();
@@ -33,10 +40,6 @@ export const LicenseList = () => {
   useEffect(() => {
     setFilters({ ...filters, search: debouncedSearch || undefined, offset: 0 });
   }, [debouncedSearch]);
-
-  const sortedLicenses = [...licenses].sort((a, b) =>
-    (a.member_name || '').localeCompare(b.member_name || '', 'es')
-  );
 
   const handleFilterStatus = (value: string) => {
     setLicenseStatusFilter(value);
@@ -136,7 +139,7 @@ export const LicenseList = () => {
       <>
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {sortedLicenses.map((license) => (
+        {licenses.map((license) => (
           <div key={license.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
@@ -163,7 +166,7 @@ export const LicenseList = () => {
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
               <span>Exp: {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}</span>
-              <span>{license.dan_grade === 0 ? 'Kyû' : `Dan ${license.dan_grade}`}</span>
+              <span>{getGradeDisplay(license)}</span>
               {license.expiry_date && isExpiringSoon(license.expiry_date) && (
                 <Badge variant="outline" className="border-yellow-500 text-yellow-700">
                   <RotateCw className="w-3 h-3 mr-1" />
@@ -199,7 +202,7 @@ export const LicenseList = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">Grado</p>
-                      <p className="text-sm text-gray-600">{license.dan_grade === 0 ? 'Kyû' : `Dan ${license.dan_grade}`}</p>
+                      <p className="text-sm text-gray-600">{getGradeDisplay(license)}</p>
                     </div>
                   </div>
                 </DialogContent>
@@ -224,13 +227,13 @@ export const LicenseList = () => {
                 <th className="text-left p-4 font-medium text-gray-900">Miembro</th>
                 <th className="text-left p-4 font-medium text-gray-900">Fecha Emisión</th>
                 <th className="text-left p-4 font-medium text-gray-900">Fecha Expiración</th>
-                <th className="text-left p-4 font-medium text-gray-900">Grado Dan</th>
+                <th className="text-left p-4 font-medium text-gray-900">Grado</th>
                 <th className="text-left p-4 font-medium text-gray-900">Estado</th>
                 <th className="text-right p-4 font-medium text-gray-900">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {sortedLicenses.map((license) => (
+              {licenses.map((license) => (
                 <tr key={license.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <button
@@ -259,7 +262,7 @@ export const LicenseList = () => {
                     </div>
                   </td>
                   <td className="p-4 text-gray-600">
-                    {license.dan_grade === 0 ? 'Kyû' : `Dan ${license.dan_grade}`}
+                    {getGradeDisplay(license)}
                   </td>
                   <td className="p-4">
                     <Badge
@@ -306,7 +309,7 @@ export const LicenseList = () => {
                             <div>
                               <p className="text-sm font-medium text-gray-900">Grado</p>
                               <p className="text-sm text-gray-600">
-                                {license.dan_grade === 0 ? 'Kyû' : `Dan ${license.dan_grade}`}
+                                {getGradeDisplay(license)}
                               </p>
                             </div>
                             <div>

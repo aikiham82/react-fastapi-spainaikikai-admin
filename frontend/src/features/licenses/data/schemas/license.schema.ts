@@ -8,6 +8,8 @@ export interface License {
   expiry_date: string;
   status: 'active' | 'expired' | 'pending';
   dan_grade: number;
+  technical_grade: 'dan' | 'kyu';
+  instructor_category: 'none' | 'fukushidoin' | 'shidoin';
   created_at: string;
   updated_at: string;
 }
