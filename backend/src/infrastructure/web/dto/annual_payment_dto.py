@@ -109,6 +109,7 @@ class PrefillAnnualPaymentResponse(BaseModel):
     """Response for annual payment prefill data."""
     payer_name: str = ""
     include_club_fee: bool = False
+    club_fee_already_paid: bool = False
     kyu_count: int = 0
     kyu_infantil_count: int = 0
     dan_count: int = 0

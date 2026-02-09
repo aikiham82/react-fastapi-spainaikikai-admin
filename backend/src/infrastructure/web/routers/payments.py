@@ -73,6 +73,7 @@ async def prefill_annual_payment(
     return PrefillAnnualPaymentResponse(
         payer_name=result.payer_name,
         include_club_fee=result.include_club_fee,
+        club_fee_already_paid=result.club_fee_already_paid,
         kyu_count=result.kyu_count,
         kyu_infantil_count=result.kyu_infantil_count,
         dan_count=result.dan_count,

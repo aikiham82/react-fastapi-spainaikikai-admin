@@ -158,6 +158,19 @@ class InitiateAnnualPaymentUseCase:
         if not has_items:
             raise ValueError("Al menos un concepto debe ser seleccionado")
 
+        # Check for duplicate club fee payment
+        if include_club_fee and self.member_payment_repository:
+            assigned_ids = [a.member_id for a in member_assignments] if member_assignments else []
+            if assigned_ids:
+                existing_club_fee = await self.member_payment_repository.find_by_member_ids_year(
+                    assigned_ids, payment_year, status=MemberPaymentStatus.COMPLETED
+                )
+                if any(mp.payment_type == ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get("club_fee")
+                       for mp in existing_club_fee):
+                    raise ValueError(
+                        "La cuota de club ya ha sido pagada para este año"
+                    )
+
         # Check for duplicate member-level payments (same member + item_type + year)
         if member_assignments and self.member_payment_repository:
             assigned_member_ids = [a.member_id for a in member_assignments]

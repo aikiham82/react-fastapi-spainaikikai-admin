@@ -219,6 +219,7 @@ export const defaultFormValues: AnnualPaymentFormData = {
 export interface PrefillAnnualPaymentResponse {
   payer_name: string;
   include_club_fee: boolean;
+  club_fee_already_paid: boolean;
   kyu_count: number;
   kyu_infantil_count: number;
   dan_count: number;

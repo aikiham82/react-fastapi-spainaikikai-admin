@@ -27,6 +27,7 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   // Prefill
   prefillSource: 'members' | 'previous_payment' | null;
   isLoadingPrefill: boolean;
+  clubFeeAlreadyPaid: boolean;
   // Member selection
   isMemberSelectionOpen: boolean;
   openMemberSelection: () => void;
@@ -238,6 +239,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     pricesError,
     prefillSource: prefillData?.source ?? null,
     isLoadingPrefill,
+    clubFeeAlreadyPaid: prefillData?.club_fee_already_paid ?? false,
     isMemberSelectionOpen,
     openMemberSelection,
     closeMemberSelection,

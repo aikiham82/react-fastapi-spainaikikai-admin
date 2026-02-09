@@ -26,6 +26,7 @@ class PrefillMemberAssignment:
 class PrefillResult:
     payer_name: str
     include_club_fee: bool
+    club_fee_already_paid: bool
     kyu_count: int
     kyu_infantil_count: int
     dan_count: int
@@ -189,6 +190,7 @@ class PrefillAnnualPaymentUseCase:
         return PrefillResult(
             payer_name=payer_name,
             include_club_fee=include_club_fee,
+            club_fee_already_paid=club_fee_already_paid,
             kyu_count=counts["kyu"],
             kyu_infantil_count=counts["kyu_infantil"],
             dan_count=counts["dan"],
@@ -215,6 +217,7 @@ class PrefillAnnualPaymentUseCase:
             return PrefillResult(
                 payer_name=payer_name,
                 include_club_fee=True,
+                club_fee_already_paid=False,
                 kyu_count=0, kyu_infantil_count=0, dan_count=0,
                 fukushidoin_count=0, shidoin_count=0,
                 seguro_accidentes_count=0, seguro_rc_count=0,
@@ -253,6 +256,7 @@ class PrefillAnnualPaymentUseCase:
         return PrefillResult(
             payer_name=prev_payment.payer_name or payer_name,
             include_club_fee=True,
+            club_fee_already_paid=False,
             kyu_count=counts["kyu"],
             kyu_infantil_count=counts["kyu_infantil"],
             dan_count=counts["dan"],

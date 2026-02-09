@@ -359,6 +359,7 @@ class ProcessRedsysWebhookUseCase:
 
         member_payments: List[MemberPayment] = []
         club_fee_created = False
+        first_member_id = None
 
         for assignment in assignments:
             member_id = assignment.get("member_id")
@@ -379,6 +380,10 @@ class ProcessRedsysWebhookUseCase:
                 except Exception:
                     # If lookup fails, skip this member
                     continue
+
+            # Track first valid member for club fee assignment
+            if first_member_id is None:
+                first_member_id = member_id
 
             for ptype in payment_types:
                 # Map item type to member payment type
@@ -410,6 +415,36 @@ class ProcessRedsysWebhookUseCase:
                     amount=price,
                     status=MemberPaymentStatus.COMPLETED
                 ))
+
+        # Create club fee MemberPayment from line_items_data if not already
+        # created from member_assignments (club_fee is a club-level item that
+        # may not appear in any member's payment_types)
+        if not club_fee_created and first_member_id and payment.line_items_data:
+            try:
+                line_items = json.loads(payment.line_items_data)
+                has_club_fee_item = any(
+                    item.get("item_type") == "club_fee" for item in line_items
+                )
+                if has_club_fee_item:
+                    price = 0.0
+                    if self.price_configuration_repository:
+                        price_key = PAYMENT_TYPE_TO_PRICE_KEY.get("club_fee")
+                        if price_key:
+                            price_config = await self.price_configuration_repository.find_by_key(price_key)
+                            if price_config:
+                                price = price_config.price
+
+                    member_payments.append(MemberPayment(
+                        payment_id=payment.id,
+                        member_id=first_member_id,
+                        payment_year=payment.payment_year,
+                        payment_type=MemberPaymentType.CUOTA_CLUB,
+                        concept=f"cuota_club - {payment.payment_year}",
+                        amount=price,
+                        status=MemberPaymentStatus.COMPLETED
+                    ))
+            except (json.JSONDecodeError, TypeError):
+                pass
 
         # Bulk create all member payments
         if member_payments:
