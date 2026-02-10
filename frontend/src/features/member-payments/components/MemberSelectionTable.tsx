@@ -297,7 +297,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
 
         {/* Table */}
         <div className="h-[400px] overflow-auto border rounded-md">
-          <table className="w-full caption-bottom text-sm">
+          <table className="w-full min-w-[600px] caption-bottom text-sm">
             <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow>
                 <TableHead>
