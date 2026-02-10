@@ -1,6 +1,5 @@
 import { LoginForm } from "@/features/auth/components/LoginForm"
-import { Link } from "react-router-dom"
-import { ArrowLeft, Shield, Users, Calendar, Award } from "lucide-react"
+import { Shield, Users, Calendar, Award } from "lucide-react"
 
 export default function LoginPage() {
   return (
@@ -22,12 +21,12 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-center px-12 py-12 text-white">
           {/* Logo/Brand */}
           <div className="mb-8">
-            <Link to="/" className="flex items-center space-x-3 group">
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl group-hover:bg-white/20 transition-all duration-300">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl">
                 <img src="/logo.jpg" alt="Spain Aikikai" className="w-10 h-10 rounded-lg object-cover" />
               </div>
               <span className="text-2xl font-bold text-white">Spain Aikikai</span>
-            </Link>
+            </div>
           </div>
 
           {/* Hero Content */}
@@ -85,34 +84,22 @@ export default function LoginPage() {
 
       {/* Right Side - Login Form */}
       <div className="flex-1 flex flex-col min-h-screen bg-gray-50/50">
-        {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
-          <Link
-            to="/"
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors group lg:hidden"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-medium">Volver</span>
-          </Link>
-
-          {/* Mobile Logo */}
-          <Link to="/" className="flex items-center space-x-2 lg:hidden">
-            <img src="/logo.jpg" alt="Spain Aikikai" className="w-6 h-6 rounded object-cover" />
-            <span className="text-lg font-bold text-gray-900">Spain Aikikai</span>
-          </Link>
-
-          <div className="hidden lg:block" />
+        {/* Mobile Brand Section */}
+        <header className="flex flex-col items-center pt-10 pb-8 lg:hidden">
+          <div className="flex flex-col items-center space-y-3">
+            <img
+              src="/logo.jpg"
+              alt="Spain Aikikai"
+              className="w-12 h-12 rounded-lg object-cover shadow-md"
+            />
+            <span className="text-2xl font-bold text-gray-900">Spain Aikikai</span>
+            <p className="text-sm text-gray-600">Panel de Administración</p>
+          </div>
         </header>
 
         {/* Login Form Container */}
-        <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="flex-1 flex items-center justify-center px-6 py-0 sm:px-8 sm:py-8">
           <div className="w-full max-w-md">
-            {/* Mobile Hero Text */}
-            <div className="text-center mb-8 lg:hidden">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Bienvenido</h2>
-              <p className="text-gray-600">Inicia sesión para acceder al panel de administración</p>
-            </div>
-
             <LoginForm />
           </div>
         </div>
