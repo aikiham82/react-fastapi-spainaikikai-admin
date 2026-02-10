@@ -68,11 +68,11 @@ export const MemberSelectionSection: React.FC = () => {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <h3 className="font-medium flex items-center gap-2">
+        <h3 className="font-medium flex items-center gap-2 min-w-0">
           <Users className="h-5 w-5 shrink-0" />
           <span className="truncate">Asignacion de Miembros</span>
           {hasAssignments && (
-            <Badge variant="secondary" className="shrink-0">
+            <Badge variant="secondary" className="shrink-0 text-xs">
               {formData.member_assignments.length} asignados
             </Badge>
           )}
