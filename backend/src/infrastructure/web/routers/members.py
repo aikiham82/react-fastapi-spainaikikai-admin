@@ -176,7 +176,8 @@ async def get_members(
         members = [m for m in members if m.status.value == status]
 
     responses = MemberMapper.to_response_list(members)
-    return await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    return await _enrich_members_with_club_names(responses, club_repo)
 
 
 @router.get("/{member_id}", response_model=MemberResponse)
@@ -186,6 +187,7 @@ async def get_member(
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),
     insurance_repo = Depends(get_insurance_repository),
+    club_repo = Depends(get_club_repository),
 ):
     """Get member by ID."""
     member = await get_member_use_case.execute(member_id)
@@ -202,6 +204,7 @@ async def get_member(
 
     response = MemberMapper.to_response_dto(member)
     enriched = await _enrich_members_with_summaries([response], license_repo, insurance_repo)
+    enriched = await _enrich_members_with_club_names(enriched, club_repo)
     return enriched[0]
 
 
@@ -213,12 +216,14 @@ async def get_members_by_club(
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),
     insurance_repo = Depends(get_insurance_repository),
+    club_repo = Depends(get_club_repository),
 ):
     """Get members by club ID."""
     check_club_access_ctx(ctx, club_id)
     members = await get_all_use_case.execute(limit, club_id)
     responses = MemberMapper.to_response_list(members)
-    return await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    return await _enrich_members_with_club_names(responses, club_repo)
 
 
 @router.get("/search", response_model=List[MemberResponse])
@@ -229,6 +234,7 @@ async def search_members(
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),
     insurance_repo = Depends(get_insurance_repository),
+    club_repo = Depends(get_club_repository),
 ):
     """Search members by name."""
     members = await get_search_use_case.execute(name, limit)
@@ -238,7 +244,8 @@ async def search_members(
         members = [m for m in members if m.club_id == ctx.club_id]
 
     responses = MemberMapper.to_response_list(members)
-    return await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    return await _enrich_members_with_club_names(responses, club_repo)
 
 
 @router.post("", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)

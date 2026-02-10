@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
-import { Users, Plus, Search, Trash2, CreditCard, Loader2, MoreVertical, UserX, UserCheck } from 'lucide-react';
+import { Users, Plus, Search, Trash2, CreditCard, Loader2, MoreVertical, UserX, UserCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -25,7 +25,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
+import { useClubContext } from '@/features/clubs/hooks/useClubContext';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -35,15 +39,29 @@ import { cn } from '@/lib/utils';
 export const MemberList = () => {
   const { members, isLoading, isFetching, error, filters, setFilters, total, limit, offset, deleteMember, changeMemberStatus, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
+  const { userRole } = useAuthContext();
+  const { clubs } = useClubContext();
+  const isSuperAdmin = userRole === 'super_admin';
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
   const [memberStatusFilter, setMemberStatusFilter] = useState<string>('active');
+  const [clubFilter, setClubFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
   const [selectedMemberForPayments, setSelectedMemberForPayments] = useState<Member | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
   const [memberToChangeStatus, setMemberToChangeStatus] = useState<Member | null>(null);
+
+  const clubOptions = useMemo(() => [
+    { value: '', label: 'Todos los clubs' },
+    ...clubs.map(c => ({ value: c.id, label: c.name })),
+  ], [clubs]);
+
+  const activeClubName = useMemo(() => {
+    if (!filters.club_id) return null;
+    return clubs.find(c => c.id === filters.club_id)?.name ?? null;
+  }, [filters.club_id, clubs]);
 
   useEffect(() => {
     setFilters({ ...filters, search: debouncedSearch || undefined, offset: 0 });
@@ -62,6 +80,16 @@ export const MemberList = () => {
     setLicenseStatusFilter(value);
     const statusValue = value === 'all' ? undefined : value as "active" | "expired" | "pending";
     setFilters({ ...filters, license_status: statusValue, offset: 0 });
+  };
+
+  const handleClubFilter = (value: string) => {
+    setClubFilter(value);
+    setFilters({ ...filters, club_id: value || undefined, offset: 0 });
+  };
+
+  const clearClubFilter = () => {
+    setClubFilter('');
+    setFilters({ ...filters, club_id: undefined, offset: 0 });
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -145,6 +173,18 @@ export const MemberList = () => {
           </SelectContent>
         </Select>
 
+        {isSuperAdmin && (
+          <SearchableSelect
+            options={clubOptions}
+            value={clubFilter}
+            onValueChange={handleClubFilter}
+            placeholder="Filtrar por club"
+            searchPlaceholder="Buscar club..."
+            emptyMessage="No se encontraron clubs."
+            className="w-full sm:w-[240px]"
+          />
+        )}
+
         <div className="flex gap-2">
           {canAccess({ resource: 'members', action: 'create' }) && (
             <Button onClick={() => { setSelectedMemberForEdit(null); setIsFormOpen(true); }}>
@@ -155,10 +195,35 @@ export const MemberList = () => {
         </div>
       </div>
 
+      {isSuperAdmin && activeClubName && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="gap-1">
+            Club: {activeClubName}
+            <button
+              type="button"
+              onClick={clearClubFilter}
+              className="ml-1 hover:text-destructive transition-colors"
+              aria-label="Quitar filtro de club"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+        </div>
+      )}
+
       {members.length === 0 && (
         <div className="text-center py-12">
           <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+          {filters.club_id ? (
+            <>
+              <p className="text-gray-600 mb-4">No se encontraron miembros en este club</p>
+              <Button variant="outline" onClick={clearClubFilter}>
+                Limpiar filtro
+              </Button>
+            </>
+          ) : (
+            <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+          )}
         </div>
       )}
 
@@ -244,7 +309,7 @@ export const MemberList = () => {
               <tr className="border-b bg-gray-50">
                 <th className="text-left p-4 font-medium text-gray-900">Nombre</th>
                 <th className="text-left p-4 font-medium text-gray-900">Email</th>
-                <th className="text-left p-4 font-medium text-gray-900">Club</th>
+                {isSuperAdmin && <th className="text-left p-4 font-medium text-gray-900">Club</th>}
                 <th className="text-left p-4 font-medium text-gray-900">Grado</th>
                 <th className="text-left p-4 font-medium text-gray-900">Seguro RC</th>
                 <th className="text-left p-4 font-medium text-gray-900">Seguro Acc.</th>
