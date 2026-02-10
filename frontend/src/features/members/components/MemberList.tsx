@@ -251,8 +251,22 @@ export const MemberList = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>{member.club_name || '-'}</span>
-              <span className="text-gray-300">|</span>
+              {isSuperAdmin && (
+                <>
+                  {member.club_name ? (
+                    <button
+                      type="button"
+                      className="hover:text-primary hover:underline transition-colors cursor-pointer"
+                      onClick={() => handleClubFilter(member.club_id)}
+                    >
+                      {member.club_name}
+                    </button>
+                  ) : (
+                    <span>-</span>
+                  )}
+                  <span className="text-gray-300">|</span>
+                </>
+              )}
               <GradeBadge licenseSummary={member.license_summary} compact />
             </div>
             <div className="flex items-center gap-2">
@@ -336,7 +350,19 @@ export const MemberList = () => {
                     </div>
                   </td>
                   <td className="p-4 text-gray-600">{member.email}</td>
-                  <td className="p-4 text-gray-600">{member.club_name || '-'}</td>
+                  {isSuperAdmin && (
+                    <td className="p-4 text-gray-600">
+                      {member.club_name ? (
+                        <button
+                          type="button"
+                          className="hover:text-primary hover:underline transition-colors cursor-pointer"
+                          onClick={() => handleClubFilter(member.club_id)}
+                        >
+                          {member.club_name}
+                        </button>
+                      ) : '-'}
+                    </td>
+                  )}
                   <td className="p-4">
                     <div className="flex items-center gap-1 flex-wrap">
                       <GradeBadge licenseSummary={member.license_summary} />
