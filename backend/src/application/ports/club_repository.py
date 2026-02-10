@@ -45,6 +45,11 @@ class ClubRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_by_ids(self, club_ids: List[str]) -> List[Club]:
+        """Find clubs by a list of IDs."""
+        pass
+
+    @abstractmethod
     async def exists(self, club_id: str) -> bool:
         """Check if a club exists."""
         pass

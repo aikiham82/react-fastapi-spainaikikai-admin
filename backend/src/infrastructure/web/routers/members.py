@@ -27,6 +27,7 @@ from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_license_repository,
     get_insurance_repository,
+    get_club_repository,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -116,6 +117,28 @@ async def _enrich_members_with_summaries(
     return responses
 
 
+async def _enrich_members_with_club_names(
+    responses: List[MemberResponse],
+    club_repo,
+) -> List[MemberResponse]:
+    """Batch-enrich member responses with club names (1 query total)."""
+    if not responses:
+        return responses
+
+    club_ids = list({r.club_id for r in responses if r.club_id})
+    if not club_ids:
+        return responses
+
+    clubs = await club_repo.find_by_ids(club_ids)
+    club_map = {c.id: c.name for c in clubs}
+
+    for resp in responses:
+        if resp.club_id:
+            resp.club_name = club_map.get(resp.club_id)
+
+    return responses
+
+
 @router.get("", response_model=List[MemberResponse])
 async def get_members(
     limit: int = 100,
@@ -127,6 +150,7 @@ async def get_members(
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),
     insurance_repo = Depends(get_insurance_repository),
+    club_repo = Depends(get_club_repository),
 ):
     """Get all members, optionally filtered by club, search term, or status."""
     if search:

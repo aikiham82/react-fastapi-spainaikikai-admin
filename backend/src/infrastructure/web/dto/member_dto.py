@@ -98,6 +98,7 @@ class MemberResponse(MemberBase):
     birth_date: Optional[datetime] = None
     status: str
     club_role: str = "member"
+    club_name: Optional[str] = None
     registration_date: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
