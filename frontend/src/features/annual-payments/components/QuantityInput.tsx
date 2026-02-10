@@ -25,13 +25,13 @@ export const QuantityInput: React.FC<QuantityInputProps> = ({
   const isAtMax = value >= maxValue;
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 sm:py-3 gap-2 sm:gap-0 border-b border-slate-100 last:border-0">
       <div className="flex-1">
         <p className="text-sm font-medium text-slate-900">{label}</p>
         <p className="text-xs text-slate-500">{unitPrice.toFixed(2)}€ / unidad</p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between sm:justify-end gap-3">
         <div className="flex items-center gap-2">
           <Button
             type="button"

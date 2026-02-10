@@ -22,58 +22,58 @@ export const PaymentSummary: React.FC = () => {
 
       <div className="bg-slate-50 rounded-lg p-4 space-y-3">
         {formData.include_club_fee && totals.subtotals.club_fee > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.club_fee}</span>
-            <span>{totals.subtotals.club_fee.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.club_fee}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.club_fee.toFixed(2)}€</span>
           </div>
         )}
 
         {formData.kyu_count > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.kyu} x{formData.kyu_count}</span>
-            <span>{totals.subtotals.kyu.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.kyu} x{formData.kyu_count}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.kyu.toFixed(2)}€</span>
           </div>
         )}
 
         {formData.kyu_infantil_count > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.kyu_infantil} x{formData.kyu_infantil_count}</span>
-            <span>{totals.subtotals.kyu_infantil.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.kyu_infantil} x{formData.kyu_infantil_count}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.kyu_infantil.toFixed(2)}€</span>
           </div>
         )}
 
         {formData.dan_count > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.dan} x{formData.dan_count}</span>
-            <span>{totals.subtotals.dan.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.dan} x{formData.dan_count}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.dan.toFixed(2)}€</span>
           </div>
         )}
 
         {formData.fukushidoin_count > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.fukushidoin} x{formData.fukushidoin_count}</span>
-            <span>{totals.subtotals.fukushidoin.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.fukushidoin} x{formData.fukushidoin_count}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.fukushidoin.toFixed(2)}€</span>
           </div>
         )}
 
         {formData.shidoin_count > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.shidoin} x{formData.shidoin_count}</span>
-            <span>{totals.subtotals.shidoin.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.shidoin} x{formData.shidoin_count}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.shidoin.toFixed(2)}€</span>
           </div>
         )}
 
         {formData.seguro_accidentes_count > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.seguro_accidentes} x{formData.seguro_accidentes_count}</span>
-            <span>{totals.subtotals.seguro_accidentes.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.seguro_accidentes} x{formData.seguro_accidentes_count}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.seguro_accidentes.toFixed(2)}€</span>
           </div>
         )}
 
         {formData.seguro_rc_count > 0 && (
-          <div className="flex justify-between text-sm">
-            <span>{ANNUAL_PAYMENT_LABELS.seguro_rc} x{formData.seguro_rc_count}</span>
-            <span>{totals.subtotals.seguro_rc.toFixed(2)}€</span>
+          <div className="flex justify-between gap-2 text-sm">
+            <span className="truncate">{ANNUAL_PAYMENT_LABELS.seguro_rc} x{formData.seguro_rc_count}</span>
+            <span className="whitespace-nowrap">{totals.subtotals.seguro_rc.toFixed(2)}€</span>
           </div>
         )}
 
