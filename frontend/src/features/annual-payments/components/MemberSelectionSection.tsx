@@ -81,13 +81,13 @@ export const MemberSelectionSection: React.FC = () => {
           {hasAssignments && (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setMemberAssignments([])}
-              aria-label="Limpiar asignaciones"
+              className="text-muted-foreground"
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:inline">Limpiar</span>
+              Limpiar
             </Button>
           )}
           <Button
@@ -96,12 +96,9 @@ export const MemberSelectionSection: React.FC = () => {
             size="sm"
             onClick={openMemberSelection}
             disabled={isLoadingMembers}
-            aria-label={hasAssignments ? 'Modificar asignaciones' : 'Seleccionar miembros'}
           >
             <UserPlus className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:inline">
-              {hasAssignments ? 'Modificar' : 'Seleccionar Miembros'}
-            </span>
+            {hasAssignments ? 'Modificar' : 'Asignar Miembros'}
           </Button>
         </div>
       </div>
