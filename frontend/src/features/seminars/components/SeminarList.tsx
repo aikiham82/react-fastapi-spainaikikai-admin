@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSeminarContext } from '../hooks/useSeminarContext';
 import type { Seminar } from '../data/schemas/seminar.schema';
-import { Calendar, Plus, Search, Trash2, Eye, Pencil, Users, MapPin, Clock, User, Award } from 'lucide-react';
+import { Calendar, Plus, Search, Trash2, Eye, Pencil, Users, MapPin, Clock, User, Award, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,11 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { SeminarForm } from './SeminarForm';
 import { OfficialBadge } from './OfficialBadge';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { SolicitudOficialidadModal } from './SolicitudOficialidadModal';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
+import { apiClient } from '@/core/data/apiClient';
 
 const STATUS_LABELS: Record<string, string> = {
   upcoming: 'Pr\u00f3ximo',
@@ -34,11 +39,99 @@ const formatDateTime = (dateString: string | undefined) => {
 export const SeminarList = () => {
   const { seminars, isLoading, error, filters, setFilters, total, limit, offset, deleteSeminar, setPagination } = useSeminarContext();
   const { canAccess } = usePermissions();
+  const { clubId, userRole } = useAuthContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSeminarForEdit, setSelectedSeminarForEdit] = useState<Seminar | null>(null);
   const [seminarToDelete, setSeminarToDelete] = useState<Seminar | null>(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [oficialidadModalSeminar, setOficialidadModalSeminar] = useState<Seminar | null>(null);
+  const [oficialidadPrice, setOficialidadPrice] = useState<number | null>(null);
+  const [pendingOficialidadId, setPendingOficialidadId] = useState<string | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingStartRef = useRef<number>(0);
+
+  // Fetch oficialidad price when modal opens
+  useEffect(() => {
+    if (oficialidadModalSeminar) {
+      setOficialidadPrice(null);
+      apiClient.get<Array<{ key: string; price: number }>>('/api/v1/price-configurations')
+        .then((configs) => {
+          const config = configs.find((c) => c.key === 'oficialidad_seminar');
+          setOficialidadPrice(config ? config.price : null);
+        })
+        .catch(() => setOficialidadPrice(null));
+    }
+  }, [oficialidadModalSeminar]);
+
+  // Post-payment return handling: detect query params from Redsys redirect
+  useEffect(() => {
+    const oficialidadResult = searchParams.get('oficialidad');
+    const seminarId = searchParams.get('seminar_id');
+
+    if (!oficialidadResult || !seminarId) return;
+
+    // Clear query params to avoid re-triggering
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('oficialidad');
+    newParams.delete('seminar_id');
+    // Also remove Redsys-appended params
+    newParams.delete('Ds_SignatureVersion');
+    newParams.delete('Ds_MerchantParameters');
+    newParams.delete('Ds_Signature');
+    setSearchParams(newParams, { replace: true });
+
+    if (oficialidadResult === 'cancelled') {
+      toast.info('Pago cancelado');
+      return;
+    }
+
+    if (oficialidadResult === 'ok') {
+      // Start polling for oficialidad confirmation
+      setPendingOficialidadId(seminarId);
+      pollingStartRef.current = Date.now();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
+
+  // Polling: check if seminar became official after Redsys return
+  useEffect(() => {
+    if (!pendingOficialidadId) return;
+
+    pollingRef.current = setInterval(async () => {
+      try {
+        const seminar = await apiClient.get<Seminar>(
+          `/api/v1/seminars/${pendingOficialidadId}`
+        );
+        if (seminar.is_official) {
+          // Success! Stop polling and show toast
+          setPendingOficialidadId(null);
+          toast.success('Seminario oficial!');
+          // Trigger refetch by updating filters reference
+          setFilters({ ...filters });
+        }
+      } catch {
+        // Ignore polling errors
+      }
+
+      // Timeout after 30 seconds
+      if (Date.now() - pollingStartRef.current > 30000) {
+        setPendingOficialidadId(null);
+        toast.info(
+          'No pudimos confirmar el pago aún. El seminario se actualizará automáticamente cuando se procese.'
+        );
+      }
+    }, 2000);
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [pendingOficialidadId, filters, setFilters]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -319,6 +412,34 @@ export const SeminarList = () => {
                           </div>
                         </div>
                       )}
+                      {/* Solicitar Oficialidad button — visible to club admin for their non-official seminars */}
+                      {!seminar.is_official
+                        && seminar.status !== 'cancelled'
+                        && userRole === 'club_admin'
+                        && seminar.club_id === clubId
+                        && (
+                        <div className="pt-2">
+                          {pendingOficialidadId === seminar.id ? (
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              disabled
+                              aria-live="polite"
+                            >
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Procesando pago...
+                            </Button>
+                          ) : (
+                            <Button
+                              className="w-full cursor-pointer"
+                              onClick={() => setOficialidadModalSeminar(seminar)}
+                            >
+                              <Award className="w-4 h-4 mr-2" />
+                              Solicitar Oficialidad
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>
@@ -395,6 +516,14 @@ export const SeminarList = () => {
             setSeminarToDelete(null);
           }
         }}
+      />
+
+      <SolicitudOficialidadModal
+        open={!!oficialidadModalSeminar}
+        onOpenChange={(open) => !open && setOficialidadModalSeminar(null)}
+        seminarId={oficialidadModalSeminar?.id || ''}
+        seminarTitle={oficialidadModalSeminar?.title || ''}
+        price={oficialidadPrice}
       />
     </div>
   );
