@@ -1,8 +1,11 @@
 """Seminar routes."""
 
 from typing import List, Optional
+from pathlib import Path
+from io import BytesIO
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from PIL import Image, ImageOps
 
 from src.infrastructure.web.dto.seminar_dto import (
     SeminarCreate,
@@ -17,11 +20,47 @@ from src.infrastructure.web.dependencies import (
     get_create_seminar_use_case,
     get_update_seminar_use_case,
     get_cancel_seminar_use_case,
-    get_delete_seminar_use_case
+    get_delete_seminar_use_case,
+    get_upload_seminar_cover_image_use_case,
+    get_delete_seminar_cover_image_use_case,
 )
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, check_club_access_ctx
 from src.domain.entities.seminar import SeminarStatus
+
+# Upload directory: backend/uploads/seminars/ relative to this file's location
+UPLOAD_DIR = Path(__file__).parent.parent.parent.parent.parent / "uploads" / "seminars"
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+MAGIC_BYTES = {
+    b"\xff\xd8\xff": "jpeg",
+    b"\x89PNG": "png",
+}
+
+
+def validate_image_magic_bytes(content: bytes) -> None:
+    """Validate image format using magic bytes (not file extension)."""
+    for signature in MAGIC_BYTES:
+        if content[:len(signature)] == signature:
+            return
+    if len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP":
+        return
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail="Formato no permitido. Usa JPEG, PNG o WebP."
+    )
+
+
+def process_image(content: bytes) -> bytes:
+    """Resize and convert image to 800x450 JPEG."""
+    image = Image.open(BytesIO(content))
+    if image.mode not in ("RGB",):
+        image = image.convert("RGB")
+    image = ImageOps.fit(image, (800, 450), Image.LANCZOS)
+    output = BytesIO()
+    image.save(output, format="JPEG", quality=85, optimize=True)
+    return output.getvalue()
+
 
 router = APIRouter(prefix="/seminars", tags=["seminars"])
 
@@ -154,3 +193,56 @@ async def delete_seminar(
         check_club_access_ctx(ctx, existing.club_id or "")
     await get_delete_use_case.execute(seminar_id)
     return None
+
+
+@router.post("/{seminar_id}/cover-image", response_model=SeminarResponse)
+async def upload_cover_image(
+    seminar_id: str,
+    file: UploadFile = File(...),
+    get_one_use_case = Depends(get_seminar_use_case),
+    upload_use_case = Depends(get_upload_seminar_cover_image_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Upload cover image for a seminar."""
+    if not ctx.is_super_admin:
+        existing = await get_one_use_case.execute(seminar_id)
+        check_club_access_ctx(ctx, existing.club_id or "")
+
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="El archivo supera el límite de 5MB."
+        )
+    validate_image_magic_bytes(content)
+
+    jpeg_content = process_image(content)
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    tmp_path = UPLOAD_DIR / f"{seminar_id}.tmp"
+    output_path = UPLOAD_DIR / f"{seminar_id}.jpg"
+    tmp_path.write_bytes(jpeg_content)
+    tmp_path.rename(output_path)
+
+    image_url = f"/uploads/seminars/{seminar_id}.jpg"
+    seminar = await upload_use_case.execute(seminar_id, image_url)
+    return SeminarMapper.to_response_dto(seminar)
+
+
+@router.delete("/{seminar_id}/cover-image", response_model=SeminarResponse)
+async def delete_cover_image(
+    seminar_id: str,
+    get_one_use_case = Depends(get_seminar_use_case),
+    delete_cover_use_case = Depends(get_delete_seminar_cover_image_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Remove cover image from a seminar."""
+    if not ctx.is_super_admin:
+        existing = await get_one_use_case.execute(seminar_id)
+        check_club_access_ctx(ctx, existing.club_id or "")
+
+    file_path = UPLOAD_DIR / f"{seminar_id}.jpg"
+    if file_path.exists():
+        file_path.unlink()
+
+    seminar = await delete_cover_use_case.execute(seminar_id)
+    return SeminarMapper.to_response_dto(seminar)

@@ -62,6 +62,10 @@ from src.application.use_cases import (
     UpdateSeminarUseCase,
     CancelSeminarUseCase,
     DeleteSeminarUseCase,
+)
+from src.application.use_cases.seminar.upload_seminar_cover_image_use_case import UploadSeminarCoverImageUseCase
+from src.application.use_cases.seminar.delete_seminar_cover_image_use_case import DeleteSeminarCoverImageUseCase
+from src.application.use_cases import (
     # Payment use cases
     GetPaymentUseCase,
     GetAllPaymentsUseCase,
@@ -282,6 +286,16 @@ def get_cancel_seminar_use_case() -> CancelSeminarUseCase:
 def get_delete_seminar_use_case() -> DeleteSeminarUseCase:
     """Delete seminar use case."""
     return DeleteSeminarUseCase(get_seminar_repository())
+
+@lru_cache()
+def get_upload_seminar_cover_image_use_case() -> UploadSeminarCoverImageUseCase:
+    """Upload seminar cover image use case."""
+    return UploadSeminarCoverImageUseCase(get_seminar_repository())
+
+@lru_cache()
+def get_delete_seminar_cover_image_use_case() -> DeleteSeminarCoverImageUseCase:
+    """Delete seminar cover image use case."""
+    return DeleteSeminarCoverImageUseCase(get_seminar_repository())
 
 # Payment repository and use cases
 @lru_cache()

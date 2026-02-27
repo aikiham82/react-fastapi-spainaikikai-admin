@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 import logging
 
 logger = logging.getLogger(__name__)
@@ -109,6 +111,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
+    # Mount static file serving for uploads — MUST be before routers
+    upload_path = Path(__file__).parent.parent.parent / "uploads"
+    upload_path.mkdir(exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
+
     # Include routers
     app.include_router(users_router, prefix="/api/v1")
     app.include_router(clubs_router, prefix="/api/v1")
