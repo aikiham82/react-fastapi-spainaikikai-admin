@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { CoverImageDropZone } from './CoverImageDropZone';
 
 interface SeminarFormProps {
   open: boolean;
@@ -159,6 +160,16 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {seminar && (
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Imagen de portada</label>
+              <CoverImageDropZone
+                seminarId={seminar.id}
+                currentImageUrl={seminar.cover_image_url}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="title">Título *</Label>
             <Input

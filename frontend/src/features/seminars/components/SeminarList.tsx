@@ -134,7 +134,21 @@ export const SeminarList = () => {
       <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {seminars.map((seminar) => (
-          <div key={seminar.id} className="border rounded-lg hover:shadow-lg transition-shadow bg-white">
+          <div key={seminar.id} className="border rounded-lg hover:shadow-lg transition-shadow bg-white overflow-hidden">
+            {/* Cover image banner — 16:9 */}
+            <div className="aspect-video bg-muted">
+              {seminar.cover_image_url ? (
+                <img
+                  src={`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${seminar.cover_image_url}`}
+                  alt={seminar.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                  <Calendar className="w-12 h-12 text-slate-400" />
+                </div>
+              )}
+            </div>
             <div className="p-6 space-y-4">
               <div>
                 <div className="flex items-start justify-between mb-2">
@@ -208,6 +222,16 @@ export const SeminarList = () => {
                     <DialogHeader>
                       <DialogTitle>{seminar.title}</DialogTitle>
                     </DialogHeader>
+                    {/* Cover image banner in detail dialog */}
+                    {seminar.cover_image_url && (
+                      <div className="aspect-video w-full overflow-hidden rounded-md bg-muted -mt-2 mb-2">
+                        <img
+                          src={`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${seminar.cover_image_url}`}
+                          alt={seminar.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-4 py-4">
                       <div>
                         <p className="text-sm font-medium text-gray-900">Descripci\u00f3n</p>
