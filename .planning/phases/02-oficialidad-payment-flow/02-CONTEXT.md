@@ -57,6 +57,30 @@ Club admins can pay via Redsys to have their seminar endorsed by Spain Aikikai. 
 
 </specifics>
 
+<design_guidelines>
+## UI/UX Design Guidelines (from ui-ux-pro-max)
+
+### Component Choices (shadcn stack)
+- Use **`<Dialog><DialogContent>`** for the confirmation modal — not `<Alert>` styled as modal (HIGH)
+- Confirm button: `disabled={isLoading}` + spinner icon during async call — prevent double-submission (HIGH)
+- Error inside modal: use `role="alert"` or `aria-live="polite"` — not just a red border (HIGH)
+- Error state must include a **"Try again" path** — error message alone is not enough (MEDIUM)
+- Success toast is required — never silent on state change (MEDIUM)
+
+### Badge Overlay Implementation
+- Use `position: absolute` on the badge, `position: relative` on the image container (Dimensional Layering pattern)
+- Badge z-index: use a defined scale (e.g. `z-10`) so Phase 3 seal can layer above at `z-20`
+- Status color for "Oficial" pill: `#22C55E` (green) or amber/gold — must meet 4.5:1 contrast against badge background
+
+### Accessibility Checklist for This Phase
+- [ ] Modal trap focus while open; restore focus on close
+- [ ] All icon-only buttons have `aria-label`
+- [ ] "Procesando pago…" pending state announced via `aria-live`
+- [ ] Badge image overlay has `aria-label` or `title` for screen readers
+- [ ] `cursor-pointer` on "Solicitar Oficialidad" button and any clickable card area
+
+</design_guidelines>
+
 <deferred>
 ## Deferred Ideas
 
