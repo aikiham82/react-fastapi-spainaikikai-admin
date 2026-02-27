@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 1 of 3 (Seminar Cover Image)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-27 — Roadmap created, requirements validated, 16/16 v1 requirements mapped
+Plan: 2 of 4 in current phase
+Status: In progress
+Last activity: 2026-02-27 — Completed plan 01-02: frontend data layer (Seminar interface + service + mutations)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 5 min
+- Total execution time: 0.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-seminar-cover-image | 1 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: -
+- Last 5 plans: 01-02 (5 min)
 - Trend: -
 
 *Updated after each plan completion*
@@ -46,6 +46,9 @@ Recent decisions affecting current work:
 - Project init: Only cover image (no gallery) — gallery is v2
 - Project init: Price of oficialidad configurable by super admin via existing PriceConfiguration system
 - Project init: Local filesystem storage for images — no S3/object storage in v1
+- 01-02: uploadCoverImage/deleteCoverImage exported as named exports AND included in seminarService object for both import styles
+- 01-02: Mutation error toasts cover network errors only; file-type/size validation handled inline in CoverImageDropZone (plan 01-03)
+- 01-02: Both mutations invalidate ['seminars'] query cache on success
 
 ### Pending Todos
 
@@ -62,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Roadmap created — ready to run /gsd:plan-phase 1
+Stopped at: Completed 01-02-PLAN.md (frontend data layer for seminar cover image)
 Resume file: None
