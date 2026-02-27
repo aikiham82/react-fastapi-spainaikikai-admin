@@ -19,7 +19,7 @@
 
 - [x] **OFIC-01**: Super admin puede configurar el precio de la oficialidad desde la sección de Configuración de Precios
 - [x] **OFIC-02**: Club admin ve el botón "Solicitar Oficialidad" en el detalle de un seminario no oficial que él gestiona
-- [ ] **OFIC-03**: Club admin puede iniciar el pago de oficialidad vía Redsys desde el detalle del seminario
+- [x] **OFIC-03**: Club admin puede iniciar el pago de oficialidad vía Redsys desde el detalle del seminario
 - [ ] **OFIC-04**: Tras el pago exitoso de Redsys, el seminario queda automáticamente marcado como oficial (sin intervención manual de Spain Aikikai)
 - [x] **OFIC-05**: Los seminarios oficiales muestran el sello/badge de Spain Aikikai en la tarjeta del listado
 - [x] **OFIC-06**: Los seminarios oficiales muestran el sello/badge de Spain Aikikai en la página de detalle
@@ -65,7 +65,7 @@
 | IMG-07 | Phase 1 | Complete |
 | OFIC-01 | Phase 2 | Complete |
 | OFIC-02 | Phase 2 | Complete |
-| OFIC-03 | Phase 2 | Pending |
+| OFIC-03 | Phase 2 | Complete |
 | OFIC-04 | Phase 2 | Pending |
 | OFIC-05 | Phase 2 | Complete |
 | OFIC-06 | Phase 2 | Complete |
