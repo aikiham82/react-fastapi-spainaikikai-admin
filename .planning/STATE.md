@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-last_updated: "2026-02-27T13:47:00.000Z"
+last_updated: "2026-02-27T14:15:00.000Z"
 progress:
   total_phases: 2
   completed_phases: 1
@@ -70,6 +70,10 @@ Recent decisions affecting current work:
 - 01-03: Eager upload pattern — image saved immediately on drop/select, not on form submit
 - 01-03: StaticFiles path corrected parent.parent.parent → parent.parent to serve from backend/uploads/
 - 01-03: Edit (Pencil) button added to SeminarList card actions — was missing direct edit shortcut
+- 02-02: Oficialidad payment is club-level (member_id=None) — the club pays, not an individual member
+- 02-02: Idempotency via 'if seminar and not seminar.is_official' guard in webhook — duplicate Redsys callbacks silently skipped
+- 02-02: SEMINAR_OFICIALIDAD branch in webhook wrapped in try/except — seminar update failure does not fail payment completion
+- 02-02: ok_url points to /seminars?oficialidad=ok&seminar_id={id}, ko_url to /seminars?oficialidad=cancelled&seminar_id={id}
 - 02-03: OfficialBadge uses z-10 so Phase 3 payment seal can use z-20 to layer above it
 - 02-03: bg-amber-500 with white text for gold visual language meeting WCAG 4.5:1 contrast ratio
 - 02-03: is_official is required (non-optional) boolean in Seminar interface — backend always returns it
@@ -89,5 +93,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 02-03-PLAN.md (OfficialBadge component, Seminar is_official field, PriceConfiguration seminar category)
+Stopped at: Completed 02-02-PLAN.md (InitiateSeminarOfficialidadUseCase, POST /seminars/{id}/oficialidad/initiate endpoint, webhook SEMINAR_OFICIALIDAD branch, DI wiring — also executed 02-01 domain foundation as prerequisite)
 Resume file: None

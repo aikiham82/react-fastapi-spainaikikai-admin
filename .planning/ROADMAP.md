@@ -48,8 +48,8 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Backend domain: Seminar.is_official + PaymentType.SEMINAR_OFICIALIDAD + PriceConfiguration "seminar" category + SeminarAlreadyOfficialError + DTO/mapper/repo propagation
-- [ ] 02-02-PLAN.md — Backend payment flow: InitiateSeminarOfficialidadUseCase + POST /seminars/{id}/oficialidad/initiate + webhook SEMINAR_OFICIALIDAD branch + DI wiring
+- [x] 02-01-PLAN.md — Backend domain: Seminar.is_official + PaymentType.SEMINAR_OFICIALIDAD + PriceConfiguration "seminar" category + SeminarAlreadyOfficialError + DTO/mapper/repo propagation
+- [x] 02-02-PLAN.md — Backend payment flow: InitiateSeminarOfficialidadUseCase + POST /seminars/{id}/oficialidad/initiate + webhook SEMINAR_OFICIALIDAD branch + DI wiring
 - [ ] 02-03-PLAN.md — Frontend badge + price config: OfficialBadge component + SeminarList badge overlays + Seminar.is_official schema + PriceCategory "seminar" + PriceConfigurationForm update
 - [ ] 02-04-PLAN.md — Frontend payment flow: SolicitudOficialidadModal + initiateSeminarOficialidad service/mutation + "Solicitar Oficialidad" button + post-payment return handling + polling
 
@@ -71,5 +71,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Seminar Cover Image | 3/3 | Complete   | 2026-02-27 |
-| 2. Oficialidad Payment Flow | 1/4 | In Progress|  |
+| 2. Oficialidad Payment Flow | 2/4 | In Progress|  |
 | 3. Polish | 0/TBD | Not started | - |
