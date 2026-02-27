@@ -1,7 +1,7 @@
 export type TechnicalGrade = 'dan' | 'kyu';
 export type InstructorCategory = 'none' | 'fukushidoin' | 'shidoin';
 export type AgeCategory = 'infantil' | 'adulto';
-export type PriceCategory = 'license' | 'insurance' | 'club_fee';
+export type PriceCategory = 'license' | 'insurance' | 'club_fee' | 'seminar';
 
 export interface PriceConfiguration {
   id: string;
@@ -62,6 +62,7 @@ export const PRICE_CATEGORY_LABELS: Record<PriceCategory, string> = {
   license: 'Licencia',
   insurance: 'Seguro',
   club_fee: 'Cuota de Club',
+  seminar: 'Seminario',
 };
 
 // Labels in Spanish

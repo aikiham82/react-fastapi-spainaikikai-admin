@@ -33,7 +33,7 @@ import {
 } from '../data/schemas/price-configuration.schema';
 
 const formSchema = z.object({
-  category: z.enum(['license', 'insurance', 'club_fee']),
+  category: z.enum(['license', 'insurance', 'club_fee', 'seminar']),
   // License-specific fields
   grado_tecnico: z.enum(['dan', 'kyu']).optional(),
   categoria_instructor: z.enum(['none', 'fukushidoin', 'shidoin']).optional(),
