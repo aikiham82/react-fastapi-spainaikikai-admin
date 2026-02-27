@@ -19,5 +19,19 @@
       "Bash(git commit:*)",
       "Bash(poetry run python:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "context7",
+    "sequentialthinking",
+    "playwright",
+    "concurrent-browser",
+    "shadcn",
+    "shadcn-components",
+    "chrome-devtools",
+    "MongoDB-local",
+    "MongoDB-production",
+    "MariaDB",
+    "Dokploy-mcp"
+  ],
+  "enableAllProjectMcpServers": true
 }

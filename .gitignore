@@ -8,6 +8,13 @@ testsprite_tests/
 .claude/plans
 docs/
 
+# User-uploaded files
+backend/uploads/
+
+# oh-my-claudecode local config
+.omc/
+frontend/.omc/
+
 # Git worktrees
 .worktrees/
 
