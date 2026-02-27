@@ -63,3 +63,34 @@ export const useRegisterMemberMutation = () => {
     },
   });
 };
+
+export const useUploadCoverImageMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ seminarId, file }: { seminarId: string; file: File }) =>
+      seminarService.uploadCoverImage(seminarId, file),
+    onSuccess: () => {
+      toast.success('Imagen de portada actualizada');
+      queryClient.invalidateQueries({ queryKey: ['seminars'] });
+    },
+    onError: () => {
+      toast.error('Error al subir la imagen');
+    },
+  });
+};
+
+export const useDeleteCoverImageMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (seminarId: string) => seminarService.deleteCoverImage(seminarId),
+    onSuccess: () => {
+      toast.success('Imagen de portada eliminada');
+      queryClient.invalidateQueries({ queryKey: ['seminars'] });
+    },
+    onError: () => {
+      toast.error('Error al eliminar la imagen');
+    },
+  });
+};
