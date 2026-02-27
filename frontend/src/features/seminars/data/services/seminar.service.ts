@@ -3,6 +3,15 @@ import type { Seminar, CreateSeminarRequest, UpdateSeminarRequest, SeminarFilter
 
 const BASE_URL = '/api/v1/seminars';
 
+export interface InitiateOfficialidadResponse {
+  payment_id: string;
+  order_id: string;
+  payment_url: string;
+  ds_signature_version: string;
+  ds_merchant_parameters: string;
+  ds_signature: string;
+}
+
 export const getSeminars = async (filters?: SeminarFilters): Promise<SeminarsListResponse> => {
   // Backend returns plain array, transform to paginated format
   const seminars = await apiClient.get<Seminar[]>(BASE_URL, { params: filters });
@@ -48,6 +57,12 @@ export const deleteCoverImage = async (seminarId: string): Promise<Seminar> => {
   return await apiClient.delete<Seminar>(`${BASE_URL}/${seminarId}/cover-image`);
 };
 
+export const initiateSeminarOficialidad = async (seminarId: string): Promise<InitiateOfficialidadResponse> => {
+  return await apiClient.post<InitiateOfficialidadResponse>(
+    `${BASE_URL}/${seminarId}/oficialidad/initiate`
+  );
+};
+
 export const seminarService = {
   getSeminars,
   getSeminar,
@@ -57,4 +72,5 @@ export const seminarService = {
   registerMember,
   uploadCoverImage,
   deleteCoverImage,
+  initiateSeminarOficialidad,
 };
