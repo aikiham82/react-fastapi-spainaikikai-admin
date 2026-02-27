@@ -225,22 +225,25 @@ export const SeminarList = () => {
       <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {seminars.map((seminar) => (
-          <div key={seminar.id} className="border rounded-lg hover:shadow-lg transition-shadow bg-white overflow-hidden">
-            {/* Cover image banner — 16:9 */}
-            <div className="aspect-video bg-muted relative">
-              {seminar.is_official && <OfficialBadge />}
-              {seminar.cover_image_url ? (
-                <img
-                  src={`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${seminar.cover_image_url}`}
-                  alt={seminar.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-                  <Calendar className="w-12 h-12 text-slate-400" />
-                </div>
-              )}
-            </div>
+          <Dialog key={seminar.id}>
+          <div className="border rounded-lg hover:shadow-lg transition-shadow bg-white overflow-hidden">
+            {/* Cover image banner — 16:9, clickable to open detail */}
+            <DialogTrigger asChild>
+              <div className="aspect-video bg-muted relative cursor-pointer">
+                {seminar.is_official && <OfficialBadge />}
+                {seminar.cover_image_url ? (
+                  <img
+                    src={`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${seminar.cover_image_url}`}
+                    alt={seminar.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                    <Calendar className="w-12 h-12 text-slate-400" />
+                  </div>
+                )}
+              </div>
+            </DialogTrigger>
             <div className="p-6 space-y-4">
               <div>
                 <div className="flex items-start justify-between mb-2">
@@ -303,13 +306,29 @@ export const SeminarList = () => {
 
             <div className="p-4 pt-0">
               <div className="flex gap-2">
-                <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="flex-1" aria-label="Ver detalles del seminario">
+                    <Button variant="outline" className="flex-1 cursor-pointer" aria-label="Ver detalles del seminario">
                       <Eye className="w-4 h-4 mr-2" />
                       Ver Detalles
                     </Button>
                   </DialogTrigger>
+                  {!seminar.is_official
+                    && seminar.status !== 'cancelled'
+                    && userRole === 'club_admin'
+                    && seminar.club_id === clubId
+                    && (
+                    pendingOficialidadId === seminar.id ? (
+                      <Button variant="outline" className="flex-1" disabled aria-live="polite">
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Procesando...
+                      </Button>
+                    ) : (
+                      <Button className="flex-1 cursor-pointer" onClick={() => setOficialidadModalSeminar(seminar)}>
+                        <Award className="w-4 h-4 mr-2" />
+                        Oficialidad
+                      </Button>
+                    )
+                  )}
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>{seminar.title}</DialogTitle>
@@ -439,7 +458,6 @@ export const SeminarList = () => {
                       )}
                     </div>
                   </DialogContent>
-                </Dialog>
 
                 {canAccess({ resource: 'seminars', action: 'update' }) && (
                   <Button
@@ -463,6 +481,7 @@ export const SeminarList = () => {
               </div>
             </div>
           </div>
+          </Dialog>
         ))}
       </div>
       </>
