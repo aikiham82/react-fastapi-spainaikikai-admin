@@ -21,6 +21,7 @@ class PaymentType(str, Enum):
     CIVIL_LIABILITY_INSURANCE = "civil_liability_insurance"
     ANNUAL_QUOTA = "annual_quota"
     SEMINAR = "seminar"
+    SEMINAR_OFICIALIDAD = "seminar_oficialidad"
 
 
 @dataclass

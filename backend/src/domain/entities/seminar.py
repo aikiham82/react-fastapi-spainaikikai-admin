@@ -34,6 +34,7 @@ class Seminar:
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     cover_image_url: Optional[str] = None
+    is_official: bool = False
 
     def __post_init__(self):
         self.created_at = self.created_at or datetime.now()
@@ -99,3 +100,10 @@ class Seminar:
             raise ValueError("Start date must be before end date")
         self.start_date = start_date
         self.end_date = end_date
+
+    def mark_as_official(self) -> None:
+        """Mark seminar as officially endorsed by Spain Aikikai."""
+        if self.is_official:
+            return  # Idempotent — already official
+        self.is_official = True
+        self.updated_at = datetime.now()

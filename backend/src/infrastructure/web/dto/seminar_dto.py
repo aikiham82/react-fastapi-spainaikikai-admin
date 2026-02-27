@@ -51,6 +51,7 @@ class SeminarResponse(SeminarBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     cover_image_url: Optional[str] = None
+    is_official: bool = False
 
     class Config:
         from_attributes = True

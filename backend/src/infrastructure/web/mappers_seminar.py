@@ -52,7 +52,8 @@ class SeminarMapper:
             club_id=entity.club_id,
             association_id=entity.association_id,
             status=entity.status.value,
-            cover_image_url=entity.cover_image_url
+            cover_image_url=entity.cover_image_url,
+            is_official=entity.is_official
         )
 
     @staticmethod

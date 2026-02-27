@@ -38,3 +38,11 @@ class SeminarIsFullError(BusinessRuleViolationError):
 class InvalidSeminarDatesError(BusinessRuleViolationError):
     """Raised when seminar dates are invalid."""
     pass
+
+
+class SeminarAlreadyOfficialError(BusinessRuleViolationError):
+    """Raised when trying to make an already-official seminar official again."""
+
+    def __init__(self, seminar_id: str):
+        super().__init__(f"Seminar {seminar_id} is already official")
+        self.seminar_id = seminar_id

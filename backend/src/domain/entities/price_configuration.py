@@ -10,7 +10,7 @@ import re
 class PriceConfiguration:
     """Price configuration domain entity.
 
-    Stores configurable prices for different payment types: licenses, insurance, and club fees.
+    Stores configurable prices for different payment types: licenses, insurance, club fees, and seminars.
 
     For license category, the key format is: "grado_tecnico-categoria_instructor-categoria_edad"
     Examples: "dan-none-adulto", "kyu-fukushidoin-infantil"
@@ -31,7 +31,7 @@ class PriceConfiguration:
     updated_at: Optional[datetime] = None
 
     # Valid categories
-    VALID_CATEGORIES = {"license", "insurance", "club_fee"}
+    VALID_CATEGORIES = {"license", "insurance", "club_fee", "seminar"}
 
     # Valid values for license category keys (using English names internally)
     VALID_TECHNICAL_GRADE = {"dan", "kyu"}
