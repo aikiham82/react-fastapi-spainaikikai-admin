@@ -57,11 +57,8 @@ export const SeminarList = () => {
   useEffect(() => {
     if (oficialidadModalSeminar) {
       setOficialidadPrice(null);
-      apiClient.get<Array<{ key: string; price: number }>>('/api/v1/price-configurations')
-        .then((configs) => {
-          const config = configs.find((c) => c.key === 'oficialidad_seminar');
-          setOficialidadPrice(config ? config.price : null);
-        })
+      apiClient.get<{ key: string; price: number }>('/api/v1/price-configurations/seminar-price')
+        .then((config) => setOficialidadPrice(config.price))
         .catch(() => setOficialidadPrice(null));
     }
   }, [oficialidadModalSeminar]);
@@ -298,7 +295,7 @@ export const SeminarList = () => {
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 tabular-nums">
-                    {seminar.price.toFixed(2)}\u20ac
+                    {seminar.price.toFixed(2)} €
                   </p>
                 </div>
               </div>
@@ -379,7 +376,7 @@ export const SeminarList = () => {
                         <div>
                           <p className="text-sm font-medium text-gray-900">Precio</p>
                           <p className="text-2xl font-bold text-gray-900 tabular-nums">
-                            {seminar.price.toFixed(2)}\u20ac
+                            {seminar.price.toFixed(2)} €
                           </p>
                         </div>
                       </div>

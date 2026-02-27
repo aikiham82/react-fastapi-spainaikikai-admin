@@ -19,6 +19,7 @@ from src.infrastructure.web.dependencies import (
     get_delete_price_configuration_use_case,
     get_license_price_use_case,
     get_annual_payment_prices_use_case,
+    get_price_configuration_repository,
 )
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, require_super_admin
@@ -101,6 +102,21 @@ async def get_annual_payment_prices(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(e)
         )
+
+
+@router.get("/seminar-price", response_model=PriceConfigurationResponse)
+async def get_seminar_oficialidad_price(
+    repository = Depends(get_price_configuration_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Get the oficialidad price for seminars. Accessible to all authenticated users."""
+    price_config = await repository.find_by_key("oficialidad_seminar")
+    if not price_config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Precio de oficialidad no configurado. Contacta con Spain Aikikai.",
+        )
+    return _to_response(price_config)
 
 
 @router.get("/{price_id}", response_model=PriceConfigurationResponse)
