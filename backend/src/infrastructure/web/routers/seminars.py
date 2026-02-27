@@ -23,10 +23,14 @@ from src.infrastructure.web.dependencies import (
     get_delete_seminar_use_case,
     get_upload_seminar_cover_image_use_case,
     get_delete_seminar_cover_image_use_case,
+    get_initiate_seminar_oficialidad_use_case,
 )
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, check_club_access_ctx
 from src.domain.entities.seminar import SeminarStatus
+from src.infrastructure.web.dto.payment_dto import InitiatePaymentResponse
+from src.domain.exceptions.seminar import SeminarAlreadyOfficialError
+from src.config.settings import get_app_settings
 
 # Upload directory: backend/uploads/seminars/ relative to this file's location
 UPLOAD_DIR = Path(__file__).parent.parent.parent.parent.parent / "uploads" / "seminars"
@@ -246,3 +250,53 @@ async def delete_cover_image(
 
     seminar = await delete_cover_use_case.execute(seminar_id)
     return SeminarMapper.to_response_dto(seminar)
+
+
+@router.post("/{seminar_id}/oficialidad/initiate", response_model=InitiatePaymentResponse)
+async def initiate_seminar_oficialidad(
+    seminar_id: str,
+    get_one_use_case = Depends(get_seminar_use_case),
+    initiate_use_case = Depends(get_initiate_seminar_oficialidad_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Initiate oficialidad payment for a seminar via Redsys.
+
+    Returns Redsys form data for the frontend to submit.
+    Returns 409 if the seminar is already official.
+    """
+    # Auth: club admin can only initiate for their own club's seminars
+    existing = await get_one_use_case.execute(seminar_id)
+    if not ctx.is_super_admin:
+        check_club_access_ctx(ctx, existing.club_id or "")
+
+    app_settings = get_app_settings()
+    frontend_url = app_settings.frontend_base_url
+    backend_url = app_settings.backend_base_url
+
+    try:
+        result = await initiate_use_case.execute(
+            seminar_id=seminar_id,
+            club_id=existing.club_id or "",
+            success_url=f"{frontend_url}/seminars?oficialidad=ok&seminar_id={seminar_id}",
+            failure_url=f"{frontend_url}/seminars?oficialidad=cancelled&seminar_id={seminar_id}",
+            webhook_url=f"{backend_url}/api/v1/payments/webhook",
+        )
+    except SeminarAlreadyOfficialError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este seminario ya es oficial",
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return InitiatePaymentResponse(
+        payment_id=result.payment_id,
+        order_id=result.order_id,
+        payment_url=result.form_data.payment_url,
+        ds_signature_version=result.form_data.ds_signature_version,
+        ds_merchant_parameters=result.form_data.ds_merchant_parameters,
+        ds_signature=result.form_data.ds_signature,
+    )

@@ -65,6 +65,7 @@ from src.application.use_cases import (
 )
 from src.application.use_cases.seminar.upload_seminar_cover_image_use_case import UploadSeminarCoverImageUseCase
 from src.application.use_cases.seminar.delete_seminar_cover_image_use_case import DeleteSeminarCoverImageUseCase
+from src.application.use_cases.seminar.initiate_seminar_oficialidad_use_case import InitiateSeminarOfficialidadUseCase
 from src.application.use_cases import (
     # Payment use cases
     GetPaymentUseCase,
@@ -297,6 +298,16 @@ def get_delete_seminar_cover_image_use_case() -> DeleteSeminarCoverImageUseCase:
     """Delete seminar cover image use case."""
     return DeleteSeminarCoverImageUseCase(get_seminar_repository())
 
+@lru_cache()
+def get_initiate_seminar_oficialidad_use_case() -> InitiateSeminarOfficialidadUseCase:
+    """Initiate seminar oficialidad payment use case."""
+    return InitiateSeminarOfficialidadUseCase(
+        seminar_repository=get_seminar_repository(),
+        payment_repository=get_payment_repository(),
+        price_configuration_repository=get_price_configuration_repository(),
+        redsys_service=get_redsys_service(),
+    )
+
 # Payment repository and use cases
 @lru_cache()
 def get_payment_repository() -> MongoDBPaymentRepository:
@@ -376,6 +387,7 @@ def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
         email_service=get_email_service(),
         pdf_service=get_pdf_service(),
         price_configuration_repository=get_price_configuration_repository(),
+        seminar_repository=get_seminar_repository(),
     )
 
 @lru_cache()
