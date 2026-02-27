@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, List
 
-from src.domain.entities.payment import Payment, PaymentStatus
+from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
 from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
 from src.domain.exceptions.payment import (
     PaymentNotFoundError,
@@ -30,6 +30,7 @@ from src.domain.entities.member_payment import (
     ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
 )
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
+from src.application.ports.seminar_repository import SeminarRepositoryPort
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
 from src.application.use_cases.license.generate_licenses_from_payment_use_case import GenerateLicensesFromPaymentUseCase
 from src.application.use_cases.insurance.generate_insurance_from_payment_use_case import GenerateInsuranceFromPaymentUseCase
@@ -59,6 +60,7 @@ class ProcessRedsysWebhookUseCase:
         email_service: Optional[EmailServicePort] = None,
         pdf_service: Optional[PDFServicePort] = None,
         price_configuration_repository: Optional[PriceConfigurationRepositoryPort] = None,
+        seminar_repository: Optional[SeminarRepositoryPort] = None,
     ):
         self.payment_repository = payment_repository
         self.redsys_service = redsys_service
@@ -70,6 +72,7 @@ class ProcessRedsysWebhookUseCase:
         self.email_service = email_service
         self.pdf_service = pdf_service
         self.price_configuration_repository = price_configuration_repository
+        self.seminar_repository = seminar_repository
 
     async def execute(
         self,
@@ -127,6 +130,27 @@ class ProcessRedsysWebhookUseCase:
                 transaction_id=notification.order_id,
                 redsys_response=payment.redsys_response
             )
+
+            # --- Seminar oficialidad: mark as official on successful payment ---
+            if (
+                payment.payment_type == PaymentType.SEMINAR_OFICIALIDAD
+                and payment.related_entity_id
+                and self.seminar_repository
+            ):
+                try:
+                    seminar = await self.seminar_repository.find_by_id(
+                        payment.related_entity_id
+                    )
+                    if seminar and not seminar.is_official:
+                        seminar.mark_as_official()
+                        await self.seminar_repository.update(seminar)
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).exception(
+                        "Failed to mark seminar %s as official for payment %s",
+                        payment.related_entity_id,
+                        payment.id,
+                    )
 
             # Create member payment records if assignments exist
             if self.member_payment_repository and payment.member_assignments:
