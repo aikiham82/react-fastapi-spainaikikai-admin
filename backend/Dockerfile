@@ -42,6 +42,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy application code
 COPY --chown=appuser:appuser src/ ./src/
 
+# Create uploads directory owned by appuser
+RUN mkdir -p /app/uploads && chown appuser:appuser /app/uploads
+
 # Switch to non-root user
 USER appuser
 
