@@ -64,6 +64,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Seminar Cover Image | 1/3 | In Progress|  |
+| 1. Seminar Cover Image | 2/3 | In Progress|  |
 | 2. Oficialidad Payment Flow | 0/TBD | Not started | - |
 | 3. Polish | 0/TBD | Not started | - |

@@ -8,8 +8,8 @@
 ### Seminar Image Upload
 
 - [x] **IMG-01**: Club admin puede subir una imagen de portada (JPEG/PNG/WebP, máx 5MB) desde el formulario de edición del seminario
-- [ ] **IMG-02**: El servidor valida el tipo de archivo por magic bytes (no solo MIME header) y rechaza archivos no-imagen
-- [ ] **IMG-03**: El servidor redimensiona automáticamente la imagen a 800×450px (ratio 16:9) al guardarla
+- [x] **IMG-02**: El servidor valida el tipo de archivo por magic bytes (no solo MIME header) y rechaza archivos no-imagen
+- [x] **IMG-03**: El servidor redimensiona automáticamente la imagen a 800×450px (ratio 16:9) al guardarla
 - [x] **IMG-04**: La aplicación rechaza archivos mayores de 5MB con mensaje de error claro para el usuario
 - [x] **IMG-05**: Club admin puede eliminar la imagen de portada existente de un seminario
 - [ ] **IMG-06**: Los seminarios con imagen de portada muestran la imagen en la tarjeta del listado
@@ -57,8 +57,8 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | IMG-01 | Phase 1 | Complete |
-| IMG-02 | Phase 1 | Pending |
-| IMG-03 | Phase 1 | Pending |
+| IMG-02 | Phase 1 | Complete |
+| IMG-03 | Phase 1 | Complete |
 | IMG-04 | Phase 1 | Complete |
 | IMG-05 | Phase 1 | Complete |
 | IMG-06 | Phase 1 | Pending |
