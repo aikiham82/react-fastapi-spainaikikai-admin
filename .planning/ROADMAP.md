@@ -45,7 +45,13 @@ Plans:
   3. Clicking the button shows the configured price and redirects to Redsys; after successful Redsys payment, the seminar is automatically marked official without any Spain Aikikai manual step
   4. The Spain Aikikai badge appears in the seminar card list and in the seminar detail for official seminars
   5. Attempting to initiate a second oficialidad payment for an already-official seminar returns HTTP 409; a duplicate Redsys webhook for the same payment does not change state a second time
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Backend domain: Seminar.is_official + PaymentType.SEMINAR_OFICIALIDAD + PriceConfiguration "seminar" category + SeminarAlreadyOfficialError + DTO/mapper/repo propagation
+- [ ] 02-02-PLAN.md — Backend payment flow: InitiateSeminarOfficialidadUseCase + POST /seminars/{id}/oficialidad/initiate + webhook SEMINAR_OFICIALIDAD branch + DI wiring
+- [ ] 02-03-PLAN.md — Frontend badge + price config: OfficialBadge component + SeminarList badge overlays + Seminar.is_official schema + PriceCategory "seminar" + PriceConfigurationForm update
+- [ ] 02-04-PLAN.md — Frontend payment flow: SolicitudOficialidadModal + initiateSeminarOficialidad service/mutation + "Solicitar Oficialidad" button + post-payment return handling + polling
 
 ### Phase 3: Polish
 **Goal**: Official seminars are visually distinctive and club admins have a better upload and payment discovery experience
@@ -65,5 +71,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Seminar Cover Image | 3/3 | Complete   | 2026-02-27 |
-| 2. Oficialidad Payment Flow | 0/TBD | Not started | - |
+| 2. Oficialidad Payment Flow | 0/4 | Not started | - |
 | 3. Polish | 0/TBD | Not started | - |
