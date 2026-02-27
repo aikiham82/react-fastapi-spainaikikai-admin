@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSeminarContext } from '../hooks/useSeminarContext';
 import type { Seminar } from '../data/schemas/seminar.schema';
-import { Calendar, Plus, Search, Trash2, Eye, Pencil, Users, MapPin, Clock, User } from 'lucide-react';
+import { Calendar, Plus, Search, Trash2, Eye, Pencil, Users, MapPin, Clock, User, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { SeminarForm } from './SeminarForm';
+import { OfficialBadge } from './OfficialBadge';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -136,7 +137,8 @@ export const SeminarList = () => {
         {seminars.map((seminar) => (
           <div key={seminar.id} className="border rounded-lg hover:shadow-lg transition-shadow bg-white overflow-hidden">
             {/* Cover image banner — 16:9 */}
-            <div className="aspect-video bg-muted">
+            <div className="aspect-video bg-muted relative">
+              {seminar.is_official && <OfficialBadge />}
               {seminar.cover_image_url ? (
                 <img
                   src={`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${seminar.cover_image_url}`}
@@ -224,12 +226,18 @@ export const SeminarList = () => {
                     </DialogHeader>
                     {/* Cover image banner in detail dialog */}
                     {seminar.cover_image_url && (
-                      <div className="aspect-video w-full overflow-hidden rounded-md bg-muted -mt-2 mb-2">
+                      <div className="aspect-video w-full overflow-hidden rounded-md bg-muted -mt-2 mb-2 relative">
+                        {seminar.is_official && <OfficialBadge />}
                         <img
                           src={`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${seminar.cover_image_url}`}
                           alt={seminar.title}
                           className="w-full h-full object-cover"
                         />
+                      </div>
+                    )}
+                    {!seminar.cover_image_url && seminar.is_official && (
+                      <div className="relative h-10 -mt-2 mb-2">
+                        <OfficialBadge />
                       </div>
                     )}
                     <div className="space-y-4 py-4">
@@ -300,6 +308,17 @@ export const SeminarList = () => {
                           {STATUS_LABELS[seminar.status] || seminar.status}
                         </Badge>
                       </div>
+                      {seminar.is_official && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Oficialidad</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Award className="w-4 h-4 text-amber-500" />
+                            <span className="text-sm text-amber-700 font-medium">
+                              Seminario avalado por Spain Aikikai
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>

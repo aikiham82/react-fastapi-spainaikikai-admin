@@ -18,6 +18,7 @@ export interface Seminar {
   created_at: string;
   updated_at: string;
   cover_image_url?: string;
+  is_official: boolean;
 }
 
 export interface CreateSeminarRequest {
