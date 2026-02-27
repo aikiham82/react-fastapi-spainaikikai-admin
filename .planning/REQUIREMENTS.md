@@ -17,13 +17,13 @@
 
 ### Oficialidad Payment Flow
 
-- [ ] **OFIC-01**: Super admin puede configurar el precio de la oficialidad desde la sección de Configuración de Precios
-- [ ] **OFIC-02**: Club admin ve el botón "Solicitar Oficialidad" en el detalle de un seminario no oficial que él gestiona
+- [x] **OFIC-01**: Super admin puede configurar el precio de la oficialidad desde la sección de Configuración de Precios
+- [x] **OFIC-02**: Club admin ve el botón "Solicitar Oficialidad" en el detalle de un seminario no oficial que él gestiona
 - [ ] **OFIC-03**: Club admin puede iniciar el pago de oficialidad vía Redsys desde el detalle del seminario
 - [ ] **OFIC-04**: Tras el pago exitoso de Redsys, el seminario queda automáticamente marcado como oficial (sin intervención manual de Spain Aikikai)
-- [ ] **OFIC-05**: Los seminarios oficiales muestran el sello/badge de Spain Aikikai en la tarjeta del listado
-- [ ] **OFIC-06**: Los seminarios oficiales muestran el sello/badge de Spain Aikikai en la página de detalle
-- [ ] **OFIC-07**: Si el seminario ya es oficial, el botón "Solicitar Oficialidad" no es visible ni accesible para el club
+- [x] **OFIC-05**: Los seminarios oficiales muestran el sello/badge de Spain Aikikai en la tarjeta del listado
+- [x] **OFIC-06**: Los seminarios oficiales muestran el sello/badge de Spain Aikikai en la página de detalle
+- [x] **OFIC-07**: Si el seminario ya es oficial, el botón "Solicitar Oficialidad" no es visible ni accesible para el club
 - [ ] **OFIC-08**: El sistema previene doble-pago: si el seminario ya es oficial, el endpoint de iniciación de pago devuelve 409
 - [ ] **OFIC-09**: El webhook de Redsys es idempotente — un webhook duplicado para el mismo pago no cambia el estado dos veces
 
@@ -63,13 +63,13 @@
 | IMG-05 | Phase 1 | Complete |
 | IMG-06 | Phase 1 | Complete |
 | IMG-07 | Phase 1 | Complete |
-| OFIC-01 | Phase 2 | Pending |
-| OFIC-02 | Phase 2 | Pending |
+| OFIC-01 | Phase 2 | Complete |
+| OFIC-02 | Phase 2 | Complete |
 | OFIC-03 | Phase 2 | Pending |
 | OFIC-04 | Phase 2 | Pending |
-| OFIC-05 | Phase 2 | Pending |
-| OFIC-06 | Phase 2 | Pending |
-| OFIC-07 | Phase 2 | Pending |
+| OFIC-05 | Phase 2 | Complete |
+| OFIC-06 | Phase 2 | Complete |
+| OFIC-07 | Phase 2 | Complete |
 | OFIC-08 | Phase 2 | Pending |
 | OFIC-09 | Phase 2 | Pending |
 

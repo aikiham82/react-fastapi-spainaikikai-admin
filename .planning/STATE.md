@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-02-27T12:44:14.064Z"
+status: in_progress
+last_updated: "2026-02-27T13:47:00.000Z"
 progress:
-  total_phases: 1
+  total_phases: 2
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 6
 ---
 
 # Project State
@@ -18,33 +18,34 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** Los clubes pueden gestionar sus socios y la federación puede supervisar y monetizar el ecosistema aikido español desde un único panel.
-**Current focus:** Phase 1 — Seminar Cover Image
+**Current focus:** Phase 2 — Oficialidad Payment Flow
 
 ## Current Position
 
-Phase: 1 of 3 (Seminar Cover Image)
-Plan: 3 of 4 in current phase
+Phase: 2 of 2 (Oficialidad Payment Flow)
+Plan: 3 of 4 in current phase (02-03 complete, 02-04 pending)
 Status: In progress
-Last activity: 2026-02-27 — Completed plan 01-03: frontend CoverImageDropZone component, SeminarForm and SeminarList updates
+Last activity: 2026-02-27 — Completed plan 02-03: OfficialBadge component, Seminar is_official field, PriceConfiguration seminar category
 
-Progress: [███░░░░░░░] 30%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 20 min
-- Total execution time: 1 hour
+- Total plans completed: 6
+- Average duration: 17 min
+- Total execution time: ~1h 40m
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-seminar-cover-image | 3 | 54 min | 18 min |
+| 02-oficialidad-payment-flow | 3 | ~46 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (5 min), 01-03 (45 min)
-- Trend: -
+- Last 5 plans: 01-01 (4 min), 01-02 (5 min), 01-03 (45 min), 02-01 (~20 min), 02-02 (~19 min), 02-03 (7 min)
+- Trend: accelerating
 
 *Updated after each plan completion*
 
@@ -69,6 +70,10 @@ Recent decisions affecting current work:
 - 01-03: Eager upload pattern — image saved immediately on drop/select, not on form submit
 - 01-03: StaticFiles path corrected parent.parent.parent → parent.parent to serve from backend/uploads/
 - 01-03: Edit (Pencil) button added to SeminarList card actions — was missing direct edit shortcut
+- 02-03: OfficialBadge uses z-10 so Phase 3 payment seal can use z-20 to layer above it
+- 02-03: bg-amber-500 with white text for gold visual language meeting WCAG 4.5:1 contrast ratio
+- 02-03: is_official is required (non-optional) boolean in Seminar interface — backend always returns it
+- 02-03: Award icon from lucide-react as semantically appropriate for endorsement/certification
 
 ### Pending Todos
 
@@ -84,5 +89,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 01-03-PLAN.md (CoverImageDropZone component, SeminarForm + SeminarList updates, StaticFiles fix)
+Stopped at: Completed 02-03-PLAN.md (OfficialBadge component, Seminar is_official field, PriceConfiguration seminar category)
 Resume file: None
