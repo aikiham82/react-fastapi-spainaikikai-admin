@@ -34,6 +34,20 @@ export const registerMember = async (data: RegisterMemberRequest): Promise<void>
   return await apiClient.post<void>(`${BASE_URL}/register`, data);
 };
 
+export const uploadCoverImage = async (seminarId: string, file: File): Promise<Seminar> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return await apiClient.post<Seminar>(
+    `${BASE_URL}/${seminarId}/cover-image`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+};
+
+export const deleteCoverImage = async (seminarId: string): Promise<Seminar> => {
+  return await apiClient.delete<Seminar>(`${BASE_URL}/${seminarId}/cover-image`);
+};
+
 export const seminarService = {
   getSeminars,
   getSeminar,
@@ -41,4 +55,6 @@ export const seminarService = {
   updateSeminar,
   deleteSeminar,
   registerMember,
+  uploadCoverImage,
+  deleteCoverImage,
 };

@@ -17,6 +17,7 @@ export interface Seminar {
   status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;
+  cover_image_url?: string;
 }
 
 export interface CreateSeminarRequest {
