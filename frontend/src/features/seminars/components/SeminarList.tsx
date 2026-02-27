@@ -18,7 +18,7 @@ import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { apiClient } from '@/core/data/apiClient';
 
 const STATUS_LABELS: Record<string, string> = {
-  upcoming: 'Pr\u00f3ximo',
+  upcoming: 'Próximo',
   ongoing: 'En curso',
   completed: 'Finalizado',
   cancelled: 'Cancelado',
@@ -32,7 +32,7 @@ const formatDateTime = (dateString: string | undefined) => {
       timeStyle: 'short',
     });
   } catch {
-    return 'Fecha inv\u00e1lida';
+    return 'Fecha inválida';
   }
 };
 
@@ -189,7 +189,7 @@ export const SeminarList = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Buscar seminarios por t\u00edtulo..."
+            placeholder="Buscar seminarios por título..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
@@ -202,7 +202,7 @@ export const SeminarList = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="upcoming">Pr\u00f3ximo</SelectItem>
+            <SelectItem value="upcoming">Próximo</SelectItem>
             <SelectItem value="ongoing">En curso</SelectItem>
             <SelectItem value="completed">Finalizado</SelectItem>
             <SelectItem value="cancelled">Cancelado</SelectItem>
@@ -332,8 +332,8 @@ export const SeminarList = () => {
                     )}
                     <div className="space-y-4 py-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">Descripci\u00f3n</p>
-                        <p className="text-sm text-gray-600 mt-1">{seminar.description || 'Sin descripci\u00f3n'}</p>
+                        <p className="text-sm font-medium text-gray-900">Descripción</p>
+                        <p className="text-sm text-gray-600 mt-1">{seminar.description || 'Sin descripción'}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -351,7 +351,7 @@ export const SeminarList = () => {
                           <p className="text-sm text-gray-600">{seminar.venue}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Direcci\u00f3n</p>
+                          <p className="text-sm font-medium text-gray-900">Dirección</p>
                           <p className="text-sm text-gray-600">{seminar.address}</p>
                         </div>
                       </div>
@@ -483,7 +483,7 @@ export const SeminarList = () => {
               Anterior
             </Button>
             <span className="text-sm text-gray-600">
-              P\u00e1gina {currentPage} de {totalPages}
+              Página {currentPage} de {totalPages}
             </span>
             <Button
               variant="outline"
