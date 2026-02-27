@@ -33,6 +33,7 @@ class Seminar:
     status: SeminarStatus = SeminarStatus.UPCOMING
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    cover_image_url: Optional[str] = None
 
     def __post_init__(self):
         self.created_at = self.created_at or datetime.now()

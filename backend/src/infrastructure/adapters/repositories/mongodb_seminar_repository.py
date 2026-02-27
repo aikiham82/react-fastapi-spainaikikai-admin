@@ -37,7 +37,8 @@ class MongoDBSeminarRepository(SeminarRepositoryPort):
             association_id=doc.get("association_id"),
             status=SeminarStatus(doc.get("status", "upcoming")),
             created_at=doc.get("created_at"),
-            updated_at=doc.get("updated_at")
+            updated_at=doc.get("updated_at"),
+            cover_image_url=doc.get("cover_image_url")
         )
 
     def _to_document(self, seminar: Seminar) -> dict:
@@ -57,6 +58,7 @@ class MongoDBSeminarRepository(SeminarRepositoryPort):
             "club_id": seminar.club_id,
             "association_id": seminar.association_id,
             "status": seminar.status.value,
+            "cover_image_url": seminar.cover_image_url,
             "updated_at": datetime.utcnow()
         }
         if seminar.id:

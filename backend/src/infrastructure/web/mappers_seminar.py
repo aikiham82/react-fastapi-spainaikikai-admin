@@ -51,7 +51,8 @@ class SeminarMapper:
             current_participants=entity.current_participants,
             club_id=entity.club_id,
             association_id=entity.association_id,
-            status=entity.status.value
+            status=entity.status.value,
+            cover_image_url=entity.cover_image_url
         )
 
     @staticmethod

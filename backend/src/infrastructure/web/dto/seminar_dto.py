@@ -50,6 +50,7 @@ class SeminarResponse(SeminarBase):
     status: str
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    cover_image_url: Optional[str] = None
 
     class Config:
         from_attributes = True
