@@ -28,7 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. After upload, the saved image is resized to 800x450px (16:9) and served as a static URL accessible in the browser
   4. Club admin can remove the cover image from an existing seminar and the placeholder is shown in its place
   5. Seminars with a cover image show the image in the card list view and in the seminar detail dialog
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Backend: aiofiles install + Seminar entity extension + upload/delete use cases + API endpoints + StaticFiles mount
+- [ ] 01-02-PLAN.md — Frontend data layer: Seminar interface + uploadCoverImage/deleteCoverImage service + mutations
+- [ ] 01-03-PLAN.md — Frontend UI: CoverImageDropZone component + SeminarForm integration + SeminarList card/detail banners
 
 ### Phase 2: Oficialidad Payment Flow
 **Goal**: Club admins can pay via Redsys to have their seminar endorsed by Spain Aikikai, and after confirmed payment the seminar is automatically marked official with no manual approval required
@@ -59,6 +64,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Seminar Cover Image | 0/TBD | Not started | - |
+| 1. Seminar Cover Image | 0/3 | Not started | - |
 | 2. Oficialidad Payment Flow | 0/TBD | Not started | - |
 | 3. Polish | 0/TBD | Not started | - |
