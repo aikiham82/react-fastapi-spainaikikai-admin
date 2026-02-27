@@ -112,7 +112,7 @@ def create_app() -> FastAPI:
     )
     
     # Mount static file serving for uploads — MUST be before routers
-    upload_path = Path(__file__).parent.parent.parent / "uploads"
+    upload_path = Path(__file__).parent.parent / "uploads"
     upload_path.mkdir(exist_ok=True)
     app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
 

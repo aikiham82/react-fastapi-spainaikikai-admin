@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSeminarContext } from '../hooks/useSeminarContext';
 import type { Seminar } from '../data/schemas/seminar.schema';
-import { Calendar, Plus, Search, Trash2, Eye, Users, MapPin, Clock, User } from 'lucide-react';
+import { Calendar, Plus, Search, Trash2, Eye, Pencil, Users, MapPin, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -303,6 +303,16 @@ export const SeminarList = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+
+                {canAccess({ resource: 'seminars', action: 'update' }) && (
+                  <Button
+                    variant="outline"
+                    onClick={() => { setSelectedSeminarForEdit(seminar); setIsFormOpen(true); }}
+                    aria-label="Editar seminario"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                )}
 
                 {canAccess({ resource: 'seminars', action: 'delete' }) && (
                   <Button
