@@ -12,8 +12,8 @@
 - [x] **IMG-03**: El servidor redimensiona automáticamente la imagen a 800×450px (ratio 16:9) al guardarla
 - [x] **IMG-04**: La aplicación rechaza archivos mayores de 5MB con mensaje de error claro para el usuario
 - [x] **IMG-05**: Club admin puede eliminar la imagen de portada existente de un seminario
-- [ ] **IMG-06**: Los seminarios con imagen de portada muestran la imagen en la tarjeta del listado
-- [ ] **IMG-07**: Los seminarios con imagen de portada muestran la imagen en la página de detalle del seminario
+- [x] **IMG-06**: Los seminarios con imagen de portada muestran la imagen en la tarjeta del listado
+- [x] **IMG-07**: Los seminarios con imagen de portada muestran la imagen en la página de detalle del seminario
 
 ### Oficialidad Payment Flow
 
@@ -61,8 +61,8 @@
 | IMG-03 | Phase 1 | Complete |
 | IMG-04 | Phase 1 | Complete |
 | IMG-05 | Phase 1 | Complete |
-| IMG-06 | Phase 1 | Pending |
-| IMG-07 | Phase 1 | Pending |
+| IMG-06 | Phase 1 | Complete |
+| IMG-07 | Phase 1 | Complete |
 | OFIC-01 | Phase 2 | Pending |
 | OFIC-02 | Phase 2 | Pending |
 | OFIC-03 | Phase 2 | Pending |

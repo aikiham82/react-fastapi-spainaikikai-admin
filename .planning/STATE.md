@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 1 of 3 (Seminar Cover Image)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-02-27 — Completed plan 01-01: backend cover image endpoints (POST/DELETE + StaticFiles)
+Last activity: 2026-02-27 — Completed plan 01-03: frontend CoverImageDropZone component, SeminarForm and SeminarList updates
 
-Progress: [██░░░░░░░░] 20%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 4 min
-- Total execution time: 0.2 hours
+- Total plans completed: 3
+- Average duration: 20 min
+- Total execution time: 1 hour
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-seminar-cover-image | 2 | 9 min | 4.5 min |
+| 01-seminar-cover-image | 3 | 54 min | 18 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (5 min)
+- Last 5 plans: 01-01 (4 min), 01-02 (5 min), 01-03 (45 min)
 - Trend: -
 
 *Updated after each plan completion*
@@ -52,6 +52,10 @@ Recent decisions affecting current work:
 - 01-02: uploadCoverImage/deleteCoverImage exported as named exports AND included in seminarService object for both import styles
 - 01-02: Mutation error toasts cover network errors only; file-type/size validation handled inline in CoverImageDropZone (plan 01-03)
 - 01-02: Both mutations invalidate ['seminars'] query cache on success
+- 01-03: CoverImageDropZone is self-contained — calls mutations directly, invalidates query, no callback props needed
+- 01-03: Eager upload pattern — image saved immediately on drop/select, not on form submit
+- 01-03: StaticFiles path corrected parent.parent.parent → parent.parent to serve from backend/uploads/
+- 01-03: Edit (Pencil) button added to SeminarList card actions — was missing direct edit shortcut
 
 ### Pending Todos
 
@@ -67,5 +71,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 01-01-PLAN.md (backend cover image endpoints, StaticFiles, Pillow resize)
+Stopped at: Completed 01-03-PLAN.md (CoverImageDropZone component, SeminarForm + SeminarList updates, StaticFiles fix)
 Resume file: None

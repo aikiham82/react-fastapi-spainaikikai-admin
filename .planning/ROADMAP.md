@@ -12,7 +12,7 @@ Two surgical extensions to the existing seminar feature: club admins can upload 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Seminar Cover Image** - Domain entity extension + full image upload flow (backend + frontend)
+- [x] **Phase 1: Seminar Cover Image** - Domain entity extension + full image upload flow (backend + frontend) (completed 2026-02-27)
 - [ ] **Phase 2: Oficialidad Payment Flow** - Redsys payment to mark seminar official, badge display, idempotency guards
 - [ ] **Phase 3: Polish** - Seal overlay on cover photo, price hint in card, upload progress indicator
 
@@ -64,6 +64,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Seminar Cover Image | 2/3 | In Progress|  |
+| 1. Seminar Cover Image | 3/3 | Complete   | 2026-02-27 |
 | 2. Oficialidad Payment Flow | 0/TBD | Not started | - |
 | 3. Polish | 0/TBD | Not started | - |
