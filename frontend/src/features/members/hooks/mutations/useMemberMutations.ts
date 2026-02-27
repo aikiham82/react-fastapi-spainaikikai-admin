@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { memberService } from '../../data/services/member.service';
 import type { UpdateMemberRequest, ChangeMemberStatusRequest } from '../../data/schemas/member.schema';
+import type { ApiError } from '@/core/data/apiClient';
 import { toast } from 'sonner';
 
 export const useCreateMemberMutation = () => {
@@ -12,8 +13,8 @@ export const useCreateMemberMutation = () => {
       toast.success('Miembro creado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['members'] });
     },
-    onError: () => {
-      toast.error('Error al crear el miembro');
+    onError: (error: ApiError) => {
+      toast.error(error.detail || 'Error al crear el miembro');
     },
   });
 };
@@ -28,8 +29,8 @@ export const useUpdateMemberMutation = () => {
       toast.success('Miembro actualizado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['members'] });
     },
-    onError: () => {
-      toast.error('Error al actualizar el miembro');
+    onError: (error: ApiError) => {
+      toast.error(error.detail || 'Error al actualizar el miembro');
     },
   });
 };
@@ -43,8 +44,8 @@ export const useDeleteMemberMutation = () => {
       toast.success('Miembro eliminado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['members'] });
     },
-    onError: () => {
-      toast.error('Error al eliminar el miembro');
+    onError: (error: ApiError) => {
+      toast.error(error.detail || 'Error al eliminar el miembro');
     },
   });
 };

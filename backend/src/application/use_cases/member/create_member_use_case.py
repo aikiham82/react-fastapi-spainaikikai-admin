@@ -39,16 +39,16 @@ class CreateMemberUseCase:
         # Check if member with same DNI exists
         existing_dni = await self.member_repository.find_by_dni(dni)
         if existing_dni:
-            raise MemberAlreadyExistsError("Member with this DNI already exists")
+            raise MemberAlreadyExistsError("Ya existe un miembro con ese DNI")
 
         # Check if member with same email exists
         existing_email = await self.member_repository.find_by_email(email)
         if existing_email:
-            raise MemberAlreadyExistsError("Member with this email already exists")
+            raise MemberAlreadyExistsError("Ya existe un miembro con ese correo electrónico")
 
         # Validate club if provided
         if club_id and not await self.club_repository.exists(club_id):
-            raise InvalidClubForMemberError(f"Club with id {club_id} not found")
+            raise InvalidClubForMemberError(f"El club indicado no existe")
 
         member = Member(
             first_name=first_name,

@@ -199,7 +199,7 @@ async def get_member(
         # Member has no club, but user is club admin - deny
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this member"
+            detail="No tienes acceso a este miembro"
         )
 
     response = MemberMapper.to_response_dto(member)
@@ -263,7 +263,7 @@ async def create_member(
         if member_data.club_id and member_data.club_id != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot create member in another club"
+                detail="No puedes crear un miembro en otro club"
             )
         # Force club_id to be the user's club
         effective_club_id = ctx.club_id
@@ -305,7 +305,7 @@ async def update_member(
     elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this member"
+            detail="No tienes acceso a este miembro"
         )
 
     # Prevent club_id change by club_admin
@@ -314,7 +314,7 @@ async def update_member(
         if update_data['club_id'] != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot transfer member to another club"
+                detail="No puedes transferir un miembro a otro club"
             )
 
     member = await get_update_use_case.execute(member_id, **update_data)
@@ -339,7 +339,7 @@ async def change_member_status(
     elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this member"
+            detail="No tienes acceso a este miembro"
         )
 
     member = await change_status_use_case.execute(member_id, status_data.status)
@@ -364,7 +364,7 @@ async def delete_member(
     elif ctx.is_club_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this member"
+            detail="No tienes acceso a este miembro"
         )
 
     await get_delete_use_case.execute(member_id)

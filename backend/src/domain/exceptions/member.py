@@ -7,7 +7,7 @@ class MemberNotFoundError(EntityNotFoundError):
     """Raised when a member is not found."""
 
     def __init__(self, member_id: str):
-        super().__init__("Member", member_id)
+        super().__init__("Miembro", member_id)
 
 
 class InvalidMemberDataError(ValidationError):
