@@ -175,13 +175,13 @@ async def get_dashboard_stats(
         start_date = sem.get("start_date")
         upcoming_seminars.append(UpcomingSeminar(
             id=str(sem.get("_id")),
-            title=sem.get("title", ""),
+            title=sem.get("title") or "",
             date=start_date.strftime("%Y-%m-%d") if start_date else "",
             time=start_date.strftime("%H:%M") if start_date else "",
-            location=f"{sem.get('venue', '')}, {sem.get('city', '')}",
-            participants=sem.get("current_participants", 0),
-            max_participants=sem.get("max_participants", 0),
-            price=float(sem.get("price", 0))
+            location=f"{sem.get('venue') or ''}, {sem.get('city') or ''}",
+            participants=sem.get("current_participants") or 0,
+            max_participants=sem.get("max_participants") or 0,
+            price=float(sem.get("price") or 0)
         ))
 
     # Get recent activity (combine recent members, payments, licenses)
