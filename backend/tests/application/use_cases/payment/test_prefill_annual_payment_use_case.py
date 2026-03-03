@@ -159,9 +159,9 @@ class TestPrefillAnnualPaymentUseCase:
         assert member3_assignment.payment_types == ["dan"]
 
         # Verify repository calls
-        mock_repos["member_repo"].find_by_club_id.assert_called_once_with(club_id, limit=500)
+        mock_repos["member_repo"].find_by_club_id.assert_called_once_with(club_id)
         mock_repos["license_repo"].find_by_member_ids.assert_called_once_with(
-            ["member-1", "member-2", "member-3"], limit=1000
+            ["member-1", "member-2", "member-3"]
         )
 
     async def test_prefill_with_insurances(self, use_case, mock_repos):

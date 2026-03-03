@@ -33,7 +33,7 @@ class TestGetAllUsersUseCase:
         
         # Assert
         assert result == test_users_list
-        mock_user_repository.find_all.assert_called_once_with(100)  # Default limit
+        mock_user_repository.find_all.assert_called_once_with(0)  # Default limit
 
     async def test_execute_with_custom_limit_passes_limit_to_repository(self, mock_user_repository, test_users_list):
         """Test that execute passes custom limit to repository."""
@@ -61,7 +61,7 @@ class TestGetAllUsersUseCase:
         
         # Assert
         assert result == []
-        mock_user_repository.find_all.assert_called_once_with(100)
+        mock_user_repository.find_all.assert_called_once_with(0)
 
     async def test_execute_propagates_repository_exceptions(self, mock_user_repository):
         """Test that execute propagates repository exceptions."""

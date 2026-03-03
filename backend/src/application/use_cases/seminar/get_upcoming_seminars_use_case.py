@@ -12,6 +12,6 @@ class GetUpcomingSeminarsUseCase:
     def __init__(self, seminar_repository: SeminarRepositoryPort):
         self.seminar_repository = seminar_repository
 
-    async def execute(self, limit: int = 100) -> List[Seminar]:
+    async def execute(self, limit: int = 0) -> List[Seminar]:
         """Execute to use case."""
         return await self.seminar_repository.find_upcoming(limit)

@@ -31,7 +31,7 @@ class GetMemberPaymentHistoryUseCase:
     async def execute(
         self,
         member_id: str,
-        limit: int = 100
+        limit: int = 0
     ) -> MemberPaymentHistoryResult:
         """
         Get payment history for a member.

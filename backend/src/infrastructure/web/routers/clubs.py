@@ -29,7 +29,7 @@ router = APIRouter(prefix="/clubs", tags=["clubs"])
 
 @router.get("", response_model=List[ClubResponse])
 async def get_clubs(
-    limit: int = 100,
+    limit: int = 0,
     get_all_use_case = Depends(get_all_clubs_use_case),
     get_single_club_use_case = Depends(get_club_use_case),
     ctx: AuthContext = Depends(get_auth_context)

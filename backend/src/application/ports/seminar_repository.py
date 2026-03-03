@@ -10,7 +10,7 @@ class SeminarRepositoryPort(ABC):
     """Port for seminar repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[Seminar]:
+    async def find_all(self, limit: int = 0) -> List[Seminar]:
         """Find all seminars."""
         pass
 
@@ -20,27 +20,27 @@ class SeminarRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Seminar]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Seminar]:
         """Find seminars by club ID."""
         pass
 
     @abstractmethod
-    async def find_by_association_id(self, association_id: str, limit: int = 100) -> List[Seminar]:
+    async def find_by_association_id(self, association_id: str, limit: int = 0) -> List[Seminar]:
         """Find seminars by association ID."""
         pass
 
     @abstractmethod
-    async def find_by_status(self, status: SeminarStatus, limit: int = 100) -> List[Seminar]:
+    async def find_by_status(self, status: SeminarStatus, limit: int = 0) -> List[Seminar]:
         """Find seminars by status."""
         pass
 
     @abstractmethod
-    async def find_upcoming(self, limit: int = 100) -> List[Seminar]:
+    async def find_upcoming(self, limit: int = 0) -> List[Seminar]:
         """Find upcoming seminars."""
         pass
 
     @abstractmethod
-    async def find_ongoing(self, limit: int = 100) -> List[Seminar]:
+    async def find_ongoing(self, limit: int = 0) -> List[Seminar]:
         """Find ongoing seminars."""
         pass
 

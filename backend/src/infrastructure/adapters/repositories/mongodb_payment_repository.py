@@ -69,9 +69,9 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             doc["created_at"] = payment.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[Payment]:
+    async def find_all(self, limit: int = 0) -> List[Payment]:
         cursor = self.collection.find().limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, payment_id: str) -> Optional[Payment]:
@@ -81,24 +81,24 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         except Exception:
             return None
 
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[Payment]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[Payment]:
         cursor = self.collection.find({"member_id": member_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Payment]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Payment]:
         cursor = self.collection.find({"club_id": club_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_status(self, status: PaymentStatus, limit: int = 100) -> List[Payment]:
+    async def find_by_status(self, status: PaymentStatus, limit: int = 0) -> List[Payment]:
         cursor = self.collection.find({"status": status.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_type(self, payment_type: PaymentType, limit: int = 100) -> List[Payment]:
+    async def find_by_type(self, payment_type: PaymentType, limit: int = 0) -> List[Payment]:
         cursor = self.collection.find({"payment_type": payment_type.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_transaction_id(self, transaction_id: str) -> Optional[Payment]:
@@ -109,7 +109,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         self,
         start_date: Optional[str],
         end_date: Optional[str],
-        limit: int = 100
+        limit: int = 0
     ) -> List[Payment]:
         query = {}
         if start_date:
@@ -119,7 +119,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
                 query["payment_date"] = {}
             query["payment_date"]["$lte"] = datetime.fromisoformat(end_date)
         cursor = self.collection.find(query).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def create(self, payment: Payment) -> Payment:
@@ -168,10 +168,10 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         })
         return self._to_domain(doc) if doc else None
 
-    async def find_by_year(self, payment_year: int, limit: int = 100) -> List[Payment]:
+    async def find_by_year(self, payment_year: int, limit: int = 0) -> List[Payment]:
         """Find all payments for a specific year."""
         cursor = self.collection.find({"payment_year": payment_year}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_club_type_year(

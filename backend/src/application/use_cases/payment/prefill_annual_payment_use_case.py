@@ -66,7 +66,7 @@ class PrefillAnnualPaymentUseCase:
         payer_name: str = "",
     ) -> PrefillResult:
         # 1. Get all active members for this club
-        members = await self._member_repo.find_by_club_id(club_id, limit=500)
+        members = await self._member_repo.find_by_club_id(club_id)
         active_members = [m for m in members if m.status.value == "active"]
 
         if not active_members:
@@ -76,8 +76,8 @@ class PrefillAnnualPaymentUseCase:
 
         # 2. Get all licenses and insurances for these members
         member_ids = [m.id for m in active_members if m.id]
-        licenses = await self._license_repo.find_by_member_ids(member_ids, limit=1000)
-        insurances = await self._insurance_repo.find_by_member_ids(member_ids, limit=1000)
+        licenses = await self._license_repo.find_by_member_ids(member_ids)
+        insurances = await self._insurance_repo.find_by_member_ids(member_ids)
 
         # 3. Build a map of member_id -> best license (active preferred, then newest)
         member_license_map: dict = {}

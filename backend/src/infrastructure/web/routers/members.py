@@ -141,7 +141,7 @@ async def _enrich_members_with_club_names(
 
 @router.get("", response_model=List[MemberResponse])
 async def get_members(
-    limit: int = 100,
+    limit: int = 0,
     club_id: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -211,7 +211,7 @@ async def get_member(
 @router.get("/club/{club_id}", response_model=List[MemberResponse])
 async def get_members_by_club(
     club_id: str,
-    limit: int = 100,
+    limit: int = 0,
     get_all_use_case = Depends(get_all_members_use_case),
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),
@@ -229,7 +229,7 @@ async def get_members_by_club(
 @router.get("/search", response_model=List[MemberResponse])
 async def search_members(
     name: str = Query(...),
-    limit: int = 100,
+    limit: int = 0,
     get_search_use_case = Depends(get_search_members_use_case),
     ctx: AuthContext = Depends(get_auth_context),
     license_repo = Depends(get_license_repository),

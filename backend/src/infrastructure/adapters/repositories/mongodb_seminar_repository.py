@@ -71,9 +71,9 @@ class MongoDBSeminarRepository(SeminarRepositoryPort):
             doc["created_at"] = seminar.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[Seminar]:
+    async def find_all(self, limit: int = 0) -> List[Seminar]:
         cursor = self.collection.find().limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, seminar_id: str) -> Optional[Seminar]:
@@ -83,32 +83,32 @@ class MongoDBSeminarRepository(SeminarRepositoryPort):
         except Exception:
             return None
 
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Seminar]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Seminar]:
         cursor = self.collection.find({"club_id": club_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_association_id(self, association_id: str, limit: int = 100) -> List[Seminar]:
+    async def find_by_association_id(self, association_id: str, limit: int = 0) -> List[Seminar]:
         cursor = self.collection.find({"association_id": association_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_status(self, status: SeminarStatus, limit: int = 100) -> List[Seminar]:
+    async def find_by_status(self, status: SeminarStatus, limit: int = 0) -> List[Seminar]:
         cursor = self.collection.find({"status": status.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_upcoming(self, limit: int = 100) -> List[Seminar]:
+    async def find_upcoming(self, limit: int = 0) -> List[Seminar]:
         cursor = self.collection.find({
             "status": "upcoming",
             "start_date": {"$gte": datetime.utcnow()}
         }).sort("start_date", 1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_ongoing(self, limit: int = 100) -> List[Seminar]:
+    async def find_ongoing(self, limit: int = 0) -> List[Seminar]:
         cursor = self.collection.find({"status": "ongoing"}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def create(self, seminar: Seminar) -> Seminar:

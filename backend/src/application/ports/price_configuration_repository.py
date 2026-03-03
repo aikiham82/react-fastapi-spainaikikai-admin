@@ -10,7 +10,7 @@ class PriceConfigurationRepositoryPort(ABC):
     """Port for price configuration repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[PriceConfiguration]:
+    async def find_all(self, limit: int = 0) -> List[PriceConfiguration]:
         """Find all price configurations."""
         pass
 
@@ -25,7 +25,7 @@ class PriceConfigurationRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_active(self, limit: int = 100) -> List[PriceConfiguration]:
+    async def find_active(self, limit: int = 0) -> List[PriceConfiguration]:
         """Find all active price configurations."""
         pass
 

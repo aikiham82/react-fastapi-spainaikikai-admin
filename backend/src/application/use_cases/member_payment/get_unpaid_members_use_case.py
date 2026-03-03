@@ -68,7 +68,7 @@ class GetUnpaidMembersUseCase:
                 raise ValueError(f"Invalid payment type: {payment_type}")
 
         # Get all active members for the club
-        members = await self.member_repository.find_by_club_id(club_id, limit=1000)
+        members = await self.member_repository.find_by_club_id(club_id)
         all_member_ids = {m.id for m in members if m.id and m.status.value == "active"}
 
         if not all_member_ids:

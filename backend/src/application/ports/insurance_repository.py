@@ -10,7 +10,7 @@ class InsuranceRepositoryPort(ABC):
     """Port for insurance repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[Insurance]:
+    async def find_all(self, limit: int = 0) -> List[Insurance]:
         """Find all insurances."""
         pass
 
@@ -20,12 +20,12 @@ class InsuranceRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[Insurance]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[Insurance]:
         """Find insurances by member ID."""
         pass
 
     @abstractmethod
-    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[Insurance]:
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 0) -> List[Insurance]:
         """Find insurances by a list of member IDs."""
         pass
 
@@ -35,17 +35,17 @@ class InsuranceRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_status(self, status: InsuranceStatus, limit: int = 100) -> List[Insurance]:
+    async def find_by_status(self, status: InsuranceStatus, limit: int = 0) -> List[Insurance]:
         """Find insurances by status."""
         pass
 
     @abstractmethod
-    async def find_by_type(self, insurance_type: InsuranceType, limit: int = 100) -> List[Insurance]:
+    async def find_by_type(self, insurance_type: InsuranceType, limit: int = 0) -> List[Insurance]:
         """Find insurances by type."""
         pass
 
     @abstractmethod
-    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 100) -> List[Insurance]:
+    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 0) -> List[Insurance]:
         """Find insurances expiring soon."""
         pass
 

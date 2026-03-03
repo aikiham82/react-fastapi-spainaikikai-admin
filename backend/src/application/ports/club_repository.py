@@ -10,7 +10,7 @@ class ClubRepositoryPort(ABC):
     """Port for club repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[Club]:
+    async def find_all(self, limit: int = 0) -> List[Club]:
         """Find all clubs."""
         pass
 
@@ -20,12 +20,12 @@ class ClubRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_association_id(self, association_id: str, limit: int = 100) -> List[Club]:
+    async def find_by_association_id(self, association_id: str, limit: int = 0) -> List[Club]:
         """Find clubs by association ID."""
         pass
 
     @abstractmethod
-    async def find_active(self, association_id: Optional[str] = None, limit: int = 100) -> List[Club]:
+    async def find_active(self, association_id: Optional[str] = None, limit: int = 0) -> List[Club]:
         """Find all active clubs optionally filtered by association."""
         pass
 

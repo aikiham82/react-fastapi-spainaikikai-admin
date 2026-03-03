@@ -68,7 +68,7 @@ async def _populate_member_names(items: List[InsuranceResponse]) -> List[Insuran
 
 @router.get("", response_model=InsuranceListResponse)
 async def get_insurances(
-    limit: int = 100,
+    limit: int = 0,
     offset: int = 0,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
@@ -130,7 +130,7 @@ async def get_insurance(
 @router.get("/member/{member_id}", response_model=List[InsuranceResponse])
 async def get_insurances_by_member(
     member_id: str,
-    limit: int = 100,
+    limit: int = 0,
     get_all_use_case = Depends(get_all_insurances_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
@@ -151,7 +151,7 @@ async def get_insurances_by_member(
 @router.get("/expiring", response_model=List[InsuranceResponse])
 async def get_expiring_insurances(
     days: int = 30,
-    limit: int = 100,
+    limit: int = 0,
     get_expiring_use_case = Depends(get_expiring_insurances_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):

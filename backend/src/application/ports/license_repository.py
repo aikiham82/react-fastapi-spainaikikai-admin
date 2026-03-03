@@ -10,7 +10,7 @@ class LicenseRepositoryPort(ABC):
     """Port for license repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[License]:
+    async def find_all(self, limit: int = 0) -> List[License]:
         """Find all licenses."""
         pass
 
@@ -25,32 +25,32 @@ class LicenseRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[License]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[License]:
         """Find licenses by member ID."""
         pass
 
     @abstractmethod
-    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[License]:
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 0) -> List[License]:
         """Find licenses by a list of member IDs."""
         pass
 
     @abstractmethod
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[License]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[License]:
         """Find licenses by club ID."""
         pass
 
     @abstractmethod
-    async def find_by_status(self, status: LicenseStatus, limit: int = 100) -> List[License]:
+    async def find_by_status(self, status: LicenseStatus, limit: int = 0) -> List[License]:
         """Find licenses by status."""
         pass
 
     @abstractmethod
-    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 100) -> List[License]:
+    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 0) -> List[License]:
         """Find licenses expiring soon."""
         pass
 
     @abstractmethod
-    async def find_by_type(self, license_type: LicenseType, limit: int = 100) -> List[License]:
+    async def find_by_type(self, license_type: LicenseType, limit: int = 0) -> List[License]:
         """Find licenses by type."""
         pass
 

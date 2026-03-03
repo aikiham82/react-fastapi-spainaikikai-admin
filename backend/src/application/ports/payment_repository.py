@@ -10,7 +10,7 @@ class PaymentRepositoryPort(ABC):
     """Port for payment repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[Payment]:
+    async def find_all(self, limit: int = 0) -> List[Payment]:
         """Find all payments."""
         pass
 
@@ -20,22 +20,22 @@ class PaymentRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[Payment]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[Payment]:
         """Find payments by member ID."""
         pass
 
     @abstractmethod
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Payment]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Payment]:
         """Find payments by club ID."""
         pass
 
     @abstractmethod
-    async def find_by_status(self, status: PaymentStatus, limit: int = 100) -> List[Payment]:
+    async def find_by_status(self, status: PaymentStatus, limit: int = 0) -> List[Payment]:
         """Find payments by status."""
         pass
 
     @abstractmethod
-    async def find_by_type(self, payment_type: PaymentType, limit: int = 100) -> List[Payment]:
+    async def find_by_type(self, payment_type: PaymentType, limit: int = 0) -> List[Payment]:
         """Find payments by type."""
         pass
 
@@ -49,7 +49,7 @@ class PaymentRepositoryPort(ABC):
         self,
         start_date: Optional[str],
         end_date: Optional[str],
-        limit: int = 100
+        limit: int = 0
     ) -> List[Payment]:
         """Find payments within a date range."""
         pass
@@ -85,7 +85,7 @@ class PaymentRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_year(self, payment_year: int, limit: int = 100) -> List[Payment]:
+    async def find_by_year(self, payment_year: int, limit: int = 0) -> List[Payment]:
         """Find all payments for a specific year."""
         pass
 

@@ -32,7 +32,7 @@ class MemberPaymentRepositoryPort(ABC):
     async def find_by_member_id(
         self,
         member_id: str,
-        limit: int = 100
+        limit: int = 0
     ) -> List[MemberPayment]:
         """Find all payments for a specific member."""
         pass
@@ -52,7 +52,7 @@ class MemberPaymentRepositoryPort(ABC):
         member_ids: List[str],
         payment_year: int,
         status: Optional[MemberPaymentStatus] = None,
-        limit: int = 500
+        limit: int = 0
     ) -> List[MemberPayment]:
         """Find all member payments for a list of members in a specific year."""
         pass

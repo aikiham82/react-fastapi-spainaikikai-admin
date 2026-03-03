@@ -11,7 +11,7 @@ class InvoiceRepositoryPort(ABC):
     """Port for invoice repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[Invoice]:
+    async def find_all(self, limit: int = 0) -> List[Invoice]:
         """Find all invoices."""
         pass
 
@@ -31,17 +31,17 @@ class InvoiceRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[Invoice]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[Invoice]:
         """Find invoices by member ID."""
         pass
 
     @abstractmethod
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Invoice]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Invoice]:
         """Find invoices by club ID."""
         pass
 
     @abstractmethod
-    async def find_by_status(self, status: InvoiceStatus, limit: int = 100) -> List[Invoice]:
+    async def find_by_status(self, status: InvoiceStatus, limit: int = 0) -> List[Invoice]:
         """Find invoices by status."""
         pass
 
@@ -50,7 +50,7 @@ class InvoiceRepositoryPort(ABC):
         self,
         start_date: Optional[date],
         end_date: Optional[date],
-        limit: int = 100
+        limit: int = 0
     ) -> List[Invoice]:
         """Find invoices within a date range."""
         pass

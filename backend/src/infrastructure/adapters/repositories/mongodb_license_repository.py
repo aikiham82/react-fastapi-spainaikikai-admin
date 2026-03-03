@@ -88,7 +88,7 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
             doc["created_at"] = license.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[License]:
+    async def find_all(self, limit: int = 0) -> List[License]:
         cursor = self.collection.find()
         if limit > 0:
             cursor = cursor.limit(limit)
@@ -106,12 +106,12 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         doc = await self.collection.find_one({"license_number": license_number})
         return self._to_domain(doc) if doc else None
 
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[License]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[License]:
         cursor = self.collection.find({"member_id": member_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[License]:
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 0) -> List[License]:
         """Find licenses by a list of member IDs."""
         if not member_ids:
             return []
@@ -147,23 +147,23 @@ class MongoDBLicenseRepository(LicenseRepositoryPort):
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_status(self, status: LicenseStatus, limit: int = 100) -> List[License]:
+    async def find_by_status(self, status: LicenseStatus, limit: int = 0) -> List[License]:
         cursor = self.collection.find({"status": status.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 100) -> List[License]:
+    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 0) -> List[License]:
         threshold_date = datetime.utcnow() + timedelta(days=days_threshold)
         cursor = self.collection.find({
             "status": "active",
             "expiration_date": {"$lte": threshold_date}
         }).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_type(self, license_type: LicenseType, limit: int = 100) -> List[License]:
+    async def find_by_type(self, license_type: LicenseType, limit: int = 0) -> List[License]:
         cursor = self.collection.find({"license_type": license_type.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_active_by_member_year(

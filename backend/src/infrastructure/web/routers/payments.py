@@ -44,7 +44,7 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 
 @router.get("", response_model=List[PaymentResponse])
 async def get_payments(
-    limit: int = 100,
+    limit: int = 0,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
     payment_year: Optional[int] = None,

@@ -18,7 +18,7 @@ class GetAllInvoicesUseCase:
         status: Optional[str] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
-        limit: int = 100
+        limit: int = 0
     ) -> List[Invoice]:
         """Execute the use case."""
         if status:

@@ -248,7 +248,7 @@ async def get_license(
 @router.get("/member/{member_id}", response_model=List[LicenseResponse])
 async def get_licenses_by_member(
     member_id: str,
-    limit: int = 100,
+    limit: int = 0,
     get_all_use_case = Depends(get_all_licenses_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
@@ -267,7 +267,7 @@ async def get_licenses_by_member(
 @router.get("/expiring", response_model=List[LicenseResponse])
 async def get_expiring_licenses(
     days: int = 30,
-    limit: int = 100,
+    limit: int = 0,
     get_expiring_use_case = Depends(get_expiring_licenses_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):

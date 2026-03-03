@@ -10,7 +10,7 @@ class UserRepositoryPort(ABC):
     """Port for user repository operations."""
 
     @abstractmethod
-    async def find_all(self, limit: int = 100) -> List[User]:
+    async def find_all(self, limit: int = 0) -> List[User]:
         """Find all users."""
         pass
 

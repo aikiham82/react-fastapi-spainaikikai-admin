@@ -74,7 +74,7 @@ async def get_member_payment_status(
 @router.get("/member/{member_id}/history", response_model=MemberPaymentHistoryResponse)
 async def get_member_payment_history(
     member_id: str,
-    limit: int = Query(default=100, le=500),
+    limit: int = 0,
     use_case=Depends(get_member_payment_history_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):

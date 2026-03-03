@@ -76,7 +76,7 @@ class MongoDBMemberRepository(MemberRepositoryPort):
             doc["created_at"] = member.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[Member]:
+    async def find_all(self, limit: int = 0) -> List[Member]:
         cursor = self.collection.find()
         if limit > 0:
             cursor = cursor.limit(limit)
@@ -98,26 +98,26 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         doc = await self.collection.find_one({"email": email})
         return self._to_domain(doc) if doc else None
 
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Member]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({"club_id": club_id})
         if limit > 0:
             cursor = cursor.limit(limit)
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_status(self, status: MemberStatus, limit: int = 100) -> List[Member]:
+    async def find_by_status(self, status: MemberStatus, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({"status": status.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def search_by_name(self, name: str, limit: int = 100) -> List[Member]:
+    async def search_by_name(self, name: str, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({
             "$or": [
                 {"first_name": {"$regex": name, "$options": "i"}},
                 {"last_name": {"$regex": name, "$options": "i"}}
             ]
         }).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def create(self, member: Member) -> Member:

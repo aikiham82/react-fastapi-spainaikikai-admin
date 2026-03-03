@@ -57,7 +57,7 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
             doc["created_at"] = insurance.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[Insurance]:
+    async def find_all(self, limit: int = 0) -> List[Insurance]:
         cursor = self.collection.find()
         if limit > 0:
             cursor = cursor.limit(limit)
@@ -71,12 +71,12 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         except Exception:
             return None
 
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[Insurance]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[Insurance]:
         cursor = self.collection.find({"member_id": member_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_member_ids(self, member_ids: List[str], limit: int = 100) -> List[Insurance]:
+    async def find_by_member_ids(self, member_ids: List[str], limit: int = 0) -> List[Insurance]:
         """Find insurances by a list of member IDs."""
         if not member_ids:
             return []
@@ -90,23 +90,23 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         doc = await self.collection.find_one({"policy_number": policy_number})
         return self._to_domain(doc) if doc else None
 
-    async def find_by_status(self, status: InsuranceStatus, limit: int = 100) -> List[Insurance]:
+    async def find_by_status(self, status: InsuranceStatus, limit: int = 0) -> List[Insurance]:
         cursor = self.collection.find({"status": status.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_type(self, insurance_type: InsuranceType, limit: int = 100) -> List[Insurance]:
+    async def find_by_type(self, insurance_type: InsuranceType, limit: int = 0) -> List[Insurance]:
         cursor = self.collection.find({"insurance_type": insurance_type.value}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 100) -> List[Insurance]:
+    async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 0) -> List[Insurance]:
         threshold_date = datetime.utcnow() + timedelta(days=days_threshold)
         cursor = self.collection.find({
             "status": "active",
             "end_date": {"$lte": threshold_date}
         }).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_active_by_member_year_type(

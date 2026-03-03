@@ -14,7 +14,7 @@ class GetAllClubsUseCase:
     def __init__(self, club_repository: ClubRepositoryPort):
         self.club_repository = club_repository
 
-    async def execute(self, limit: int = 100, association_id: Optional[str] = None) -> List[Club]:
+    async def execute(self, limit: int = 0, association_id: Optional[str] = None) -> List[Club]:
         """Execute the use case."""
         if association_id:
             return await self.club_repository.find_by_association_id(association_id, limit)

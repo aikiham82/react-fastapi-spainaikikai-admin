@@ -57,10 +57,10 @@ class MongoDBUserRepository(UserRepositoryPort):
 
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[User]:
+    async def find_all(self, limit: int = 0) -> List[User]:
         """Find all users."""
         cursor = self.collection.find().limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, user_id: str) -> Optional[User]:

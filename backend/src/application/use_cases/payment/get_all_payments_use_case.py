@@ -14,7 +14,7 @@ class GetAllPaymentsUseCase:
 
     async def execute(
         self,
-        limit: int = 100,
+        limit: int = 0,
         club_id: Optional[str] = None,
         member_id: Optional[str] = None,
         payment_year: Optional[int] = None

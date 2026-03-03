@@ -103,13 +103,13 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
     async def find_by_member_id(
         self,
         member_id: str,
-        limit: int = 100
+        limit: int = 0
     ) -> List[MemberPayment]:
         """Find all payments for a specific member."""
         cursor = self.collection.find(
             {"member_id": member_id}
         ).sort("payment_year", -1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_member_year(
@@ -122,7 +122,7 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
             "member_id": member_id,
             "payment_year": payment_year
         })
-        documents = await cursor.to_list(length=100)
+        documents = await cursor.to_list(length=None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_member_ids_year(
@@ -130,7 +130,7 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
         member_ids: List[str],
         payment_year: int,
         status: Optional[MemberPaymentStatus] = None,
-        limit: int = 500
+        limit: int = 0
     ) -> List[MemberPayment]:
         """Find all member payments for a list of members in a specific year."""
         if not member_ids:
@@ -143,14 +143,17 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
         if status:
             query["status"] = status.value
 
-        cursor = self.collection.find(query).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        if limit > 0:
+            cursor = self.collection.find(query).limit(limit)
+        else:
+            cursor = self.collection.find(query)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_payment_id(self, payment_id: str) -> List[MemberPayment]:
         """Find all member payments linked to a parent payment."""
         cursor = self.collection.find({"payment_id": payment_id})
-        documents = await cursor.to_list(length=500)
+        documents = await cursor.to_list(length=None)
         return [self._to_domain(doc) for doc in documents]
 
     async def update(self, member_payment: MemberPayment) -> MemberPayment:
@@ -223,7 +226,7 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
         ]
 
         cursor = self.collection.aggregate(pipeline)
-        results = await cursor.to_list(length=20)
+        results = await cursor.to_list(length=None)
 
         summary = {
             "payment_year": payment_year,

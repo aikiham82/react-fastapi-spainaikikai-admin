@@ -97,9 +97,9 @@ class MongoDBInvoiceRepository(InvoiceRepositoryPort):
             doc["created_at"] = invoice.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[Invoice]:
+    async def find_all(self, limit: int = 0) -> List[Invoice]:
         cursor = self.collection.find().sort("created_at", -1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, invoice_id: str) -> Optional[Invoice]:
@@ -117,26 +117,26 @@ class MongoDBInvoiceRepository(InvoiceRepositoryPort):
         doc = await self.collection.find_one({"payment_id": payment_id})
         return self._to_domain(doc) if doc else None
 
-    async def find_by_member_id(self, member_id: str, limit: int = 100) -> List[Invoice]:
+    async def find_by_member_id(self, member_id: str, limit: int = 0) -> List[Invoice]:
         cursor = self.collection.find({"member_id": member_id}).sort("created_at", -1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_club_id(self, club_id: str, limit: int = 100) -> List[Invoice]:
+    async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Invoice]:
         cursor = self.collection.find({"club_id": club_id}).sort("created_at", -1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_status(self, status: InvoiceStatus, limit: int = 100) -> List[Invoice]:
+    async def find_by_status(self, status: InvoiceStatus, limit: int = 0) -> List[Invoice]:
         cursor = self.collection.find({"status": status.value}).sort("created_at", -1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_date_range(
         self,
         start_date: Optional[date],
         end_date: Optional[date],
-        limit: int = 100
+        limit: int = 0
     ) -> List[Invoice]:
         query = {}
         if start_date:
@@ -146,7 +146,7 @@ class MongoDBInvoiceRepository(InvoiceRepositoryPort):
                 query["issue_date"] = {}
             query["issue_date"]["$lte"] = end_date.isoformat()
         cursor = self.collection.find(query).sort("issue_date", -1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def get_next_invoice_number(self, year: int) -> str:

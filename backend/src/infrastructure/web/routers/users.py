@@ -110,7 +110,7 @@ async def read_users_me(ctx: AuthContext = Depends(get_auth_context)):
 
 @router.get("/users", response_model=List[UserResponse])
 async def get_users(
-    limit: int = 100,
+    limit: int = 0,
     get_all_users_use_case: GetAllUsersUseCase = Depends(get_all_users_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):

@@ -51,7 +51,7 @@ def _to_response(p) -> PriceConfigurationResponse:
 @router.get("", response_model=List[PriceConfigurationResponse])
 async def get_all_prices(
     active_only: bool = False,
-    limit: int = 100,
+    limit: int = 0,
     get_all_use_case = Depends(get_all_prices_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):

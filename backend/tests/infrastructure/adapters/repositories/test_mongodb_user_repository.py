@@ -149,8 +149,8 @@ class TestMongoDBUserRepository:
         assert len(result) == len(user_documents_list)
         assert all(isinstance(user, User) for user in result)
         mock_mongo_collection.find.assert_called_once()
-        cursor_mock.limit.assert_called_once_with(100)
-        cursor_mock.to_list.assert_called_once_with(length=100)
+        cursor_mock.limit.assert_called_once_with(0)
+        cursor_mock.to_list.assert_called_once_with(length=None)
 
     async def test_find_all_with_custom_limit(self, repository, mock_mongo_collection, user_documents_list):
         """Test that find_all respects custom limit parameter."""

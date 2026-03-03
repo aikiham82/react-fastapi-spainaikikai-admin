@@ -21,7 +21,7 @@ export const getMemberPaymentStatus = async (
 
 export const getMemberPaymentHistory = async (
   memberId: string,
-  limit: number = 100
+  limit: number = 0
 ): Promise<MemberPaymentHistoryResponse> => {
   return await apiClient.get<MemberPaymentHistoryResponse>(
     `${BASE_URL}/member/${memberId}/history`,

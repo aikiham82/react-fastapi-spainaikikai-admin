@@ -51,9 +51,9 @@ class MongoDBPriceConfigurationRepository(PriceConfigurationRepositoryPort):
             doc["created_at"] = price_config.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[PriceConfiguration]:
+    async def find_all(self, limit: int = 0) -> List[PriceConfiguration]:
         cursor = self.collection.find().sort("key", 1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_id(self, price_id: str) -> Optional[PriceConfiguration]:
@@ -67,9 +67,9 @@ class MongoDBPriceConfigurationRepository(PriceConfigurationRepositoryPort):
         doc = await self.collection.find_one({"key": key})
         return self._to_domain(doc) if doc else None
 
-    async def find_active(self, limit: int = 100) -> List[PriceConfiguration]:
+    async def find_active(self, limit: int = 0) -> List[PriceConfiguration]:
         cursor = self.collection.find({"is_active": True}).sort("key", 1).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_license_type(

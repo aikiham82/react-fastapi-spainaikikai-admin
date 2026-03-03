@@ -67,7 +67,7 @@ async def get_all_invoices(
     status: Optional[str] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
-    limit: int = 100,
+    limit: int = 0,
     get_all_use_case = Depends(get_all_invoices_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
@@ -84,7 +84,7 @@ async def get_all_invoices(
 @router.get("/member/{member_id}", response_model=List[InvoiceResponse])
 async def get_member_invoices(
     member_id: str,
-    limit: int = 100,
+    limit: int = 0,
     get_invoices_use_case = Depends(get_invoices_by_member_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):

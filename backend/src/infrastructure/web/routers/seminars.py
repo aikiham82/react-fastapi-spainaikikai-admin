@@ -71,7 +71,7 @@ router = APIRouter(prefix="/seminars", tags=["seminars"])
 
 @router.get("", response_model=List[SeminarResponse])
 async def get_seminars(
-    limit: int = 100,
+    limit: int = 0,
     club_id: Optional[str] = None,
     association_id: Optional[str] = None,
     get_all_use_case = Depends(get_all_seminars_use_case),
@@ -90,7 +90,7 @@ async def get_seminars(
 
 @router.get("/upcoming", response_model=List[SeminarResponse])
 async def get_upcoming_seminars(
-    limit: int = 100,
+    limit: int = 0,
     get_upcoming_use_case = Depends(get_upcoming_seminars_use_case),
     get_all_use_case = Depends(get_all_seminars_use_case),
     ctx: AuthContext = Depends(get_auth_context)

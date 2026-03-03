@@ -59,9 +59,9 @@ class MongoDBClubRepository(ClubRepositoryPort):
             doc["created_at"] = club.created_at
         return doc
 
-    async def find_all(self, limit: int = 100) -> List[Club]:
+    async def find_all(self, limit: int = 0) -> List[Club]:
         cursor = self.collection.find().limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def find_by_ids(self, club_ids: List[str]) -> List[Club]:
@@ -79,17 +79,17 @@ class MongoDBClubRepository(ClubRepositoryPort):
         except Exception:
             return None
 
-    async def find_by_association_id(self, association_id: str, limit: int = 100) -> List[Club]:
+    async def find_by_association_id(self, association_id: str, limit: int = 0) -> List[Club]:
         cursor = self.collection.find({"association_id": association_id}).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_active(self, association_id: Optional[str] = None, limit: int = 100) -> List[Club]:
+    async def find_active(self, association_id: Optional[str] = None, limit: int = 0) -> List[Club]:
         query = {"is_active": True}
         if association_id:
             query["association_id"] = association_id
         cursor = self.collection.find(query).limit(limit)
-        documents = await cursor.to_list(length=limit)
+        documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
     async def create(self, club: Club) -> Club:

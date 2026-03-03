@@ -16,7 +16,7 @@ class GetAllUsersUseCase:
     def __init__(self, user_repository: UserRepositoryPort):
         self.user_repository = user_repository
 
-    async def execute(self, limit: int = 100) -> List[User]:
+    async def execute(self, limit: int = 0) -> List[User]:
         """Execute the use case."""
         return await self.user_repository.find_all(limit)
 

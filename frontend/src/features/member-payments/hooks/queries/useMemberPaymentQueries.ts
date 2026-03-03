@@ -27,7 +27,7 @@ export const useMemberPaymentStatusQuery = (
 
 export const useMemberPaymentHistoryQuery = (
   memberId: string,
-  limit: number = 100,
+  limit: number = 0,
   enabled: boolean = true
 ) => {
   return useQuery({
