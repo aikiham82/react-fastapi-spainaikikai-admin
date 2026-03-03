@@ -27,7 +27,7 @@ const rolePermissions: Record<
     licenses: ['read'],
     payments: ['read', 'create', 'update'],
     invoices: ['read'],
-    seminars: ['read', 'create', 'update'],
+    seminars: ['read', 'create', 'update', 'delete'],
     insurance: ['read', 'create', 'update'],
     import_export: ['read', 'create', 'update'],
   },
