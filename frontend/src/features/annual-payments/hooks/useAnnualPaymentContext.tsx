@@ -104,7 +104,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
 
   // Fetch members for the selected club
   const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
-    { club_id: form.formData.club_id, status: 'active' },
+    { club_id: form.formData.club_id, status: 'active', limit: 0 },
     { enabled: !!form.formData.club_id }
   );
 
