@@ -25,7 +25,7 @@ interface SeminarContextType {
 const SeminarContext = createContext<SeminarContextType | undefined>(undefined);
 
 export const SeminarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [filters, setFilters] = useState<SeminarFilters>({ limit: 20, offset: 0 });
+  const [filters, setFilters] = useState<SeminarFilters>({ limit: 0, offset: 0 });
   const [selectedSeminar, setSelectedSeminar] = useState<Seminar | null>(null);
   const { clubId, userRole } = useAuthContext();
 
@@ -70,7 +70,7 @@ export const SeminarProvider: React.FC<{ children: ReactNode }> = ({ children })
     filters,
     total: seminarsData?.total || 0,
     offset: seminarsData?.offset || 0,
-    limit: seminarsData?.limit || 20,
+    limit: seminarsData?.limit || 0,
     createSeminar: handleCreateSeminar,
     updateSeminar: handleUpdateSeminar,
     deleteSeminar: handleDeleteSeminar,

@@ -23,7 +23,7 @@ interface InsuranceContextType {
 const InsuranceContext = createContext<InsuranceContextType | undefined>(undefined);
 
 export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [filters, setFilters] = useState<InsuranceFilters>({ limit: 20, offset: 0 });
+  const [filters, setFilters] = useState<InsuranceFilters>({ limit: 0, offset: 0 });
   const [selectedInsurance, setSelectedInsurance] = useState<Insurance | null>(null);
   const { data: insuranceData, isLoading, error } = useInsuranceQuery(filters);
   const createMutation = useCreateInsuranceMutation();
@@ -54,7 +54,7 @@ export const InsuranceProvider: React.FC<{ children: ReactNode }> = ({ children 
     filters,
     total: insuranceData?.total || 0,
     offset: insuranceData?.offset || 0,
-    limit: insuranceData?.limit || 20,
+    limit: insuranceData?.limit || 0,
     createInsurance: handleCreateInsurance,
     updateInsurance: handleUpdateInsurance,
     deleteInsurance: handleDeleteInsurance,

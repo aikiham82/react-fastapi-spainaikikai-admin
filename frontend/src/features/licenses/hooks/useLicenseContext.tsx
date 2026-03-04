@@ -23,7 +23,7 @@ interface LicenseContextType {
 const LicenseContext = createContext<LicenseContextType | undefined>(undefined);
 
 export const LicenseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [filters, setFilters] = useState<LicenseFilters>({ limit: 20, offset: 0 });
+  const [filters, setFilters] = useState<LicenseFilters>({ limit: 0, offset: 0 });
   const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
   const { data: licensesData, isLoading, error } = useLicensesQuery(filters);
   const createMutation = useCreateLicenseMutation();
@@ -54,7 +54,7 @@ export const LicenseProvider: React.FC<{ children: ReactNode }> = ({ children })
     filters,
     total: licensesData?.total || 0,
     offset: licensesData?.offset || 0,
-    limit: licensesData?.limit || 20,
+    limit: licensesData?.limit || 0,
     createLicense: handleCreateLicense,
     updateLicense: handleUpdateLicense,
     deleteLicense: handleDeleteLicense,
