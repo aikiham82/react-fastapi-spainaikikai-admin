@@ -162,7 +162,10 @@ async def get_licenses(
     items = await _populate_member_names(items)
     items.sort(key=_get_sort_key)
     total = len(items)
-    items = items[offset:offset + limit]
+    if limit > 0:
+        items = items[offset:offset + limit]
+    else:
+        items = items[offset:]
     return LicenseListResponse(
         items=items,
         total=total,
