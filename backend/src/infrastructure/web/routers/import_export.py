@@ -183,14 +183,89 @@ async def import_members(
     )
 
 
+def _parse_columns(columns: Optional[str]) -> Optional[list]:
+    """Parse comma-separated column keys into a list."""
+    if not columns:
+        return None
+    return [c.strip() for c in columns.split(',') if c.strip()]
+
+
+def _build_excel(title: str, column_registry: list, data_rows: list, columns: Optional[str] = None):
+    """Build an Excel workbook using column registry and optional column filter.
+
+    column_registry: list of (key, header_label, value_extractor_fn) tuples
+    data_rows: list of data objects to iterate over
+    columns: optional comma-separated column keys to include
+    """
+    selected_keys = _parse_columns(columns)
+    if selected_keys:
+        registry = [(k, h, fn) for k, h, fn in column_registry if k in selected_keys]
+    else:
+        registry = column_registry
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = title
+
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4A5568", end_color="4A5568", fill_type="solid")
+
+    for col_idx, (_, header, _) in enumerate(registry, 1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center")
+
+    for row_idx, item in enumerate(data_rows, 2):
+        for col_idx, (_, _, extractor) in enumerate(registry, 1):
+            ws.cell(row=row_idx, column=col_idx, value=extractor(item))
+
+    for col in ws.columns:
+        max_length = 0
+        column_letter = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return output
+
+
+# --- Column registries ---
+
+MEMBERS_COLUMN_REGISTRY = [
+    ("id", "ID", lambda m: m.id),
+    ("first_name", "Nombre", lambda m: m.first_name),
+    ("last_name", "Apellidos", lambda m: m.last_name or ''),
+    ("dni", "DNI", lambda m: '' if not m.dni or m.dni == 'null' else m.dni),
+    ("email", "Email", lambda m: m.email),
+    ("phone", "Teléfono", lambda m: m.phone or ''),
+    ("birth_date", "Fecha Nacimiento", lambda m: m.birth_date.strftime('%d/%m/%Y') if m.birth_date else ''),
+    ("address", "Dirección", lambda m: m.address or ''),
+    ("city", "Ciudad", lambda m: m.city or ''),
+    ("province", "Provincia", lambda m: m.province or ''),
+    ("postal_code", "Código Postal", lambda m: m.postal_code or ''),
+    ("country", "País", lambda m: m.country or ''),
+    ("club_id", "Club ID", lambda m: m.club_id or ''),
+    ("status", "Estado", lambda m: m.status.value if m.status else ''),
+    ("created_at", "Fecha Creación", lambda m: m.created_at.strftime('%d/%m/%Y %H:%M') if m.created_at else ''),
+]
+
+
 @router.get("/members/export")
 async def export_members(
     club_id: Optional[str] = Query(None),
+    columns: Optional[str] = Query(None, description="Comma-separated column keys to include"),
     get_all_use_case=Depends(get_all_members_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Export members to Excel file. No limit — exports all matching members."""
-    # Enforce club isolation: club users can only export their own club's members
     effective_club_id = get_club_filter_ctx(ctx)
     if effective_club_id is not None:
         members = await get_all_use_case.execute(0, effective_club_id)
@@ -199,74 +274,13 @@ async def export_members(
     else:
         members = await get_all_use_case.execute(0, None)
 
-    # Create Excel workbook
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Miembros"
-
-    # Define headers
-    headers = [
-        "ID", "Nombre", "Apellidos", "DNI", "Email", "Teléfono",
-        "Fecha Nacimiento", "Dirección", "Ciudad", "Provincia",
-        "Código Postal", "País", "Club ID", "Estado", "Fecha Creación"
-    ]
-
-    # Style for header
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="4A5568", end_color="4A5568", fill_type="solid")
-
-    # Write headers
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col, value=header)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center")
-
-    # Write data
-    for row_idx, member in enumerate(members, 2):
-        ws.cell(row=row_idx, column=1, value=member.id)
-        ws.cell(row=row_idx, column=2, value=member.first_name)
-        ws.cell(row=row_idx, column=3, value=member.last_name or '')
-        ws.cell(row=row_idx, column=4, value='' if not member.dni or member.dni == 'null' else member.dni)
-        ws.cell(row=row_idx, column=5, value=member.email)
-        ws.cell(row=row_idx, column=6, value=member.phone or '')
-        ws.cell(row=row_idx, column=7, value=member.birth_date.strftime('%d/%m/%Y') if member.birth_date else '')
-        ws.cell(row=row_idx, column=8, value=member.address or '')
-        ws.cell(row=row_idx, column=9, value=member.city or '')
-        ws.cell(row=row_idx, column=10, value=member.province or '')
-        ws.cell(row=row_idx, column=11, value=member.postal_code or '')
-        ws.cell(row=row_idx, column=12, value=member.country or '')
-        ws.cell(row=row_idx, column=13, value=member.club_id or '')
-        ws.cell(row=row_idx, column=14, value=member.status.value if member.status else '')
-        ws.cell(row=row_idx, column=15, value=member.created_at.strftime('%d/%m/%Y %H:%M') if member.created_at else '')
-
-    # Adjust column widths
-    for col in ws.columns:
-        max_length = 0
-        column = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column].width = adjusted_width
-
-    # Save to BytesIO
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    # Generate filename with timestamp
+    output = _build_excel("Miembros", MEMBERS_COLUMN_REGISTRY, members, columns)
     filename = f"miembros_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={
-            "Content-Disposition": f"attachment; filename={filename}"
-        }
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 
@@ -276,6 +290,7 @@ async def export_licenses(
     status: Optional[str] = Query(None),
     technical_grade: Optional[str] = Query(None),
     age_category: Optional[str] = Query(None),
+    columns: Optional[str] = Query(None, description="Comma-separated column keys to include"),
     get_all_use_case=Depends(get_all_licenses_use_case),
     member_repo=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
@@ -289,7 +304,6 @@ async def export_licenses(
 
     licenses = await get_all_use_case.execute(limit=0, club_id=club_id)
 
-    # Post-filter by status, technical_grade, age_category
     if status:
         try:
             status_enum = LicenseStatus(status)
@@ -311,7 +325,6 @@ async def export_licenses(
         except ValueError:
             pass
 
-    # Batch member lookup
     member_ids = list(set([lic.member_id for lic in licenses if lic.member_id]))
     member_map = {}
     for mid in member_ids:
@@ -319,66 +332,48 @@ async def export_licenses(
         if member:
             member_map[mid] = member
 
-    # Create Excel workbook
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Licencias"
+    def _make_lic_row(lic):
+        member = member_map.get(lic.member_id)
+        member_dni = (member.dni if member else '') or ''
+        return type('Row', (), {
+            'license_number': lic.license_number,
+            'first_name': member.first_name if member else '',
+            'last_name': member.last_name if member else '',
+            'dni': '' if member_dni == 'null' else member_dni,
+            'club': member.club_id if member else '',
+            'technical_grade': lic.technical_grade.value if lic.technical_grade else '',
+            'instructor_category': lic.instructor_category.value if lic.instructor_category else '',
+            'age_category': lic.age_category.value if lic.age_category else '',
+            'status': lic.status.value if lic.status else '',
+            'issue_date': lic.issue_date.strftime('%d/%m/%Y') if lic.issue_date else '',
+            'expiration_date': lic.expiration_date.strftime('%d/%m/%Y') if lic.expiration_date else '',
+            'is_renewed': 'Sí' if lic.is_renewed else 'No',
+        })()
 
-    headers = [
-        "Nº Licencia", "Nombre", "Apellidos", "DNI", "Club",
-        "Grado Técnico", "Cat. Instructor", "Cat. Edad",
-        "Estado", "Fecha Emisión", "Fecha Expiración", "Renovada"
+    rows = [_make_lic_row(lic) for lic in licenses]
+
+    registry = [
+        ("license_number", "Nº Licencia", lambda r: r.license_number),
+        ("first_name", "Nombre", lambda r: r.first_name),
+        ("last_name", "Apellidos", lambda r: r.last_name),
+        ("dni", "DNI", lambda r: r.dni),
+        ("club", "Club", lambda r: r.club),
+        ("technical_grade", "Grado Técnico", lambda r: r.technical_grade),
+        ("instructor_category", "Cat. Instructor", lambda r: r.instructor_category),
+        ("age_category", "Cat. Edad", lambda r: r.age_category),
+        ("status", "Estado", lambda r: r.status),
+        ("issue_date", "Fecha Emisión", lambda r: r.issue_date),
+        ("expiration_date", "Fecha Expiración", lambda r: r.expiration_date),
+        ("is_renewed", "Renovada", lambda r: r.is_renewed),
     ]
 
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="4A5568", end_color="4A5568", fill_type="solid")
-
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col, value=header)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center")
-
-    for row_idx, lic in enumerate(licenses, 2):
-        member = member_map.get(lic.member_id)
-        ws.cell(row=row_idx, column=1, value=lic.license_number)
-        ws.cell(row=row_idx, column=2, value=member.first_name if member else '')
-        ws.cell(row=row_idx, column=3, value=member.last_name if member else '')
-        member_dni = (member.dni if member else '') or ''
-        ws.cell(row=row_idx, column=4, value='' if member_dni == 'null' else member_dni)
-        ws.cell(row=row_idx, column=5, value=member.club_id if member else '')
-        ws.cell(row=row_idx, column=6, value=lic.technical_grade.value if lic.technical_grade else '')
-        ws.cell(row=row_idx, column=7, value=lic.instructor_category.value if lic.instructor_category else '')
-        ws.cell(row=row_idx, column=8, value=lic.age_category.value if lic.age_category else '')
-        ws.cell(row=row_idx, column=9, value=lic.status.value if lic.status else '')
-        ws.cell(row=row_idx, column=10, value=lic.issue_date.strftime('%d/%m/%Y') if lic.issue_date else '')
-        ws.cell(row=row_idx, column=11, value=lic.expiration_date.strftime('%d/%m/%Y') if lic.expiration_date else '')
-        ws.cell(row=row_idx, column=12, value='Sí' if lic.is_renewed else 'No')
-
-    for col in ws.columns:
-        max_length = 0
-        column = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column].width = adjusted_width
-
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
+    output = _build_excel("Licencias", registry, rows, columns)
     filename = f"licencias_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={
-            "Content-Disposition": f"attachment; filename={filename}"
-        }
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 
@@ -387,6 +382,7 @@ async def export_insurances(
     club_id: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     insurance_type: Optional[str] = Query(None),
+    columns: Optional[str] = Query(None, description="Comma-separated column keys to include"),
     get_all_use_case=Depends(get_all_insurances_use_case),
     member_repo=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
@@ -400,7 +396,6 @@ async def export_insurances(
 
     insurances = await get_all_use_case.execute(limit=0, club_id=club_id)
 
-    # Post-filter by status, insurance_type
     if status:
         try:
             status_enum = InsuranceStatus(status)
@@ -415,7 +410,6 @@ async def export_insurances(
         except ValueError:
             pass
 
-    # Batch member lookup
     member_ids = list(set([ins.member_id for ins in insurances if ins.member_id]))
     member_map = {}
     for mid in member_ids:
@@ -423,65 +417,46 @@ async def export_insurances(
         if member:
             member_map[mid] = member
 
-    # Create Excel workbook
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Seguros"
+    def _make_ins_row(ins):
+        member = member_map.get(ins.member_id)
+        member_dni = (member.dni if member else '') or ''
+        return type('Row', (), {
+            'policy_number': ins.policy_number,
+            'first_name': member.first_name if member else '',
+            'last_name': member.last_name if member else '',
+            'dni': '' if member_dni == 'null' else member_dni,
+            'club': member.club_id if member else '',
+            'insurance_type': ins.insurance_type.value if ins.insurance_type else '',
+            'insurance_company': ins.insurance_company or '',
+            'coverage_amount': str(ins.coverage_amount) if ins.coverage_amount else '',
+            'status': ins.status.value if ins.status else '',
+            'start_date': ins.start_date.strftime('%d/%m/%Y') if ins.start_date else '',
+            'end_date': ins.end_date.strftime('%d/%m/%Y') if ins.end_date else '',
+        })()
 
-    headers = [
-        "Nº Póliza", "Nombre", "Apellidos", "DNI", "Club",
-        "Tipo Seguro", "Compañía", "Cobertura",
-        "Estado", "Fecha Inicio", "Fecha Fin"
+    rows = [_make_ins_row(ins) for ins in insurances]
+
+    registry = [
+        ("policy_number", "Nº Póliza", lambda r: r.policy_number),
+        ("first_name", "Nombre", lambda r: r.first_name),
+        ("last_name", "Apellidos", lambda r: r.last_name),
+        ("dni", "DNI", lambda r: r.dni),
+        ("club", "Club", lambda r: r.club),
+        ("insurance_type", "Tipo Seguro", lambda r: r.insurance_type),
+        ("insurance_company", "Compañía", lambda r: r.insurance_company),
+        ("coverage_amount", "Cobertura", lambda r: r.coverage_amount),
+        ("status", "Estado", lambda r: r.status),
+        ("start_date", "Fecha Inicio", lambda r: r.start_date),
+        ("end_date", "Fecha Fin", lambda r: r.end_date),
     ]
 
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="4A5568", end_color="4A5568", fill_type="solid")
-
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col, value=header)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center")
-
-    for row_idx, ins in enumerate(insurances, 2):
-        member = member_map.get(ins.member_id)
-        ws.cell(row=row_idx, column=1, value=ins.policy_number)
-        ws.cell(row=row_idx, column=2, value=member.first_name if member else '')
-        ws.cell(row=row_idx, column=3, value=member.last_name if member else '')
-        member_dni = (member.dni if member else '') or ''
-        ws.cell(row=row_idx, column=4, value='' if member_dni == 'null' else member_dni)
-        ws.cell(row=row_idx, column=5, value=member.club_id if member else '')
-        ws.cell(row=row_idx, column=6, value=ins.insurance_type.value if ins.insurance_type else '')
-        ws.cell(row=row_idx, column=7, value=ins.insurance_company or '')
-        ws.cell(row=row_idx, column=8, value=str(ins.coverage_amount) if ins.coverage_amount else '')
-        ws.cell(row=row_idx, column=9, value=ins.status.value if ins.status else '')
-        ws.cell(row=row_idx, column=10, value=ins.start_date.strftime('%d/%m/%Y') if ins.start_date else '')
-        ws.cell(row=row_idx, column=11, value=ins.end_date.strftime('%d/%m/%Y') if ins.end_date else '')
-
-    for col in ws.columns:
-        max_length = 0
-        column = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column].width = adjusted_width
-
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
+    output = _build_excel("Seguros", registry, rows, columns)
     filename = f"seguros_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={
-            "Content-Disposition": f"attachment; filename={filename}"
-        }
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 
@@ -796,6 +771,7 @@ PAYMENT_TYPE_FROM_LABEL.update({k: k for k in PAYMENT_TYPE_LABELS})
 @router.get("/payments/export")
 async def export_payments(
     payment_year: int = Query(..., description="Year to export payments for"),
+    columns: Optional[str] = Query(None, description="Comma-separated column keys to include"),
     member_payment_repo=Depends(get_member_payment_repository),
     member_repo=Depends(get_member_repository),
     club_repo=Depends(get_club_repository),
@@ -810,24 +786,8 @@ async def export_payments(
 
     clubs = await club_repo.find_all()
 
-    wb = openpyxl.Workbook()
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="4A5568", end_color="4A5568", fill_type="solid")
-
-    ws = wb.active
-    ws.title = "Pagos"
-
-    headers = [
-        "Club", "Nombre", "Apellidos", "DNI", "Tipo Pago",
-        "Concepto", "Monto", "Estado", "Año"
-    ]
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col, value=header)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center")
-
-    row_idx = 2
+    # Collect all payment rows with denormalized data
+    all_rows = []
     for club in clubs:
         if not club.id or not club.is_active:
             continue
@@ -846,33 +806,32 @@ async def export_payments(
 
         for payment in payments:
             member = member_map.get(payment.member_id)
-            ws.cell(row=row_idx, column=1, value=club.name)
-            ws.cell(row=row_idx, column=2, value=member.first_name if member else '')
-            ws.cell(row=row_idx, column=3, value=member.last_name if member else '')
             dni = (member.dni or '') if member else ''
-            ws.cell(row=row_idx, column=4, value='' if dni == 'null' else dni)
-            ws.cell(row=row_idx, column=5, value=PAYMENT_TYPE_LABELS.get(payment.payment_type.value, payment.payment_type.value))
-            ws.cell(row=row_idx, column=6, value=payment.concept)
-            ws.cell(row=row_idx, column=7, value=payment.amount)
-            ws.cell(row=row_idx, column=8, value=payment.status.value)
-            ws.cell(row=row_idx, column=9, value=payment.payment_year)
-            row_idx += 1
+            all_rows.append(type('Row', (), {
+                'club': club.name,
+                'first_name': member.first_name if member else '',
+                'last_name': member.last_name if member else '',
+                'dni': '' if dni == 'null' else dni,
+                'payment_type': PAYMENT_TYPE_LABELS.get(payment.payment_type.value, payment.payment_type.value),
+                'concept': payment.concept,
+                'amount': payment.amount,
+                'status': payment.status.value,
+                'payment_year': payment.payment_year,
+            })())
 
-    for col in ws.columns:
-        max_length = 0
-        column_letter = col[0].column_letter
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
+    registry = [
+        ("club", "Club", lambda r: r.club),
+        ("first_name", "Nombre", lambda r: r.first_name),
+        ("last_name", "Apellidos", lambda r: r.last_name),
+        ("dni", "DNI", lambda r: r.dni),
+        ("payment_type", "Tipo Pago", lambda r: r.payment_type),
+        ("concept", "Concepto", lambda r: r.concept),
+        ("amount", "Monto", lambda r: r.amount),
+        ("status", "Estado", lambda r: r.status),
+        ("payment_year", "Año", lambda r: r.payment_year),
+    ]
 
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
+    output = _build_excel("Pagos", registry, all_rows, columns)
     filename = f"pagos_export_{payment_year}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     return StreamingResponse(

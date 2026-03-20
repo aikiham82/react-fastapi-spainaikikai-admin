@@ -16,6 +16,7 @@ export interface ExportMembersFilters {
   license_status?: string;
   date_from?: string;
   date_to?: string;
+  columns?: string;
 }
 
 export interface ExportDataResponse {
@@ -34,6 +35,7 @@ export interface ExportLicensesFilters {
   status?: string;
   technical_grade?: string;
   age_category?: string;
+  columns?: string;
 }
 
 // Insurance import/export
@@ -46,6 +48,7 @@ export interface ExportInsurancesFilters {
   club_id?: string;
   status?: string;
   insurance_type?: string;
+  columns?: string;
 }
 
 // Payment import/export
@@ -56,4 +59,5 @@ export interface ImportPaymentsRequest {
 
 export interface ExportPaymentsFilters {
   payment_year: number;
+  columns?: string;
 }

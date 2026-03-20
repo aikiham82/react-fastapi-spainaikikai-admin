@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { importExportService } from '../../data/services/import-export.service';
+import type { ExportPaymentsFilters } from '../../data/schemas/import-export.schema';
 import { toast } from 'sonner';
 
 export const useImportMembersMutation = () => {
@@ -154,7 +155,7 @@ export const useImportPaymentsMutation = () => {
 
 export const useExportPaymentsMutation = () => {
   return useMutation({
-    mutationFn: (filters: { payment_year: number }) => importExportService.exportPayments(filters),
+    mutationFn: (filters: ExportPaymentsFilters) => importExportService.exportPayments(filters),
     onSuccess: (blob: Blob, variables) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');

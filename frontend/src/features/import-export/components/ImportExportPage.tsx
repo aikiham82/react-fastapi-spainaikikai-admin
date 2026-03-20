@@ -18,6 +18,68 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+import { ColumnSelector, type ColumnOption } from './ColumnSelector';
+
+// --- Column definitions per entity ---
+
+const MEMBER_COLUMNS: ColumnOption[] = [
+  { key: 'id', label: 'ID' },
+  { key: 'first_name', label: 'Nombre' },
+  { key: 'last_name', label: 'Apellidos' },
+  { key: 'dni', label: 'DNI' },
+  { key: 'email', label: 'Email' },
+  { key: 'phone', label: 'Teléfono' },
+  { key: 'birth_date', label: 'Fecha Nacimiento' },
+  { key: 'address', label: 'Dirección' },
+  { key: 'city', label: 'Ciudad' },
+  { key: 'province', label: 'Provincia' },
+  { key: 'postal_code', label: 'Código Postal' },
+  { key: 'country', label: 'País' },
+  { key: 'club_id', label: 'Club ID' },
+  { key: 'status', label: 'Estado' },
+  { key: 'created_at', label: 'Fecha Creación' },
+];
+
+const LICENSE_COLUMNS: ColumnOption[] = [
+  { key: 'license_number', label: 'Nº Licencia' },
+  { key: 'first_name', label: 'Nombre' },
+  { key: 'last_name', label: 'Apellidos' },
+  { key: 'dni', label: 'DNI' },
+  { key: 'club', label: 'Club' },
+  { key: 'technical_grade', label: 'Grado Técnico' },
+  { key: 'instructor_category', label: 'Cat. Instructor' },
+  { key: 'age_category', label: 'Cat. Edad' },
+  { key: 'status', label: 'Estado' },
+  { key: 'issue_date', label: 'Fecha Emisión' },
+  { key: 'expiration_date', label: 'Fecha Expiración' },
+  { key: 'is_renewed', label: 'Renovada' },
+];
+
+const INSURANCE_COLUMNS: ColumnOption[] = [
+  { key: 'policy_number', label: 'Nº Póliza' },
+  { key: 'first_name', label: 'Nombre' },
+  { key: 'last_name', label: 'Apellidos' },
+  { key: 'dni', label: 'DNI' },
+  { key: 'club', label: 'Club' },
+  { key: 'insurance_type', label: 'Tipo Seguro' },
+  { key: 'insurance_company', label: 'Compañía' },
+  { key: 'coverage_amount', label: 'Cobertura' },
+  { key: 'status', label: 'Estado' },
+  { key: 'start_date', label: 'Fecha Inicio' },
+  { key: 'end_date', label: 'Fecha Fin' },
+];
+
+const PAYMENT_COLUMNS: ColumnOption[] = [
+  { key: 'club', label: 'Club' },
+  { key: 'first_name', label: 'Nombre' },
+  { key: 'last_name', label: 'Apellidos' },
+  { key: 'dni', label: 'DNI' },
+  { key: 'payment_type', label: 'Tipo Pago' },
+  { key: 'concept', label: 'Concepto' },
+  { key: 'amount', label: 'Monto' },
+  { key: 'status', label: 'Estado' },
+  { key: 'payment_year', label: 'Año' },
+];
 
 interface ImportResults {
   success: boolean;
@@ -227,6 +289,12 @@ export const ImportExportPage = () => {
   const [paymentExportYear, setPaymentExportYear] = useState<number>(currentYear);
   const paymentYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
+  // Column selection state (all selected by default)
+  const [memberColumns, setMemberColumns] = useState<string[]>(MEMBER_COLUMNS.map((c) => c.key));
+  const [licenseColumns, setLicenseColumns] = useState<string[]>(LICENSE_COLUMNS.map((c) => c.key));
+  const [insuranceColumns, setInsuranceColumns] = useState<string[]>(INSURANCE_COLUMNS.map((c) => c.key));
+  const [paymentColumns, setPaymentColumns] = useState<string[]>(PAYMENT_COLUMNS.map((c) => c.key));
+
   const [activeTab, setActiveTab] = useState('members');
 
   const handleImportMembers = async (data: Record<string, unknown>[]): Promise<ImportResults> => {
@@ -341,12 +409,21 @@ export const ImportExportPage = () => {
                 </div>
               </div>
 
+              <ColumnSelector
+                columns={MEMBER_COLUMNS}
+                selectedKeys={memberColumns}
+                onChange={setMemberColumns}
+              />
+
               <Button
                 onClick={() => {
                   const { limit: _l, offset: _o, ...exportFilters } = memberFilters as any;
-                  exportMembersMutation.mutate(exportFilters);
+                  const columnsParam = memberColumns.length < MEMBER_COLUMNS.length
+                    ? memberColumns.join(',')
+                    : undefined;
+                  exportMembersMutation.mutate({ ...exportFilters, columns: columnsParam });
                 }}
-                disabled={exportMembersMutation.isPending}
+                disabled={exportMembersMutation.isPending || memberColumns.length === 0}
                 className="w-full"
               >
                 {exportMembersMutation.isPending ? 'Exportando...' : 'Exportar Miembros'}
@@ -455,14 +532,23 @@ export const ImportExportPage = () => {
                   </div>
                 </div>
 
+                <ColumnSelector
+                  columns={LICENSE_COLUMNS}
+                  selectedKeys={licenseColumns}
+                  onChange={setLicenseColumns}
+                />
+
                 <Button
                   onClick={() => {
                     const cleanFilters = Object.fromEntries(
                       Object.entries(licenseFilters).filter(([, v]) => v)
                     );
-                    exportLicensesMutation.mutate(cleanFilters);
+                    const columnsParam = licenseColumns.length < LICENSE_COLUMNS.length
+                      ? licenseColumns.join(',')
+                      : undefined;
+                    exportLicensesMutation.mutate({ ...cleanFilters, columns: columnsParam });
                   }}
-                  disabled={exportLicensesMutation.isPending}
+                  disabled={exportLicensesMutation.isPending || licenseColumns.length === 0}
                   className="w-full"
                 >
                   {exportLicensesMutation.isPending ? 'Exportando...' : 'Exportar Licencias'}
@@ -549,14 +635,23 @@ export const ImportExportPage = () => {
                   </div>
                 </div>
 
+                <ColumnSelector
+                  columns={INSURANCE_COLUMNS}
+                  selectedKeys={insuranceColumns}
+                  onChange={setInsuranceColumns}
+                />
+
                 <Button
                   onClick={() => {
                     const cleanFilters = Object.fromEntries(
                       Object.entries(insuranceFilters).filter(([, v]) => v)
                     );
-                    exportInsurancesMutation.mutate(cleanFilters);
+                    const columnsParam = insuranceColumns.length < INSURANCE_COLUMNS.length
+                      ? insuranceColumns.join(',')
+                      : undefined;
+                    exportInsurancesMutation.mutate({ ...cleanFilters, columns: columnsParam });
                   }}
-                  disabled={exportInsurancesMutation.isPending}
+                  disabled={exportInsurancesMutation.isPending || insuranceColumns.length === 0}
                   className="w-full"
                 >
                   {exportInsurancesMutation.isPending ? 'Exportando...' : 'Exportar Seguros'}
@@ -613,9 +708,20 @@ export const ImportExportPage = () => {
                   </div>
                 </div>
 
+                <ColumnSelector
+                  columns={PAYMENT_COLUMNS}
+                  selectedKeys={paymentColumns}
+                  onChange={setPaymentColumns}
+                />
+
                 <Button
-                  onClick={() => exportPaymentsMutation.mutate({ payment_year: paymentExportYear })}
-                  disabled={exportPaymentsMutation.isPending}
+                  onClick={() => {
+                    const columnsParam = paymentColumns.length < PAYMENT_COLUMNS.length
+                      ? paymentColumns.join(',')
+                      : undefined;
+                    exportPaymentsMutation.mutate({ payment_year: paymentExportYear, columns: columnsParam });
+                  }}
+                  disabled={exportPaymentsMutation.isPending || paymentColumns.length === 0}
                   className="w-full"
                 >
                   {exportPaymentsMutation.isPending ? 'Exportando...' : 'Exportar Pagos'}
