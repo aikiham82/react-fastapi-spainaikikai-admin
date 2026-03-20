@@ -19,6 +19,7 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   isClubAdmin: boolean;
   isSubmitting: boolean;
   submitError: string | null;
+  assignmentError: string | null;
   submitPayment: () => void;
   // Prices from API
   prices: AnnualPaymentPrices | null;
@@ -171,6 +172,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     form.setField('member_assignments', assignments);
   }, [form]);
 
+  const [assignmentError, setAssignmentError] = useState<string | null>(null);
+
   const submitPayment = useCallback(() => {
     if (!form.validate()) {
       return;
@@ -194,6 +197,30 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
         payment_types: a.payment_types.filter((t) => (activeCounts[t] ?? 0) > 0),
       }))
       .filter((a) => a.payment_types.length > 0);
+
+    // Validate assignment counts match quantities
+    const assignmentCounts: Record<string, number> = {
+      kyu: 0, kyu_infantil: 0, dan: 0, fukushidoin: 0,
+      shidoin: 0, seguro_accidentes: 0, seguro_rc: 0,
+    };
+    cleanedAssignments.forEach((a) => {
+      a.payment_types.forEach((t) => {
+        if (assignmentCounts[t] !== undefined) assignmentCounts[t]++;
+      });
+    });
+
+    const mismatches: string[] = [];
+    for (const [type, expected] of Object.entries(activeCounts)) {
+      if (expected > 0 && (assignmentCounts[type] ?? 0) !== expected) {
+        mismatches.push(type);
+      }
+    }
+
+    if (mismatches.length > 0) {
+      setAssignmentError(`Faltan miembros por asignar en: ${mismatches.join(', ')}. Abre el selector de miembros para completar las asignaciones.`);
+      return;
+    }
+    setAssignmentError(null);
 
     const request: InitiateAnnualPaymentRequest = {
       payer_name: form.formData.payer_name,
@@ -233,6 +260,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     isClubAdmin,
     isSubmitting: initiatePaymentMutation.isPending,
     submitError,
+    assignmentError,
     submitPayment,
     prices: prices ?? null,
     isLoadingPrices,

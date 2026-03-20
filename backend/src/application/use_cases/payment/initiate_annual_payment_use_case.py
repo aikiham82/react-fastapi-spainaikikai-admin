@@ -337,8 +337,8 @@ class InitiateAnnualPaymentUseCase:
 
         for ptype, count in type_counts.items():
             expected = expected_counts[ptype]
-            if count > expected:
+            if count != expected:
                 raise ValueError(
-                    f"Demasiados miembros asignados para {ptype}: "
+                    f"El número de miembros asignados para {ptype} no coincide: "
                     f"{count} asignados, {expected} esperados"
                 )

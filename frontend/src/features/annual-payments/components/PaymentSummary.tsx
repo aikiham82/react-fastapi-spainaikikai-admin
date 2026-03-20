@@ -11,6 +11,7 @@ export const PaymentSummary: React.FC = () => {
     isValid,
     isSubmitting,
     submitError,
+    assignmentError,
     submitPayment,
   } = useAnnualPaymentContext();
 
@@ -94,6 +95,12 @@ export const PaymentSummary: React.FC = () => {
       {errors._form && (
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm text-amber-600">{errors._form}</p>
+        </div>
+      )}
+
+      {assignmentError && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-600">{assignmentError}</p>
         </div>
       )}
 
