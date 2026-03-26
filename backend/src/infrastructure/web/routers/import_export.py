@@ -190,6 +190,12 @@ def _parse_columns(columns: Optional[str]) -> Optional[list]:
     return [c.strip() for c in columns.split(',') if c.strip()]
 
 
+def _split_last_name(last_name: str) -> tuple:
+    """Split 'García López' into ('García', 'López'). Single surname → (surname, '')."""
+    parts = (last_name or '').strip().split(' ', 1)
+    return (parts[0], parts[1] if len(parts) > 1 else '')
+
+
 def _build_excel(title: str, column_registry: list, data_rows: list, columns: Optional[str] = None):
     """Build an Excel workbook using column registry and optional column filter.
 
@@ -242,7 +248,8 @@ def _build_excel(title: str, column_registry: list, data_rows: list, columns: Op
 MEMBERS_COLUMN_REGISTRY = [
     ("id", "ID", lambda m: m.id),
     ("first_name", "Nombre", lambda m: m.first_name),
-    ("last_name", "Apellidos", lambda m: m.last_name or ''),
+    ("last_name_1", "1er Apellido", lambda m: _split_last_name(m.last_name)[0]),
+    ("last_name_2", "2do Apellido", lambda m: _split_last_name(m.last_name)[1]),
     ("dni", "DNI", lambda m: '' if not m.dni or m.dni == 'null' else m.dni),
     ("email", "Email", lambda m: m.email),
     ("phone", "Teléfono", lambda m: m.phone or ''),
@@ -338,7 +345,8 @@ async def export_licenses(
         return type('Row', (), {
             'license_number': lic.license_number,
             'first_name': member.first_name if member else '',
-            'last_name': member.last_name if member else '',
+            'last_name_1': _split_last_name(member.last_name if member else '')[0],
+            'last_name_2': _split_last_name(member.last_name if member else '')[1],
             'dni': '' if member_dni == 'null' else member_dni,
             'club': member.club_id if member else '',
             'technical_grade': lic.technical_grade.value if lic.technical_grade else '',
@@ -355,7 +363,8 @@ async def export_licenses(
     registry = [
         ("license_number", "Nº Licencia", lambda r: r.license_number),
         ("first_name", "Nombre", lambda r: r.first_name),
-        ("last_name", "Apellidos", lambda r: r.last_name),
+        ("last_name_1", "1er Apellido", lambda r: r.last_name_1),
+        ("last_name_2", "2do Apellido", lambda r: r.last_name_2),
         ("dni", "DNI", lambda r: r.dni),
         ("club", "Club", lambda r: r.club),
         ("technical_grade", "Grado Técnico", lambda r: r.technical_grade),
@@ -423,7 +432,8 @@ async def export_insurances(
         return type('Row', (), {
             'policy_number': ins.policy_number,
             'first_name': member.first_name if member else '',
-            'last_name': member.last_name if member else '',
+            'last_name_1': _split_last_name(member.last_name if member else '')[0],
+            'last_name_2': _split_last_name(member.last_name if member else '')[1],
             'dni': '' if member_dni == 'null' else member_dni,
             'club': member.club_id if member else '',
             'insurance_type': ins.insurance_type.value if ins.insurance_type else '',
@@ -439,7 +449,8 @@ async def export_insurances(
     registry = [
         ("policy_number", "Nº Póliza", lambda r: r.policy_number),
         ("first_name", "Nombre", lambda r: r.first_name),
-        ("last_name", "Apellidos", lambda r: r.last_name),
+        ("last_name_1", "1er Apellido", lambda r: r.last_name_1),
+        ("last_name_2", "2do Apellido", lambda r: r.last_name_2),
         ("dni", "DNI", lambda r: r.dni),
         ("club", "Club", lambda r: r.club),
         ("insurance_type", "Tipo Seguro", lambda r: r.insurance_type),
@@ -810,7 +821,8 @@ async def export_payments(
             all_rows.append(type('Row', (), {
                 'club': club.name,
                 'first_name': member.first_name if member else '',
-                'last_name': member.last_name if member else '',
+                'last_name_1': _split_last_name(member.last_name if member else '')[0],
+                'last_name_2': _split_last_name(member.last_name if member else '')[1],
                 'dni': '' if dni == 'null' else dni,
                 'payment_type': PAYMENT_TYPE_LABELS.get(payment.payment_type.value, payment.payment_type.value),
                 'concept': payment.concept,
@@ -822,7 +834,8 @@ async def export_payments(
     registry = [
         ("club", "Club", lambda r: r.club),
         ("first_name", "Nombre", lambda r: r.first_name),
-        ("last_name", "Apellidos", lambda r: r.last_name),
+        ("last_name_1", "1er Apellido", lambda r: r.last_name_1),
+        ("last_name_2", "2do Apellido", lambda r: r.last_name_2),
         ("dni", "DNI", lambda r: r.dni),
         ("payment_type", "Tipo Pago", lambda r: r.payment_type),
         ("concept", "Concepto", lambda r: r.concept),

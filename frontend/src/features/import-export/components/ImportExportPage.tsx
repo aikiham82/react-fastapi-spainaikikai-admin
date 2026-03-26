@@ -25,7 +25,8 @@ import { ColumnSelector, type ColumnOption } from './ColumnSelector';
 const MEMBER_COLUMNS: ColumnOption[] = [
   { key: 'id', label: 'ID' },
   { key: 'first_name', label: 'Nombre' },
-  { key: 'last_name', label: 'Apellidos' },
+  { key: 'last_name_1', label: '1er Apellido' },
+  { key: 'last_name_2', label: '2do Apellido' },
   { key: 'dni', label: 'DNI' },
   { key: 'email', label: 'Email' },
   { key: 'phone', label: 'Teléfono' },
@@ -43,7 +44,8 @@ const MEMBER_COLUMNS: ColumnOption[] = [
 const LICENSE_COLUMNS: ColumnOption[] = [
   { key: 'license_number', label: 'Nº Licencia' },
   { key: 'first_name', label: 'Nombre' },
-  { key: 'last_name', label: 'Apellidos' },
+  { key: 'last_name_1', label: '1er Apellido' },
+  { key: 'last_name_2', label: '2do Apellido' },
   { key: 'dni', label: 'DNI' },
   { key: 'club', label: 'Club' },
   { key: 'technical_grade', label: 'Grado Técnico' },
@@ -58,7 +60,8 @@ const LICENSE_COLUMNS: ColumnOption[] = [
 const INSURANCE_COLUMNS: ColumnOption[] = [
   { key: 'policy_number', label: 'Nº Póliza' },
   { key: 'first_name', label: 'Nombre' },
-  { key: 'last_name', label: 'Apellidos' },
+  { key: 'last_name_1', label: '1er Apellido' },
+  { key: 'last_name_2', label: '2do Apellido' },
   { key: 'dni', label: 'DNI' },
   { key: 'club', label: 'Club' },
   { key: 'insurance_type', label: 'Tipo Seguro' },
@@ -72,7 +75,8 @@ const INSURANCE_COLUMNS: ColumnOption[] = [
 const PAYMENT_COLUMNS: ColumnOption[] = [
   { key: 'club', label: 'Club' },
   { key: 'first_name', label: 'Nombre' },
-  { key: 'last_name', label: 'Apellidos' },
+  { key: 'last_name_1', label: '1er Apellido' },
+  { key: 'last_name_2', label: '2do Apellido' },
   { key: 'dni', label: 'DNI' },
   { key: 'payment_type', label: 'Tipo Pago' },
   { key: 'concept', label: 'Concepto' },
