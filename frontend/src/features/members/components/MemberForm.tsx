@@ -84,9 +84,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     if (!formData.first_name.trim()) {
       newErrors.first_name = 'El nombre es obligatorio';
     }
-    if (!formData.email.trim()) {
-      newErrors.email = 'El email es obligatorio';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
     }
     // Validación opcional de fecha de nacimiento si se proporciona
