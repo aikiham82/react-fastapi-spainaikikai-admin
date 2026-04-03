@@ -41,10 +41,11 @@ class CreateMemberUseCase:
         if existing_dni:
             raise MemberAlreadyExistsError("Ya existe un miembro con ese DNI")
 
-        # Check if member with same email exists
-        existing_email = await self.member_repository.find_by_email(email)
-        if existing_email:
-            raise MemberAlreadyExistsError("Ya existe un miembro con ese correo electrónico")
+        # Check if member with same email exists (skip for empty emails)
+        if email and email.strip():
+            existing_email = await self.member_repository.find_by_email(email)
+            if existing_email:
+                raise MemberAlreadyExistsError("Ya existe un miembro con ese correo electrónico")
 
         # Validate club if provided
         if club_id and not await self.club_repository.exists(club_id):
