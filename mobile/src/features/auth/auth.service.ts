@@ -17,7 +17,9 @@ export async function login(
   return AuthResponseSchema.parse(data);
 }
 
-export async function getCurrentUser(): Promise<UserMe> {
-  const { data } = await apiClient.get("/users/me");
+export async function getCurrentUser(token: string): Promise<UserMe> {
+  const { data } = await apiClient.get("/users/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return UserMeSchema.parse(data);
 }

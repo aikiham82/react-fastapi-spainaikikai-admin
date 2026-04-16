@@ -20,7 +20,7 @@ import {
   useMemberLicenseQuery,
   useLicenseImageQuery,
 } from "@/features/license/hooks/queries/useLicenseQuery";
-import { formatGrade, isLicenseActive } from "@/features/license/license.schema";
+import { formatGrade, isLicenseActive, getExpiryDate } from "@/features/license/license.schema";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { colors, fonts, spacing, radius } from "@/core/theme";
@@ -140,8 +140,9 @@ export default function LicenseScreen() {
   }
 
   const active = isLicenseActive(license);
-  const expiryFormatted = license.expiry_date
-    ? new Date(license.expiry_date).toLocaleDateString("es-ES", {
+  const rawExpiry = getExpiryDate(license);
+  const expiryFormatted = rawExpiry
+    ? new Date(rawExpiry).toLocaleDateString("es-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

@@ -13,8 +13,9 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: async ({ email, password }: LoginInput) => {
       const authResponse = await login(email, password);
-      const user = await getCurrentUser();
-      return { token: authResponse.access_token, user };
+      const token = authResponse.access_token;
+      const user = await getCurrentUser(token);
+      return { token, user };
     },
     onSuccess: ({ token, user }) => {
       signIn(token, user);

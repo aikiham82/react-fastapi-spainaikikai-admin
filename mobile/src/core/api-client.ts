@@ -2,7 +2,9 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-const API_BASE_URL = "https://admin.spainaikikai.org/api/v1";
+const API_BASE_URL = __DEV__
+  ? "http://localhost:8000/api/v1"
+  : "https://api.spainaikikai.org/api/v1";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
