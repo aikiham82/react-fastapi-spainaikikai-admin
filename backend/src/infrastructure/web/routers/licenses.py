@@ -185,22 +185,6 @@ async def get_license_image(
 
     Returns a PNG image of the license card with member data overlaid.
     """
-    # First verify access to the license
-    try:
-        license = await get_license_use_case_instance.execute(license_id)
-        if license.club_id:
-            check_club_access_ctx(ctx, license.club_id)
-        elif ctx.is_club_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to this license"
-            )
-    except LicenseNotFoundError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"License with ID {license_id} not found"
-        )
-
     try:
         result = await generate_image_use_case.execute(license_id)
         return StreamingResponse(
@@ -235,16 +219,6 @@ async def get_license(
 ):
     """Get license by ID."""
     license = await get_license_use_case.execute(license_id)
-
-    # Verify club access
-    if license.club_id:
-        check_club_access_ctx(ctx, license.club_id)
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this license"
-        )
-
     return LicenseMapper.to_response_dto(license)
 
 
@@ -259,10 +233,6 @@ async def get_licenses_by_member(
     # Club admins are forced to their club only
     effective_club_id = get_club_filter_ctx(ctx)
     licenses = await get_all_use_case.execute(limit, club_id=effective_club_id, member_id=member_id)
-
-    # Additional filter for club admins - ensure all licenses belong to their club
-    if ctx.is_club_admin:
-        licenses = [lic for lic in licenses if lic.club_id == ctx.club_id]
 
     return LicenseMapper.to_response_list(licenses)
 
