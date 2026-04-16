@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Spain Aikikai",
+    "slug": "spain-aikikai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "spain-aikikai",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F0EB"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "es.spainaikikai.member"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F5F0EB"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "es.spainaikikai.member"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font"
+    ]
+  }
+}
