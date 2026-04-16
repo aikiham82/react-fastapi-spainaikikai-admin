@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
@@ -109,10 +110,11 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>SA</Text>
-            </View>
-            <Text style={styles.title}>Spain Aikikai</Text>
+            <Image
+              source={require("../assets/logo.jpg")}
+              style={styles.logo}
+              contentFit="contain"
+            />
             <Text style={styles.subtitle}>Area de Miembros</Text>
           </View>
 
@@ -185,26 +187,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: spacing.xxl,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
+  logo: {
+    width: 180,
+    height: 180,
     marginBottom: spacing.md,
-  },
-  logoText: {
-    fontFamily: fonts.headingBold,
-    fontSize: 28,
-    color: colors.white,
-    letterSpacing: 2,
-  },
-  title: {
-    fontFamily: fonts.headingBold,
-    fontSize: 28,
-    color: colors.primary,
-    letterSpacing: 1,
   },
   subtitle: {
     fontFamily: fonts.body,
