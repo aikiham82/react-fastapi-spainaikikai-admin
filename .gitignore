@@ -23,4 +23,5 @@ frontend/.omc/
 
 .ideaPone
 *.png
+!mobile/assets/*.png
 .idea
