@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "es.spainaikikai.member"
+      "bundleIdentifier": "org.spainaikikai.app"
     },
     "android": {
       "adaptiveIcon": {
