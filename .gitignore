@@ -11,8 +11,16 @@ docs/
 # User-uploaded files
 backend/uploads/
 
+# Secrets (never commit real credentials)
+backend/.env
+backend/.env.*
+!backend/.env.example
+
 # Excel-to-prod sync reports (dry-run output)
 backend/exports/
+
+# Data exports (legacy MariaDB dumps, etc.)
+exports/
 
 # oh-my-claudecode local config
 .omc/
