@@ -77,20 +77,22 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
         counts["member_updates"] += 1
 
     # 3. Licenses.
+    next_license_num = await _next_license_number(db)
     for lic in plan.license_upserts:
         member_id = _resolve_member_id(lic["member_id"], new_id_by_num_socio)
         if member_id is None:
             continue
+        set_fields = {k: v for k, v in lic.items() if k != "member_id"}
+        set_fields["member_id"] = member_id
+        set_fields["updated_at"] = datetime.now(timezone.utc)
+        set_on_insert = {
+            "created_at": datetime.now(timezone.utc),
+            "license_number": str(next_license_num).zfill(7),
+        }
+        next_license_num += 1
         await db[COLL_LICENSES].update_one(
             {"member_id": member_id},
-            {
-                "$set": {
-                    **{k: v for k, v in lic.items() if k != "member_id"},
-                    "member_id": member_id,
-                    "updated_at": datetime.now(timezone.utc),
-                },
-                "$setOnInsert": {"created_at": datetime.now(timezone.utc)},
-            },
+            {"$set": set_fields, "$setOnInsert": set_on_insert},
             upsert=True,
         )
         counts["license_upserts"] += 1
@@ -146,3 +148,14 @@ def _resolve_member_id(
     if ref.startswith("__new__:"):
         return new_id_by_num_socio.get(ref)
     return ref
+
+
+async def _next_license_number(db: AsyncIOMotorDatabase) -> int:
+    """Return max existing numeric license_number + 1."""
+    cursor = db[COLL_LICENSES].aggregate([
+        {"$match": {"license_number": {"$regex": "^[0-9]+$"}}},
+        {"$project": {"num": {"$toInt": "$license_number"}}},
+        {"$group": {"_id": None, "max": {"$max": "$num"}}},
+    ])
+    result = await cursor.to_list(length=1)
+    return (result[0]["max"] if result else 0) + 1
