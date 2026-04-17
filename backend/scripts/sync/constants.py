@@ -24,6 +24,9 @@ COLL_CLUBS = "clubs"
 # in prod if available; this is the fallback).
 DEFAULT_SEGURO_RC_AMOUNT = 10
 
+# Club fee (cuota_club) charged per club per year. Matches price_configurations.club_fee.
+DEFAULT_CLUB_FEE_AMOUNT = 100
+
 # License expiration for season 2026.
 LICENSE_YEAR = 2026
 SEASON_START_ISO = "2026-01-01T00:00:00Z"

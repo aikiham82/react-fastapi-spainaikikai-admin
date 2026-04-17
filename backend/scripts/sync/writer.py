@@ -14,6 +14,7 @@ from .constants import (
     COLL_LICENSES,
     COLL_MEMBERS,
     COLL_PAYMENTS,
+    DEFAULT_CLUB_FEE_AMOUNT,
     LICENSE_YEAR,
 )
 from .planner import ActionPlan
@@ -161,7 +162,8 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
         else:
             missing_club_member_ids.add(member_id)
 
-    # Upsert one synthetic transaction per club with aggregated amount.
+    # Upsert one synthetic transaction per club with aggregated amount
+    # (member payments + cuota_club so the tx total matches reality).
     club_tx_id_by_club_id: dict[str, str] = {}
     if amount_by_club:
         club_name_by_id = await _club_name_map(db, list(amount_by_club.keys()))
@@ -170,10 +172,16 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
                 db,
                 year=LICENSE_YEAR,
                 club_id=club_id,
-                amount=total,
+                amount=total + DEFAULT_CLUB_FEE_AMOUNT,
                 club_name=club_name_by_id.get(club_id),
             )
             club_tx_id_by_club_id[club_id] = tx_id
+
+    # Emit one cuota_club payment per club (anchored on any active member).
+    anchor_member_by_club: dict[str, str] = {}
+    for _pay, member_id, club_id in resolved_payments:
+        if club_id and club_id not in anchor_member_by_club:
+            anchor_member_by_club[club_id] = member_id
 
     for pay, member_id, club_id in resolved_payments:
         key = {
@@ -191,6 +199,34 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
                     **pay,
                     "member_id": member_id,
                     "payment_id": payment_tx_id,
+                    "updated_at": datetime.now(timezone.utc),
+                },
+                "$setOnInsert": {"created_at": datetime.now(timezone.utc)},
+            },
+            upsert=True,
+        )
+        counts["payment_upserts"] += 1
+
+    # cuota_club: one per club, anchored on any active member.
+    for club_id, anchor_member_id in anchor_member_by_club.items():
+        tx_id = club_tx_id_by_club_id.get(club_id)
+        if not tx_id:
+            continue
+        await db[COLL_PAYMENTS].update_one(
+            {
+                "member_id": anchor_member_id,
+                "payment_year": LICENSE_YEAR,
+                "payment_type": "cuota_club",
+            },
+            {
+                "$set": {
+                    "payment_id": tx_id,
+                    "member_id": anchor_member_id,
+                    "payment_year": LICENSE_YEAR,
+                    "payment_type": "cuota_club",
+                    "concept": f"cuota_club - {LICENSE_YEAR}",
+                    "amount": DEFAULT_CLUB_FEE_AMOUNT,
+                    "status": "completed",
                     "updated_at": datetime.now(timezone.utc),
                 },
                 "$setOnInsert": {"created_at": datetime.now(timezone.utc)},
