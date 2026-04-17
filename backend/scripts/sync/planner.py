@@ -113,12 +113,12 @@ def _build_member_update_fields(
 
 def _normalize_instructor(raw: str) -> str:
     r = (raw or "").strip().lower()
-    if "shihan" in r:
-        return "shihan"
-    if "shidoin" in r:
-        return "shidoin"
+    # Domain enum only supports: none, fukushidoin, shidoin.
+    # "shihan" collapses to "shidoin" (closest supported rank).
     if "fukushidoin" in r or "fuku" in r:
         return "fukushidoin"
+    if "shidoin" in r or "shihan" in r:
+        return "shidoin"
     return "none"
 
 
