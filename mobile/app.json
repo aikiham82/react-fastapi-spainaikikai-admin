@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "org.spainaikikai.app",
-      "versionCode": 7
+      "versionCode": 9
     },
     "plugins": [
       "expo-router",
