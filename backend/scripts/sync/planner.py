@@ -304,6 +304,7 @@ class Planner:
                 "end_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
+                "policy_number": "PENDIENTE",
             })
         if fee.seguro_rc_flag:
             plan.payment_upserts.append({
@@ -321,4 +322,5 @@ class Planner:
                 "end_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
+                "policy_number": "PENDIENTE",
             })
