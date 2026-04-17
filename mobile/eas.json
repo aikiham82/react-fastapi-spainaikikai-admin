@@ -17,6 +17,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "android": {
+        "credentialsSource": "local"
+      },
       "ios": {
         "resourceClass": "m-medium"
       }

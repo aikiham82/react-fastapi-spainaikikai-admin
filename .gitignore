@@ -15,6 +15,15 @@ backend/uploads/
 backend/.env
 backend/.env.*
 !backend/.env.example
+mobile/credentials.json
+mobile/keystore.jks
+mobile/*.keystore
+
+# EAS local build artefacts
+mobile/android/
+mobile/ios/
+mobile/*.aab
+mobile/*.apk
 
 # Excel-to-prod sync reports (dry-run output)
 backend/exports/
