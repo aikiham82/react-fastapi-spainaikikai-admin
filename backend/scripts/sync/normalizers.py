@@ -5,11 +5,11 @@ import unicodedata
 
 
 def norm_dni(raw: str | None) -> str:
-    """Normalize DNI/NIE: strip punctuation+spaces, uppercase, treat '0' as empty."""
+    """Normalize DNI/NIE: strip dots, dashes, whitespace; uppercase; zero → empty."""
     if not raw:
         return ""
-    cleaned = re.sub(r"[\.\-\s]", "", str(raw)).upper().strip()
-    if cleaned == "0":
+    cleaned = re.sub(r"[.\-\s]", "", str(raw)).upper()
+    if cleaned and set(cleaned) == {"0"}:
         return ""
     return cleaned
 

@@ -20,6 +20,14 @@ class TestNormDni:
     def test_handles_nie(self):
         assert norm_dni("X8740471B") == "X8740471B"
 
+    def test_accepts_numeric_excel_values(self):
+        assert norm_dni(24178035) == "24178035"
+
+    def test_float_zero_treated_as_empty(self):
+        assert norm_dni("0.0") == ""
+        assert norm_dni(0) == ""
+        assert norm_dni(0.0) == ""
+
 
 class TestNormName:
     def test_strips_accents(self):
