@@ -62,6 +62,17 @@ def _s(v) -> str:
     return str(v).strip()
 
 
+def _num_socio(v) -> str:
+    """Normalize num_socio across int/float/str Excel cell types."""
+    if v is None:
+        return ""
+    if isinstance(v, float):
+        if v.is_integer():
+            return str(int(v))
+        return str(v)
+    return str(v).strip()
+
+
 def _to_date(v) -> datetime.date | None:
     if isinstance(v, datetime.datetime):
         return v.date()
@@ -86,7 +97,7 @@ def load_members(path: Path) -> list[ExcelMemberRow]:
         club_id = _apply_taio_remap(club_name, club_id)
         rows.append(
             ExcelMemberRow(
-                num_socio=_s(row[0]),
+                num_socio=_num_socio(row[0]),
                 first_name=_s(row[1]),
                 last1=_s(row[2]),
                 last2=_s(row[3]),
@@ -114,7 +125,7 @@ def load_fees(path: Path) -> dict[str, ExcelFeeRow]:
     for row in ws.iter_rows(min_row=3, values_only=True):
         if row[0] is None:
             continue
-        num = _s(row[0])
+        num = _num_socio(row[0])
         nivel = row[4] if isinstance(row[4], (int, float)) else None
         grade_type = _s(row[5]).lower()
         cuota = float(row[7]) if isinstance(row[7], (int, float)) else 0.0
@@ -143,7 +154,7 @@ def load_insurances(path: Path) -> list[ExcelInsuranceRow]:
             continue
         rows.append(
             ExcelInsuranceRow(
-                num_socio_hint=_s(row[0]),
+                num_socio_hint=_num_socio(row[0]),
                 first_name=_s(row[1]),
                 last1=_s(row[2]),
                 last2=_s(row[3]),
