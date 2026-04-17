@@ -305,6 +305,7 @@ class Planner:
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
                 "policy_number": "PENDIENTE",
+                "coverage_amount": fee.seguro_accidentes,
             })
         if fee.seguro_rc_flag:
             plan.payment_upserts.append({
@@ -323,4 +324,5 @@ class Planner:
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
                 "policy_number": "PENDIENTE",
+                "coverage_amount": DEFAULT_SEGURO_RC_AMOUNT,
             })
