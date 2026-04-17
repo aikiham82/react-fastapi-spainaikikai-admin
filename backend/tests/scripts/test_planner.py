@@ -9,12 +9,13 @@ from scripts.sync.planner import Planner
 
 
 def excel_member(num="100", dni="12345678A", first="Juan", last1="Garcia",
-                 last2="Lopez", club_id="club_a", birth=None, email=""):
+                 last2="Lopez", club_id="club_a", birth=None, email="",
+                 club_name="Club A"):
     return ExcelMemberRow(
         num_socio=num, first_name=first, last1=last1, last2=last2,
         dni_raw=dni, email=email, phone="", birth_date=birth,
         address="", city="", province="", postal_code="", country="Spain",
-        club_id=club_id, club_name="Club A",
+        club_id=club_id, club_name=club_name,
     )
 
 
@@ -62,13 +63,63 @@ def test_unmatched_member_with_dni_produces_insert():
 
 def test_empty_club_no_dni_is_skipped():
     p = Planner(
-        excel_members=[excel_member(dni="", club_id="")],
+        excel_members=[excel_member(dni="", club_id="", club_name="")],
         excel_fees={}, excel_insurances=[],
         prod_members=[], prod_licenses={}, prod_insurances={}, prod_payments={},
     )
     plan = p.build()
     assert len(plan.skipped) == 1
     assert plan.skipped[0]["reason"] == "empty_club_no_dni"
+
+
+def test_new_club_name_produces_club_insert_and_member_insert():
+    """Empty club_id + club_name not in prod → emit club_insert + member_insert."""
+    p = Planner(
+        excel_members=[excel_member(dni="99999999Z", club_id="", club_name="AIKIDO HANAMI")],
+        excel_fees={"100": excel_fee()}, excel_insurances=[],
+        prod_members=[], prod_licenses={}, prod_insurances={}, prod_payments={},
+        prod_clubs=[],
+    )
+    plan = p.build()
+    assert len(plan.club_inserts) == 1
+    assert plan.club_inserts[0]["name"] == "Aikido Hanami"
+    assert plan.club_inserts[0]["__ref"].startswith("__new_club__:")
+    assert len(plan.member_inserts) == 1
+    assert plan.member_inserts[0]["club_id"].startswith("__new_club__:")
+
+
+def test_club_name_matches_existing_prod_club_by_fuzzy():
+    """Empty club_id + club_name matches prod → reuse existing club_id."""
+    p = Planner(
+        excel_members=[excel_member(dni="99999999Z", club_id="", club_name="AIKIDO MADRID")],
+        excel_fees={"100": excel_fee()}, excel_insurances=[],
+        prod_members=[], prod_licenses={}, prod_insurances={}, prod_payments={},
+        prod_clubs=[{"_id": "prod_club_1", "name": "Aikido Madrid"}],
+    )
+    plan = p.build()
+    assert len(plan.club_inserts) == 0
+    assert len(plan.member_inserts) == 1
+    assert plan.member_inserts[0]["club_id"] == "prod_club_1"
+
+
+def test_duplicate_new_club_names_emit_single_insert():
+    """Multiple members referencing the same new club share one club_insert."""
+    p = Planner(
+        excel_members=[
+            excel_member(num="1", dni="11111111A", club_id="", club_name="AIKIDO HANAMI"),
+            excel_member(num="2", dni="22222222B", club_id="", club_name="AIKIDO HANAMI"),
+        ],
+        excel_fees={
+            "1": excel_fee(num="1"),
+            "2": excel_fee(num="2"),
+        },
+        excel_insurances=[],
+        prod_members=[], prod_licenses={}, prod_insurances={}, prod_payments={},
+        prod_clubs=[],
+    )
+    plan = p.build()
+    assert len(plan.club_inserts) == 1
+    assert len(plan.member_inserts) == 2
 
 
 def test_empty_excel_field_does_not_overwrite_prod():

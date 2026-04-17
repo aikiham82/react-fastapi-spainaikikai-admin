@@ -15,6 +15,7 @@ def write_report(plan: ActionPlan, out_dir: Path) -> Path:
     path = out_dir / filename
     payload = {
         "summary": summary(plan),
+        "club_inserts": plan.club_inserts,
         "member_updates": plan.member_updates,
         "member_inserts": [_strip_correlation(d) for d in plan.member_inserts],
         "license_upserts": plan.license_upserts,
@@ -29,6 +30,7 @@ def write_report(plan: ActionPlan, out_dir: Path) -> Path:
 
 def summary(plan: ActionPlan) -> dict[str, int]:
     return {
+        "club_inserts": len(plan.club_inserts),
         "member_updates": len(plan.member_updates),
         "member_inserts": len(plan.member_inserts),
         "license_upserts": len(plan.license_upserts),

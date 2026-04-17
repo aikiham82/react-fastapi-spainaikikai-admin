@@ -8,7 +8,7 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from .constants import SHEET_FEES, SHEET_INSURANCES, SHEET_MEMBERS, TAIO_REMAP
+from .constants import SHEET_FEES, SHEET_INSURANCES, SHEET_MASTER, SHEET_MEMBERS, TAIO_REMAP
 from .normalizers import norm_dni
 
 
@@ -85,36 +85,102 @@ def _apply_taio_remap(club_name: str, club_id: str) -> str:
     return TAIO_REMAP.get((club_name.upper(), club_id), club_id)
 
 
+def _load_master_by_num_socio(path: Path) -> dict[str, dict]:
+    """Index sheet `2026` by num_socio for backfill when MIEMBROS APP has blanks."""
+    wb = load_workbook(path, data_only=True, read_only=True)
+    if SHEET_MASTER not in wb.sheetnames:
+        return {}
+    ws = wb[SHEET_MASTER]
+    out: dict[str, dict] = {}
+    for row in ws.iter_rows(min_row=3, values_only=True):
+        if len(row) < 22 or row[2] is None:
+            continue
+        num = _num_socio(row[2])
+        if not num or num in out:
+            continue  # first occurrence wins (master sheet has dupes)
+        out[num] = {
+            "first_name": _s(row[3]),
+            "last1": _s(row[4]),
+            "last2": _s(row[5]),
+            "dni_raw": _s(row[12]),
+            "email": _s(row[13]),
+            "phone": _s(row[14]),
+            "birth_date": _to_date(row[15]),
+            "address": _s(row[16]),
+            "city": _s(row[17]),
+            "province": _s(row[18]),
+            "postal_code": _s(row[19]),
+            "country": _s(row[20]) or "Spain",
+            "club_name": _s(row[21]),
+        }
+    return out
+
+
+def _row_score(r: ExcelMemberRow) -> int:
+    """Rank a member row by data richness; used to dedupe num_socio collisions."""
+    return sum(1 for v in (
+        r.dni_raw, r.first_name, r.last1, r.last2, r.email, r.phone,
+        r.address, r.city, r.province, r.postal_code, r.club_id, r.club_name,
+    ) if v)
+
+
 def load_members(path: Path) -> list[ExcelMemberRow]:
     wb = load_workbook(path, data_only=True, read_only=True)
     ws = wb[SHEET_MEMBERS]
-    rows: list[ExcelMemberRow] = []
+    master = _load_master_by_num_socio(path)
+
+    by_num: dict[str, ExcelMemberRow] = {}
     for row in ws.iter_rows(min_row=3, values_only=True):
         if row[0] is None:
             continue
-        club_name = _s(row[16])
+        num = _num_socio(row[0])
+        backfill = master.get(num, {})
+
+        def pick(primary, fallback_key):
+            val = _s(primary)
+            return val if val else backfill.get(fallback_key, "")
+
+        first_name = pick(row[1], "first_name")
+        last1 = pick(row[2], "last1")
+        last2 = pick(row[3], "last2")
+        dni_raw = pick(row[4], "dni_raw")
+        email = pick(row[5], "email")
+        phone = pick(row[6], "phone")
+        birth = _to_date(row[7]) or backfill.get("birth_date")
+        address = pick(row[8], "address")
+        city = pick(row[9], "city")
+        province = pick(row[10], "province")
+        postal_code = pick(row[11], "postal_code")
+        country = pick(row[12], "country") or "Spain"
+
+        club_name = _s(row[16]) or backfill.get("club_name", "")
         club_id = _s(row[13])
         club_id = _apply_taio_remap(club_name, club_id)
-        rows.append(
-            ExcelMemberRow(
-                num_socio=_num_socio(row[0]),
-                first_name=_s(row[1]),
-                last1=_s(row[2]),
-                last2=_s(row[3]),
-                dni_raw=_s(row[4]),
-                email=_s(row[5]),
-                phone=_s(row[6]),
-                birth_date=_to_date(row[7]),
-                address=_s(row[8]),
-                city=_s(row[9]),
-                province=_s(row[10]),
-                postal_code=_s(row[11]),
-                country=_s(row[12]) or "Spain",
-                club_id=club_id,
-                club_name=club_name,
-            )
+
+        candidate = ExcelMemberRow(
+            num_socio=num,
+            first_name=first_name,
+            last1=last1,
+            last2=last2,
+            dni_raw=dni_raw,
+            email=email,
+            phone=phone,
+            birth_date=birth,
+            address=address,
+            city=city,
+            province=province,
+            postal_code=postal_code,
+            country=country,
+            club_id=club_id,
+            club_name=club_name,
         )
-    return rows
+        # Dedupe by num_socio: keep the row with more data (backfill can cause
+        # duplicate rows in MIEMBROS APP to become equally identifiable).
+        existing = by_num.get(num) if num else None
+        if existing is None or _row_score(candidate) > _row_score(existing):
+            by_num[num] = candidate
+
+    return list(by_num.values())
 
 
 def load_fees(path: Path) -> dict[str, ExcelFeeRow]:

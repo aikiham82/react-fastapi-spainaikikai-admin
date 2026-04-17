@@ -24,7 +24,8 @@ from scripts.sync.reporter import print_summary, write_report
 from scripts.sync.writer import execute_plan
 
 
-async def load_prod_snapshot(db) -> tuple[list, dict, dict, dict]:
+async def load_prod_snapshot(db) -> tuple[list, list, dict, dict, dict]:
+    clubs = await db["clubs"].find({}).to_list(length=None)
     members = await db["members"].find({}).to_list(length=None)
     licenses_list = await db["licenses"].find({}).to_list(length=None)
     licenses = {str(l["member_id"]): l for l in licenses_list if l.get("member_id")}
@@ -38,7 +39,7 @@ async def load_prod_snapshot(db) -> tuple[list, dict, dict, dict]:
         (str(p["member_id"]), p.get("payment_year"), p.get("payment_type")): p
         for p in payments_list if p.get("member_id")
     }
-    return members, licenses, insurances, payments
+    return clubs, members, licenses, insurances, payments
 
 
 async def main_async(args: argparse.Namespace) -> int:
@@ -73,11 +74,12 @@ async def main_async(args: argparse.Namespace) -> int:
     try:
         db = client[db_name]
         print("Loading prod snapshot...")
-        prod_members, prod_licenses, prod_insurances, prod_payments = (
+        prod_clubs, prod_members, prod_licenses, prod_insurances, prod_payments = (
             await load_prod_snapshot(db)
         )
         print(
-            f"  prod_members={len(prod_members)} "
+            f"  clubs={len(prod_clubs)} "
+            f"prod_members={len(prod_members)} "
             f"licenses={len(prod_licenses)} "
             f"insurances={len(prod_insurances)} "
             f"payments={len(prod_payments)}"
@@ -91,6 +93,7 @@ async def main_async(args: argparse.Namespace) -> int:
             prod_licenses=prod_licenses,
             prod_insurances=prod_insurances,
             prod_payments=prod_payments,
+            prod_clubs=prod_clubs,
         )
         plan = planner.build()
 

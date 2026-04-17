@@ -13,6 +13,7 @@ from .excel_loader import (
     ExcelMemberRow,
 )
 from .matcher import Matcher
+from .normalizers import fuzzy_norm
 
 
 @dataclass
@@ -22,6 +23,7 @@ class ActionPlan:
     license_upserts: list[dict[str, Any]] = field(default_factory=list)
     insurance_upserts: list[dict[str, Any]] = field(default_factory=list)
     payment_upserts: list[dict[str, Any]] = field(default_factory=list)
+    club_inserts: list[dict[str, Any]] = field(default_factory=list)
     skipped: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[dict[str, Any]] = field(default_factory=list)
 
@@ -130,6 +132,7 @@ class Planner:
         prod_licenses: dict[str, dict[str, Any]],
         prod_insurances: dict[tuple[str, str], dict[str, Any]],
         prod_payments: dict[tuple[str, int, str], dict[str, Any]],
+        prod_clubs: list[dict[str, Any]] | None = None,
     ) -> None:
         self.excel_members = excel_members
         self.excel_fees = excel_fees
@@ -140,8 +143,54 @@ class Planner:
         self.prod_payments = prod_payments
         self._matcher = Matcher(prod_members)
 
+        self._club_by_fuzzy_name: dict[str, str] = {}
+        for c in (prod_clubs or []):
+            name = c.get("name", "")
+            fuzzy = fuzzy_norm(name)
+            if fuzzy:
+                self._club_by_fuzzy_name[fuzzy] = str(c["_id"])
+        self._new_club_names: dict[str, str] = {}
+
+    def _resolve_club_id(
+        self, club_name: str, club_id: str
+    ) -> tuple[str, bool]:
+        """Resolve club identity. Returns (club_id_or_ref, is_new)."""
+        if club_id:
+            return club_id, False
+        if not club_name:
+            return "", False
+        fuzzy = fuzzy_norm(club_name)
+        if fuzzy in self._club_by_fuzzy_name:
+            return self._club_by_fuzzy_name[fuzzy], False
+        # Track new club by fuzzy name (first original casing wins)
+        if fuzzy not in self._new_club_names:
+            self._new_club_names[fuzzy] = club_name
+        return f"__new_club__:{fuzzy}", True
+
     def build(self) -> ActionPlan:
         plan = ActionPlan()
+
+        # First pass: resolve club_id for every member, tracking new clubs.
+        for ex in self.excel_members:
+            resolved, _is_new = self._resolve_club_id(ex.club_name, ex.club_id)
+            ex.club_id = resolved
+
+        # Emit one club_insert per unique new club name.
+        for fuzzy, original_name in self._new_club_names.items():
+            plan.club_inserts.append({
+                "__ref": f"__new_club__:{fuzzy}",
+                "name": original_name.title(),
+                "email": "",
+                "phone": "",
+                "website": None,
+                "address": "",
+                "city": "",
+                "province": "",
+                "postal_code": "",
+                "country": "Spain",
+                "is_active": True,
+            })
+
         for ex in self.excel_members:
             result = self._matcher.match(ex)
             if result.method == "skip":

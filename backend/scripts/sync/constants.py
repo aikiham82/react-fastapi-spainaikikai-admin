@@ -11,12 +11,14 @@ TAIO_REMAP = {
 SHEET_MEMBERS = "MIEMBROS APP CON NOMBRE CLUB"
 SHEET_FEES = "2026 SIN SUMA CUOTAS"
 SHEET_INSURANCES = "Seguro de accidentes APP"
+SHEET_MASTER = "2026"
 
 # Target MongoDB collections.
 COLL_MEMBERS = "members"
 COLL_LICENSES = "licenses"
 COLL_INSURANCES = "insurances"
 COLL_PAYMENTS = "member_payments"
+COLL_CLUBS = "clubs"
 
 # Defaults for fees when Excel Seguro RC == "RC" (price taken from price_configurations
 # in prod if available; this is the fallback).

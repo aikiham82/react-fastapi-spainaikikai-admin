@@ -9,6 +9,7 @@ from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from .constants import (
+    COLL_CLUBS,
     COLL_INSURANCES,
     COLL_LICENSES,
     COLL_MEMBERS,
@@ -21,6 +22,7 @@ from .planner import ActionPlan
 async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, int]:
     """Apply all actions. Returns counts per collection."""
     counts = {
+        "club_inserts": 0,
         "member_updates": 0,
         "member_inserts": 0,
         "license_upserts": 0,
@@ -28,10 +30,29 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
         "payment_upserts": 0,
     }
 
+    # 0. Insert new clubs first so dependent members can reference them.
+    new_club_id_by_ref: dict[str, str] = {}
+    for club_doc in plan.club_inserts:
+        ref = club_doc.pop("__ref", None)
+        now = datetime.now(timezone.utc)
+        insert_doc = {
+            **club_doc,
+            "created_at": now,
+            "updated_at": now,
+        }
+        result = await db[COLL_CLUBS].insert_one(insert_doc)
+        if ref:
+            new_club_id_by_ref[ref] = str(result.inserted_id)
+        counts["club_inserts"] += 1
+
     # 1. Resolve inserts first to get member_id for dependent actions.
     new_id_by_num_socio: dict[str, str] = {}
     for doc in plan.member_inserts:
         num_socio = doc.pop("__excel_num_socio", None)
+        # Resolve placeholder club_id to the freshly inserted club _id.
+        club_ref = doc.get("club_id", "")
+        if isinstance(club_ref, str) and club_ref.startswith("__new_club__:"):
+            doc["club_id"] = new_club_id_by_ref.get(club_ref, "")
         doc["updated_at"] = datetime.now(timezone.utc)
         result = await db[COLL_MEMBERS].insert_one(doc)
         new_id_by_num_socio[f"__new__:{num_socio}"] = str(result.inserted_id)
@@ -41,9 +62,17 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
     for update in plan.member_updates:
         if not update["fields"]:
             continue
+        fields = dict(update["fields"])
+        club_ref = fields.get("club_id", "")
+        if isinstance(club_ref, str) and club_ref.startswith("__new_club__:"):
+            resolved = new_club_id_by_ref.get(club_ref)
+            if resolved:
+                fields["club_id"] = resolved
+            else:
+                fields.pop("club_id", None)
         await db[COLL_MEMBERS].update_one(
             {"_id": ObjectId(update["prod_id"])},
-            {"$set": {**update["fields"], "updated_at": datetime.now(timezone.utc)}},
+            {"$set": {**fields, "updated_at": datetime.now(timezone.utc)}},
         )
         counts["member_updates"] += 1
 
