@@ -177,10 +177,11 @@ class Planner:
 
         # Emit one club_insert per unique new club name.
         for fuzzy, original_name in self._new_club_names.items():
+            slug = fuzzy.lower().replace(" ", "-")
             plan.club_inserts.append({
                 "__ref": f"__new_club__:{fuzzy}",
                 "name": original_name.title(),
-                "email": "",
+                "email": f"placeholder+{slug}@spainaikikai.org",
                 "phone": "",
                 "website": None,
                 "address": "",
@@ -273,7 +274,8 @@ class Planner:
             "instructor_category": _normalize_instructor(fee.instructor),
             "age_category": _age_category(ex.birth_date),
             "status": "active",
-            "expiration_date": "2026-12-31T23:59:59Z",
+            "issue_date": datetime(LICENSE_YEAR, 1, 1, tzinfo=timezone.utc),
+            "expiration_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
         })
 
         payment_license_type = _payment_type_for_license(fee.grade_type)
@@ -298,8 +300,8 @@ class Planner:
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "accident",
-                "start_date": "2026-01-01T00:00:00Z",
-                "end_date": "2026-12-31T23:59:59Z",
+                "start_date": datetime(LICENSE_YEAR, 1, 1, tzinfo=timezone.utc),
+                "end_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
             })
@@ -315,8 +317,8 @@ class Planner:
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "civil_liability",
-                "start_date": "2026-01-01T00:00:00Z",
-                "end_date": "2026-12-31T23:59:59Z",
+                "start_date": datetime(LICENSE_YEAR, 1, 1, tzinfo=timezone.utc),
+                "end_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
             })
