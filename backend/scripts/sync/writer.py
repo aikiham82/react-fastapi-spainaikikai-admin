@@ -118,7 +118,8 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
         )
         counts["insurance_upserts"] += 1
 
-    # 5. Member payments.
+    # 5. Member payments — link to a synthetic "EXCEL_IMPORT_{year}" transaction.
+    synthetic_tx_id = await _ensure_synthetic_transaction(db, LICENSE_YEAR)
     for pay in plan.payment_upserts:
         member_id = _resolve_member_id(pay["member_id"], new_id_by_num_socio)
         if member_id is None:
@@ -131,8 +132,12 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
         await db[COLL_PAYMENTS].update_one(
             key,
             {
-                "$set": {**pay, "member_id": member_id,
-                         "updated_at": datetime.now(timezone.utc)},
+                "$set": {
+                    **pay,
+                    "member_id": member_id,
+                    "payment_id": synthetic_tx_id,
+                    "updated_at": datetime.now(timezone.utc),
+                },
                 "$setOnInsert": {"created_at": datetime.now(timezone.utc)},
             },
             upsert=True,
@@ -148,6 +153,37 @@ def _resolve_member_id(
     if ref.startswith("__new__:"):
         return new_id_by_num_socio.get(ref)
     return ref
+
+
+async def _ensure_synthetic_transaction(db: AsyncIOMotorDatabase, year: int) -> str:
+    """Ensure a synthetic transaction exists for Excel-imported payments and return its _id string."""
+    tx_marker = f"EXCEL_IMPORT_{year}"
+    existing = await db["transactions"].find_one({"transaction_id": tx_marker})
+    if existing:
+        return str(existing["_id"])
+    now = datetime.now(timezone.utc)
+    doc = {
+        "member_id": None,
+        "club_id": None,
+        "payment_type": "annual_quota",
+        "amount": 0,
+        "status": "completed",
+        "payment_date": now,
+        "transaction_id": tx_marker,
+        "redsys_response": None,
+        "error_message": None,
+        "refund_amount": None,
+        "refund_date": None,
+        "related_entity_id": None,
+        "payment_year": year,
+        "payer_name": f"ASA Excel Import {year - 1}-{year}",
+        "line_items_data": None,
+        "member_assignments": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    result = await db["transactions"].insert_one(doc)
+    return str(result.inserted_id)
 
 
 async def _next_license_number(db: AsyncIOMotorDatabase) -> int:
