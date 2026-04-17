@@ -23,7 +23,8 @@
         "backgroundColor": "#F5F0EB"
       },
       "edgeToEdgeEnabled": true,
-      "package": "es.spainaikikai.member"
+      "package": "org.spainaikikai.app",
+      "versionCode": 7
     },
     "plugins": [
       "expo-router",
