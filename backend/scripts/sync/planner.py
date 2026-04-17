@@ -29,12 +29,12 @@ class ActionPlan:
 
 
 def _grade_label(nivel: int | None, grade_type: str) -> str:
-    if nivel is None:
-        return ""
     suffix = {"dan": "Dan", "kyu": "Kyu", "kyu_infantil": "Kyu"}.get(
-        grade_type.lower(), "Kyu"
+        (grade_type or "").lower(), "Kyu"
     )
-    return f"{nivel}º {suffix}"
+    # Default to lowest kyu rank when level is unknown (domain requires non-empty grade).
+    level = nivel if nivel is not None else 6
+    return f"{level}º {suffix}"
 
 
 def _age_category(birth: date | None) -> str:
