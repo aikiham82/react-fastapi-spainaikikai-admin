@@ -11,6 +11,9 @@ docs/
 # User-uploaded files
 backend/uploads/
 
+# Excel-to-prod sync reports (dry-run output)
+backend/exports/
+
 # oh-my-claudecode local config
 .omc/
 frontend/.omc/
