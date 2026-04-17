@@ -51,7 +51,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         dni: member.dni || '',
         email: member.email || '',
         phone: member.phone || '',
-        birth_date: member.birth_date || '',
+        birth_date: member.birth_date ? member.birth_date.substring(0, 10) : '',
         address: member.address || '',
         city: member.city || '',
         province: member.province || '',
