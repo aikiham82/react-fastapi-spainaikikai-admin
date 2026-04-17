@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Spain Aikikai",
-    "slug": "spain-aikikai",
+    "slug": "spain-aikikai-member",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -29,6 +29,13 @@
       "expo-router",
       "expo-secure-store",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e06dac27-9597-4d5b-9a4e-549020dce98a"
+      }
+    },
+    "owner": "softem"
   }
 }
