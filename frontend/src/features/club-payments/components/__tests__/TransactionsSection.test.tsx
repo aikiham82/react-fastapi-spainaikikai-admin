@@ -3,6 +3,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { TransactionsSection } from '../TransactionsSection'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
+// ReturnType<typeof useClubMemberPaymentsQuery> is used inline via dynamic import — no top-level import needed
 
 // ─── Mock query hook ───────────────────────────────────────────────────────
 vi.mock('../../hooks/queries/useClubPaymentsQueries', () => ({
@@ -160,7 +161,26 @@ describe('TransactionsSection', () => {
     it('shows an empty state message when there are no transactions', async () => {
       const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
       vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
-        data: [],
+        data: [] as MemberPayment[],
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as unknown as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+      renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+      expect(screen.getByText(/sin transacciones/i)).toBeInTheDocument()
+    })
+  })
+
+  // ─── Test 6: Confirm delete fires the mutation ───────────────────────────
+  describe('confirm delete', () => {
+    it('calls deleteMemberPayment with the row id when the confirm button is clicked', async () => {
+      const payments = [makeMemberPayment({ id: 'mp-001' })]
+
+      const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+      vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+        data: payments,
         isLoading: false,
         isError: false,
         error: null,
@@ -168,7 +188,20 @@ describe('TransactionsSection', () => {
 
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
-      expect(screen.getByText(/sin transacciones/i)).toBeInTheDocument()
+      // 1. Open the ConfirmDeleteDialog
+      const deleteBtn = screen.getByRole('button', { name: /eliminar/i })
+      await user.click(deleteBtn)
+
+      await waitFor(() => {
+        expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+      })
+
+      // 2. Click the confirm button inside the dialog
+      const confirmBtn = screen.getByRole('button', { name: /confirmar|eliminar|sí/i })
+      await user.click(confirmBtn)
+
+      // 3. Assert the mutation was called with the correct id
+      expect(mockDeleteMemberPayment).toHaveBeenCalledWith('mp-001')
     })
   })
 })
