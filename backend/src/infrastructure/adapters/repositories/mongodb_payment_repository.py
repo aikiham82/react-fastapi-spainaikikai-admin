@@ -4,7 +4,7 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
 
-from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
+from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -35,6 +35,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             related_entity_id=doc.get("related_entity_id"),
             payment_year=doc.get("payment_year"),
             payer_name=doc.get("payer_name"),
+            payment_method=doc.get("payment_method", "redsys"),
             line_items_data=doc.get("line_items_data"),
             member_assignments=doc.get("member_assignments"),
             created_at=doc.get("created_at"),
@@ -57,6 +58,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             "related_entity_id": payment.related_entity_id,
             "payment_year": payment.payment_year,
             "payer_name": payment.payer_name,
+            "payment_method": payment.payment_method.value,
             "line_items_data": payment.line_items_data,
             "member_assignments": payment.member_assignments,
             "updated_at": datetime.utcnow()
