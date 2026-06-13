@@ -2,5 +2,11 @@ export { ClubPaymentsProvider, useClubPaymentsContext } from './hooks/useClubPay
 export { ClubPaymentsPage } from './components/ClubPaymentsPage';
 export { AllClubsSummaryTable } from './components/AllClubsSummaryTable';
 export { ClubPaymentDetail } from './components/ClubPaymentDetail';
+export { ManualPaymentModal } from './components/ManualPaymentModal';
+export { MemberPaymentEditModal } from './components/MemberPaymentEditModal';
+export { ConfirmDeleteDialog } from './components/ConfirmDeleteDialog';
+export { TransactionsSection } from './components/TransactionsSection';
 export * from './data/schemas/club-payments.schema';
+export * from './data/schemas/payment-admin.schema';
 export { clubPaymentsService } from './data/services/club-payments.service';
+export { paymentAdminService } from './data/services/payment-admin.service';

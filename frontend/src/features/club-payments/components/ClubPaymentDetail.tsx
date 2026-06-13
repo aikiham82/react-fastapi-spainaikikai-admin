@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useClubPaymentsContext } from '../hooks/useClubPaymentsContext';
-import { ArrowLeft, Search, Users, IdCard, Shield, Wallet, Check, X, Building2 } from 'lucide-react';
+import { usePermissions } from '@/core/hooks/usePermissions';
+import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
+import { ManualPaymentModal } from './ManualPaymentModal';
+import { TransactionsSection } from './TransactionsSection';
+import { ArrowLeft, Search, Users, IdCard, Shield, Wallet, Check, X, Building2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -24,10 +28,26 @@ export const ClubPaymentDetail = () => {
     isLoadingClubDetail,
     clubDetailError,
     goBackToList,
+    selectedYear,
   } = useClubPaymentsContext();
+
+  const { isAssociationAdmin } = usePermissions();
+  const canManagePayments = isAssociationAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [isManualPaymentOpen, setIsManualPaymentOpen] = useState(false);
+
+  // Fetch members only when super_admin and club is known
+  const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
+    { club_id: clubDetail?.club_id ?? '', status: 'active', limit: 0 },
+    { enabled: canManagePayments && !!clubDetail?.club_id }
+  );
+  // Adapt Member shape to what ManualPaymentModal expects: { id, name, payment_types? }
+  const modalMembers = (membersData ?? []).map((m) => ({
+    id: m.id,
+    name: `${m.first_name} ${m.last_name}`.trim(),
+  }));
 
   if (isLoadingClubDetail) {
     return (
@@ -82,6 +102,19 @@ export const ClubPaymentDetail = () => {
         <h3 className="text-lg font-semibold text-gray-900">{clubDetail.club_name}</h3>
         <p className="text-sm text-gray-600">Ano {clubDetail.payment_year}</p>
       </div>
+
+      {/* Admin actions bar */}
+      {canManagePayments && (
+        <div className="flex justify-end">
+          <Button
+            onClick={() => setIsManualPaymentOpen(true)}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Registrar pago manual
+          </Button>
+        </div>
+      )}
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -248,6 +281,30 @@ export const ClubPaymentDetail = () => {
         <div className="text-center py-8">
           <p className="text-gray-600">No se encontraron miembros con los filtros seleccionados</p>
         </div>
+      )}
+
+      {/* Transactions section — super_admin only */}
+      {canManagePayments && clubDetail && (
+        <div className="mt-8">
+          <h4 className="text-base font-semibold text-gray-900 mb-4">Transacciones</h4>
+          <TransactionsSection
+            clubId={clubDetail.club_id}
+            paymentYear={selectedYear}
+          />
+        </div>
+      )}
+
+      {/* Manual Payment Modal — super_admin only */}
+      {canManagePayments && clubDetail && (
+        <ManualPaymentModal
+          isOpen={isManualPaymentOpen}
+          onClose={() => setIsManualPaymentOpen(false)}
+          clubId={clubDetail.club_id}
+          clubName={clubDetail.club_name}
+          paymentYear={selectedYear}
+          members={modalMembers}
+          isLoadingMembers={isLoadingMembers}
+        />
       )}
     </div>
   );
