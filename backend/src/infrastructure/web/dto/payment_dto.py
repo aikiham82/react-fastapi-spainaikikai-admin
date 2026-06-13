@@ -24,6 +24,7 @@ class PaymentResponse(PaymentBase):
     """DTO for payment response."""
     id: str
     status: str
+    payment_method: str = "redsys"
     payment_date: Optional[datetime] = None
     transaction_id: Optional[str] = None
     redsys_response: Optional[Dict[str, Any]] = None
