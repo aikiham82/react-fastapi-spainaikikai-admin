@@ -113,6 +113,11 @@ from src.application.use_cases.member_payment import (
 )
 from src.application.use_cases.member_payment.get_all_clubs_payment_summary_use_case import GetAllClubsPaymentSummaryUseCase
 from src.application.use_cases.payment.prefill_annual_payment_use_case import PrefillAnnualPaymentUseCase
+from src.application.use_cases.payment.register_manual_payment_use_case import RegisterManualPaymentUseCase
+from src.application.use_cases.payment.update_payment_use_case import UpdatePaymentUseCase
+from src.application.use_cases.payment.update_member_payment_use_case import UpdateMemberPaymentUseCase
+from src.application.use_cases.payment.delete_member_payment_use_case import DeleteMemberPaymentUseCase
+from src.application.use_cases.member_payment.get_club_member_payments_use_case import GetClubMemberPaymentsUseCase
 from src.config.settings import get_app_settings
 
 @lru_cache()
@@ -397,8 +402,59 @@ def get_refund_payment_use_case() -> RefundPaymentUseCase:
 
 @lru_cache()
 def get_delete_payment_use_case() -> DeletePaymentUseCase:
-    """Delete payment use case."""
-    return DeletePaymentUseCase(get_payment_repository())
+    """Delete payment use case (cascade: MemberPayments -> Invoice -> Payment)."""
+    return DeletePaymentUseCase(
+        payment_repository=get_payment_repository(),
+        member_payment_repository=get_member_payment_repository(),
+        invoice_repository=get_invoice_repository(),
+    )
+
+
+@lru_cache()
+def get_register_manual_payment_use_case() -> RegisterManualPaymentUseCase:
+    """Register manual payment use case."""
+    return RegisterManualPaymentUseCase(
+        payment_repository=get_payment_repository(),
+        member_payment_repository=get_member_payment_repository(),
+        invoice_repository=get_invoice_repository(),
+        member_repository=get_member_repository(),
+        price_configuration_repository=get_price_configuration_repository(),
+        pdf_service=get_pdf_service(),
+    )
+
+
+@lru_cache()
+def get_update_payment_use_case() -> UpdatePaymentUseCase:
+    """Update payment use case."""
+    return UpdatePaymentUseCase(get_payment_repository())
+
+
+@lru_cache()
+def get_update_member_payment_use_case() -> UpdateMemberPaymentUseCase:
+    """Update member payment use case."""
+    return UpdateMemberPaymentUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        payment_repository=get_payment_repository(),
+    )
+
+
+@lru_cache()
+def get_delete_member_payment_use_case() -> DeleteMemberPaymentUseCase:
+    """Delete member payment use case."""
+    return DeleteMemberPaymentUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        payment_repository=get_payment_repository(),
+    )
+
+
+@lru_cache()
+def get_list_club_member_payments_use_case() -> GetClubMemberPaymentsUseCase:
+    """Get club member payments use case."""
+    return GetClubMemberPaymentsUseCase(
+        member_payment_repository=get_member_payment_repository(),
+        member_repository=get_member_repository(),
+    )
+
 
 # Insurance repository and use cases
 @lru_cache()
