@@ -3,6 +3,8 @@ from datetime import datetime
 from typing import Optional
 from enum import Enum
 
+from src.domain.exceptions.payment import InvalidPaymentDataError
+
 
 class PaymentStatus(str, Enum):
     """Payment status enumeration."""
@@ -77,7 +79,6 @@ class Payment:
             try:
                 self.payment_method = PaymentMethod(self.payment_method)
             except ValueError:
-                from src.domain.exceptions.payment import InvalidPaymentDataError
                 raise InvalidPaymentDataError(
                     f"Invalid payment_method: '{self.payment_method}'"
                 )
