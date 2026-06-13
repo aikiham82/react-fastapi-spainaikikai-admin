@@ -192,7 +192,7 @@ describe('useRegisterManualPaymentMutation', () => {
       expect(mockToast.success).toHaveBeenCalledTimes(1);
     });
 
-    it('invalidates clubDetail and allClubsSummary keys on success', async () => {
+    it('invalidates clubDetail, allClubsSummary, and clubMemberPayments keys on success', async () => {
       const { wrapper, queryClient } = createWrapper();
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
       mockService.registerManualPayment.mockResolvedValue(mockPayment);
@@ -217,6 +217,7 @@ describe('useRegisterManualPaymentMutation', () => {
 
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
     });
   });
 
@@ -335,7 +336,7 @@ describe('useUpdatePaymentMutation', () => {
       expect(mockToast.success).toHaveBeenCalledTimes(1);
     });
 
-    it('invalidates clubDetail and allClubsSummary keys on success', async () => {
+    it('invalidates clubDetail, allClubsSummary, and clubMemberPayments keys on success', async () => {
       const { wrapper, queryClient } = createWrapper();
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
       mockService.updatePayment.mockResolvedValue(mockPayment);
@@ -353,6 +354,7 @@ describe('useUpdatePaymentMutation', () => {
 
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
     });
   });
 
@@ -474,7 +476,7 @@ describe('useDeletePaymentMutation', () => {
       expect(mockToast.success).toHaveBeenCalledTimes(1);
     });
 
-    it('invalidates clubDetail and allClubsSummary keys on success', async () => {
+    it('invalidates clubDetail, allClubsSummary, and clubMemberPayments keys on success', async () => {
       const { wrapper, queryClient } = createWrapper();
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
       mockService.deletePayment.mockResolvedValue(undefined);
@@ -492,6 +494,7 @@ describe('useDeletePaymentMutation', () => {
 
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
     });
   });
 

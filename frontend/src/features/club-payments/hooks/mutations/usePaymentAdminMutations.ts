@@ -13,6 +13,7 @@ export const useRegisterManualPaymentMutation = (clubId: string, year: number) =
       toast.success('Pago registrado correctamente');
       queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
       queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
+      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al registrar el pago');
@@ -38,6 +39,7 @@ export const useUpdatePaymentMutation = (clubId: string, year: number) => {
       toast.success('Pago actualizado correctamente');
       queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
       queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
+      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al actualizar el pago');
@@ -63,6 +65,7 @@ export const useDeletePaymentMutation = (clubId: string, year: number) => {
       toast.success('Pago eliminado correctamente');
       queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
       queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
+      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al eliminar el pago');
