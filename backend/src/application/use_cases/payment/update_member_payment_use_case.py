@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Optional
 
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentType, MemberPaymentStatus
-from src.domain.entities.payment import PaymentStatus
 from src.domain.exceptions.payment import MemberPaymentNotFoundError, InvalidPaymentDataError
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
