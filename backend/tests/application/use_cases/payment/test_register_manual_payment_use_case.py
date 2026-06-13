@@ -138,3 +138,15 @@ class TestRegisterManualPaymentUseCase:
         mock_repos["invoice_repo"].create.assert_called_once()
         assert result.invoice is not None
         assert result.invoice.invoice_number == "2026-000001"
+
+    async def test_invoice_failure_does_not_abort_payment(self, use_case, mock_repos):
+        mock_repos["invoice_repo"].create.side_effect = Exception("DB error")
+        result = await use_case.execute(
+            payer_name="Admin",
+            club_id="club1",
+            payment_year=2026,
+            payment_method="cash",
+            member_assignments=[ManualMemberAssignment("m1", "M One", ["kyu"])],
+        )
+        assert result.payment is not None
+        assert result.invoice is None

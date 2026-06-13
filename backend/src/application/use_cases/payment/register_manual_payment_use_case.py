@@ -112,11 +112,10 @@ class RegisterManualPaymentUseCase:
         if not member_assignments:
             raise InvalidPaymentDataError("Al menos una línea de pago es requerida")
 
-        # 2. Duplicate check per (member_id, payment_type, payment_year)
+        # 2. Duplicate check per (member_id, payment_type, payment_year).
+        # club_fee is checked here too — a caller can include it in payment_types directly.
         for assignment in member_assignments:
             for ptype in assignment.payment_types:
-                if ptype == "club_fee":
-                    continue  # club_fee duplicate check handled via include_club_fee logic
                 mp_type = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get(ptype)
                 if mp_type is None:
                     continue
@@ -127,6 +126,24 @@ class RegisterManualPaymentUseCase:
                 )
                 if already_exists:
                     raise DuplicatePaymentForYearError(assignment.member_id, ptype, payment_year)
+
+        # Duplicate check for the standalone include_club_fee path (club_fee assigned to
+        # member_assignments[0]). Only needed when club_fee is NOT already in payment_types
+        # (if it is already in payment_types the loop above already checked it).
+        if include_club_fee:
+            club_fee_types_already_checked = any(
+                "club_fee" in a.payment_types for a in member_assignments
+            )
+            if not club_fee_types_already_checked:
+                cf_member_id = member_assignments[0].member_id
+                cf_mp_type = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE["club_fee"]
+                cf_exists = await self.member_payment_repository.exists_for_member_year_type(
+                    member_id=cf_member_id,
+                    payment_year=payment_year,
+                    payment_type=cf_mp_type,
+                )
+                if cf_exists:
+                    raise DuplicatePaymentForYearError(cf_member_id, "club_fee", payment_year)
 
         # 3. Build MemberPayment definitions and compute total
         mp_defs: List[dict] = []
@@ -230,14 +247,23 @@ class RegisterManualPaymentUseCase:
     async def _fetch_price(self, item_type: str) -> float:
         """Fetch price from price_configuration by item_type key.
 
-        Returns 0.0 if the key is unknown or the config is not found.
-        The PriceConfiguration entity uses the `.price` attribute.
+        Returns 0.0 only when item_type has no mapping in PAYMENT_TYPE_TO_PRICE_KEY
+        (i.e. genuinely unmapped — no price applies). For mapped types where the
+        price configuration record is missing from the DB, raises
+        InvalidPaymentDataError to prevent silently-wrong totals.
+
+        Mirrors InitiateAnnualPaymentUseCase._get_prices error behaviour.
         """
         price_key = PAYMENT_TYPE_TO_PRICE_KEY.get(item_type)
-        if not price_key or not self.price_configuration_repository:
+        if not price_key:
+            # item_type has no price mapping — not a billable item, return 0.0
             return 0.0
         config = await self.price_configuration_repository.find_by_key(price_key)
-        return config.price if config else 0.0
+        if config is None:
+            raise InvalidPaymentDataError(
+                f"Missing price configuration for '{item_type}'"
+            )
+        return config.price
 
     async def _create_invoice(self, payment: Payment) -> Optional[Invoice]:
         """Create an invoice for the manual payment.
@@ -295,8 +321,8 @@ class RegisterManualPaymentUseCase:
 
         # Construct Invoice using only actual entity fields.
         # Use club_id as member_id fallback: manual payments are at club level and have no member_id.
-        # Invoice.__post_init__ requires non-empty member_id.
-        invoice_member_id = payment.member_id or payment.club_id or "unknown"
+        # Invoice.__post_init__ requires non-empty member_id; club_id is always set on execute().
+        invoice_member_id = payment.member_id or payment.club_id
 
         invoice = Invoice(
             invoice_number=invoice_number,
@@ -324,6 +350,10 @@ class RegisterManualPaymentUseCase:
                 )
                 invoice.pdf_path = pdf_path
             except Exception:
-                pass
+                logger.warning(
+                    "PDF generation failed for invoice %s",
+                    invoice.invoice_number,
+                    exc_info=True,
+                )
 
         return await self.invoice_repository.create(invoice)
