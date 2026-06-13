@@ -3,7 +3,8 @@
 import pytest
 from datetime import datetime, timedelta
 
-from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
+from src.domain.entities.payment import Payment, PaymentStatus, PaymentType, PaymentMethod
+from src.domain.exceptions.payment import InvalidPaymentDataError
 
 
 class TestPaymentEntity:
@@ -394,5 +395,32 @@ class TestPaymentEntity:
             refund_amount=30.0,
             refund_date=datetime.utcnow()
         )
-        
+
         assert payment.get_refundable_amount() == 70.0
+
+    # --- PaymentMethod tests ---
+
+    def test_payment_method_defaults_to_redsys(self):
+        """Test payment_method defaults to REDSYS when not specified."""
+        p = Payment(club_id="c1", payment_type=PaymentType.ANNUAL_QUOTA, amount=100.0)
+        assert p.payment_method == PaymentMethod.REDSYS
+
+    def test_payment_method_coerces_string_cash(self):
+        """Test payment_method coerces string 'cash' to PaymentMethod.CASH."""
+        p = Payment(club_id="c1", amount=100.0, payment_method="cash")
+        assert p.payment_method == PaymentMethod.CASH
+
+    def test_payment_method_coerces_string_transfer(self):
+        """Test payment_method coerces string 'transfer' to PaymentMethod.TRANSFER."""
+        p = Payment(club_id="c1", amount=100.0, payment_method="transfer")
+        assert p.payment_method == PaymentMethod.TRANSFER
+
+    def test_payment_method_invalid_raises_invalid_payment_data_error(self):
+        """Test payment_method with invalid string raises InvalidPaymentDataError."""
+        with pytest.raises(InvalidPaymentDataError):
+            Payment(club_id="c1", amount=100.0, payment_method="bitcoin")
+
+    def test_existing_payment_without_method_gets_redsys_default(self):
+        """Test Payment constructed without payment_method gets REDSYS default (backward compat)."""
+        p = Payment(club_id="c1", amount=100.0)
+        assert p.payment_method == PaymentMethod.REDSYS

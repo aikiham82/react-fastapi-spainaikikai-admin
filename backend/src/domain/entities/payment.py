@@ -24,6 +24,14 @@ class PaymentType(str, Enum):
     SEMINAR_OFICIALIDAD = "seminar_oficialidad"
 
 
+class PaymentMethod(str, Enum):
+    """Payment method enumeration."""
+    REDSYS = "redsys"
+    CASH = "cash"
+    TRANSFER = "transfer"
+    OTHER = "other"
+
+
 @dataclass
 class Payment:
     """Payment domain entity representing a payment transaction."""
@@ -42,6 +50,7 @@ class Payment:
     related_entity_id: Optional[str] = None  # license_id, seminar_id, etc.
     payment_year: Optional[int] = None  # Year the payment covers (for multi-year support)
     payer_name: Optional[str] = None  # Name of the payer (for annual payments)
+    payment_method: PaymentMethod = PaymentMethod.REDSYS
     line_items_data: Optional[str] = None  # JSON string for line items storage
     member_assignments: Optional[str] = None  # JSON string for member payment assignments
     created_at: Optional[datetime] = None
@@ -63,6 +72,15 @@ class Payment:
             raise ValueError("Refund amount cannot be negative")
         if self.refund_amount and self.refund_amount > self.amount:
             raise ValueError("Refund amount cannot exceed payment amount")
+        # Coerce payment_method string to enum
+        if isinstance(self.payment_method, str):
+            try:
+                self.payment_method = PaymentMethod(self.payment_method)
+            except ValueError:
+                from src.domain.exceptions.payment import InvalidPaymentDataError
+                raise InvalidPaymentDataError(
+                    f"Invalid payment_method: '{self.payment_method}'"
+                )
 
     def mark_as_processing(self) -> None:
         """Mark payment as processing."""
