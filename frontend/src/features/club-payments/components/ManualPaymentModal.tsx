@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -29,7 +30,6 @@ import { useRegisterManualPaymentMutation } from '../hooks/mutations/usePaymentA
 interface Member {
   id: string
   name: string
-  payment_types?: string[]
 }
 
 interface ManualPaymentModalProps {
@@ -47,6 +47,18 @@ interface MemberAssignment {
   member_name: string
   payment_types: string[]
 }
+
+// Fixed catalog of assignable payment types (matches backend ManualMemberAssignmentDTO valid_types)
+const PAYMENT_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'kyu', label: 'Licencia KYU' },
+  { value: 'kyu_infantil', label: 'Licencia KYU Infantil' },
+  { value: 'dan', label: 'Licencia DAN' },
+  { value: 'fukushidoin', label: 'Título Fukushidoin' },
+  { value: 'shidoin', label: 'Título Shidoin' },
+  { value: 'seguro_accidentes', label: 'Seguro de Accidentes' },
+  { value: 'seguro_rc', label: 'Seguro RC' },
+  { value: 'club_fee', label: 'Cuota Club' },
+]
 
 // Manual payment methods exclude redsys
 const MANUAL_PAYMENT_METHODS = (
@@ -165,6 +177,9 @@ export function ManualPaymentModal({
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Registrar pago manual — {clubName}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Formulario para registrar un pago manual
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 flex-1 overflow-hidden">
@@ -292,37 +307,36 @@ export function ManualPaymentModal({
                               </label>
                             </div>
 
-                            {/* Payment types sub-list — visible when member is selected */}
-                            {isSelected &&
-                              member.payment_types &&
-                              member.payment_types.length > 0 && (
-                                <div className="ml-6 pl-2 border-l space-y-1 my-1">
-                                  {member.payment_types.map((type) => {
-                                    const hasType = assignment.payment_types.includes(type)
-                                    return (
-                                      <div
-                                        key={type}
-                                        className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/30"
+                            {/* Payment types sub-list — visible when member is selected.
+                                Uses the fixed PAYMENT_TYPE_OPTIONS catalog, not per-member data. */}
+                            {isSelected && (
+                              <div className="ml-6 pl-2 border-l space-y-1 my-1">
+                                {PAYMENT_TYPE_OPTIONS.map(({ value, label }) => {
+                                  const hasType = assignment.payment_types.includes(value)
+                                  return (
+                                    <div
+                                      key={value}
+                                      className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/30"
+                                    >
+                                      <Checkbox
+                                        id={`type-${member.id}-${value}`}
+                                        data-testid={`type-checkbox-${member.id}-${value}`}
+                                        checked={hasType}
+                                        onCheckedChange={() =>
+                                          togglePaymentType(member.id, value)
+                                        }
+                                      />
+                                      <label
+                                        htmlFor={`type-${member.id}-${value}`}
+                                        className="text-xs cursor-pointer"
                                       >
-                                        <Checkbox
-                                          id={`type-${member.id}-${type}`}
-                                          data-testid={`type-checkbox-${member.id}-${type}`}
-                                          checked={hasType}
-                                          onCheckedChange={() =>
-                                            togglePaymentType(member.id, type)
-                                          }
-                                        />
-                                        <label
-                                          htmlFor={`type-${member.id}-${type}`}
-                                          className="text-xs cursor-pointer"
-                                        >
-                                          {type}
-                                        </label>
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              )}
+                                        {label}
+                                      </label>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
                           </div>
                         )
                       })}

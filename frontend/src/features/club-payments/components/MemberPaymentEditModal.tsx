@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -118,6 +119,9 @@ export function MemberPaymentEditModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar línea de pago</DialogTitle>
+          <DialogDescription className="sr-only">
+            Formulario para editar una línea de pago
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4 py-2">

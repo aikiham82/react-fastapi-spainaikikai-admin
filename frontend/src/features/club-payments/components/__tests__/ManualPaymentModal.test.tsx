@@ -15,9 +15,11 @@ vi.mock('../../hooks/mutations/usePaymentAdminMutations', () => ({
   })),
 }))
 
+// Members now only need id + name; payment types come from the fixed catalog,
+// NOT from per-member attributes.
 const mockMembers = [
-  { id: 'mem-1', name: 'Ana García', payment_types: ['licencia_kyu', 'seguro_accidentes'] },
-  { id: 'mem-2', name: 'Juan López', payment_types: ['licencia_dan', 'seguro_rc'] },
+  { id: 'mem-1', name: 'Ana García' },
+  { id: 'mem-2', name: 'Juan López' },
 ]
 
 const defaultProps = {
@@ -131,8 +133,9 @@ describe('ManualPaymentModal', () => {
   })
 
   // Test case 5: Submit valid → registerManualPayment called with correct data
+  // Members no longer carry payment_types — the modal uses a fixed catalog instead.
   describe('valid form submission', () => {
-    it('calls registerManualPayment with correct data when payer_name is filled and a member+type is selected', async () => {
+    it('calls registerManualPayment with correct data when payer_name is filled and a catalog type is selected for a member', async () => {
       renderWithProviders(<ManualPaymentModal {...defaultProps} />)
 
       // Fill payer_name
@@ -140,17 +143,17 @@ describe('ManualPaymentModal', () => {
       await user.type(payerInput, 'Juan Pagador')
 
       // Check the first member checkbox (Ana García)
-      // Member checkboxes have data-testid="member-checkbox-{id}"
       const memberCheckbox = screen.getByTestId('member-checkbox-mem-1')
       await user.click(memberCheckbox)
 
-      // After selecting member, a payment_type checkbox should appear
+      // After selecting the member, catalog type checkboxes should appear.
+      // The catalog uses value "kyu" (not the old "licencia_kyu" from member.payment_types).
       await waitFor(() => {
-        expect(screen.getByTestId('type-checkbox-mem-1-licencia_kyu')).toBeInTheDocument()
+        expect(screen.getByTestId('type-checkbox-mem-1-kyu')).toBeInTheDocument()
       })
 
-      // Select the licencia_kyu type for Ana García
-      const typeCheckbox = screen.getByTestId('type-checkbox-mem-1-licencia_kyu')
+      // Select the "kyu" type for Ana García from the catalog
+      const typeCheckbox = screen.getByTestId('type-checkbox-mem-1-kyu')
       await user.click(typeCheckbox)
 
       const submitBtn = screen.getByRole('button', { name: /registrar|guardar/i })
@@ -166,7 +169,37 @@ describe('ManualPaymentModal', () => {
             expect.objectContaining({
               member_id: 'mem-1',
               member_name: 'Ana García',
-              payment_types: expect.arrayContaining(['licencia_kyu']),
+              payment_types: expect.arrayContaining(['kyu']),
+            }),
+          ]),
+        })
+      )
+    })
+
+    it('selecting a member then checking a catalog type produces correct assignment', async () => {
+      renderWithProviders(<ManualPaymentModal {...defaultProps} />)
+
+      const payerInput = screen.getByRole('textbox', { name: /nombre del pagador/i })
+      await user.type(payerInput, 'Pagador Test')
+
+      // Select Juan López (second member)
+      await user.click(screen.getByTestId('member-checkbox-mem-2'))
+
+      // The full catalog must appear for mem-2 — pick "dan"
+      await waitFor(() => {
+        expect(screen.getByTestId('type-checkbox-mem-2-dan')).toBeInTheDocument()
+      })
+      await user.click(screen.getByTestId('type-checkbox-mem-2-dan'))
+
+      await user.click(screen.getByRole('button', { name: /registrar|guardar/i }))
+
+      expect(mockRegisterManualPayment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          member_assignments: expect.arrayContaining([
+            expect.objectContaining({
+              member_id: 'mem-2',
+              member_name: 'Juan López',
+              payment_types: ['dan'],
             }),
           ]),
         })

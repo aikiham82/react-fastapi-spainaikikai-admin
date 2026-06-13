@@ -33,10 +33,10 @@ const defaultProps = {
   isLoadingMembers: false,
 }
 
+// Members only need id + name; payment types come from the fixed catalog in the modal.
 const memberWithTypes = {
   id: 'mem-1',
   name: 'Ana García',
-  payment_types: ['licencia_kyu'],
 }
 
 describe('ManualPaymentModal — gap coverage', () => {
@@ -92,11 +92,11 @@ describe('ManualPaymentModal — gap coverage', () => {
       // Select the member
       await user.click(screen.getByTestId('member-checkbox-mem-1'))
 
-      // Wait for payment type checkbox to appear and select it
+      // Wait for the catalog type checkboxes to appear and select one
       await waitFor(() => {
-        expect(screen.getByTestId('type-checkbox-mem-1-licencia_kyu')).toBeInTheDocument()
+        expect(screen.getByTestId('type-checkbox-mem-1-kyu')).toBeInTheDocument()
       })
-      await user.click(screen.getByTestId('type-checkbox-mem-1-licencia_kyu'))
+      await user.click(screen.getByTestId('type-checkbox-mem-1-kyu'))
 
       // Check the "Incluir cuota de club" checkbox
       const clubFeeCheckbox = screen.getByRole('checkbox', { name: /incluir cuota de club/i })
@@ -130,9 +130,9 @@ describe('ManualPaymentModal — gap coverage', () => {
       await user.click(screen.getByTestId('member-checkbox-mem-1'))
 
       await waitFor(() => {
-        expect(screen.getByTestId('type-checkbox-mem-1-licencia_kyu')).toBeInTheDocument()
+        expect(screen.getByTestId('type-checkbox-mem-1-kyu')).toBeInTheDocument()
       })
-      await user.click(screen.getByTestId('type-checkbox-mem-1-licencia_kyu'))
+      await user.click(screen.getByTestId('type-checkbox-mem-1-kyu'))
 
       // Do NOT click the club fee checkbox — it should remain false
       await user.click(screen.getByRole('button', { name: /registrar|guardar/i }))
