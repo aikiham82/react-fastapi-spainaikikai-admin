@@ -60,7 +60,7 @@ export function ManualPaymentModal({
   isOpen,
   onClose,
   clubId,
-  clubName: _clubName,
+  clubName,
   paymentYear,
   members,
   isLoadingMembers,
@@ -164,7 +164,7 @@ export function ManualPaymentModal({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Registrar pago manual</DialogTitle>
+          <DialogTitle>Registrar pago manual — {clubName}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 flex-1 overflow-hidden">

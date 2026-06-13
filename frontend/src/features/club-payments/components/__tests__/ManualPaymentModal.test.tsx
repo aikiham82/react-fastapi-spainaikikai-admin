@@ -65,11 +65,13 @@ describe('ManualPaymentModal', () => {
 
   // Test case 2: Renders form when open
   describe('when isOpen is true', () => {
-    it('renders the dialog with the correct title', () => {
+    it('renders the dialog with the correct title including club name', () => {
       renderWithProviders(<ManualPaymentModal {...defaultProps} />)
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
-      expect(screen.getByText(/registrar pago manual/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/registrar pago manual — Club Aikido Madrid/i)
+      ).toBeInTheDocument()
     })
 
     it('renders the payer_name input', () => {
