@@ -26,7 +26,7 @@ import {
 import { paymentAdminService } from '@/features/club-payments/data/services/payment-admin.service';
 
 // ─── Typed mock helpers ─────────────────────────────────────────────
-const mockService = paymentAdminService as {
+const mockService = paymentAdminService as unknown as {
   getClubMemberPayments: ReturnType<typeof vi.fn>;
 };
 

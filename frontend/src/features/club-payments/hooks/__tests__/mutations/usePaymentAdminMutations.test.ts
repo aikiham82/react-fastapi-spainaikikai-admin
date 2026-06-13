@@ -35,7 +35,7 @@ import {
 } from '../../mutations/usePaymentAdminMutations';
 
 // ─── Typed mock helpers ──────────────────────────────────────────────
-const mockService = paymentAdminService as {
+const mockService = paymentAdminService as unknown as {
   registerManualPayment: ReturnType<typeof vi.fn>;
   updatePayment: ReturnType<typeof vi.fn>;
   deletePayment: ReturnType<typeof vi.fn>;
@@ -44,7 +44,7 @@ const mockService = paymentAdminService as {
   deleteMemberPayment: ReturnType<typeof vi.fn>;
 };
 
-const mockToast = toast as {
+const mockToast = toast as unknown as {
   success: ReturnType<typeof vi.fn>;
   error: ReturnType<typeof vi.fn>;
 };
