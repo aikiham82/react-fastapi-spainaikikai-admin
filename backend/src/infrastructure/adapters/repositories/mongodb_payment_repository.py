@@ -35,7 +35,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             related_entity_id=doc.get("related_entity_id"),
             payment_year=doc.get("payment_year"),
             payer_name=doc.get("payer_name"),
-            payment_method=doc.get("payment_method", "redsys"),
+            payment_method=PaymentMethod(doc.get("payment_method", "redsys")),
             line_items_data=doc.get("line_items_data"),
             member_assignments=doc.get("member_assignments"),
             created_at=doc.get("created_at"),
