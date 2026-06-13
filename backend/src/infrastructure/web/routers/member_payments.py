@@ -1,5 +1,6 @@
 """Member Payment routes."""
 
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -8,6 +9,7 @@ from src.infrastructure.web.dto.member_payment_dto import (
     MemberPaymentStatusResponse,
     MemberPaymentHistoryResponse,
     MemberPaymentResponse,
+    MemberPaymentUpdateRequest,
     PaymentTypeStatusResponse,
     ClubPaymentSummaryResponse,
     PaymentTypeSummaryResponse,
@@ -23,9 +25,16 @@ from src.infrastructure.web.dependencies import (
     get_club_payment_summary_use_case,
     get_unpaid_members_use_case,
     get_all_clubs_payment_summary_use_case,
-    get_auth_context
+    get_list_club_member_payments_use_case,
+    get_update_member_payment_use_case,
+    get_delete_member_payment_use_case,
+    get_auth_context,
 )
 from src.infrastructure.web.authorization import AuthContext, require_super_admin
+from src.domain.exceptions.payment import (
+    MemberPaymentNotFoundError,
+    InvalidPaymentDataError,
+)
 
 router = APIRouter(prefix="/member-payments", tags=["member-payments"])
 
@@ -235,3 +244,88 @@ async def get_unpaid_members(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+
+# ---------------------------------------------------------------------------
+# Admin endpoints — super_admin only
+# IMPORTANT: GET /club/{club_id} is declared AFTER /club/{club_id}/summary
+# and /club/{club_id}/unpaid so those more-specific paths are matched first
+# by FastAPI's route resolution order.
+# ---------------------------------------------------------------------------
+
+@router.get("/club/{club_id}", response_model=List[MemberPaymentResponse])
+async def get_club_member_payments(
+    club_id: str,
+    payment_year: Optional[int] = None,
+    use_case=Depends(get_list_club_member_payments_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """List all MemberPayments for a club, optionally filtered by year. Super admin only."""
+    require_super_admin(ctx)
+    year = payment_year or datetime.now().year
+    member_payments = await use_case.execute(club_id=club_id, payment_year=year)
+    return [
+        MemberPaymentResponse(
+            id=mp.id,
+            payment_id=mp.payment_id,
+            member_id=mp.member_id,
+            payment_year=mp.payment_year,
+            payment_type=mp.payment_type.value,
+            concept=mp.concept,
+            amount=mp.amount,
+            status=mp.status.value,
+            created_at=mp.created_at,
+            updated_at=mp.updated_at,
+        )
+        for mp in member_payments
+    ]
+
+
+@router.put("/{member_payment_id}", response_model=MemberPaymentResponse)
+async def update_member_payment(
+    member_payment_id: str,
+    request: MemberPaymentUpdateRequest,
+    use_case=Depends(get_update_member_payment_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin only."""
+    require_super_admin(ctx)
+    try:
+        mp = await use_case.execute(
+            member_payment_id=member_payment_id,
+            payment_type=request.payment_type,
+            concept=request.concept,
+            amount=request.amount,
+            status=request.status,
+        )
+    except MemberPaymentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return MemberPaymentResponse(
+        id=mp.id,
+        payment_id=mp.payment_id,
+        member_id=mp.member_id,
+        payment_year=mp.payment_year,
+        payment_type=mp.payment_type.value,
+        concept=mp.concept,
+        amount=mp.amount,
+        status=mp.status.value,
+        created_at=mp.created_at,
+        updated_at=mp.updated_at,
+    )
+
+
+@router.delete("/{member_payment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_member_payment(
+    member_payment_id: str,
+    use_case=Depends(get_delete_member_payment_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Delete a MemberPayment line. Parent Payment amount is recomputed. Super admin only."""
+    require_super_admin(ctx)
+    try:
+        await use_case.execute(member_payment_id)
+    except MemberPaymentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    return None
