@@ -6,7 +6,8 @@ from src.domain.exceptions.payment import (
     PaymentNotFoundError,
     InvalidPaymentDataError,
     PaymentNotRefundableError,
-    RedsysPaymentError
+    RedsysPaymentError,
+    MemberPaymentNotFoundError,
 )
 
 
@@ -48,3 +49,13 @@ class TestPaymentExceptions:
         error = RedsysPaymentError("Redsys payment failed")
         assert "redsys payment" in str(error).lower()
         assert "payment" in str(error).lower()
+
+    def test_member_payment_not_found_error(self):
+        """Test MemberPaymentNotFoundError attributes and raisability."""
+        error = MemberPaymentNotFoundError("mp-123")
+        assert error.entity_type == "MemberPayment"
+        assert error.entity_id == "mp-123"
+        assert "mp-123" in str(error)
+
+        with pytest.raises(MemberPaymentNotFoundError):
+            raise MemberPaymentNotFoundError("mp-123")

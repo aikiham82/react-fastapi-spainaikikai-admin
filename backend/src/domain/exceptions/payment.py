@@ -76,3 +76,10 @@ class DuplicatePaymentForYearError(BusinessRuleViolationError):
         super().__init__(
             f"Ya existe un pago de tipo '{payment_type}' para el año {year}"
         )
+
+
+class MemberPaymentNotFoundError(EntityNotFoundError):
+    """Raised when a MemberPayment is not found."""
+
+    def __init__(self, member_payment_id: str):
+        super().__init__("MemberPayment", member_payment_id)
