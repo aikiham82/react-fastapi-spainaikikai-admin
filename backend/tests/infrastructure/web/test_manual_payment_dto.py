@@ -59,6 +59,18 @@ class TestManualMemberAssignmentDTO:
             )
         assert "invalid" in str(exc_info.value).lower() or "payment type" in str(exc_info.value).lower()
 
+    def test_empty_payment_types_raises_validation_error(self):
+        """Empty payment_types list must be rejected before the per-element loop."""
+        from src.infrastructure.web.dto.manual_payment_dto import ManualMemberAssignmentDTO
+
+        with pytest.raises(ValidationError) as exc_info:
+            ManualMemberAssignmentDTO(
+                member_id="member-123",
+                member_name="Juan",
+                payment_types=[],
+            )
+        assert "payment type" in str(exc_info.value).lower() or "payment_types" in str(exc_info.value).lower()
+
     def test_all_valid_payment_types_are_accepted(self):
         """Each individually valid payment_type should pass."""
         from src.infrastructure.web.dto.manual_payment_dto import ManualMemberAssignmentDTO
@@ -217,6 +229,56 @@ class TestManualPaymentRequest:
 
         req = ManualPaymentRequest(**self._valid_payload())
         assert req.include_club_fee is False
+
+
+@pytest.mark.api
+@pytest.mark.unit
+class TestPaymentUpdateRequest:
+    """Test suite for PaymentUpdateRequest payment_method constraint."""
+
+    def test_payment_method_none_is_accepted(self):
+        """None (omitted) payment_method is valid for a partial update."""
+        from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
+
+        req = PaymentUpdateRequest()
+        assert req.payment_method is None
+
+    def test_payment_method_cash_is_accepted(self):
+        """payment_method='cash' must be accepted."""
+        from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
+
+        req = PaymentUpdateRequest(payment_method="cash")
+        assert req.payment_method == "cash"
+
+    def test_payment_method_transfer_is_accepted(self):
+        """payment_method='transfer' must be accepted."""
+        from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
+
+        req = PaymentUpdateRequest(payment_method="transfer")
+        assert req.payment_method == "transfer"
+
+    def test_payment_method_other_is_accepted(self):
+        """payment_method='other' must be accepted."""
+        from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
+
+        req = PaymentUpdateRequest(payment_method="other")
+        assert req.payment_method == "other"
+
+    def test_payment_method_redsys_is_rejected(self):
+        """payment_method='redsys' must be rejected — cannot re-classify manual as Redsys."""
+        from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
+
+        with pytest.raises(ValidationError) as exc_info:
+            PaymentUpdateRequest(payment_method="redsys")
+        assert "payment_method" in str(exc_info.value).lower() or "redsys" in str(exc_info.value).lower()
+
+    def test_payment_method_bitcoin_is_rejected(self):
+        """Arbitrary unknown values must be rejected."""
+        from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
+
+        with pytest.raises(ValidationError) as exc_info:
+            PaymentUpdateRequest(payment_method="bitcoin")
+        assert "payment_method" in str(exc_info.value).lower() or "bitcoin" in str(exc_info.value).lower()
 
 
 @pytest.mark.api

@@ -1,6 +1,6 @@
 """DTOs for manual payment registration and updates."""
 
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, field_validator
 
@@ -24,6 +24,8 @@ class ManualMemberAssignmentDTO(BaseModel):
     @field_validator("payment_types")
     @classmethod
     def validate_payment_types(cls, v: List[str]) -> List[str]:
+        if not v:
+            raise ValueError("At least one payment type required")
         valid_types = {
             "kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin",
             "seguro_accidentes", "seguro_rc", "club_fee",
@@ -31,8 +33,6 @@ class ManualMemberAssignmentDTO(BaseModel):
         for pt in v:
             if pt not in valid_types:
                 raise ValueError(f"Invalid payment type: {pt}")
-        if not v:
-            raise ValueError("At least one payment type required")
         return v
 
 
@@ -81,7 +81,7 @@ class PaymentUpdateRequest(BaseModel):
 
     amount: Optional[float] = None
     payment_year: Optional[int] = None
-    payment_method: Optional[str] = None
+    payment_method: Optional[Literal["cash", "transfer", "other"]] = None
     payer_name: Optional[str] = None
     status: Optional[str] = None
 
