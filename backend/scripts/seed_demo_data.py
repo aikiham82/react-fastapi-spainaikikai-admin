@@ -9,7 +9,7 @@ import asyncio
 import os
 import sys
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 import random
 
 # Add parent directory to path for imports
@@ -524,8 +524,34 @@ async def seed_seminars(db, club_ids: List[str], association_id: str):
     print(f"  Created {len(seminars)} seminars")
 
 
-async def seed_users(db, club_ids: List[str]):
-    """Seed user accounts for testing."""
+async def seed_users(db, club_ids: List[str], members: List[dict]):
+    """Seed user accounts for testing.
+
+    Roles follow the two-level model:
+      - User.global_role: "super_admin" | "user"
+      - Club-level admin is a User with global_role="user" linked via member_id
+        to a Member whose club_role == "admin".
+    """
+    from bson import ObjectId
+
+    members_by_club: dict = {}
+    for m in members:
+        members_by_club.setdefault(m["club_id"], []).append(m)
+
+    async def make_club_admin(club_id: str) -> Optional[str]:
+        """Promote the first member of a club to club admin; return its id."""
+        club_members = members_by_club.get(club_id)
+        if not club_members:
+            return None
+        member_id = club_members[0]["id"]
+        await db.members.update_one(
+            {"_id": ObjectId(member_id)}, {"$set": {"club_role": "admin"}}
+        )
+        return member_id
+
+    madrid_admin = await make_club_admin(club_ids[0])
+    barcelona_admin = await make_club_admin(club_ids[1])
+    valencia_admin = await make_club_admin(club_ids[2])
 
     users = [
         {
@@ -533,40 +559,40 @@ async def seed_users(db, club_ids: List[str]):
             "username": "admin",
             "hashed_password": get_password_hash("admin123"),
             "is_active": True,
-            "role": "association_admin",
-            "club_id": None,
+            "global_role": "super_admin",
+            "member_id": None,
         },
         {
             "email": "director@aikido-madrid.es",
             "username": "director_madrid",
             "hashed_password": get_password_hash("demo123"),
             "is_active": True,
-            "role": "club_admin",
-            "club_id": club_ids[0],
+            "global_role": "user",
+            "member_id": madrid_admin,
         },
         {
             "email": "director@aikido-barcelona.es",
             "username": "director_barcelona",
             "hashed_password": get_password_hash("demo123"),
             "is_active": True,
-            "role": "club_admin",
-            "club_id": club_ids[1],
+            "global_role": "user",
+            "member_id": barcelona_admin,
         },
         {
             "email": "instructor@aikido-valencia.es",
             "username": "instructor_valencia",
             "hashed_password": get_password_hash("demo123"),
             "is_active": True,
-            "role": "club_admin",
-            "club_id": club_ids[2],
+            "global_role": "user",
+            "member_id": valencia_admin,
         },
         {
             "email": "demo@spainaikikai.es",
             "username": "demo",
             "hashed_password": get_password_hash("demo123"),
             "is_active": True,
-            "role": "association_admin",
-            "club_id": None,
+            "global_role": "super_admin",
+            "member_id": None,
         },
     ]
 
@@ -575,7 +601,8 @@ async def seed_users(db, club_ids: List[str]):
         user["updated_at"] = datetime.utcnow()
 
     await db.users.insert_many(users)
-    print(f"  Created {len(users)} users")
+    print(f"  Created {len(users)} users "
+          f"(2 super_admin, 3 club admins linked to members)")
 
 
 async def main():
@@ -622,7 +649,7 @@ async def main():
         await seed_seminars(db, club_ids, association_id)
 
         print("\nStep 9: Creating Users...")
-        await seed_users(db, club_ids)
+        await seed_users(db, club_ids, members)
 
         print("\n" + "="*60)
         print("  SEED COMPLETED SUCCESSFULLY!")
