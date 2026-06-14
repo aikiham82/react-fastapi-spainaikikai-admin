@@ -34,6 +34,7 @@ class PaymentMapper:
             payment_type=entity.payment_type.value,
             amount=entity.amount,
             status=entity.status.value,
+            payment_method=entity.payment_method.value,
             payment_date=entity.payment_date,
             transaction_id=entity.transaction_id,
             redsys_response=entity.redsys_response,

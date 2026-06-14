@@ -144,3 +144,12 @@ class MemberPaymentAssignment(BaseModel):
             if ptype not in valid_types:
                 raise ValueError(f'Invalid payment type: {ptype}')
         return v
+
+
+class MemberPaymentUpdateRequest(BaseModel):
+    """Request DTO for PUT /member-payments/{id}."""
+
+    payment_type: Optional[str] = None
+    concept: Optional[str] = None
+    amount: Optional[float] = None
+    status: Optional[str] = None

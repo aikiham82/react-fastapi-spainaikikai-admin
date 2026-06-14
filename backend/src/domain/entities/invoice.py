@@ -138,6 +138,10 @@ class Invoice:
         self.total = self.subtotal + self.tax_total
         self.updated_at = datetime.now()
 
+    def calculate_totals(self) -> None:
+        """Public alias for recalculating invoice totals (used after construction with line_items)."""
+        self._recalculate_totals()
+
     def issue(self) -> None:
         """Issue the invoice (mark as sent to customer)."""
         if self.status != InvoiceStatus.DRAFT:

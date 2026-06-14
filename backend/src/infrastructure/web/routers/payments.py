@@ -35,8 +35,23 @@ from src.infrastructure.web.dependencies import (
     get_process_redsys_webhook_use_case
 )
 from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext
-from src.domain.exceptions.payment import DuplicatePaymentForYearError
+from src.infrastructure.web.authorization import AuthContext, require_super_admin
+from src.domain.exceptions.payment import (
+    DuplicatePaymentForYearError,
+    PaymentNotFoundError,
+    InvalidPaymentStatusError,
+    InvalidPaymentDataError,
+)
+from src.infrastructure.web.dto.manual_payment_dto import (
+    ManualPaymentRequest,
+    PaymentUpdateRequest,
+    ManualPaymentResponse,
+)
+from src.infrastructure.web.dependencies import (
+    get_register_manual_payment_use_case,
+    get_update_payment_use_case,
+)
+from src.application.use_cases.payment.register_manual_payment_use_case import ManualMemberAssignment
 from src.config.settings import get_app_settings
 
 router = APIRouter(prefix="/payments", tags=["payments"])
@@ -277,12 +292,85 @@ async def get_payment_status(
     return PaymentMapper.to_response_dto(payment)
 
 
+@router.post("/manual", response_model=ManualPaymentResponse, status_code=status.HTTP_201_CREATED)
+async def register_manual_payment(
+    request: ManualPaymentRequest,
+    use_case=Depends(get_register_manual_payment_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Register a manual payment (cash/transfer/other). Super admin only."""
+    require_super_admin(ctx)
+    try:
+        result = await use_case.execute(
+            payer_name=request.payer_name,
+            club_id=request.club_id,
+            payment_year=request.payment_year,
+            payment_method=request.payment_method,
+            member_assignments=[
+                ManualMemberAssignment(
+                    member_id=a.member_id,
+                    member_name=a.member_name,
+                    payment_types=a.payment_types,
+                )
+                for a in request.member_assignments
+            ],
+            include_club_fee=request.include_club_fee,
+        )
+    except DuplicatePaymentForYearError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return ManualPaymentResponse(
+        payment=PaymentMapper.to_response_dto(result.payment),
+        member_payment_count=len(result.member_payments),
+        invoice_number=result.invoice.invoice_number if result.invoice else None,
+    )
+
+
+@router.put("/{payment_id}", response_model=PaymentResponse)
+async def update_payment(
+    payment_id: str,
+    request: PaymentUpdateRequest,
+    use_case=Depends(get_update_payment_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Update a manual payment. Redsys COMPLETED payments are blocked. Super admin only."""
+    require_super_admin(ctx)
+    try:
+        payment = await use_case.execute(
+            payment_id=payment_id,
+            amount=request.amount,
+            payment_year=request.payment_year,
+            payment_method=request.payment_method,
+            payer_name=request.payer_name,
+            status=request.status,
+        )
+    except PaymentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except InvalidPaymentStatusError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return PaymentMapper.to_response_dto(payment)
+
+
 @router.delete("/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_payment(
     payment_id: str,
-    get_delete_use_case = Depends(get_delete_payment_use_case),
-    ctx: AuthContext = Depends(get_auth_context)
+    force: bool = False,
+    get_delete_use_case=Depends(get_delete_payment_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
-    """Delete payment."""
-    await get_delete_use_case.execute(payment_id)
+    """Delete payment with cascade (MemberPayments -> Invoice -> Payment).
+    force=true required for Redsys COMPLETED payments. Super admin only."""
+    require_super_admin(ctx)
+    try:
+        await get_delete_use_case.execute(payment_id, force=force)
+    except PaymentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except InvalidPaymentStatusError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     return None
