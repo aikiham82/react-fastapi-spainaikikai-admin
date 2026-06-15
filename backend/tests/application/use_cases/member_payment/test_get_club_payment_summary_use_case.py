@@ -47,18 +47,37 @@ def mock_repos():
     }
 
 
+def _license_payment(member_id: str, amount: float = 25.0):
+    """Build a mock completed license MemberPayment."""
+    p = MagicMock()
+    p.member_id = member_id
+    p.is_license_payment = True
+    p.is_insurance_payment = False
+    p.amount = amount
+    return p
+
+
+def _insurance_payment(member_id: str, amount: float = 15.0):
+    """Build a mock completed insurance MemberPayment."""
+    p = MagicMock()
+    p.member_id = member_id
+    p.is_license_payment = False
+    p.is_insurance_payment = True
+    p.amount = amount
+    return p
+
+
 @pytest.mark.unit
 @pytest.mark.asyncio
 class TestGetClubPaymentSummaryLicensePaid:
+    """On the payments screen, license_paid must reflect an actual license PAYMENT
+    for the year, not the mere existence of a (federation-imported) License entity."""
 
-    async def test_license_paid_true_when_license_covers_year(self, mock_repos):
-        """license_paid=True when member has license with expiration_date >= Dec 31 of year."""
-        license_2026 = MagicMock()
-        license_2026.member_id = "m1"
-        license_2026.expiration_date = datetime(2026, 12, 31, 23, 59, 59)
-        license_2026.status = LicenseStatus.ACTIVE
-
-        mock_repos["license_repo"].find_by_member_ids.return_value = [license_2026]
+    async def test_license_paid_true_when_license_payment_completed(self, mock_repos):
+        """license_paid=True only when a completed license MemberPayment exists for the year."""
+        mock_repos["member_payment_repo"].find_by_member_ids_year.return_value = [
+            _license_payment("m1")
+        ]
 
         use_case = GetClubPaymentSummaryUseCase(
             member_payment_repository=mock_repos["member_payment_repo"],
@@ -74,14 +93,19 @@ class TestGetClubPaymentSummaryLicensePaid:
         assert m1_summary.license_paid is True
         assert m2_summary.license_paid is False
 
-    async def test_license_paid_false_when_license_expired_before_year(self, mock_repos):
-        """license_paid=False when member's license expired before the queried year."""
-        old_license = MagicMock()
-        old_license.member_id = "m1"
-        old_license.expiration_date = datetime(2024, 12, 31, 23, 59, 59)
-        old_license.status = LicenseStatus.EXPIRED
+    async def test_license_paid_false_when_only_license_entity_exists(self, mock_repos):
+        """Regression (Muzen Dojo bug): a valid License entity but NO license payment
+        must NOT mark license_paid. They only paid the 15€ insurance."""
+        license_2026 = MagicMock()
+        license_2026.member_id = "m1"
+        license_2026.expiration_date = datetime(2026, 12, 31, 23, 59, 59)
+        license_2026.status = LicenseStatus.ACTIVE
+        mock_repos["license_repo"].find_by_member_ids.return_value = [license_2026]
 
-        mock_repos["license_repo"].find_by_member_ids.return_value = [old_license]
+        # Member only paid insurance, never the license
+        mock_repos["member_payment_repo"].find_by_member_ids_year.return_value = [
+            _insurance_payment("m1")
+        ]
 
         use_case = GetClubPaymentSummaryUseCase(
             member_payment_repository=mock_repos["member_payment_repo"],
@@ -94,16 +118,13 @@ class TestGetClubPaymentSummaryLicensePaid:
 
         m1_summary = next(m for m in result.members if m.member_id == "m1")
         assert m1_summary.license_paid is False
+        assert m1_summary.insurance_paid is True
 
     async def test_insurance_paid_still_uses_member_payments(self, mock_repos):
         """insurance_paid should still come from MemberPayment records (unchanged)."""
-        insurance_payment = MagicMock()
-        insurance_payment.member_id = "m1"
-        insurance_payment.is_license_payment = False
-        insurance_payment.is_insurance_payment = True
-        insurance_payment.amount = 30.0
-
-        mock_repos["member_payment_repo"].find_by_member_ids_year.return_value = [insurance_payment]
+        mock_repos["member_payment_repo"].find_by_member_ids_year.return_value = [
+            _insurance_payment("m1", amount=30.0)
+        ]
 
         use_case = GetClubPaymentSummaryUseCase(
             member_payment_repository=mock_repos["member_payment_repo"],
@@ -117,17 +138,12 @@ class TestGetClubPaymentSummaryLicensePaid:
         m1_summary = next(m for m in result.members if m.member_id == "m1")
         assert m1_summary.insurance_paid is True
 
-    async def test_members_with_license_count_reflects_license_expiration(self, mock_repos):
-        """members_with_license count should reflect license-based logic."""
-        lic_m1 = MagicMock()
-        lic_m1.member_id = "m1"
-        lic_m1.expiration_date = datetime(2026, 12, 31, 23, 59, 59)
-
-        lic_m2 = MagicMock()
-        lic_m2.member_id = "m2"
-        lic_m2.expiration_date = datetime(2026, 12, 31, 23, 59, 59)
-
-        mock_repos["license_repo"].find_by_member_ids.return_value = [lic_m1, lic_m2]
+    async def test_members_with_license_count_reflects_license_payments(self, mock_repos):
+        """members_with_license count should reflect license PAYMENTS, not entities."""
+        mock_repos["member_payment_repo"].find_by_member_ids_year.return_value = [
+            _license_payment("m1"),
+            _license_payment("m2"),
+        ]
 
         use_case = GetClubPaymentSummaryUseCase(
             member_payment_repository=mock_repos["member_payment_repo"],

@@ -105,8 +105,11 @@ class GetClubPaymentSummaryUseCase:
             status=MemberPaymentStatus.COMPLETED
         )
 
-        # Determine license_paid and grade_group from license data
-        license_by_member: Dict[str, bool] = {}
+        # Classify grade group from the federation License entity (technical grade is
+        # independent of payment). NOTE: the License entity is intentionally NOT used to
+        # decide license_paid — a member can hold a federation license (imported, no
+        # payment) while never having paid the license fee through the app. license_paid
+        # is derived from MemberPayment records below.
         grade_group_by_member: Dict[str, str] = {}
         year_end = datetime(payment_year, 12, 31)
         if self.license_repository:
@@ -115,8 +118,6 @@ class GetClubPaymentSummaryUseCase:
                 if not lic.member_id:
                     continue
                 is_valid = lic.expiration_date and lic.expiration_date >= year_end
-                if is_valid:
-                    license_by_member[lic.member_id] = True
                 # Classify grade group from valid licenses only
                 if is_valid:
                     group = "unknown"
@@ -132,15 +133,21 @@ class GetClubPaymentSummaryUseCase:
                     if GRADE_GROUP_ORDER.get(group, 4) < GRADE_GROUP_ORDER.get(current, 4):
                         grade_group_by_member[lic.member_id] = group
 
-        # Build member-level payment map (insurance_paid still from MemberPayments)
+        # Build member-level payment map. license_paid and insurance_paid both derive
+        # from completed MemberPayments for the year (payments are pre-filtered to
+        # status=COMPLETED above).
         member_payments: Dict[str, Dict] = {}
         has_club_fee = False
         for payment in payments:
             if payment.member_id not in member_payments:
                 member_payments[payment.member_id] = {
+                    "license_paid": False,
                     "insurance_paid": False,
                     "total_paid": 0.0
                 }
+
+            if payment.is_license_payment:
+                member_payments[payment.member_id]["license_paid"] = True
 
             if payment.is_insurance_payment:
                 member_payments[payment.member_id]["insurance_paid"] = True
@@ -157,13 +164,12 @@ class GetClubPaymentSummaryUseCase:
 
         for member in members:
             payment_data = member_payments.get(member.id, {
+                "license_paid": False,
                 "insurance_paid": False,
                 "total_paid": 0.0
             })
 
-            has_license = license_by_member.get(member.id, False)
-
-            if has_license:
+            if payment_data["license_paid"]:
                 members_with_license += 1
             if payment_data["insurance_paid"]:
                 members_with_insurance += 1
@@ -171,7 +177,7 @@ class GetClubPaymentSummaryUseCase:
             member_summaries.append(MemberPaymentSummary(
                 member_id=member.id,
                 member_name=member.get_full_name(),
-                license_paid=has_license,
+                license_paid=payment_data["license_paid"],
                 insurance_paid=payment_data["insurance_paid"],
                 total_paid=payment_data["total_paid"],
                 grade_group=grade_group_by_member.get(member.id, "unknown")
