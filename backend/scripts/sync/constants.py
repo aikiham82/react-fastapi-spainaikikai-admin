@@ -24,6 +24,16 @@ COLL_CLUBS = "clubs"
 # in prod if available; this is the fallback).
 DEFAULT_SEGURO_RC_AMOUNT = 10
 
+# Standard fee amounts used to resolve TEXT-LABEL cells. The secretary sometimes types
+# a label (e.g. "Cuota An." / "Seg. Acc.") in the amount column instead of the number;
+# those cells must resolve to the standard amount, not 0.
+DEFAULT_SEGURO_ACCIDENTES_AMOUNT = 15  # constant across all rows in the Excel
+DEFAULT_CUOTA_KYU_AMOUNT = 15  # kyu annual license fee (dan cuotas vary; never labeled)
+
+# Lowercased label texts that mean "the standard amount applies for this column".
+CUOTA_LABELS = {"cuota an.", "cuota anual", "cuota an", "cuota"}
+SEGURO_ACC_LABELS = {"seg. acc.", "seguro accidentes", "seguro de accidentes", "seg acc"}
+
 # Club fee (cuota_club) charged per club per year. Matches price_configurations.club_fee.
 DEFAULT_CLUB_FEE_AMOUNT = 100
 

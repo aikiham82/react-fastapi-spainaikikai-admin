@@ -8,7 +8,17 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from .constants import SHEET_FEES, SHEET_INSURANCES, SHEET_MASTER, SHEET_MEMBERS, TAIO_REMAP
+from .constants import (
+    CUOTA_LABELS,
+    DEFAULT_CUOTA_KYU_AMOUNT,
+    DEFAULT_SEGURO_ACCIDENTES_AMOUNT,
+    SEGURO_ACC_LABELS,
+    SHEET_FEES,
+    SHEET_INSURANCES,
+    SHEET_MASTER,
+    SHEET_MEMBERS,
+    TAIO_REMAP,
+)
 from .normalizers import norm_dni
 
 
@@ -183,6 +193,27 @@ def load_members(path: Path) -> list[ExcelMemberRow]:
     return list(by_num.values())
 
 
+def _resolve_cuota(cell, grade_type: str) -> float:
+    """Cuota amount from a numeric cell, or the standard amount when the cell holds a
+    text label (e.g. 'Cuota An.'). Labels only resolve for kyu (dan cuotas vary)."""
+    if isinstance(cell, (int, float)):
+        return float(cell)
+    if isinstance(cell, str) and cell.strip().lower() in CUOTA_LABELS:
+        if grade_type in {"kyu", "kyu_infantil"}:
+            return float(DEFAULT_CUOTA_KYU_AMOUNT)
+    return 0.0
+
+
+def _resolve_seg_acc(cell) -> float:
+    """Seguro accidentes amount from a numeric cell, or the standard amount when the cell
+    holds a text label (e.g. 'Seg. Acc.')."""
+    if isinstance(cell, (int, float)):
+        return float(cell)
+    if isinstance(cell, str) and cell.strip().lower() in SEGURO_ACC_LABELS:
+        return float(DEFAULT_SEGURO_ACCIDENTES_AMOUNT)
+    return 0.0
+
+
 def load_fees(path: Path) -> dict[str, ExcelFeeRow]:
     """Returns {num_socio: ExcelFeeRow}."""
     wb = load_workbook(path, data_only=True, read_only=True)
@@ -194,8 +225,8 @@ def load_fees(path: Path) -> dict[str, ExcelFeeRow]:
         num = _num_socio(row[0])
         nivel = row[4] if isinstance(row[4], (int, float)) else None
         grade_type = _s(row[5]).lower()
-        cuota = float(row[7]) if isinstance(row[7], (int, float)) else 0.0
-        seg_acc = float(row[8]) if isinstance(row[8], (int, float)) else 0.0
+        cuota = _resolve_cuota(row[7], grade_type)
+        seg_acc = _resolve_seg_acc(row[8])
         rc_flag = _s(row[9]).upper() == "RC"
         send_date = row[20] if isinstance(row[20], datetime.datetime) else None
         rows[num] = ExcelFeeRow(

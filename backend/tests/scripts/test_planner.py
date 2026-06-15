@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from scripts.sync.excel_loader import (
     ExcelFeeRow,
@@ -6,6 +6,9 @@ from scripts.sync.excel_loader import (
     ExcelMemberRow,
 )
 from scripts.sync.planner import Planner
+
+# A non-None send_date marks the fee as "submitted/paid" so payments are emitted.
+SUBMITTED = datetime(2026, 1, 21)
 
 
 def excel_member(num="100", dni="12345678A", first="Juan", last1="Garcia",
@@ -19,11 +22,12 @@ def excel_member(num="100", dni="12345678A", first="Juan", last1="Garcia",
     )
 
 
-def excel_fee(num="100", cuota=70, seg_acc=15, rc=True, grade_type="dan", nivel=1):
+def excel_fee(num="100", cuota=70, seg_acc=15, rc=True, grade_type="dan", nivel=1,
+              send_date=SUBMITTED):
     return ExcelFeeRow(
         num_socio=num, grade_level=nivel, grade_type=grade_type,
         instructor="", cuota_anual=cuota, seguro_accidentes=seg_acc,
-        seguro_rc_flag=rc, send_date=None,
+        seguro_rc_flag=rc, send_date=send_date,
     )
 
 
@@ -176,3 +180,34 @@ def test_license_upsert_for_matched_member():
     assert lic["license_type"] == "dan"
     assert lic["grade"] == "3º Dan"
     assert lic["technical_grade"] == "dan"
+
+
+def test_no_payments_when_send_date_missing():
+    """Member without 'Fecha de envío' did NOT pay → no payments, no false 'paid'."""
+    p = Planner(
+        excel_members=[excel_member()],
+        excel_fees={"100": excel_fee(cuota=70, seg_acc=15, rc=True, send_date=None)},
+        excel_insurances=[],
+        prod_members=[prod_member()],
+        prod_licenses={}, prod_insurances={}, prod_payments={},
+    )
+    plan = p.build()
+    assert plan.payment_upserts == []
+    # Roster registry is still emitted regardless of payment.
+    assert len(plan.license_upserts) == 1
+    assert len(plan.insurance_upserts) == 2  # accident + civil_liability
+    assert any(w["type"] == "no_send_date_payments_skipped" for w in plan.warnings)
+
+
+def test_payments_created_only_when_submitted():
+    """With a send_date, all due payments are emitted as completed."""
+    p = Planner(
+        excel_members=[excel_member()],
+        excel_fees={"100": excel_fee(cuota=70, seg_acc=15, rc=True, send_date=SUBMITTED)},
+        excel_insurances=[],
+        prod_members=[prod_member()],
+        prod_licenses={}, prod_insurances={}, prod_payments={},
+    )
+    plan = p.build()
+    types = sorted(a["payment_type"] for a in plan.payment_upserts)
+    assert types == ["licencia_dan", "seguro_accidentes", "seguro_rc"]

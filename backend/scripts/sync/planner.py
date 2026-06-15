@@ -278,8 +278,20 @@ class Planner:
             "expiration_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
         })
 
+        # PAYMENTS are only created when the club actually submitted/paid, signalled by
+        # the Excel "Fecha de envío" (send_date). Without it the member is in the roster
+        # but has NOT paid for the year — creating completed payments would falsely mark
+        # them paid (the bug that wrongly showed ~20 clubs, incl. Muzen Dojo, as paid).
+        # Licenses/insurances are roster registry and are emitted regardless.
+        submitted = fee.send_date is not None
+        if not submitted:
+            plan.warnings.append({
+                "type": "no_send_date_payments_skipped",
+                "num_socio": ex.num_socio,
+            })
+
         payment_license_type = _payment_type_for_license(fee.grade_type)
-        if fee.cuota_anual > 0:
+        if submitted and fee.cuota_anual > 0:
             plan.payment_upserts.append({
                 "member_id": member_id_ref,
                 "payment_year": LICENSE_YEAR,
@@ -289,14 +301,15 @@ class Planner:
                 "status": "completed",
             })
         if fee.seguro_accidentes > 0:
-            plan.payment_upserts.append({
-                "member_id": member_id_ref,
-                "payment_year": LICENSE_YEAR,
-                "payment_type": "seguro_accidentes",
-                "concept": f"seguro_accidentes - {LICENSE_YEAR}",
-                "amount": fee.seguro_accidentes,
-                "status": "completed",
-            })
+            if submitted:
+                plan.payment_upserts.append({
+                    "member_id": member_id_ref,
+                    "payment_year": LICENSE_YEAR,
+                    "payment_type": "seguro_accidentes",
+                    "concept": f"seguro_accidentes - {LICENSE_YEAR}",
+                    "amount": fee.seguro_accidentes,
+                    "status": "completed",
+                })
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "accident",
@@ -308,14 +321,15 @@ class Planner:
                 "coverage_amount": fee.seguro_accidentes,
             })
         if fee.seguro_rc_flag:
-            plan.payment_upserts.append({
-                "member_id": member_id_ref,
-                "payment_year": LICENSE_YEAR,
-                "payment_type": "seguro_rc",
-                "concept": f"seguro_rc - {LICENSE_YEAR}",
-                "amount": DEFAULT_SEGURO_RC_AMOUNT,
-                "status": "completed",
-            })
+            if submitted:
+                plan.payment_upserts.append({
+                    "member_id": member_id_ref,
+                    "payment_year": LICENSE_YEAR,
+                    "payment_type": "seguro_rc",
+                    "concept": f"seguro_rc - {LICENSE_YEAR}",
+                    "amount": DEFAULT_SEGURO_RC_AMOUNT,
+                    "status": "completed",
+                })
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "civil_liability",
