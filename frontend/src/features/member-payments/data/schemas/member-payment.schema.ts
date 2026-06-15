@@ -28,6 +28,7 @@ export const memberPaymentSchema = z.object({
   id: z.string(),
   payment_id: z.string(),
   member_id: z.string(),
+  member_name: z.string().nullable().optional(),
   club_id: z.string(),
   payment_year: z.number(),
   payment_type: z.string(),

@@ -107,8 +107,8 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
           <TableBody>
             {memberPayments.map((mp) => (
               <TableRow key={mp.id}>
-                <TableCell className="font-medium text-muted-foreground">
-                  {mp.member_id}
+                <TableCell className="font-medium">
+                  {mp.member_name || mp.member_id}
                 </TableCell>
                 <TableCell>{mp.concept}</TableCell>
                 <TableCell>{getPaymentTypeLabel(mp.payment_type)}</TableCell>

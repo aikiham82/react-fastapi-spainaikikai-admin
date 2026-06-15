@@ -266,18 +266,19 @@ async def get_club_member_payments(
     member_payments = await use_case.execute(club_id=club_id, payment_year=year)
     return [
         MemberPaymentResponse(
-            id=mp.id,
-            payment_id=mp.payment_id,
-            member_id=mp.member_id,
-            payment_year=mp.payment_year,
-            payment_type=mp.payment_type.value,
-            concept=mp.concept,
-            amount=mp.amount,
-            status=mp.status.value,
-            created_at=mp.created_at,
-            updated_at=mp.updated_at,
+            id=item.payment.id,
+            payment_id=item.payment.payment_id,
+            member_id=item.payment.member_id,
+            member_name=item.member_name,
+            payment_year=item.payment.payment_year,
+            payment_type=item.payment.payment_type.value,
+            concept=item.payment.concept,
+            amount=item.payment.amount,
+            status=item.payment.status.value,
+            created_at=item.payment.created_at,
+            updated_at=item.payment.updated_at,
         )
-        for mp in member_payments
+        for item in member_payments
     ]
 
 

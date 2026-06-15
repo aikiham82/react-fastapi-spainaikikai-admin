@@ -112,12 +112,18 @@ class TestGetClubMemberPayments:
     def test_super_admin_gets_club_member_payments_returns_200(self, test_app):
         """Super admin gets list of member payments for a club → 200 with list."""
         from src.infrastructure.web.dependencies import get_list_club_member_payments_use_case
+        from src.application.use_cases.member_payment.get_club_member_payments_use_case import (
+            MemberPaymentWithMember,
+        )
 
         mp1 = _make_member_payment("mp-001", "pay-001")
         mp2 = _make_member_payment("mp-002", "pay-002", member_id="member-002", amount=30.0)
 
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = [mp1, mp2]
+        mock_use_case.execute.return_value = [
+            MemberPaymentWithMember(payment=mp1, member_name="Alice Doe"),
+            MemberPaymentWithMember(payment=mp2, member_name="Bob Roe"),
+        ]
 
         test_app.dependency_overrides[get_auth_context] = lambda: _make_super_admin_ctx()
         test_app.dependency_overrides[get_list_club_member_payments_use_case] = (
@@ -132,7 +138,9 @@ class TestGetClubMemberPayments:
         assert isinstance(data, list)
         assert len(data) == 2
         assert data[0]["id"] == "mp-001"
+        assert data[0]["member_name"] == "Alice Doe"
         assert data[1]["id"] == "mp-002"
+        assert data[1]["member_name"] == "Bob Roe"
 
     def test_non_super_admin_gets_403(self, test_app):
         """Regular user trying GET /club/{id} → 403."""

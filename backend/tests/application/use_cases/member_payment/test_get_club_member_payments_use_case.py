@@ -12,6 +12,7 @@ from src.domain.entities.member_payment import MemberPayment, MemberPaymentType,
 def _make_member(member_id):
     m = MagicMock()
     m.id = member_id
+    m.get_full_name.return_value = f"Name {member_id}"
     return m
 
 
@@ -80,7 +81,9 @@ class TestGetClubMemberPaymentsUseCase:
             member_ids=["m1", "m2"],
             payment_year=2026,
         )
-        assert result == expected_payments
+        assert [item.payment for item in result] == expected_payments
+        # Each payment is enriched with the resolved member name
+        assert [item.member_name for item in result] == ["Name m1", "Name m2"]
 
     async def test_members_with_none_ids_are_filtered_out(
         self, use_case, mock_member_repo, mock_member_payment_repo
@@ -100,7 +103,8 @@ class TestGetClubMemberPaymentsUseCase:
             member_ids=["m1"],
             payment_year=2026,
         )
-        assert result == expected_payments
+        assert [item.payment for item in result] == expected_payments
+        assert [item.member_name for item in result] == ["Name m1"]
 
     async def test_all_members_have_none_ids_returns_empty_list(
         self, use_case, mock_member_repo, mock_member_payment_repo

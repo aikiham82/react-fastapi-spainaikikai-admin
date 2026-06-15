@@ -13,6 +13,7 @@ class MemberPaymentResponse(BaseModel):
     id: str
     payment_id: str
     member_id: str
+    member_name: Optional[str] = None
     payment_year: int
     payment_type: str
     concept: str

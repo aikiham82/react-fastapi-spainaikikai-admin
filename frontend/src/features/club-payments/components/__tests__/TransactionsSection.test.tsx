@@ -102,6 +102,43 @@ describe('TransactionsSection', () => {
       expect(screen.getByText('Licencia KYU 2024')).toBeInTheDocument()
       expect(screen.getByText('Seguro RC 2024')).toBeInTheDocument()
     })
+
+    it('shows the member name (not the raw member_id) when provided', async () => {
+      const payments = [
+        makeMemberPayment({ id: 'mp-001', member_id: 'mem-001', member_name: 'Roco Prieto Jurado' }),
+      ]
+
+      const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+      vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+        data: payments,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+      renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+      expect(screen.getByText('Roco Prieto Jurado')).toBeInTheDocument()
+      expect(screen.queryByText('mem-001')).not.toBeInTheDocument()
+    })
+
+    it('falls back to member_id when no member name is present', async () => {
+      const payments = [
+        makeMemberPayment({ id: 'mp-001', member_id: 'mem-001', member_name: null }),
+      ]
+
+      const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+      vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+        data: payments,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+      renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+      expect(screen.getByText('mem-001')).toBeInTheDocument()
+    })
   })
 
   // ─── Test 3: Edit opens MemberPaymentEditModal ───────────────────────────
