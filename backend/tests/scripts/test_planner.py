@@ -182,8 +182,10 @@ def test_license_upsert_for_matched_member():
     assert lic["technical_grade"] == "dan"
 
 
-def test_no_payments_when_send_date_missing():
-    """Member without 'Fecha de envío' did NOT pay → no payments, no false 'paid'."""
+def test_no_license_but_insurance_kept_when_send_date_missing():
+    """No 'Fecha de envío' → no annual license/cuota (not paid for 2026), but accident +
+    RC insurance are on a SEPARATE cycle and are still emitted (e.g. Muzen paid the seguro
+    in autumn while never doing the 2026 annual renewal)."""
     p = Planner(
         excel_members=[excel_member()],
         excel_fees={"100": excel_fee(cuota=70, seg_acc=15, rc=True, send_date=None)},
@@ -192,22 +194,59 @@ def test_no_payments_when_send_date_missing():
         prod_licenses={}, prod_insurances={}, prod_payments={},
     )
     plan = p.build()
-    assert plan.payment_upserts == []
-    # Roster registry is still emitted regardless of payment.
-    assert len(plan.license_upserts) == 1
-    assert len(plan.insurance_upserts) == 2  # accident + civil_liability
-    assert any(w["type"] == "no_send_date_payments_skipped" for w in plan.warnings)
+    types = sorted(a["payment_type"] for a in plan.payment_upserts)
+    assert types == ["seguro_accidentes", "seguro_rc"]  # no licencia_dan
+    ins_types = sorted(a["insurance_type"] for a in plan.insurance_upserts)
+    assert ins_types == ["accident", "civil_liability"]
+    assert len(plan.license_upserts) == 1  # grade registry still emitted
+    assert plan.submitted_club_refs == set()  # club not "al día" for the annual
+    assert any(w["type"] == "no_send_date_license_skipped" for w in plan.warnings)
 
 
-def test_payments_created_only_when_submitted():
-    """With a send_date, all due payments are emitted as completed."""
+def test_no_license_warning_when_member_has_no_cuota():
+    """A send_date-less member with no cuota produces no license-skipped warning."""
     p = Planner(
         excel_members=[excel_member()],
-        excel_fees={"100": excel_fee(cuota=70, seg_acc=15, rc=True, send_date=SUBMITTED)},
+        excel_fees={"100": excel_fee(cuota=0, seg_acc=15, rc=False, send_date=None)},
         excel_insurances=[],
         prod_members=[prod_member()],
         prod_licenses={}, prod_insurances={}, prod_payments={},
     )
     plan = p.build()
+    assert not any(w["type"] == "no_send_date_license_skipped" for w in plan.warnings)
+    # Insurance is still created on its own cycle.
+    assert any(a["payment_type"] == "seguro_accidentes" for a in plan.payment_upserts)
+
+
+def test_full_payments_and_insurance_when_submitted():
+    """With a send_date, annual license + both insurances are emitted and the club is
+    flagged submitted (so the writer charges the club fee)."""
+    p = Planner(
+        excel_members=[excel_member(club_id="club_a")],
+        excel_fees={"100": excel_fee(cuota=70, seg_acc=15, rc=True, send_date=SUBMITTED)},
+        excel_insurances=[],
+        prod_members=[prod_member(club_id="club_a")],
+        prod_licenses={}, prod_insurances={}, prod_payments={},
+    )
+    plan = p.build()
     types = sorted(a["payment_type"] for a in plan.payment_upserts)
     assert types == ["licencia_dan", "seguro_accidentes", "seguro_rc"]
+    ins_types = sorted(a["insurance_type"] for a in plan.insurance_upserts)
+    assert ins_types == ["accident", "civil_liability"]
+    assert "club_a" in plan.submitted_club_refs
+
+
+def test_submitted_zero_cuota_warns():
+    """A submitted member whose cuota didn't resolve (e.g. dan 'Cuota An.' label → 0)
+    is surfaced via a warning instead of silently dropping the license fee."""
+    p = Planner(
+        excel_members=[excel_member()],
+        excel_fees={"100": excel_fee(cuota=0, seg_acc=15, rc=False,
+                                     grade_type="dan", send_date=SUBMITTED)},
+        excel_insurances=[],
+        prod_members=[prod_member()],
+        prod_licenses={}, prod_insurances={}, prod_payments={},
+    )
+    plan = p.build()
+    assert any(w["type"] == "submitted_zero_cuota" for w in plan.warnings)
+    assert not any(a["payment_type"] == "licencia_dan" for a in plan.payment_upserts)

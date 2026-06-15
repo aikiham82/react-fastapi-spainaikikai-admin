@@ -26,6 +26,9 @@ class ActionPlan:
     club_inserts: list[dict[str, Any]] = field(default_factory=list)
     skipped: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[dict[str, Any]] = field(default_factory=list)
+    # Club refs (resolved club_id or "__new_club__:" placeholder) that did the 2026
+    # annual submission. Only these clubs get the cuota_club / club fee in the writer.
+    submitted_club_refs: set[str] = field(default_factory=set)
 
 
 def _grade_label(nivel: int | None, grade_type: str) -> str:
@@ -278,38 +281,57 @@ class Planner:
             "expiration_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
         })
 
-        # PAYMENTS are only created when the club actually submitted/paid, signalled by
-        # the Excel "Fecha de envío" (send_date). Without it the member is in the roster
-        # but has NOT paid for the year — creating completed payments would falsely mark
-        # them paid (the bug that wrongly showed ~20 clubs, incl. Muzen Dojo, as paid).
-        # Licenses/insurances are roster registry and are emitted regardless.
+        # Two independent payment cycles:
+        #
+        # 1. ANNUAL LICENSE/CUOTA (licencia + per-club cuota_club): the 2026 federation
+        #    renewal, gated on the Excel "Fecha de envío" (send_date). No send_date = the
+        #    club did NOT do the 2026 annual submission → no license fee, no club fee. This
+        #    is what wrongly showed ~20 clubs (incl. Muzen) as "al día" for 2026.
+        # 2. ACCIDENT + CIVIL-LIABILITY INSURANCE (seguro_accidentes, seguro_rc): a SEPARATE
+        #    cycle (≈Oct→Sep), paid independently of the annual submission. These are NOT
+        #    gated on send_date — e.g. Muzen paid the seguro in autumn even though they
+        #    haven't done the 2026 annual renewal.
+        #
+        # The federation License entity (grade registry) is emitted regardless of payment.
         submitted = fee.send_date is not None
-        if not submitted:
-            plan.warnings.append({
-                "type": "no_send_date_payments_skipped",
-                "num_socio": ex.num_socio,
-            })
 
-        payment_license_type = _payment_type_for_license(fee.grade_type)
-        if submitted and fee.cuota_anual > 0:
-            plan.payment_upserts.append({
-                "member_id": member_id_ref,
-                "payment_year": LICENSE_YEAR,
-                "payment_type": payment_license_type,
-                "concept": f"{payment_license_type} - {LICENSE_YEAR}",
-                "amount": fee.cuota_anual,
-                "status": "completed",
-            })
-        if fee.seguro_accidentes > 0:
-            if submitted:
+        # --- Cycle 1: annual license / cuota (gated on send_date) ---
+        if submitted:
+            plan.submitted_club_refs.add(ex.club_id)
+            payment_license_type = _payment_type_for_license(fee.grade_type)
+            if fee.cuota_anual > 0:
                 plan.payment_upserts.append({
                     "member_id": member_id_ref,
                     "payment_year": LICENSE_YEAR,
-                    "payment_type": "seguro_accidentes",
-                    "concept": f"seguro_accidentes - {LICENSE_YEAR}",
-                    "amount": fee.seguro_accidentes,
+                    "payment_type": payment_license_type,
+                    "concept": f"{payment_license_type} - {LICENSE_YEAR}",
+                    "amount": fee.cuota_anual,
                     "status": "completed",
                 })
+            else:
+                # Submitted but no resolvable cuota usually means the Excel held a
+                # non-numeric label we don't auto-resolve (e.g. a dan "Cuota An." cell);
+                # surface it instead of silently dropping the license fee.
+                plan.warnings.append({
+                    "type": "submitted_zero_cuota",
+                    "num_socio": ex.num_socio,
+                })
+        elif fee.cuota_anual > 0:
+            plan.warnings.append({
+                "type": "no_send_date_license_skipped",
+                "num_socio": ex.num_socio,
+            })
+
+        # --- Cycle 2: accident + civil-liability insurance (NOT gated on send_date) ---
+        if fee.seguro_accidentes > 0:
+            plan.payment_upserts.append({
+                "member_id": member_id_ref,
+                "payment_year": LICENSE_YEAR,
+                "payment_type": "seguro_accidentes",
+                "concept": f"seguro_accidentes - {LICENSE_YEAR}",
+                "amount": fee.seguro_accidentes,
+                "status": "completed",
+            })
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "accident",
@@ -321,15 +343,14 @@ class Planner:
                 "coverage_amount": fee.seguro_accidentes,
             })
         if fee.seguro_rc_flag:
-            if submitted:
-                plan.payment_upserts.append({
-                    "member_id": member_id_ref,
-                    "payment_year": LICENSE_YEAR,
-                    "payment_type": "seguro_rc",
-                    "concept": f"seguro_rc - {LICENSE_YEAR}",
-                    "amount": DEFAULT_SEGURO_RC_AMOUNT,
-                    "status": "completed",
-                })
+            plan.payment_upserts.append({
+                "member_id": member_id_ref,
+                "payment_year": LICENSE_YEAR,
+                "payment_type": "seguro_rc",
+                "concept": f"seguro_rc - {LICENSE_YEAR}",
+                "amount": DEFAULT_SEGURO_RC_AMOUNT,
+                "status": "completed",
+            })
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "civil_liability",

@@ -162,17 +162,26 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
         else:
             missing_club_member_ids.add(member_id)
 
-    # Upsert one synthetic transaction per club with aggregated amount
-    # (member payments + cuota_club so the tx total matches reality).
+    # Clubs that did the 2026 annual submission (resolved to real club_ids). Only these
+    # get the cuota_club / club fee; clubs that only paid the separate-cycle insurance
+    # must not be charged the annual club fee.
+    submitted_clubs = {
+        new_club_id_by_ref.get(ref, ref) for ref in plan.submitted_club_refs
+    }
+
+    # Upsert one synthetic transaction per club with aggregated amount (member payments
+    # + cuota_club so the tx total matches reality). The club fee is added only for
+    # clubs that did the annual submission.
     club_tx_id_by_club_id: dict[str, str] = {}
     if amount_by_club:
         club_name_by_id = await _club_name_map(db, list(amount_by_club.keys()))
         for club_id, total in amount_by_club.items():
+            club_fee = DEFAULT_CLUB_FEE_AMOUNT if club_id in submitted_clubs else 0
             tx_id = await _ensure_club_transaction(
                 db,
                 year=LICENSE_YEAR,
                 club_id=club_id,
-                amount=total + DEFAULT_CLUB_FEE_AMOUNT,
+                amount=total + club_fee,
                 club_name=club_name_by_id.get(club_id),
             )
             club_tx_id_by_club_id[club_id] = tx_id
@@ -207,8 +216,12 @@ async def execute_plan(db: AsyncIOMotorDatabase, plan: ActionPlan) -> dict[str, 
         )
         counts["payment_upserts"] += 1
 
-    # cuota_club: one per club, anchored on any active member.
+    # cuota_club: one per club, anchored on any active member — ONLY for clubs that did
+    # the annual submission. A club that only paid the separate-cycle insurance owes no
+    # club fee and must not be counted as "al día" for the annual quota.
     for club_id, anchor_member_id in anchor_member_by_club.items():
+        if club_id not in submitted_clubs:
+            continue
         tx_id = club_tx_id_by_club_id.get(club_id)
         if not tx_id:
             continue
