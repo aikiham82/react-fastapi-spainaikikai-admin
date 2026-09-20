@@ -51,26 +51,31 @@ class TestUserBase:
         # Assert
         assert user_base.is_active is True  # Default value
 
-    @pytest.mark.parametrize("invalid_email", [
+    @pytest.mark.parametrize("legacy_email", [
         "invalid.email",
         "@example.com",
         "test@",
         "plaintext",
         ""
     ])
-    def test_user_base_creation_with_invalid_email_raises_validation_error(self, invalid_email):
-        """Test that UserBase raises ValidationError for invalid emails."""
+    def test_user_base_serialises_a_legacy_email(self, legacy_email):
+        """Test that an account with an unusable email can still be returned.
+
+        Migrated accounts store addresses no validator accepts. Refusing to
+        serialise them hid the very accounts support has to fix. Input DTOs
+        such as UserCreate keep EmailStr.
+        """
         # Arrange
         data = {
-            "email": invalid_email,
+            "email": legacy_email,
             "username": "testuser"
         }
-        
-        # Act & Assert
-        with pytest.raises(ValidationError) as exc_info:
-            UserBase(**data)
-        
-        assert "email" in str(exc_info.value).lower()
+
+        # Act
+        user_base = UserBase(**data)
+
+        # Assert
+        assert user_base.email == legacy_email
 
     def test_user_base_serialization_to_dict(self):
         """Test that UserBase can be serialized to dictionary."""

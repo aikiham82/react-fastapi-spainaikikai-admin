@@ -5,7 +5,7 @@ from typing import List, Optional
 from src.domain.entities.user import User, GlobalRole
 from src.domain.exceptions.user import (
     UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError,
-    SuperAdminAlreadyExistsError
+    SuperAdminAlreadyExistsError, EmailAlreadyInUseError
 )
 from src.application.ports.repositories import UserRepositoryPort
 
@@ -108,6 +108,36 @@ class CreateUserUseCase:
                 raise SuperAdminAlreadyExistsError()
 
         return await self.user_repository.create(user)
+
+
+class UpdateUserEmailUseCase:
+    """Use case for correcting the email an account signs in with.
+
+    Uniqueness is enforced here: the users collection carries no unique index
+    on email, and two accounts sharing one would make the reset flow ambiguous.
+    """
+
+    def __init__(self, user_repository: UserRepositoryPort):
+        self.user_repository = user_repository
+
+    async def execute(self, user_id: str, email: str) -> User:
+        """Execute the use case."""
+        user = await self.user_repository.find_by_id(user_id)
+        if user is None:
+            raise UserNotFoundError(user_id)
+
+        email = email.lower().strip()
+
+        existing_user = await self.user_repository.find_by_email(email)
+        if existing_user and existing_user.id != user.id:
+            raise EmailAlreadyInUseError(email)
+
+        try:
+            user.update_email(email)
+        except ValueError as e:
+            raise InvalidUserDataError(str(e))
+
+        return await self.user_repository.update(user)
 
 
 class AuthenticateUserUseCase:

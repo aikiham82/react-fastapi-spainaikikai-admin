@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { useUserByMemberQuery } from '../hooks/queries/useUserByMemberQuery';
 import { useGeneratePasswordResetLinkMutation } from '../hooks/mutations/useGeneratePasswordResetLinkMutation';
+import { useUpdateUserEmailMutation } from '../hooks/mutations/useUpdateUserEmailMutation';
 
 interface MemberAccessAccountProps {
   memberId: string;
@@ -15,8 +18,18 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
 
   const { data: account, isLoading, isError } = useUserByMemberQuery(memberId, isSuperAdmin);
   const { mutate: generateLink, isPending, data: link } = useGeneratePasswordResetLinkMutation();
+  const { mutate: updateEmail, isPending: isSavingEmail } = useUpdateUserEmailMutation();
+
+  const [editedEmail, setEditedEmail] = useState<string | null>(null);
 
   if (!isSuperAdmin) return null;
+
+  const saveEmail = () => {
+    if (!account || !editedEmail?.trim()) return;
+
+    updateEmail({ userId: account.id, email: editedEmail.trim() });
+    setEditedEmail(null);
+  };
 
   const copyLink = async () => {
     if (!link) return;
@@ -41,14 +54,46 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
 
       {account && (
         <div className="space-y-3">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{account.email}</p>
-            <p className="text-xs text-muted-foreground">
-              Correo con el que entra en la aplicación. Puede no coincidir con el del socio ni con el del club.
-            </p>
-          </div>
+          {editedEmail === null ? (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{account.email}</p>
+              <p className="text-xs text-muted-foreground">
+                Correo con el que entra en la aplicación. Puede no coincidir con el del socio ni con el del club.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="login_email">Correo de acceso</Label>
+              <Input
+                id="login_email"
+                type="email"
+                value={editedEmail}
+                onChange={(e) => setEditedEmail(e.target.value)}
+                placeholder="club@example.com"
+              />
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-2">
+            {editedEmail === null ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setEditedEmail(account.email)}
+              >
+                Corregir correo de acceso
+              </Button>
+            ) : (
+              <>
+                <Button type="button" disabled={isSavingEmail} onClick={saveEmail}>
+                  Guardar correo
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setEditedEmail(null)}>
+                  Cancelar
+                </Button>
+              </>
+            )}
+
             <Button
               type="button"
               variant="outline"

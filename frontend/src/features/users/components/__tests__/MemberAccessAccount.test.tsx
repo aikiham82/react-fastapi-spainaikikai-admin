@@ -6,6 +6,7 @@ import { MemberAccessAccount } from '../MemberAccessAccount'
 import { usePermissions } from '@/core/hooks/usePermissions'
 import { useUserByMemberQuery } from '../../hooks/queries/useUserByMemberQuery'
 import { useGeneratePasswordResetLinkMutation } from '../../hooks/mutations/useGeneratePasswordResetLinkMutation'
+import { useUpdateUserEmailMutation } from '../../hooks/mutations/useUpdateUserEmailMutation'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
@@ -24,6 +25,10 @@ vi.mock('../../hooks/mutations/useGeneratePasswordResetLinkMutation', () => ({
   useGeneratePasswordResetLinkMutation: vi.fn(),
 }))
 
+vi.mock('../../hooks/mutations/useUpdateUserEmailMutation', () => ({
+  useUpdateUserEmailMutation: vi.fn(),
+}))
+
 const account = {
   id: 'user123',
   email: 'jcarlosarevalo2@gmail.com',
@@ -34,6 +39,7 @@ const account = {
 }
 
 const mockMutate = vi.fn()
+const mockUpdateEmail = vi.fn()
 
 const mockQuery = (overrides: Record<string, unknown> = {}) => {
   vi.mocked(useUserByMemberQuery).mockReturnValue({
@@ -61,6 +67,10 @@ describe('MemberAccessAccount', () => {
     } as ReturnType<typeof usePermissions>)
     mockQuery()
     mockMutation()
+    vi.mocked(useUpdateUserEmailMutation).mockReturnValue({
+      mutate: mockUpdateEmail,
+      isPending: false,
+    } as unknown as ReturnType<typeof useUpdateUserEmailMutation>)
   })
 
   it('shows the login email of the account', () => {
@@ -94,6 +104,32 @@ describe('MemberAccessAccount', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Generar enlace de acceso' }))
 
     expect(mockMutate).toHaveBeenCalledWith('user123')
+  })
+
+  it('corrects the login email', async () => {
+    renderWithProviders(<MemberAccessAccount memberId="member123" />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Corregir correo de acceso' }))
+
+    const input = screen.getByLabelText('Correo de acceso')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'leon.aikikai@gmail.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar correo' }))
+
+    expect(mockUpdateEmail).toHaveBeenCalledWith({
+      userId: 'user123',
+      email: 'leon.aikikai@gmail.com',
+    })
+  })
+
+  it('does not save an empty email', async () => {
+    renderWithProviders(<MemberAccessAccount memberId="member123" />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Corregir correo de acceso' }))
+    await userEvent.clear(screen.getByLabelText('Correo de acceso'))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar correo' }))
+
+    expect(mockUpdateEmail).not.toHaveBeenCalled()
   })
 
   it('copies the generated link to the clipboard', async () => {

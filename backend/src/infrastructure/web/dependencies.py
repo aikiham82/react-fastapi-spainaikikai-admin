@@ -29,6 +29,7 @@ from src.application.use_cases.user_use_cases import (
     GetUserByEmailUseCase,
     GetUserByMemberIdUseCase,
     CreateUserUseCase,
+    UpdateUserEmailUseCase,
     AuthenticateUserUseCase
 )
 from src.application.use_cases import (
@@ -594,6 +595,11 @@ def get_user_by_email_use_case() -> GetUserByEmailUseCase:
 def get_user_by_member_id_use_case() -> GetUserByMemberIdUseCase:
     """Get user by member ID use case."""
     return GetUserByMemberIdUseCase(get_user_repository())
+
+
+def get_update_user_email_use_case() -> UpdateUserEmailUseCase:
+    """Get update user email use case."""
+    return UpdateUserEmailUseCase(get_user_repository())
 
 
 def get_create_user_use_case() -> CreateUserUseCase:

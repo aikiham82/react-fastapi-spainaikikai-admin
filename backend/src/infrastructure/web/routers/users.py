@@ -6,8 +6,18 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.domain.exceptions.user import UserNotFoundError, UserAlreadyExistsError
-from src.infrastructure.web.dto.user_dto import UserCreate, UserResponse, UserMeResponse, Token
+from src.domain.exceptions.user import (
+    UserNotFoundError,
+    UserAlreadyExistsError,
+    EmailAlreadyInUseError,
+)
+from src.infrastructure.web.dto.user_dto import (
+    UserCreate,
+    UserResponse,
+    UserMeResponse,
+    UpdateUserEmailDTO,
+    Token,
+)
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
 from src.infrastructure.web.dependencies import (
     get_all_users_use_case,
@@ -17,6 +27,7 @@ from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_generate_admin_password_reset_link_use_case,
     get_user_by_member_id_use_case,
+    get_update_user_email_use_case,
 )
 from src.infrastructure.web.authorization import AuthContext, require_super_admin
 from src.infrastructure.web.mappers import UserMapper
@@ -31,6 +42,7 @@ from src.application.use_cases.user_use_cases import (
     GetUserByIdUseCase,
     GetUserByMemberIdUseCase,
     CreateUserUseCase,
+    UpdateUserEmailUseCase,
     AuthenticateUserUseCase
 )
 from src.application.use_cases.password_reset import GenerateAdminPasswordResetLinkUseCase
@@ -149,6 +161,41 @@ async def get_user_by_member(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No user account linked to member {member_id}"
+        )
+
+    return UserMapper.to_response(user)
+
+
+@router.patch(
+    "/users/{user_id}/email",
+    response_model=UserResponse,
+    summary="Correct the login email of an account",
+    description="Change the email an account signs in with, so self-service reset reaches it."
+)
+async def update_user_email(
+    user_id: str,
+    request: UpdateUserEmailDTO,
+    use_case: UpdateUserEmailUseCase = Depends(get_update_user_email_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Correct the login email of an account (super admin only).
+
+    Clubs whose account holds an address they never read cannot recover their
+    password on their own. Fixing it here is what stops the ticket recurring.
+    """
+    require_super_admin(ctx)
+
+    try:
+        user = await use_case.execute(user_id, request.email)
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found"
+        )
+    except EmailAlreadyInUseError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ese correo ya pertenece a otra cuenta"
         )
 
     return UserMapper.to_response(user)

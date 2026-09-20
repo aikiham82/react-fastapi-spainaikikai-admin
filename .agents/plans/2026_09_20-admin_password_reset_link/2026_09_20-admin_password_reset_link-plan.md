@@ -17,8 +17,8 @@ implemented_by:
     version: "5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-09-20T22:05:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-09-20T22:30:00Z"
+has_completed_all_phases: true
 ---
 
 # Admin password reset link
@@ -139,16 +139,17 @@ The member card gains a super-admin-only "Cuenta de acceso" section showing the 
 
 The same block lets the super admin fix the address the account logs in with, so the club's own "forgot password" works from then on. Uniqueness is enforced in the use case because `users.email` carries no unique index.
 
-- [ ] Add `EmailAlreadyInUseError` to the domain exceptions.
-- [ ] Write failing use case tests: updates the email, normalises it to lowercase and trimmed, raises `EmailAlreadyInUseError` when another account holds it, accepts the account's own current address unchanged, raises `UserNotFoundError` for an unknown id.
-- [ ] Implement `UpdateUserEmailUseCase` over the existing `find_by_email` and `update` port methods.
-- [ ] Write failing router tests, then add `PATCH /users/{user_id}/email` gated with `require_super_admin`, mapping `EmailAlreadyInUseError` to 409.
-- [ ] Add the mutation hook and make the login email editable in the access-account block, with its tests.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Add `EmailAlreadyInUseError` to the domain exceptions.
+- [x] Write failing use case tests: updates the email, normalises it to lowercase and trimmed, raises `EmailAlreadyInUseError` when another account holds it, accepts the account's own current address unchanged, raises `UserNotFoundError` for an unknown id.
+- [x] Implement `UpdateUserEmailUseCase` over the existing `find_by_email` and `update` port methods, through a new `User.update_email` domain method that mirrors `update_password`.
+- [x] Write failing router tests, then add `PATCH /users/{user_id}/email` gated with `require_super_admin`, mapping `EmailAlreadyInUseError` to 409.
+- [x] Relax `UserBase.email` to a plain string. `UserResponse` inherits from it, so the four accounts with an unusable address made `GET /users/by-member/{member_id}` fail with a 500 on exactly the accounts support needs. Input DTOs keep `EmailStr`, and `PATCH /users/{user_id}/email` still answers 422 for a malformed address.
+- [x] Add the mutation hook and make the login email editable in the access-account block, with its tests.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any. Backend 724 passed, coverage 51.43%. Frontend 464 passed, eslint clean on the touched files, `tsc` unchanged from the pre-existing failures.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Support can now see the login email and hand out a link from the member card. Continue with Phase 3, correcting that email so the club never needs support again.
+All three phases are done. What remains is operational: correct the four accounts whose stored address is unusable, and Kuki Aikikai's, from the member card.
 
-The API opened the door, the turtle walked through it, and now it holds the key. 🚪 🐢 💨 🔑 ([Codely](https://codely.com)'s Turbotuga™)
+The API opened the door, the turtle walked through it, took the key and mailed it to the right address. 🚪 🐢 💨 🔑 📬 ([Codely](https://codely.com)'s Turbotuga™)

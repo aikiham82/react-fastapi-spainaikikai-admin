@@ -20,6 +20,13 @@ class UserAlreadyExistsError(BusinessRuleViolationError):
     pass
 
 
+class EmailAlreadyInUseError(BusinessRuleViolationError):
+    """Raised when another account already holds the email."""
+
+    def __init__(self, email: str):
+        super().__init__(f"Email {email} is already used by another account")
+
+
 class InactiveUserError(BusinessRuleViolationError):
     """Raised when trying to perform operations on an inactive user."""
     pass
