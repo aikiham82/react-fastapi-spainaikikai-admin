@@ -35,8 +35,6 @@ class User:
             raise ValueError("User email cannot be empty")
         if not self.username or not self.username.strip():
             raise ValueError("User username cannot be empty")
-        if "@" not in self.email:
-            raise ValueError("Invalid email format")
 
     def deactivate(self) -> None:
         """Deactivate the user."""

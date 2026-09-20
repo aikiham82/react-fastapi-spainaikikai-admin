@@ -103,7 +103,8 @@ from src.application.use_cases.invoice import (
 from src.application.use_cases.password_reset import (
     RequestPasswordResetUseCase,
     ResetPasswordUseCase,
-    ValidateResetTokenUseCase
+    ValidateResetTokenUseCase,
+    GenerateAdminPasswordResetLinkUseCase
 )
 from src.application.use_cases.member_payment import (
     GetMemberPaymentStatusUseCase,
@@ -685,6 +686,17 @@ def get_reset_password_use_case() -> ResetPasswordUseCase:
     return ResetPasswordUseCase(
         user_repository=get_user_repository(),
         token_repository=get_password_reset_token_repository()
+    )
+
+
+@lru_cache()
+def get_generate_admin_password_reset_link_use_case() -> GenerateAdminPasswordResetLinkUseCase:
+    """Get generate admin password reset link use case."""
+    app_settings = get_app_settings()
+    return GenerateAdminPasswordResetLinkUseCase(
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository(),
+        frontend_base_url=app_settings.frontend_base_url
     )
 
 

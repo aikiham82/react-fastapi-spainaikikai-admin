@@ -64,6 +64,9 @@ class CreateUserUseCase:
         member_id: Optional[str] = None
     ) -> User:
         """Execute the use case."""
+        if email.strip() and "@" not in email:
+            raise InvalidUserDataError("Invalid email format")
+
         try:
             user = User(
                 email=email,

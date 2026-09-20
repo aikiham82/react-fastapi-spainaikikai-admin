@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5"
     reasoning_effort: "high"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-09-20T21:45:00Z"
+has_completed_all_phases: false
 ---
 
 # Admin password reset link
@@ -102,15 +112,15 @@ Scale: 166 accounts, 54 clubs, 1266 members. Four accounts carry an unusable log
 
 A super admin calls one endpoint with a user id and gets back a working reset URL, its expiry and the login email that account really uses. No mail is sent. Once this ships, a locked-out club can be unblocked from Swagger while the UI is still being built. Accounts whose stored email is unusable are loadable again, so the four broken ones are covered too.
 
-- [ ] Write a failing test in `backend/tests/domain/test_user_entity.py` asserting a `User` loads with a legacy email such as `"null"` and still rejects an empty one.
-- [ ] Drop the `@` requirement from `User.__post_init__`, keeping the non-empty rule.
-- [ ] Write failing use case tests covering: returns a URL built from `frontend_base_url` plus the new token, invalidates the account's previous tokens, persists the token with the account's own email, returns `expires_at` 24 hours ahead, raises `UserNotFoundError` for an unknown id.
-- [ ] Implement `GenerateAdminPasswordResetLinkUseCase` reusing `PasswordResetTokenRepositoryPort` and `PasswordResetToken`. Do not touch `EmailServicePort` and do not apply the 5-per-day limit that belongs to the public flow.
-- [ ] Add `AdminPasswordResetLinkResponseDTO` to `backend/src/infrastructure/web/dto/password_reset_dto.py`.
-- [ ] Write failing router tests: 200 with the URL for a super admin, 403 for a club admin and for a plain user, 404 for an unknown user.
-- [ ] Add `POST /users/{user_id}/password-reset-link` to the users router, gated with `require_super_admin`, and wire `get_generate_admin_password_reset_link_use_case` in `dependencies.py`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write a failing test in `backend/tests/domain/test_user_entity.py` asserting a `User` loads with a legacy email such as `"null"` and still rejects an empty one.
+- [x] Drop the `@` requirement from `User.__post_init__`, keeping the non-empty rule. The format check moved into `CreateUserUseCase`, so creating an account still rejects a malformed address.
+- [x] Write failing use case tests covering: returns a URL built from `frontend_base_url` plus the new token, invalidates the account's previous tokens, persists the token with the account's own email, returns `expires_at` 24 hours ahead, raises `UserNotFoundError` for an unknown id.
+- [x] Implement `GenerateAdminPasswordResetLinkUseCase` reusing `PasswordResetTokenRepositoryPort` and `PasswordResetToken`. Do not touch `EmailServicePort` and do not apply the 5-per-day limit that belongs to the public flow.
+- [x] Add `AdminPasswordResetLinkResponseDTO` to `backend/src/infrastructure/web/dto/password_reset_dto.py`.
+- [x] Write failing router tests: 200 with the URL for a super admin, 403 for a club admin and for a plain user, 404 for an unknown user.
+- [x] Add `POST /users/{user_id}/password-reset-link` to the users router, gated with `require_super_admin`, and wire `get_generate_admin_password_reset_link_use_case` in `dependencies.py`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any. 708 passed, coverage 51.15%.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: the access-account block in the member card
 
@@ -139,6 +149,6 @@ The same block lets the super admin fix the address the account logs in with, so
 
 ## ⏭️ Next step
 
-Start with Phase 1, so a locked-out club can be unblocked from Swagger before any UI exists.
+Phase 1 is done and a locked-out club can already be unblocked from Swagger. Continue with Phase 2, the access-account block in the member card.
 
-Plan to unlock every dojo by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+The API opens the door, the turtle walks through it. 🚪 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)

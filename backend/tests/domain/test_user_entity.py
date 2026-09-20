@@ -51,32 +51,46 @@ class TestUserEntity:
         assert user.created_at == user_data["created_at"]
         assert user.updated_at == user_data["updated_at"]
 
-    @pytest.mark.parametrize("invalid_email", ["", "   ", "invalid.email"])
-    def test_user_creation_with_invalid_email_raises_value_error(self, invalid_email, valid_user_data):
-        """Test that invalid email formats raise ValueError."""
+    @pytest.mark.parametrize("empty_email", ["", "   "])
+    def test_user_creation_with_empty_email_raises_value_error(self, empty_email, valid_user_data):
+        """Test that an empty email raises ValueError."""
         # Arrange
         invalid_data = valid_user_data.copy()
-        invalid_data["email"] = invalid_email
-        
+        invalid_data["email"] = empty_email
+
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
             User(**invalid_data)
-        
-        if not invalid_email.strip():
-            assert "User email cannot be empty" in str(exc_info.value)
-        else:
-            assert "Invalid email format" in str(exc_info.value)
 
-    @pytest.mark.parametrize("valid_email_with_at", ["@example.com", "test@", "user@domain"])  
+        assert "User email cannot be empty" in str(exc_info.value)
+
+    @pytest.mark.parametrize("legacy_email", ["null", "null@jj", "pendiente de admision", "invalid.email"])
+    def test_user_creation_with_legacy_email_succeeds(self, legacy_email, valid_user_data):
+        """Test that accounts migrated with an unusable email remain loadable.
+
+        Email format is validated at the HTTP boundary by EmailStr. Rejecting it
+        here made every endpoint fail for the accounts that most need support.
+        """
+        # Arrange
+        legacy_data = valid_user_data.copy()
+        legacy_data["email"] = legacy_email
+
+        # Act - Should not raise exception
+        user = User(**legacy_data)
+
+        # Assert
+        assert user.email == legacy_email
+
+    @pytest.mark.parametrize("valid_email_with_at", ["@example.com", "test@", "user@domain"])
     def test_user_creation_with_minimal_valid_email_succeeds(self, valid_email_with_at, valid_user_data):
         """Test that emails with @ symbol are considered valid (minimal validation)."""
         # Arrange
         valid_data = valid_user_data.copy()
         valid_data["email"] = valid_email_with_at
-        
+
         # Act - Should not raise exception
         user = User(**valid_data)
-        
+
         # Assert
         assert user.email == valid_email_with_at
 
@@ -294,7 +308,7 @@ class TestUserEntity:
         ("test@example.com", "testuser", "hashed123", True),
         ("", "testuser", "hashed123", False),  # Invalid email
         ("test@example.com", "", "hashed123", False),  # Invalid username  
-        ("invalid.email", "testuser", "hashed123", False),  # Invalid email format
+        ("invalid.email", "testuser", "hashed123", True),  # Legacy email, loadable
         ("test@example.com", "testuser", "", True),  # Empty password allowed during creation
     ])
     def test_user_validation_combinations(self, email, username, password, expected_valid):

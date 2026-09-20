@@ -8,14 +8,16 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from src.domain.exceptions.user import UserNotFoundError, UserAlreadyExistsError
 from src.infrastructure.web.dto.user_dto import UserCreate, UserResponse, UserMeResponse, Token
+from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
 from src.infrastructure.web.dependencies import (
     get_all_users_use_case,
     get_user_by_id_use_case,
     get_create_user_use_case,
     get_authenticate_user_use_case,
     get_auth_context,
+    get_generate_admin_password_reset_link_use_case,
 )
-from src.infrastructure.web.authorization import AuthContext
+from src.infrastructure.web.authorization import AuthContext, require_super_admin
 from src.infrastructure.web.mappers import UserMapper
 from src.infrastructure.web.security import (
     verify_password,
@@ -29,6 +31,7 @@ from src.application.use_cases.user_use_cases import (
     CreateUserUseCase,
     AuthenticateUserUseCase
 )
+from src.application.use_cases.password_reset import GenerateAdminPasswordResetLinkUseCase
 
 
 router = APIRouter(tags=["users"])
@@ -117,6 +120,41 @@ async def get_users(
     """Get all users (requires authentication)."""
     users = await get_all_users_use_case.execute(limit)
     return UserMapper.to_response_list(users)
+
+
+@router.post(
+    "/users/{user_id}/password-reset-link",
+    response_model=AdminPasswordResetLinkResponseDTO,
+    summary="Issue a password reset link",
+    description="Generate a password reset link and return it instead of emailing it."
+)
+async def generate_password_reset_link(
+    user_id: str,
+    use_case: GenerateAdminPasswordResetLinkUseCase = Depends(
+        get_generate_admin_password_reset_link_use_case
+    ),
+    ctx: AuthContext = Depends(get_auth_context)
+) -> AdminPasswordResetLinkResponseDTO:
+    """Issue a password reset link for an account (super admin only).
+
+    Clubs whose login email is unreachable cannot use the self-service flow,
+    so the link is handed to a super admin for delivery by another channel.
+    """
+    require_super_admin(ctx)
+
+    try:
+        result = await use_case.execute(user_id)
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found"
+        )
+
+    return AdminPasswordResetLinkResponseDTO(
+        url=result.url,
+        email=result.email,
+        expires_at=result.expires_at
+    )
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)
