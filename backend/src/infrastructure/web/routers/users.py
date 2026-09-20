@@ -16,6 +16,7 @@ from src.infrastructure.web.dependencies import (
     get_authenticate_user_use_case,
     get_auth_context,
     get_generate_admin_password_reset_link_use_case,
+    get_user_by_member_id_use_case,
 )
 from src.infrastructure.web.authorization import AuthContext, require_super_admin
 from src.infrastructure.web.mappers import UserMapper
@@ -28,6 +29,7 @@ from src.infrastructure.web.security import (
 from src.application.use_cases.user_use_cases import (
     GetAllUsersUseCase,
     GetUserByIdUseCase,
+    GetUserByMemberIdUseCase,
     CreateUserUseCase,
     AuthenticateUserUseCase
 )
@@ -120,6 +122,36 @@ async def get_users(
     """Get all users (requires authentication)."""
     users = await get_all_users_use_case.execute(limit)
     return UserMapper.to_response_list(users)
+
+
+@router.get(
+    "/users/by-member/{member_id}",
+    response_model=UserResponse,
+    summary="Get the login account of a member",
+    description="Read the account a member signs in with, including its login email."
+)
+async def get_user_by_member(
+    member_id: str,
+    use_case: GetUserByMemberIdUseCase = Depends(get_user_by_member_id_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Get the login account linked to a member (super admin only).
+
+    The login email lives only on the account, so it is invisible anywhere
+    else in the product. Support needs to see it to explain why the
+    self-service reset never reaches the club.
+    """
+    require_super_admin(ctx)
+
+    try:
+        user = await use_case.execute(member_id)
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No user account linked to member {member_id}"
+        )
+
+    return UserMapper.to_response(user)
 
 
 @router.post(

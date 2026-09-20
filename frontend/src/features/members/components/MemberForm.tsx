@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { MemberAccessAccount } from '@/features/users/components/MemberAccessAccount';
 import {
   Dialog,
   DialogContent,
@@ -274,6 +275,8 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
               />
             </div>
           </div>
+
+          {isEditing && member?.id && <MemberAccessAccount memberId={member.id} />}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -11,6 +11,7 @@ from src.application.use_cases.user_use_cases import (
     GetAllUsersUseCase,
     GetUserByIdUseCase,
     GetUserByEmailUseCase,
+    GetUserByMemberIdUseCase,
     CreateUserUseCase,
     AuthenticateUserUseCase
 )
@@ -124,6 +125,40 @@ class TestGetUserByIdUseCase:
             await use_case.execute(user_id)
         
         assert str(exc_info.value) == "Database error"
+
+
+@pytest.mark.service
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestGetUserByMemberIdUseCase:
+    """Test suite for GetUserByMemberIdUseCase."""
+
+    async def test_execute_returns_the_account_linked_to_the_member(
+        self, mock_user_repository, user_entity_with_id
+    ):
+        """Test that execute returns the login account a member is linked to."""
+        # Arrange
+        mock_user_repository.find_by_member_id.return_value = user_entity_with_id
+        use_case = GetUserByMemberIdUseCase(mock_user_repository)
+
+        # Act
+        result = await use_case.execute("member123")
+
+        # Assert
+        assert result == user_entity_with_id
+        mock_user_repository.find_by_member_id.assert_called_once_with("member123")
+
+    async def test_execute_raises_user_not_found_error_when_member_has_no_account(
+        self, mock_user_repository
+    ):
+        """Test that a member without a login account raises UserNotFoundError."""
+        # Arrange
+        mock_user_repository.find_by_member_id.return_value = None
+        use_case = GetUserByMemberIdUseCase(mock_user_repository)
+
+        # Act & Assert
+        with pytest.raises(UserNotFoundError):
+            await use_case.execute("member123")
 
 
 @pytest.mark.service

@@ -17,7 +17,7 @@ implemented_by:
     version: "5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-09-20T21:45:00Z"
+last_implementation_at: "2026-09-20T22:05:00Z"
 has_completed_all_phases: false
 ---
 
@@ -126,14 +126,14 @@ A super admin calls one endpoint with a user id and gets back a working reset UR
 
 The member card gains a super-admin-only "Cuenta de acceso" section showing the login email the account really uses, with a button that generates the link and copies it to the clipboard. Club admins see nothing.
 
-- [ ] Write a failing use case test for `GetUserByMemberIdUseCase`, then implement it over the existing `find_by_member_id` port method.
-- [ ] Write failing router tests, then add `GET /users/by-member/{member_id}` gated with `require_super_admin`, returning 404 when the member has no account.
-- [ ] Add the users feature data layer on the frontend: Zod schema for the account and the link response, plus the axios service against both endpoints.
-- [ ] Add the query hook for the account and the mutation hook for the link, following the members feature naming and the `sonner` toast conventions.
-- [ ] Render the block inside `MemberForm`, gated with `usePermissions().isAssociationAdmin()`: login email, generate button, copy-to-clipboard via `navigator.clipboard.writeText`, the empty state for a member with no account, and the 24-hour notice.
-- [ ] Write hook and component tests covering: the block is hidden for a club admin, the empty state renders, generating shows the link and copying raises the toast.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write a failing use case test for `GetUserByMemberIdUseCase`, then implement it over the existing `find_by_member_id` port method.
+- [x] Write failing router tests, then add `GET /users/by-member/{member_id}` gated with `require_super_admin`, returning 404 when the member has no account.
+- [x] Add the users feature data layer on the frontend: Zod schema for the account and the link response, plus the axios service against both endpoints.
+- [x] Add the query hook for the account and the mutation hook for the link, following the members feature naming and the `sonner` toast conventions.
+- [x] Render the block inside `MemberForm`, gated with `usePermissions().isAssociationAdmin()`: login email, generate button, copy-to-clipboard via `navigator.clipboard.writeText`, the empty state for a member with no account, and the 24-hour notice.
+- [x] Write hook and component tests covering: the block is hidden for a club admin, the empty state renders, generating shows the link and copying raises the toast. The suite mocks `sonner` locally because the shared setup stubs `toast` as a bare function with no `success` or `error`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any. Backend 713 passed, coverage 51.24%. Frontend 462 passed, eslint clean on the touched files, and `tsc` reports no error outside the pre-existing ones in `test-utils/` and `__tests__/`.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: correct the login email
 
@@ -149,6 +149,6 @@ The same block lets the super admin fix the address the account logs in with, so
 
 ## ⏭️ Next step
 
-Phase 1 is done and a locked-out club can already be unblocked from Swagger. Continue with Phase 2, the access-account block in the member card.
+Support can now see the login email and hand out a link from the member card. Continue with Phase 3, correcting that email so the club never needs support again.
 
-The API opens the door, the turtle walks through it. 🚪 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)
+The API opened the door, the turtle walked through it, and now it holds the key. 🚪 🐢 💨 🔑 ([Codely](https://codely.com)'s Turbotuga™)

@@ -35,6 +35,20 @@ class GetUserByIdUseCase:
         return user
 
 
+class GetUserByMemberIdUseCase:
+    """Use case for getting the login account linked to a member."""
+
+    def __init__(self, user_repository: UserRepositoryPort):
+        self.user_repository = user_repository
+
+    async def execute(self, member_id: str) -> User:
+        """Execute the use case."""
+        user = await self.user_repository.find_by_member_id(member_id)
+        if user is None:
+            raise UserNotFoundError(f"member:{member_id}")
+        return user
+
+
 class GetUserByEmailUseCase:
     """Use case for getting a user by email."""
 
