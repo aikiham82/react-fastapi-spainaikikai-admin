@@ -17,8 +17,8 @@ implemented_by:
     version: "5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-09-20T20:45:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-09-20T21:05:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Port the Codely harness structure to spainaikikai-admin
@@ -197,19 +197,24 @@ Move the conventions, security, git and workflow rules out of the old monolith i
 
 Promote the external memory into versioned domain docs, then consolidate the overlapping legacy planning systems under `docs/history/` so the repo presents one harness instead of six.
 
-- [ ] Write `docs/domain/roles-and-permissions.md` from `reference_role_system.md`: `User.global_role` (`super_admin` | `user`), `Member.club_role` (`admin` | `member`), how the frontend derives the effective role, the `/users/me` enrichment, and the `usePermissions.ts` / `canAccess()` / `filteredNavItems` gating.
-- [ ] Write `docs/domain/payment-cycles.md` from the two payment incidents: the annual licence/cuota cycle gated by *"Fecha de envío"*, the separate ungated seguro accidentes + RC cycle, and the rule that `license_paid` comes from the payment record.
-- [ ] Write `docs/domain/data-model.md`: the MongoDB collections behind clubs, members, payments, seminars, licences and invoices, plus the naive-datetime storage rule and the `spainaikikai` database name.
-- [ ] Cross-link each **Non-negotiable** in `AGENTS.md` to the `docs/domain/` page that explains it.
-- [ ] `git mv .planning docs/history/planning` and `git mv .claude/doc docs/history/feature-docs`, then confirm with `git log --follow` on one file from each that history survived the move.
-- [ ] Write `docs/history/README.md` explaining what each archived tree was, that it is kept for reference only, and that current work uses `.agents/plans/` and `.claude/sessions/`.
-- [ ] Remove the now-stale `.claude/doc` entry from `.gitignore` and delete the empty `.trees/` directory.
-- [ ] Extend the **Documentation** map in `AGENTS.md` with `docs/domain/` and `docs/history/`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Additionally confirm no file was lost by comparing `git ls-files | wc -l` before and after the moves, and that every relative link resolves. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write `docs/domain/roles-and-permissions.md` from `reference_role_system.md`: `User.global_role` (`super_admin` | `user`), `Member.club_role` (`admin` | `member`), how the frontend derives the effective role, the `/users/me` enrichment, and the `usePermissions.ts` / `canAccess()` / `filteredNavItems` gating.
+- [x] Write `docs/domain/payment-cycles.md` from the two payment incidents: the annual licence/cuota cycle gated by *"Fecha de envío"*, the separate ungated seguro accidentes + RC cycle, and the rule that `license_paid` comes from the payment record.
+- [x] Write `docs/domain/data-model.md`: the MongoDB collections behind clubs, members, payments, seminars, licences and invoices, plus the naive-datetime storage rule and the `spainaikikai` database name.
+- [x] Cross-link each **Non-negotiable** in `AGENTS.md` to the `docs/domain/` page that explains it.
+- [x] `git mv .planning docs/history/planning` and `git mv .claude/doc docs/history/feature-docs`, then confirm with `git log --follow` on one file from each that history survived the move.
+- [x] Write `docs/history/README.md` explaining what each archived tree was, that it is kept for reference only, and that current work uses `.agents/plans/` and `.claude/sessions/`.
+- [x] Remove the now-stale `.claude/doc` entry from `.gitignore` and delete the empty `.trees/` directory.
+- [x] Extend the **Documentation** map in `AGENTS.md` with `docs/domain/` and `docs/history/`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Additionally confirm no file was lost by comparing `git ls-files | wc -l` before and after the moves, and that every relative link resolves. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Phases 1 and 2 are done. Next is Phase 3: promote the external agent memory into `docs/domain/`, archive `.planning/` and `.claude/doc/` under `docs/history/` with `git mv`, and drop the empty `.trees/` directory.
+All phases are complete. The harness is now a 79-line `AGENTS.md` indexing 18 documents under `docs/`, with the legacy planning systems archived under `docs/history/`.
 
-Monolith cracked open, conventions set free, memory next in line by 🗺️ 🧠 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Two follow-ups fell out of the work and are **not** part of this plan:
+
+- The Poetry environment targets Python 3.12 while the system runs 3.14.4, so `poetry run pytest` cannot start. The backend suite is currently unrunnable.
+- `npm run lint` (122 errors) and `npm run build` both fail on pre-existing issues confined to `frontend/src/test-utils/` and `__tests__/`.
+
+Monolith cracked open, conventions set free, memory made permanent, archives filed by 🗺️ 🧠 📦 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

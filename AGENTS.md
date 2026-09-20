@@ -30,12 +30,12 @@ Before every commit: `cd backend && poetry run pytest` and `cd frontend && npm r
 
 These are project rules, not preferences. Breaking one is a defect even if the tests pass. Each was learned from a production bug.
 
-- **MongoDB stores naive datetimes.** Use `datetime.utcnow()`, never `datetime.now(timezone.utc)`. A timezone-aware datetime written to Mongo compares incorrectly against every existing document.
-- **`license_paid` derives from the licence *payment*, never from the federation `License` entity.** A member holding a `License` record has not necessarily paid for it.
-- **Annual licence/cuota and insurance are two separate payment cycles.** The annual licence/cuota cycle is gated by the Excel column *"Fecha de envío"*: no date, not paid. Seguro de accidentes and RC form their own cycle and are **not** gated by that column. Treating them as one cycle marks every member as paid.
-- **The database is `spainaikikai`**, not `aikikai_admin`.
-- **No secrets in the repository.** Configuration comes from environment variables; `backend/.env*` is ignored except for `.env.example`.
-- **Roles are two-level**: `User.global_role` (`super_admin` | `user`) plus `Member.club_role` (`admin` | `member`). The effective role is derived on the frontend; `/users/me` is enriched with `club_role` and `club_id`. Never gate on one level alone.
+- **MongoDB stores naive datetimes.** Use `datetime.utcnow()`, never `datetime.now(timezone.utc)`. A timezone-aware datetime written to Mongo compares incorrectly against every existing document. → [`docs/domain/data-model.md`](docs/domain/data-model.md)
+- **`license_paid` derives from the licence *payment*, never from the federation `License` entity.** A member holding a `License` record has not necessarily paid for it. → [`docs/domain/payment-cycles.md`](docs/domain/payment-cycles.md)
+- **Annual licence/cuota and insurance are two separate payment cycles.** The annual licence/cuota cycle is gated by the Excel column *"Fecha de envío"*: no date, not paid. Seguro de accidentes and RC form their own cycle and are **not** gated by that column. Treating them as one cycle marks every member as paid. → [`docs/domain/payment-cycles.md`](docs/domain/payment-cycles.md)
+- **The database is `spainaikikai`**, not `aikikai_admin`. → [`docs/domain/data-model.md`](docs/domain/data-model.md)
+- **No secrets in the repository.** Configuration comes from environment variables; `backend/.env*` is ignored except for `.env.example`. → [`docs/security/security-guidelines.md`](docs/security/security-guidelines.md)
+- **Roles are two-level**: `User.global_role` (`super_admin` | `user`) plus `Member.club_role` (`admin` | `member`). The effective role is derived on the frontend; `/users/me` is enriched with `club_role` and `club_id`. Never gate on one level alone. → [`docs/domain/roles-and-permissions.md`](docs/domain/roles-and-permissions.md)
 
 # Documentation
 
@@ -56,8 +56,13 @@ docs/
 │   ├── development-commands.md
 │   └── skills.md
 ├── documentation-guidelines.md
+├── domain/
+│   ├── data-model.md
+│   ├── payment-cycles.md
+│   └── roles-and-permissions.md
 ├── git/
 │   └── commit-messages.md
+├── history/            (archived, not current — see its README)
 ├── plans/
 │   └── how-to-create-a-plan.md
 ├── security/

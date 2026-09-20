@@ -1,0 +1,668 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - generic [ref=e7]:
+    - link "Saltar al contenido principal" [ref=e8] [cursor=pointer]:
+      - /url: "#main-content"
+    - link "Saltar a navegación" [ref=e9] [cursor=pointer]:
+      - /url: "#sidebar"
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Aikido Admin" [level=1] [ref=e12]
+        - paragraph [ref=e13]: Administrador
+      - navigation [ref=e14]:
+        - list [ref=e15]:
+          - listitem [ref=e16]:
+            - link "Panel Principal" [ref=e17] [cursor=pointer]:
+              - /url: /
+              - img [ref=e18]
+              - generic [ref=e21]: Panel Principal
+          - listitem [ref=e22]:
+            - link "Clubs" [ref=e23] [cursor=pointer]:
+              - /url: /clubs
+              - img [ref=e24]
+              - generic [ref=e28]: Clubs
+          - listitem [ref=e29]:
+            - link "Miembros" [ref=e30] [cursor=pointer]:
+              - /url: /members
+              - img [ref=e31]
+              - generic [ref=e36]: Miembros
+          - listitem [ref=e37]:
+            - link "Licencias" [ref=e38] [cursor=pointer]:
+              - /url: /licenses
+              - img [ref=e39]
+              - generic [ref=e43]: Licencias
+          - listitem [ref=e44]:
+            - link "Facturas" [ref=e45] [cursor=pointer]:
+              - /url: /invoices
+              - img [ref=e46]
+              - generic [ref=e49]: Facturas
+          - listitem [ref=e50]:
+            - link "Pagos Anuales" [ref=e51] [cursor=pointer]:
+              - /url: /annual-payments
+              - img [ref=e52]
+              - generic [ref=e55]: Pagos Anuales
+          - listitem [ref=e56]:
+            - link "Seminarios" [ref=e57] [cursor=pointer]:
+              - /url: /seminars
+              - img [ref=e58]
+              - generic [ref=e60]: Seminarios
+          - listitem [ref=e61]:
+            - link "Seguros" [ref=e62] [cursor=pointer]:
+              - /url: /insurance
+              - img [ref=e63]
+              - generic [ref=e65]: Seguros
+          - listitem [ref=e66]:
+            - link "Importar/Exportar" [ref=e67] [cursor=pointer]:
+              - /url: /import-export
+              - img [ref=e68]
+              - generic [ref=e71]: Importar/Exportar
+          - listitem [ref=e72]:
+            - link "Precios" [ref=e73] [cursor=pointer]:
+              - /url: /price-configurations
+              - img [ref=e74]
+              - generic [ref=e76]: Precios
+          - listitem [ref=e77]:
+            - link "Configuracion" [ref=e78] [cursor=pointer]:
+              - /url: /settings
+              - img [ref=e79]
+              - generic [ref=e82]: Configuracion
+      - button "Cerrar sesión" [ref=e84]:
+        - img [ref=e85]
+        - generic [ref=e88]: Cerrar Sesión
+    - generic [ref=e89]:
+      - banner [ref=e90]:
+        - heading "Miembros" [level=1] [ref=e92]
+        - generic [ref=e93]:
+          - button "Notificaciones" [ref=e94]:
+            - img
+          - generic [ref=e96]:
+            - img [ref=e98]
+            - paragraph [ref=e102]: admin@spainaikikai.es
+      - main [ref=e103]:
+        - generic [ref=e104]:
+          - generic [ref=e105]:
+            - heading "Miembros" [level=1] [ref=e106]
+            - paragraph [ref=e107]: Gestiona los miembros de la asociación
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - img [ref=e111]
+                - textbox "Buscar miembros por nombre o email..." [ref=e114]
+              - combobox [ref=e115]:
+                - generic: Todos
+                - img
+              - button "Nuevo Miembro" [ref=e117]:
+                - img
+                - text: Nuevo Miembro
+            - table [ref=e120]:
+              - rowgroup [ref=e121]:
+                - row "Nombre Email Club Grado Seguro RC Seguro Acc. Pagos Acciones" [ref=e122]:
+                  - columnheader "Nombre" [ref=e123]
+                  - columnheader "Email" [ref=e124]
+                  - columnheader "Club" [ref=e125]
+                  - columnheader "Grado" [ref=e126]
+                  - columnheader "Seguro RC" [ref=e127]
+                  - columnheader "Seguro Acc." [ref=e128]
+                  - columnheader "Pagos" [ref=e129]
+                  - columnheader "Acciones" [ref=e130]
+              - rowgroup [ref=e131]:
+                - row "Francisco Reyes Alvarez2 +34 685 252 602 francisco.reyes40@email.com - 2nd Dan Activo Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e132]:
+                  - cell "Francisco Reyes Alvarez2 +34 685 252 602" [ref=e133]:
+                    - generic [ref=e134]:
+                      - paragraph [ref=e135]: Francisco Reyes Alvarez2
+                      - paragraph [ref=e136]: +34 685 252 602
+                  - cell "francisco.reyes40@email.com" [ref=e137]
+                  - cell "-" [ref=e138]
+                  - cell "2nd Dan" [ref=e139]:
+                    - generic [ref=e141]: 2nd Dan
+                  - cell "Activo" [ref=e142]:
+                    - generic [ref=e143]:
+                      - img
+                      - text: Activo
+                  - cell "Activo" [ref=e144]:
+                    - generic [ref=e145]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e146]:
+                    - button [ref=e147]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e148]:
+                    - generic [ref=e149]:
+                      - button "Ver detalles del miembro" [ref=e150]:
+                        - img
+                      - button "Editar miembro" [ref=e151]:
+                        - img
+                      - button "Eliminar miembro" [ref=e152]:
+                        - img
+                - row "Laura Diaz Alvarez +34 637 243 228 laura.diaz7@email.com - 5th Kyu Activo Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e153]:
+                  - cell "Laura Diaz Alvarez +34 637 243 228" [ref=e154]:
+                    - generic [ref=e155]:
+                      - paragraph [ref=e156]: Laura Diaz Alvarez
+                      - paragraph [ref=e157]: +34 637 243 228
+                  - cell "laura.diaz7@email.com" [ref=e158]
+                  - cell "-" [ref=e159]
+                  - cell "5th Kyu" [ref=e160]:
+                    - generic [ref=e162]: 5th Kyu
+                  - cell "Activo" [ref=e163]:
+                    - generic [ref=e164]:
+                      - img
+                      - text: Activo
+                  - cell "Activo" [ref=e165]:
+                    - generic [ref=e166]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e167]:
+                    - button [ref=e168]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e169]:
+                    - generic [ref=e170]:
+                      - button "Ver detalles del miembro" [ref=e171]:
+                        - img
+                      - button "Editar miembro" [ref=e172]:
+                        - img
+                      - button "Eliminar miembro" [ref=e173]:
+                        - img
+                - row "Ana Flores Romero +34 651 457 401 ana.flores32@email.com - 2nd Dan Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e174]:
+                  - cell "Ana Flores Romero +34 651 457 401" [ref=e175]:
+                    - generic [ref=e176]:
+                      - paragraph [ref=e177]: Ana Flores Romero
+                      - paragraph [ref=e178]: +34 651 457 401
+                  - cell "ana.flores32@email.com" [ref=e179]
+                  - cell "-" [ref=e180]
+                  - cell "2nd Dan" [ref=e181]:
+                    - generic [ref=e183]: 2nd Dan
+                  - cell "Sin seguro" [ref=e184]:
+                    - generic [ref=e185]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e186]:
+                    - generic [ref=e187]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e188]:
+                    - button [ref=e189]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e190]:
+                    - generic [ref=e191]:
+                      - button "Ver detalles del miembro" [ref=e192]:
+                        - img
+                      - button "Editar miembro" [ref=e193]:
+                        - img
+                      - button "Eliminar miembro" [ref=e194]:
+                        - img
+                - row "Laura Garcia Alvarez +34 686 121 649 laura.garcia88@email.com - Sin grado Sin seguro Sin seguro Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e195]:
+                  - cell "Laura Garcia Alvarez +34 686 121 649" [ref=e196]:
+                    - generic [ref=e197]:
+                      - paragraph [ref=e198]: Laura Garcia Alvarez
+                      - paragraph [ref=e199]: +34 686 121 649
+                  - cell "laura.garcia88@email.com" [ref=e200]
+                  - cell "-" [ref=e201]
+                  - cell "Sin grado" [ref=e202]:
+                    - generic [ref=e204]: Sin grado
+                  - cell "Sin seguro" [ref=e205]:
+                    - generic [ref=e206]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Sin seguro" [ref=e207]:
+                    - generic [ref=e208]:
+                      - img
+                      - text: Sin seguro
+                  - cell [ref=e209]:
+                    - button [ref=e210]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e211]:
+                    - generic [ref=e212]:
+                      - button "Ver detalles del miembro" [ref=e213]:
+                        - img
+                      - button "Editar miembro" [ref=e214]:
+                        - img
+                      - button "Eliminar miembro" [ref=e215]:
+                        - img
+                - row "Juan Rivera Gonzalez +34 612 984 574 juan.rivera71@email.com - Sin grado Sin seguro Sin seguro Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e216]:
+                  - cell "Juan Rivera Gonzalez +34 612 984 574" [ref=e217]:
+                    - generic [ref=e218]:
+                      - paragraph [ref=e219]: Juan Rivera Gonzalez
+                      - paragraph [ref=e220]: +34 612 984 574
+                  - cell "juan.rivera71@email.com" [ref=e221]
+                  - cell "-" [ref=e222]
+                  - cell "Sin grado" [ref=e223]:
+                    - generic [ref=e225]: Sin grado
+                  - cell "Sin seguro" [ref=e226]:
+                    - generic [ref=e227]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Sin seguro" [ref=e228]:
+                    - generic [ref=e229]:
+                      - img
+                      - text: Sin seguro
+                  - cell [ref=e230]:
+                    - button [ref=e231]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e232]:
+                    - generic [ref=e233]:
+                      - button "Ver detalles del miembro" [ref=e234]:
+                        - img
+                      - button "Editar miembro" [ref=e235]:
+                        - img
+                      - button "Eliminar miembro" [ref=e236]:
+                        - img
+                - row "Isabel Rodriguez Alvarez +34 620 344 812 isabel.rodriguez55@email.com - Sin grado Sin seguro Sin seguro Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e237]:
+                  - cell "Isabel Rodriguez Alvarez +34 620 344 812" [ref=e238]:
+                    - generic [ref=e239]:
+                      - paragraph [ref=e240]: Isabel Rodriguez Alvarez
+                      - paragraph [ref=e241]: +34 620 344 812
+                  - cell "isabel.rodriguez55@email.com" [ref=e242]
+                  - cell "-" [ref=e243]
+                  - cell "Sin grado" [ref=e244]:
+                    - generic [ref=e246]: Sin grado
+                  - cell "Sin seguro" [ref=e247]:
+                    - generic [ref=e248]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Sin seguro" [ref=e249]:
+                    - generic [ref=e250]:
+                      - img
+                      - text: Sin seguro
+                  - cell [ref=e251]:
+                    - button [ref=e252]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e253]:
+                    - generic [ref=e254]:
+                      - button "Ver detalles del miembro" [ref=e255]:
+                        - img
+                      - button "Editar miembro" [ref=e256]:
+                        - img
+                      - button "Eliminar miembro" [ref=e257]:
+                        - img
+                - row "Pablo Hernandez Gonzalez +34 639 275 298 pablo.hernandez97@email.com - 2nd Dan - Instructor Activo Expirado Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e258]:
+                  - cell "Pablo Hernandez Gonzalez +34 639 275 298" [ref=e259]:
+                    - generic [ref=e260]:
+                      - paragraph [ref=e261]: Pablo Hernandez Gonzalez
+                      - paragraph [ref=e262]: +34 639 275 298
+                  - cell "pablo.hernandez97@email.com" [ref=e263]
+                  - cell "-" [ref=e264]
+                  - cell "2nd Dan - Instructor" [ref=e265]:
+                    - generic [ref=e267]: 2nd Dan - Instructor
+                  - cell "Activo" [ref=e268]:
+                    - generic [ref=e269]:
+                      - img
+                      - text: Activo
+                  - cell "Expirado" [ref=e270]:
+                    - generic [ref=e271]:
+                      - img
+                      - text: Expirado
+                  - cell [ref=e272]:
+                    - button [ref=e273]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e274]:
+                    - generic [ref=e275]:
+                      - button "Ver detalles del miembro" [ref=e276]:
+                        - img
+                      - button "Editar miembro" [ref=e277]:
+                        - img
+                      - button "Eliminar miembro" [ref=e278]:
+                        - img
+                - row "Luis Ruiz Hernandez +34 698 368 521 luis.ruiz60@email.com - 1st Kyu Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e279]:
+                  - cell "Luis Ruiz Hernandez +34 698 368 521" [ref=e280]:
+                    - generic [ref=e281]:
+                      - paragraph [ref=e282]: Luis Ruiz Hernandez
+                      - paragraph [ref=e283]: +34 698 368 521
+                  - cell "luis.ruiz60@email.com" [ref=e284]
+                  - cell "-" [ref=e285]
+                  - cell "1st Kyu" [ref=e286]:
+                    - generic [ref=e288]: 1st Kyu
+                  - cell "Sin seguro" [ref=e289]:
+                    - generic [ref=e290]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e291]:
+                    - generic [ref=e292]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e293]:
+                    - button [ref=e294]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e295]:
+                    - generic [ref=e296]:
+                      - button "Ver detalles del miembro" [ref=e297]:
+                        - img
+                      - button "Editar miembro" [ref=e298]:
+                        - img
+                      - button "Eliminar miembro" [ref=e299]:
+                        - img
+                - row "David Flores Ramirez +34 628 952 915 david.flores57@email.com - 4th Dan Expirado Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e300]:
+                  - cell "David Flores Ramirez +34 628 952 915" [ref=e301]:
+                    - generic [ref=e302]:
+                      - paragraph [ref=e303]: David Flores Ramirez
+                      - paragraph [ref=e304]: +34 628 952 915
+                  - cell "david.flores57@email.com" [ref=e305]
+                  - cell "-" [ref=e306]
+                  - cell "4th Dan" [ref=e307]:
+                    - generic [ref=e309]: 4th Dan
+                  - cell "Expirado" [ref=e310]:
+                    - generic [ref=e311]:
+                      - img
+                      - text: Expirado
+                  - cell "Activo" [ref=e312]:
+                    - generic [ref=e313]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e314]:
+                    - button [ref=e315]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e316]:
+                    - generic [ref=e317]:
+                      - button "Ver detalles del miembro" [ref=e318]:
+                        - img
+                      - button "Editar miembro" [ref=e319]:
+                        - img
+                      - button "Eliminar miembro" [ref=e320]:
+                        - img
+                - row "Antonio Alvarez Gomez +34 699 753 589 antonio.alvarez12@email.com - 5th Kyu Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e321]:
+                  - cell "Antonio Alvarez Gomez +34 699 753 589" [ref=e322]:
+                    - generic [ref=e323]:
+                      - paragraph [ref=e324]: Antonio Alvarez Gomez
+                      - paragraph [ref=e325]: +34 699 753 589
+                  - cell "antonio.alvarez12@email.com" [ref=e326]
+                  - cell "-" [ref=e327]
+                  - cell "5th Kyu" [ref=e328]:
+                    - generic [ref=e330]: 5th Kyu
+                  - cell "Sin seguro" [ref=e331]:
+                    - generic [ref=e332]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e333]:
+                    - generic [ref=e334]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e335]:
+                    - button [ref=e336]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e337]:
+                    - generic [ref=e338]:
+                      - button "Ver detalles del miembro" [ref=e339]:
+                        - img
+                      - button "Editar miembro" [ref=e340]:
+                        - img
+                      - button "Eliminar miembro" [ref=e341]:
+                        - img
+                - row "David Gonzalez Rivera +34 657 409 108 david.gonzalez42@email.com - Sin grado Sin seguro Sin seguro Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e342]:
+                  - cell "David Gonzalez Rivera +34 657 409 108" [ref=e343]:
+                    - generic [ref=e344]:
+                      - paragraph [ref=e345]: David Gonzalez Rivera
+                      - paragraph [ref=e346]: +34 657 409 108
+                  - cell "david.gonzalez42@email.com" [ref=e347]
+                  - cell "-" [ref=e348]
+                  - cell "Sin grado" [ref=e349]:
+                    - generic [ref=e351]: Sin grado
+                  - cell "Sin seguro" [ref=e352]:
+                    - generic [ref=e353]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Sin seguro" [ref=e354]:
+                    - generic [ref=e355]:
+                      - img
+                      - text: Sin seguro
+                  - cell [ref=e356]:
+                    - button [ref=e357]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e358]:
+                    - generic [ref=e359]:
+                      - button "Ver detalles del miembro" [ref=e360]:
+                        - img
+                      - button "Editar miembro" [ref=e361]:
+                        - img
+                      - button "Eliminar miembro" [ref=e362]:
+                        - img
+                - row "Luis Moreno Jimenez +34 647 754 332 luis.moreno48@email.com - 5th Kyu Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e363]:
+                  - cell "Luis Moreno Jimenez +34 647 754 332" [ref=e364]:
+                    - generic [ref=e365]:
+                      - paragraph [ref=e366]: Luis Moreno Jimenez
+                      - paragraph [ref=e367]: +34 647 754 332
+                  - cell "luis.moreno48@email.com" [ref=e368]
+                  - cell "-" [ref=e369]
+                  - cell "5th Kyu" [ref=e370]:
+                    - generic [ref=e372]: 5th Kyu
+                  - cell "Sin seguro" [ref=e373]:
+                    - generic [ref=e374]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e375]:
+                    - generic [ref=e376]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e377]:
+                    - button [ref=e378]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e379]:
+                    - generic [ref=e380]:
+                      - button "Ver detalles del miembro" [ref=e381]:
+                        - img
+                      - button "Editar miembro" [ref=e382]:
+                        - img
+                      - button "Eliminar miembro" [ref=e383]:
+                        - img
+                - row "Miguel Reyes Gomez +34 621 255 320 miguel.reyes66@email.com - 1st Kyu Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e384]:
+                  - cell "Miguel Reyes Gomez +34 621 255 320" [ref=e385]:
+                    - generic [ref=e386]:
+                      - paragraph [ref=e387]: Miguel Reyes Gomez
+                      - paragraph [ref=e388]: +34 621 255 320
+                  - cell "miguel.reyes66@email.com" [ref=e389]
+                  - cell "-" [ref=e390]
+                  - cell "1st Kyu" [ref=e391]:
+                    - generic [ref=e393]: 1st Kyu
+                  - cell "Sin seguro" [ref=e394]:
+                    - generic [ref=e395]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e396]:
+                    - generic [ref=e397]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e398]:
+                    - button [ref=e399]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e400]:
+                    - generic [ref=e401]:
+                      - button "Ver detalles del miembro" [ref=e402]:
+                        - img
+                      - button "Editar miembro" [ref=e403]:
+                        - img
+                      - button "Eliminar miembro" [ref=e404]:
+                        - img
+                - row "Miguel Rodriguez Alvarez +34 650 491 393 miguel.rodriguez61@email.com - 1st Kyu Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e405]:
+                  - cell "Miguel Rodriguez Alvarez +34 650 491 393" [ref=e406]:
+                    - generic [ref=e407]:
+                      - paragraph [ref=e408]: Miguel Rodriguez Alvarez
+                      - paragraph [ref=e409]: +34 650 491 393
+                  - cell "miguel.rodriguez61@email.com" [ref=e410]
+                  - cell "-" [ref=e411]
+                  - cell "1st Kyu" [ref=e412]:
+                    - generic [ref=e414]: 1st Kyu
+                  - cell "Sin seguro" [ref=e415]:
+                    - generic [ref=e416]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e417]:
+                    - generic [ref=e418]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e419]:
+                    - button [ref=e420]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e421]:
+                    - generic [ref=e422]:
+                      - button "Ver detalles del miembro" [ref=e423]:
+                        - img
+                      - button "Editar miembro" [ref=e424]:
+                        - img
+                      - button "Eliminar miembro" [ref=e425]:
+                        - img
+                - row "Pedro Lopez Perez +34 657 278 216 pedro.lopez30@email.com - Sin grado Sin seguro Sin seguro Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e426]:
+                  - cell "Pedro Lopez Perez +34 657 278 216" [ref=e427]:
+                    - generic [ref=e428]:
+                      - paragraph [ref=e429]: Pedro Lopez Perez
+                      - paragraph [ref=e430]: +34 657 278 216
+                  - cell "pedro.lopez30@email.com" [ref=e431]
+                  - cell "-" [ref=e432]
+                  - cell "Sin grado" [ref=e433]:
+                    - generic [ref=e435]: Sin grado
+                  - cell "Sin seguro" [ref=e436]:
+                    - generic [ref=e437]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Sin seguro" [ref=e438]:
+                    - generic [ref=e439]:
+                      - img
+                      - text: Sin seguro
+                  - cell [ref=e440]:
+                    - button [ref=e441]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e442]:
+                    - generic [ref=e443]:
+                      - button "Ver detalles del miembro" [ref=e444]:
+                        - img
+                      - button "Editar miembro" [ref=e445]:
+                        - img
+                      - button "Eliminar miembro" [ref=e446]:
+                        - img
+                - row "Pablo Ruiz Moreno +34 620 175 206 pablo.ruiz4@email.com - 3rd Dan Activo Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e447]:
+                  - cell "Pablo Ruiz Moreno +34 620 175 206" [ref=e448]:
+                    - generic [ref=e449]:
+                      - paragraph [ref=e450]: Pablo Ruiz Moreno
+                      - paragraph [ref=e451]: +34 620 175 206
+                  - cell "pablo.ruiz4@email.com" [ref=e452]
+                  - cell "-" [ref=e453]
+                  - cell "3rd Dan" [ref=e454]:
+                    - generic [ref=e456]: 3rd Dan
+                  - cell "Activo" [ref=e457]:
+                    - generic [ref=e458]:
+                      - img
+                      - text: Activo
+                  - cell "Activo" [ref=e459]:
+                    - generic [ref=e460]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e461]:
+                    - button [ref=e462]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e463]:
+                    - generic [ref=e464]:
+                      - button "Ver detalles del miembro" [ref=e465]:
+                        - img
+                      - button "Editar miembro" [ref=e466]:
+                        - img
+                      - button "Eliminar miembro" [ref=e467]:
+                        - img
+                - row "Marta Lopez Torres +34 694 903 411 marta.lopez50@email.com - Sin grado Sin seguro Sin seguro Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e468]:
+                  - cell "Marta Lopez Torres +34 694 903 411" [ref=e469]:
+                    - generic [ref=e470]:
+                      - paragraph [ref=e471]: Marta Lopez Torres
+                      - paragraph [ref=e472]: +34 694 903 411
+                  - cell "marta.lopez50@email.com" [ref=e473]
+                  - cell "-" [ref=e474]
+                  - cell "Sin grado" [ref=e475]:
+                    - generic [ref=e477]: Sin grado
+                  - cell "Sin seguro" [ref=e478]:
+                    - generic [ref=e479]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Sin seguro" [ref=e480]:
+                    - generic [ref=e481]:
+                      - img
+                      - text: Sin seguro
+                  - cell [ref=e482]:
+                    - button [ref=e483]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e484]:
+                    - generic [ref=e485]:
+                      - button "Ver detalles del miembro" [ref=e486]:
+                        - img
+                      - button "Editar miembro" [ref=e487]:
+                        - img
+                      - button "Eliminar miembro" [ref=e488]:
+                        - img
+                - row "Jose Diaz Romero +34 635 821 547 jose.diaz23@email.com - 3rd Dan - Instructor Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e489]:
+                  - cell "Jose Diaz Romero +34 635 821 547" [ref=e490]:
+                    - generic [ref=e491]:
+                      - paragraph [ref=e492]: Jose Diaz Romero
+                      - paragraph [ref=e493]: +34 635 821 547
+                  - cell "jose.diaz23@email.com" [ref=e494]
+                  - cell "-" [ref=e495]
+                  - cell "3rd Dan - Instructor" [ref=e496]:
+                    - generic [ref=e498]: 3rd Dan - Instructor
+                  - cell "Sin seguro" [ref=e499]:
+                    - generic [ref=e500]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e501]:
+                    - generic [ref=e502]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e503]:
+                    - button [ref=e504]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e505]:
+                    - generic [ref=e506]:
+                      - button "Ver detalles del miembro" [ref=e507]:
+                        - img
+                      - button "Editar miembro" [ref=e508]:
+                        - img
+                      - button "Eliminar miembro" [ref=e509]:
+                        - img
+                - row "Rafael Moreno Torres +34 658 649 935 rafael.moreno16@email.com - 3rd Kyu Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e510]:
+                  - cell "Rafael Moreno Torres +34 658 649 935" [ref=e511]:
+                    - generic [ref=e512]:
+                      - paragraph [ref=e513]: Rafael Moreno Torres
+                      - paragraph [ref=e514]: +34 658 649 935
+                  - cell "rafael.moreno16@email.com" [ref=e515]
+                  - cell "-" [ref=e516]
+                  - cell "3rd Kyu" [ref=e517]:
+                    - generic [ref=e519]: 3rd Kyu
+                  - cell "Sin seguro" [ref=e520]:
+                    - generic [ref=e521]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e522]:
+                    - generic [ref=e523]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e524]:
+                    - button [ref=e525]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e526]:
+                    - generic [ref=e527]:
+                      - button "Ver detalles del miembro" [ref=e528]:
+                        - img
+                      - button "Editar miembro" [ref=e529]:
+                        - img
+                      - button "Eliminar miembro" [ref=e530]:
+                        - img
+                - row "Antonio Torres Garcia +34 649 964 152 antonio.torres14@email.com - 6th Kyu Sin seguro Activo Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e531]:
+                  - cell "Antonio Torres Garcia +34 649 964 152" [ref=e532]:
+                    - generic [ref=e533]:
+                      - paragraph [ref=e534]: Antonio Torres Garcia
+                      - paragraph [ref=e535]: +34 649 964 152
+                  - cell "antonio.torres14@email.com" [ref=e536]
+                  - cell "-" [ref=e537]
+                  - cell "6th Kyu" [ref=e538]:
+                    - generic [ref=e540]: 6th Kyu
+                  - cell "Sin seguro" [ref=e541]:
+                    - generic [ref=e542]:
+                      - img
+                      - text: Sin seguro
+                  - cell "Activo" [ref=e543]:
+                    - generic [ref=e544]:
+                      - img
+                      - text: Activo
+                  - cell [ref=e545]:
+                    - button [ref=e546]:
+                      - img
+                  - cell "Ver detalles del miembro Editar miembro Eliminar miembro" [ref=e547]:
+                    - generic [ref=e548]:
+                      - button "Ver detalles del miembro" [ref=e549]:
+                        - img
+                      - button "Editar miembro" [ref=e550]:
+                        - img
+                      - button "Eliminar miembro" [ref=e551]:
+                        - img

@@ -1,0 +1,36 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - generic [ref=e52]:
+    - banner [ref=e87]:
+      - generic [ref=e88]:
+        - img "Spain Aikikai" [ref=e89]
+        - generic [ref=e90]: Spain Aikikai
+        - paragraph [ref=e91]: Panel de Administración
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - generic [ref=e57]: Bienvenido
+        - generic [ref=e58]: Introduce tus credenciales para acceder
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: Correo electrónico
+          - generic [ref=e63]:
+            - img [ref=e64]
+            - textbox "Correo electrónico" [ref=e67]:
+              - /placeholder: correo@ejemplo.com
+        - generic [ref=e68]:
+          - generic [ref=e69]: Contraseña
+          - generic [ref=e70]:
+            - img [ref=e71]
+            - textbox "Contraseña" [ref=e74]:
+              - /placeholder: Introduce tu contraseña
+            - button [ref=e75]:
+              - img [ref=e76]
+        - link "¿Olvidaste tu contraseña?" [ref=e80] [cursor=pointer]:
+          - /url: /forgot-password
+        - button "Iniciar Sesión" [ref=e81] [cursor=pointer]
+      - generic [ref=e83]:
+        - text: ¿No tienes cuenta?
+        - link "Regístrate" [ref=e84] [cursor=pointer]:
+          - /url: /register
+    - contentinfo [ref=e85]:
+      - paragraph [ref=e86]: © 2024 Spain Aikikai. Todos los derechos reservados.

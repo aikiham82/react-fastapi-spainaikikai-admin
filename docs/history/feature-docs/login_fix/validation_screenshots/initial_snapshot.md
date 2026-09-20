@@ -1,0 +1,55 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - generic [ref=e7]:
+    - generic [ref=e14]:
+      - generic [ref=e16]:
+        - img "Spain Aikikai" [ref=e18]
+        - generic [ref=e19]: Spain Aikikai
+      - generic [ref=e20]:
+        - heading "Panel de Administración" [level=1] [ref=e21]:
+          - text: Panel de
+          - generic [ref=e22]: Administración
+        - paragraph [ref=e23]: Administra clubs, miembros, licencias, seminarios y pagos de manera eficiente con nuestra plataforma integral de gestión.
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - img [ref=e27]
+            - generic [ref=e32]: Gestión completa de miembros y clubs
+          - generic [ref=e33]:
+            - img [ref=e35]
+            - generic [ref=e38]: Control de licencias y graduaciones
+          - generic [ref=e39]:
+            - img [ref=e41]
+            - generic [ref=e43]: Organización de seminarios y eventos
+          - generic [ref=e44]:
+            - img [ref=e46]
+            - generic [ref=e48]: Seguimiento de seguros y pagos
+      - generic [ref=e51]: Plataforma oficial de gestión de Spain Aikikai
+    - generic [ref=e52]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e57]: Bienvenido
+          - generic [ref=e58]: Introduce tus credenciales para acceder
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: Correo electrónico
+            - generic [ref=e63]:
+              - img [ref=e64]
+              - textbox "Correo electrónico" [ref=e67]:
+                - /placeholder: correo@ejemplo.com
+          - generic [ref=e68]:
+            - generic [ref=e69]: Contraseña
+            - generic [ref=e70]:
+              - img [ref=e71]
+              - textbox "Contraseña" [ref=e74]:
+                - /placeholder: Introduce tu contraseña
+              - button [ref=e75]:
+                - img [ref=e76]
+          - link "¿Olvidaste tu contraseña?" [ref=e80] [cursor=pointer]:
+            - /url: /forgot-password
+          - button "Iniciar Sesión" [ref=e81] [cursor=pointer]
+        - generic [ref=e83]:
+          - text: ¿No tienes cuenta?
+          - link "Regístrate" [ref=e84] [cursor=pointer]:
+            - /url: /register
+      - contentinfo [ref=e85]:
+        - paragraph [ref=e86]: © 2024 Spain Aikikai. Todos los derechos reservados.
