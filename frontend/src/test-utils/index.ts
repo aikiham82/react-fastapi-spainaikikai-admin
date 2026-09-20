@@ -9,6 +9,11 @@ export * from './factories'
 // Export mock utilities and helpers
 export * from './mocks'
 
+// Both './render' (React Testing Library) and './mocks' export `cleanup`.
+// The barrel exposes RTL's; the mock helper object is `mockCleanup`.
+export { cleanup } from './render'
+export { cleanup as mockCleanup } from './mocks'
+
 // Export commonly used testing utilities from vitest
 export { 
   describe, 

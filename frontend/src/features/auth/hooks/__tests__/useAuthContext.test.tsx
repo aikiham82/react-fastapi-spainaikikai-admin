@@ -6,11 +6,9 @@ import { AuthProvider, useAuthContext } from '../useAuthContext'
 import {
   createMockAuthRequest,
   createMockAuthResponse,
-  createMockJWT,
-  createExpiredMockJWT,
-  createMockLocalStorageState
+  createMockJWT
 } from '@/test-utils/factories'
-import { mockAuthService, cleanup } from '@/test-utils/mocks'
+import { cleanup } from '@/test-utils/mocks'
 
 // Use vi.hoisted to define mocks before module mocking happens
 const { mockAppStorage } = vi.hoisted(() => ({
@@ -347,11 +345,6 @@ describe('useAuthContext', () => {
 
     describe('loginWithJWT', () => {
       it('should successfully process valid JWT and set authenticated state', async () => {
-        const mockToken = createMockJWT({ 
-          sub: 'test@example.com',
-          exp: Math.floor(Date.now() / 1000) + 3600
-        })
-        const mockAuthResponse = createMockAuthResponse({ access_token: mockToken })
 
         mockJwtDecode.mockReturnValue({
           sub: 'test@example.com',
@@ -388,8 +381,6 @@ describe('useAuthContext', () => {
       })
 
       it('should handle JWT without expiration', async () => {
-        const mockToken = createMockJWT({ sub: 'test@example.com' })
-        const mockAuthResponse = createMockAuthResponse({ access_token: mockToken })
 
         mockJwtDecode.mockReturnValue({
           sub: 'test@example.com'
@@ -410,8 +401,6 @@ describe('useAuthContext', () => {
       })
 
       it('should handle JWT decode errors gracefully', async () => {
-        const mockToken = 'invalid.jwt.token'
-        const mockAuthResponse = createMockAuthResponse({ access_token: mockToken })
 
         mockJwtDecode.mockImplementation(() => {
           throw new Error('Invalid token')
@@ -522,10 +511,10 @@ describe('useAuthContext', () => {
         })
 
         await act(async () => {
-          await result.current.registerUser(mockCredentials)
+          await result.current.registerUser({ ...mockCredentials, username: 'testuser' })
         })
 
-        expect(mockRegisterMutation).toHaveBeenCalledWith(mockCredentials, {
+        expect(mockRegisterMutation).toHaveBeenCalledWith({ ...mockCredentials, username: 'testuser' }, {
           onSuccess: expect.any(Function)
         })
 
@@ -735,11 +724,6 @@ describe('useAuthContext', () => {
     })
 
     it('should handle JWT without subject claim', async () => {
-      const mockToken = createMockJWT({ 
-        exp: Math.floor(Date.now() / 1000) + 3600
-        // No sub claim
-      })
-      const mockAuthResponse = createMockAuthResponse({ access_token: mockToken })
 
       mockJwtDecode.mockReturnValue({
         exp: Math.floor(Date.now() / 1000) + 3600

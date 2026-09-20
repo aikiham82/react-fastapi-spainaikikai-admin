@@ -3,12 +3,21 @@ import type {
   AuthRequest, 
   AuthResponse, 
   CurrentUser, 
-  AuthUser 
+  AuthUser,
+  RegisterRequest 
 } from '@/features/auth/data/auth.schema'
 
 // Factory for creating test auth requests
 export const createMockAuthRequest = (overrides: Partial<AuthRequest> = {}): AuthRequest => ({
   email: 'test@example.com',
+  password: 'password123',
+  ...overrides,
+})
+
+// Factory for creating test register requests
+export const createMockRegisterRequest = (overrides: Partial<RegisterRequest> = {}): RegisterRequest => ({
+  email: 'test@example.com',
+  username: 'testuser',
   password: 'password123',
   ...overrides,
 })
@@ -26,6 +35,7 @@ export const createMockCurrentUser = (overrides: Partial<CurrentUser> = {}): Cur
   email: 'test@example.com',
   username: 'testuser',
   is_active: true,
+  global_role: 'user',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   ...overrides,
@@ -133,7 +143,7 @@ export const createMockDates = {
 // Form data factories
 export const createMockFormData = {
   login: (overrides: Partial<AuthRequest> = {}) => createMockAuthRequest(overrides),
-  register: (overrides: Partial<AuthRequest> = {}) => createMockAuthRequest(overrides),
+  register: (overrides: Partial<RegisterRequest> = {}) => createMockRegisterRequest(overrides),
 }
 
 // Test helper to create multiple items

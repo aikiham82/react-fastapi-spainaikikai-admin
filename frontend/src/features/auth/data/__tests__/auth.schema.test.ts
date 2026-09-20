@@ -85,6 +85,7 @@ describe('Auth Schema Types', () => {
       // Arrange
       const completeCurrentUser: CurrentUser = {
         id: 'user-123',
+        global_role: 'user',
         email: 'user@example.com',
         username: 'testuser',
         is_active: true,
@@ -325,7 +326,7 @@ describe('Auth Schema Types', () => {
 
     it('should work in function parameters and return types', () => {
       // Arrange
-      const processAuthRequest = (request: AuthRequest): AuthResponse => {
+      const processAuthRequest = (_request: AuthRequest): AuthResponse => {
         return createMockAuthResponse()
       }
 
@@ -468,7 +469,7 @@ describe('Auth Schema Types', () => {
       const invalidData = {
         email: 123, // Should be string
         password: null, // Should be string
-      } as AuthRequest // Type assertion bypasses compile-time checking
+      } as unknown as AuthRequest // Type assertion bypasses compile-time checking
 
       // Act & Assert
       // These would pass at runtime but fail with proper Zod validation
