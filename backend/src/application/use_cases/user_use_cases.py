@@ -147,11 +147,12 @@ class UpdateUserEmailUseCase:
         except ValueError as e:
             raise InvalidUserDataError(str(e))
 
-        updated_user = await self.user_repository.update(user)
-
+        # Invalidated before the update on purpose: if the update then fails,
+        # the tokens are already dead, which costs nothing. The other order
+        # leaves them alive under a changed email, which is the hole itself.
         await self.token_repository.invalidate_user_tokens(user.id)
 
-        return updated_user
+        return await self.user_repository.update(user)
 
 
 class AuthenticateUserUseCase:

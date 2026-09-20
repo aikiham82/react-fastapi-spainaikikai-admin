@@ -10,7 +10,8 @@ from src.infrastructure.database import get_database
 
 # Emails are matched regardless of case: they are typed by hand at login and
 # corrected by hand in the admin panel, and the collection has no unique index
-# to stop two accounts differing only in case.
+# to stop two accounts differing only in case. An index on users.email must be
+# created with this same collation or Mongo will not use it for these lookups.
 CASE_INSENSITIVE_COLLATION = {"locale": "en", "strength": 2}
 
 

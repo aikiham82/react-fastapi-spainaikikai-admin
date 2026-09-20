@@ -13,7 +13,10 @@ interface MemberAccessAccountProps {
 }
 
 const formatExpiry = (isoDate: string): string => {
-  const date = new Date(isoDate);
+  // The API serialises naive UTC datetimes, which JS would otherwise read as
+  // local time and show an expiry hours earlier than the real one.
+  const hasOffset = /([Z+]|-\d{2}:\d{2})$/.test(isoDate);
+  const date = new Date(hasOffset ? isoDate : `${isoDate}Z`);
   if (Number.isNaN(date.getTime())) return '';
 
   return date.toLocaleString('es-ES', {
@@ -29,7 +32,12 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
   const isSuperAdmin = isAssociationAdmin();
 
   const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, isSuperAdmin);
-  const { mutate: generateLink, isPending: isGenerating, data: link } = useGeneratePasswordResetLinkMutation();
+  const {
+    mutate: generateLink,
+    isPending: isGenerating,
+    data: link,
+    reset: forgetLink,
+  } = useGeneratePasswordResetLinkMutation();
   const { mutate: updateEmail, isPending: isSavingEmail } = useUpdateUserEmailMutation();
 
   const [editedEmail, setEditedEmail] = useState<string | null>(null);
@@ -43,7 +51,18 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
 
     updateEmail(
       { userId: account.id, email: editedEmail.trim() },
-      { onSuccess: () => setEditedEmail(null) }
+      {
+        onSuccess: () => {
+          setEditedEmail(null);
+
+          // Correcting the email invalidates the account's tokens server side,
+          // so any link already on screen is dead and must not be offered.
+          if (link) {
+            forgetLink();
+            toast.info('El enlace anterior ha dejado de funcionar');
+          }
+        },
+      }
     );
   };
 
@@ -57,6 +76,8 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
       toast.error('No se pudo copiar el enlace');
     }
   };
+
+  const expiry = link ? formatExpiry(link.expires_at) : '';
 
   const errorMessage = (error as { status?: number } | null)?.status === 404
     ? 'Este socio no tiene cuenta de acceso'
@@ -123,6 +144,12 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
           ) : (
             <div className="space-y-2">
               <div className="grid gap-2 sm:flex sm:flex-wrap">
+                {link && (
+                  <Button type="button" onClick={copyLink}>
+                    Copiar enlace
+                  </Button>
+                )}
+
                 <Button
                   type="button"
                   variant={link ? 'ghost' : 'default'}
@@ -136,15 +163,10 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                       : 'Generar enlace para cambiar la contraseña'}
                 </Button>
 
-                {link && (
-                  <Button type="button" onClick={copyLink}>
-                    Copiar enlace
-                  </Button>
-                )}
-
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
+                  className="sm:ml-auto"
                   onClick={() => setEditedEmail(account.email)}
                 >
                   Corregir correo de acceso
@@ -159,8 +181,8 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
             </div>
           )}
 
-          {link && !isEditing && (
-            <div className="space-y-1">
+          {link && !isEditing && !isGenerating && (
+            <div role="status" aria-live="polite" className="space-y-1">
               <Input
                 readOnly
                 value={link.url}
@@ -168,7 +190,9 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                 className="font-mono text-xs"
               />
               <p className="text-xs text-muted-foreground">
-                Enlace para {link.email}. Caduca el {formatExpiry(link.expires_at)}.
+                {expiry
+                  ? `Enlace para ${link.email}. Caduca el ${expiry}.`
+                  : `Enlace para ${link.email}.`}
               </p>
               <p className="text-xs text-muted-foreground">
                 Al generar uno nuevo, el anterior deja de funcionar.

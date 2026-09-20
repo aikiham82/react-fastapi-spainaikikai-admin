@@ -9,7 +9,7 @@ import { useGeneratePasswordResetLinkMutation } from '../../hooks/mutations/useG
 import { useUpdateUserEmailMutation } from '../../hooks/mutations/useUpdateUserEmailMutation'
 
 vi.mock('sonner', () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
   Toaster: () => null,
 }))
 
@@ -39,7 +39,14 @@ const account = {
 }
 
 const mockMutate = vi.fn()
+const mockReset = vi.fn()
 const mockUpdateEmail = vi.fn()
+
+const linkResponse = {
+  url: 'https://admin.spainaikikai.es/reset-password?token=abc123',
+  email: 'jcarlosarevalo2@gmail.com',
+  expires_at: '2026-09-21T12:00:00',
+}
 
 const mockQuery = (overrides: Record<string, unknown> = {}) => {
   vi.mocked(useUserByMemberQuery).mockReturnValue({
@@ -55,6 +62,7 @@ const mockMutation = (overrides: Record<string, unknown> = {}) => {
     mutate: mockMutate,
     isPending: false,
     data: undefined,
+    reset: mockReset,
     ...overrides,
   } as unknown as ReturnType<typeof useGeneratePasswordResetLinkMutation>)
 }
@@ -156,14 +164,37 @@ describe('MemberAccessAccount', () => {
     expect(screen.getByLabelText('Correo de acceso')).toHaveValue('leon.aikikai@gmail.com')
   })
 
-  it('warns that regenerating kills the previous link', () => {
-    mockMutation({
-      data: {
-        url: 'https://admin.spainaikikai.es/reset-password?token=abc123',
-        email: 'jcarlosarevalo2@gmail.com',
-        expires_at: '2026-09-21T12:00:00',
-      },
+  it('drops the displayed link when the email is corrected', async () => {
+    mockMutation({ data: linkResponse })
+    mockUpdateEmail.mockImplementation((_vars, options) => options?.onSuccess?.())
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Corregir correo de acceso' }))
+    await userEvent.clear(screen.getByLabelText('Correo de acceso'))
+    await userEvent.type(screen.getByLabelText('Correo de acceso'), 'leon.aikikai@gmail.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar correo' }))
+
+    expect(mockReset).toHaveBeenCalled()
+    expect(toast.info).toHaveBeenCalledWith('El enlace anterior ha dejado de funcionar')
+  })
+
+  it('reads the expiry as UTC, matching what the API stores', () => {
+    mockMutation({ data: linkResponse })
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" />)
+
+    const expected = new Date('2026-09-21T12:00:00Z').toLocaleString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
     })
+    expect(screen.getByText(new RegExp(`Caduca el ${expected}`))).toBeInTheDocument()
+  })
+
+  it('warns that regenerating kills the previous link', () => {
+    mockMutation({ data: linkResponse })
 
     renderWithProviders(<MemberAccessAccount memberId="member123" />)
 
@@ -184,13 +215,7 @@ describe('MemberAccessAccount', () => {
   it('copies the generated link to the clipboard', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.assign(navigator, { clipboard: { writeText } })
-    mockMutation({
-      data: {
-        url: 'https://admin.spainaikikai.es/reset-password?token=abc123',
-        email: 'jcarlosarevalo2@gmail.com',
-        expires_at: '2026-09-21T12:00:00',
-      },
-    })
+    mockMutation({ data: linkResponse })
 
     renderWithProviders(<MemberAccessAccount memberId="member123" />)
 
