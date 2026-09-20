@@ -49,17 +49,31 @@ docs/
 │   ├── backend-hexagonal.md
 │   ├── frontend-features.md
 │   └── project-layout.md
+├── conventions/
+│   ├── backend.md
+│   └── frontend.md
 ├── dev-tooling/
-│   └── development-commands.md
+│   ├── development-commands.md
+│   └── skills.md
 ├── documentation-guidelines.md
-└── testing/
-    └── testing-strategy.md
+├── git/
+│   └── commit-messages.md
+├── plans/
+│   └── how-to-create-a-plan.md
+├── security/
+│   └── security-guidelines.md
+├── testing/
+│   └── testing-strategy.md
+└── workflow/
+    ├── feature-workflow.md
+    └── subagents.md
 ```
 
 - When adding a document, follow [`docs/documentation-guidelines.md`](docs/documentation-guidelines.md): one document per convention, fixed template, and add it to the map above.
 
 # Planning
 
+- When creating a plan, you MUST first read and follow [`docs/plans/how-to-create-a-plan.md`](docs/plans/how-to-create-a-plan.md).
 - Plans live in `.agents/plans/{YYYY_MM_DD-semantic_name}/{YYYY_MM_DD-semantic_name}-plan.md`.
-- Feature session context lives in `.claude/sessions/context_session_{feature_name}.md` and is updated as work progresses.
-- Project-local subagents are defined in `.claude/agents/`.
+- Features follow the three-phase workflow in [`docs/workflow/feature-workflow.md`](docs/workflow/feature-workflow.md), with context kept in `.claude/sessions/context_session_{feature_name}.md`.
+- Route work to subagents using [`docs/workflow/subagents.md`](docs/workflow/subagents.md). Five are project-local in `.claude/agents/`; four resolve from the global agents directory.

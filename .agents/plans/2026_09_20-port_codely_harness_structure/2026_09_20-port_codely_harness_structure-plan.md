@@ -17,7 +17,7 @@ implemented_by:
     version: "5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-09-20T20:30:00Z"
+last_implementation_at: "2026-09-20T20:45:00Z"
 has_completed_all_phases: "false"
 ---
 
@@ -181,17 +181,17 @@ Deliver a working harness skeleton an agent can actually use: unblock `docs/` in
 
 Move the conventions, security, git and workflow rules out of the old monolith into their own docs, and replace the inlined `autoskills` digest with a maintained skills doc. This is what makes the harness prescriptive rather than merely descriptive.
 
-- [ ] Write `docs/conventions/backend.md` from `CLAUDE.md` lines 129–136: dependency injection in the web layer, constructor-injection + single `execute`, validation in `__post_init__`, Motor repositories, Pydantic DTOs, domain-exception to HTTP-status mapping.
-- [ ] Write `docs/conventions/frontend.md` from `CLAUDE.md` lines 137–145: context provider + hook per feature, `use{Feature}Context` vs `use{Feature}`, the `{action, isLoading, error, isSuccess}` mutation shape, axios services, Zod typing.
-- [ ] Write `docs/security/security-guidelines.md` from `CLAUDE.md` lines 152–157: OAuth2 + JWT, bcrypt hashing, protected routes on both sides, environment-based configuration, and the pre-commit secret checks.
-- [ ] Write `docs/git/commit-messages.md`: emoji Conventional Commits (`✨ feat`, `🐛 fix`, `📝 docs`, `♻️ refactor`, `✅ test`, `🔧 chore`, `⚡️ perf`, `🚀 ci`) where the emoji encodes the type rather than mood, English imperative descriptions of at most 72 characters, a body explaining *why* rather than what, one decision per commit, and the required `Co-Authored-By` attribution line.
-- [ ] Write `docs/workflow/feature-workflow.md` from `CLAUDE.md` lines 169–182: the Phase 1–3 rules and the `.claude/sessions/context_session_{feature_name}.md` contract, stating that sessions remain under `.claude/sessions/`.
-- [ ] Write `docs/workflow/subagents.md` from `CLAUDE.md` lines 183–202: the 8-agent routing table, explicitly marking `backend-developer`, `backend-test-engineer`, `frontend-developer`, `playwright-link-scraper` and `web-content-summarizer` as project-local, and `shadcn-ui-architect`, `qa-criteria-validator`, `ui-ux-analyzer`, `frontend-test-engineer` as resolved from the global agents directory.
-- [ ] Write `docs/plans/how-to-create-a-plan.md` adapting the Codely methodology to this stack: name the relevant public-contract types here (use cases and their `execute` signatures, repository ports and their Mongo adapters, pytest suites and cases, MongoDB collection shapes, Spanish end-user copy).
-- [ ] Write `docs/dev-tooling/skills.md` listing the 8 skill directories with one line each, replacing the auto-generated block that used to sit in `CLAUDE.md`.
-- [ ] Extend the **Documentation** map in `AGENTS.md` with all paths added in this phase.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Additionally confirm the `docs/` tree in `AGENTS.md` matches the real tree and that every relative link resolves. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write `docs/conventions/backend.md` from `CLAUDE.md` lines 129–136: dependency injection in the web layer, constructor-injection + single `execute`, validation in `__post_init__`, Motor repositories, Pydantic DTOs, domain-exception to HTTP-status mapping.
+- [x] Write `docs/conventions/frontend.md` from `CLAUDE.md` lines 137–145: context provider + hook per feature, `use{Feature}Context` vs `use{Feature}`, the `{action, isLoading, error, isSuccess}` mutation shape, axios services, Zod typing.
+- [x] Write `docs/security/security-guidelines.md` from `CLAUDE.md` lines 152–157: OAuth2 + JWT, bcrypt hashing, protected routes on both sides, environment-based configuration, and the pre-commit secret checks.
+- [x] Write `docs/git/commit-messages.md`: emoji Conventional Commits (`✨ feat`, `🐛 fix`, `📝 docs`, `♻️ refactor`, `✅ test`, `🔧 chore`, `⚡️ perf`, `🚀 ci`) where the emoji encodes the type rather than mood, English imperative descriptions of at most 72 characters, a body explaining *why* rather than what, one decision per commit, and the required `Co-Authored-By` attribution line.
+- [x] Write `docs/workflow/feature-workflow.md` from `CLAUDE.md` lines 169–182: the Phase 1–3 rules and the `.claude/sessions/context_session_{feature_name}.md` contract, stating that sessions remain under `.claude/sessions/`.
+- [x] Write `docs/workflow/subagents.md` from `CLAUDE.md` lines 183–202: the 8-agent routing table, explicitly marking `backend-developer`, `backend-test-engineer`, `frontend-developer`, `playwright-link-scraper` and `web-content-summarizer` as project-local, and `shadcn-ui-architect`, `qa-criteria-validator`, `ui-ux-analyzer`, `frontend-test-engineer` as resolved from the global agents directory.
+- [x] Write `docs/plans/how-to-create-a-plan.md` adapting the Codely methodology to this stack: name the relevant public-contract types here (use cases and their `execute` signatures, repository ports and their Mongo adapters, pytest suites and cases, MongoDB collection shapes, Spanish end-user copy).
+- [x] Write `docs/dev-tooling/skills.md` listing the 8 skill directories with one line each, replacing the auto-generated block that used to sit in `CLAUDE.md`.
+- [x] Extend the **Documentation** map in `AGENTS.md` with all paths added in this phase.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Additionally confirm the `docs/` tree in `AGENTS.md` matches the real tree and that every relative link resolves. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: Domain knowledge and legacy archival
 
@@ -210,6 +210,6 @@ Promote the external memory into versioned domain docs, then consolidate the ove
 
 ## ⏭️ Next step
 
-Phase 1 is done. Next is Phase 2: move the conventions, security, git and workflow rules out of the old monolith (recoverable with `git show 9d3f9f3:CLAUDE.md`) into their own docs, and replace the inlined `autoskills` digest with `docs/dev-tooling/skills.md`.
+Phases 1 and 2 are done. Next is Phase 3: promote the external agent memory into `docs/domain/`, archive `.planning/` and `.claude/doc/` under `docs/history/` with `git mv`, and drop the empty `.trees/` directory.
 
-Monolith cracked open, conventions set free by 🗺️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Monolith cracked open, conventions set free, memory next in line by 🗺️ 🧠 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
