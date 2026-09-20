@@ -39,6 +39,16 @@ logging.basicConfig(
 )
 log = logging.getLogger("migration")
 
+def _require_env(name: str) -> str:
+    """Read a required secret from the environment, failing loudly if absent."""
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(
+            f"{name} is not set. Export it or add it to backend/.env before running this script."
+        )
+    return value
+
+
 # ---------------------------------------------------------------------------
 # Connection config
 # ---------------------------------------------------------------------------
@@ -46,7 +56,7 @@ MARIADB_CONFIG = {
     "host": os.getenv("MARIADB_HOST", "localhost"),
     "port": int(os.getenv("MARIADB_PORT", "3306")),
     "user": os.getenv("MARIADB_USER", "spainaikikai"),
-    "password": os.getenv("MARIADB_PASSWORD", "SpainAikikai"),
+    "password": _require_env("MARIADB_PASSWORD"),
     "database": os.getenv("MARIADB_DATABASE", "spainaikikai"),
 }
 
