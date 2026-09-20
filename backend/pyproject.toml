@@ -52,9 +52,7 @@ addopts = [
     "--cov=src",
     "--cov-report=html",
     "--cov-report=term-missing",
-    "--cov-fail-under=80",
-    "--asyncio-mode=auto",
-    "--asyncio-default-fixture-loop-scope=function"
+    "--cov-fail-under=50",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",

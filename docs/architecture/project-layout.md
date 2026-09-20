@@ -16,7 +16,7 @@ Entry points worth knowing:
 |---|---|
 | [`backend/src/app.py`](../../backend/src/app.py) | FastAPI application factory |
 | [`backend/src/main.py`](../../backend/src/main.py) | Backend application entry point |
-| [`backend/pytest.ini`](../../backend/pytest.ini) | Test configuration, markers and the coverage gate |
+| [`backend/pyproject.toml`](../../backend/pyproject.toml) | Backend dependencies, plus test configuration, markers and the coverage gate |
 | [`frontend/src/main.tsx`](../../frontend/src/main.tsx) | React application entry point |
 | [`frontend/vite.config.ts`](../../frontend/vite.config.ts) | Vite and Vitest configuration |
 | [`mobile/app.json`](../../mobile/app.json) | Expo application configuration |

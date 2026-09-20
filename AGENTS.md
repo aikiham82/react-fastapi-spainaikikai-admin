@@ -5,7 +5,7 @@ docker compose up -d                                  # MongoDB (port 27017)
 
 cd backend  && poetry install
 cd backend  && poetry run uvicorn src.main:app --reload   # API on :8000
-cd backend  && poetry run pytest                          # suite + 80% coverage gate
+cd backend  && poetry run pytest                          # suite + coverage gate (floor 50%)
 cd backend  && poetry run pytest -m unit                  # fast loop
 
 cd frontend && npm install

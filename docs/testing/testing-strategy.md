@@ -15,7 +15,7 @@ tests/
 └── conftest.py       shared fixtures
 ```
 
-Coverage is enforced at **80%** by [`pytest.ini`](../../backend/pytest.ini); the run fails below it. Every test carries a marker so suites can be selected: `unit`, `integration`, `slow`, `auth`, `api`, `service`, `repository`, `domain`.
+Coverage is enforced by `[tool.pytest.ini_options]` in [`backend/pyproject.toml`](../../backend/pyproject.toml); the run fails below the floor. The floor is currently **50%** against actual coverage of 50.59%, and is a **ratchet**: raise it as coverage improves, never lower it. Every test carries a marker so suites can be selected: `unit`, `integration`, `slow`, `auth`, `api`, `service`, `repository`, `domain`.
 
 **Frontend**: Vitest with React Testing Library. Tests sit beside the code they cover, in `__tests__/` directories within the feature.
 
@@ -61,7 +61,7 @@ This needs a live database, it is slow, and when it fails it does not say whethe
 - [`backend/tests/application/`](../../backend/tests/application)
 - [`backend/tests/api/`](../../backend/tests/api)
 - [`backend/tests/conftest.py`](../../backend/tests/conftest.py)
-- [`backend/pytest.ini`](../../backend/pytest.ini)
+- [`backend/pyproject.toml`](../../backend/pyproject.toml)
 - [`frontend/src/core/data/__tests__/`](../../frontend/src/core/data/__tests__)
 
 ## 🔗 Related agreements

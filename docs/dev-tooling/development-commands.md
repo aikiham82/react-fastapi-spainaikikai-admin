@@ -79,7 +79,7 @@ pytest -m unit    # no Poetry environment active, wrong rootdir, no coverage con
 
 ## 🧐 Real world examples
 
-- [`backend/pytest.ini`](../../backend/pytest.ini): coverage gate and markers.
+- [`backend/pyproject.toml`](../../backend/pyproject.toml): `[tool.pytest.ini_options]` holds the coverage gate and markers.
 - [`frontend/package.json`](../../frontend/package.json): the npm scripts above.
 - [`docker-compose.yml`](../../docker-compose.yml): the MongoDB service.
 
