@@ -95,7 +95,7 @@ beforeEach(() => {
 
 // Mock jwt-decode to avoid token parsing issues in tests
 vi.mock('jwt-decode', () => ({
-  jwtDecode: vi.fn((token: string) => ({
+  jwtDecode: vi.fn((_token: string) => ({
     sub: 'test@example.com',
     exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
     iat: Math.floor(Date.now() / 1000),

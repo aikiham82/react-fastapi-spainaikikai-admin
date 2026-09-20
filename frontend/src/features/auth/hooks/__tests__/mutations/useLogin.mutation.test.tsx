@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React, { type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { useLoginMutation } from '../../mutations/useLogin.mutation'
 // Mock the auth service at the top
 vi.mock('@/features/auth/data/auth.service')
@@ -12,7 +12,6 @@ import {
 } from '@/test-utils/factories'
 import { 
   mockAuthService, 
-  createMockAxiosResponse, 
   createMockAxiosError,
   cleanup 
 } from '@/test-utils/mocks'
@@ -443,7 +442,7 @@ describe('useLoginMutation', () => {
 
       await waitFor(() => {
         expect(result.current.error).toBeTruthy()
-        expect(result.current.error.message).toBe('Login service unavailable')
+        expect(result.current.error!.message).toBe('Login service unavailable')
       })
     })
   })

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor, act } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
 import { LoginForm } from '../LoginForm'
 import {
   renderWithProviders,
@@ -271,7 +270,7 @@ describe('LoginForm', () => {
 
       const emailField = screen.getByLabelText(/correo electrónico/i)
       const passwordField = screen.getByLabelText(/contraseña/i)
-      const submitButton = screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })
+      screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })
 
       // Fields should remain accessible during loading
       expect(emailField).not.toBeDisabled()
@@ -532,7 +531,7 @@ describe('LoginForm', () => {
         { isAuthenticated: false, isLoading: true, login: vi.fn() },
       ]
 
-      authStates.forEach((state, index) => {
+      authStates.forEach((state, _index) => {
         vi.clearAllMocks()
         Object.assign(mockAuthContext, state)
 

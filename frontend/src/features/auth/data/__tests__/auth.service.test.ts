@@ -3,13 +3,13 @@ import { authService } from '../auth.service'
 import { apiClient } from '@/core/data/apiClient'
 import {
   createMockAuthRequest,
+  createMockRegisterRequest,
   createMockAuthResponse,
   createMockAuthUser,
   createMockCurrentUser,
   createMockAxiosError,
   mockApiCall,
 } from '@/test-utils'
-import type { AuthRequest, AuthResponse, AuthUser, CurrentUser } from '../auth.schema'
 
 // Mock the apiClient module
 vi.mock('@/core/data/apiClient', () => ({
@@ -158,7 +158,7 @@ describe('authService', () => {
   })
 
   describe('register', () => {
-    const mockUserData = createMockAuthRequest()
+    const mockUserData = createMockRegisterRequest()
     const mockAuthResponse = createMockAuthResponse()
 
     it('should successfully register with valid data', async () => {
@@ -224,7 +224,7 @@ describe('authService', () => {
 
     it('should handle email validation errors', async () => {
       // Arrange
-      const invalidEmailData = createMockAuthRequest({ email: 'invalid-email' })
+      const invalidEmailData = createMockRegisterRequest({ email: 'invalid-email' })
       const mockError = createMockAxiosError('Invalid email format', 400)
       mockApiClient.post.mockRejectedValue(mockError)
 
@@ -234,7 +234,7 @@ describe('authService', () => {
 
     it('should handle weak password errors', async () => {
       // Arrange
-      const weakPasswordData = createMockAuthRequest({ password: '123' })
+      const weakPasswordData = createMockRegisterRequest({ password: '123' })
       const mockError = createMockAxiosError('Password too weak', 400)
       mockApiClient.post.mockRejectedValue(mockError)
 
@@ -573,7 +573,7 @@ describe('authService', () => {
       // Arrange
       const longEmail = 'a'.repeat(100) + '@example.com'
       const longPassword = 'p'.repeat(200)
-      const userData = createMockAuthRequest({
+      const userData = createMockRegisterRequest({
         email: longEmail,
         password: longPassword,
       })
@@ -585,6 +585,7 @@ describe('authService', () => {
       // Assert
       expect(mockApiClient.post).toHaveBeenCalledWith('/api/v1/auth/register', {
         email: longEmail,
+        username: 'testuser',
         password: longPassword,
       })
     })
@@ -604,7 +605,7 @@ describe('authService', () => {
       mockApiClient.post.mockRejectedValue(detailedError)
 
       // Act & Assert
-      await expect(authService.register(createMockAuthRequest())).rejects.toThrow()
+      await expect(authService.register(createMockRegisterRequest())).rejects.toThrow()
     })
 
     it('should handle errors without response data', async () => {
@@ -643,7 +644,7 @@ describe('authService', () => {
       mockApiClient.put.mockResolvedValue(createMockAuthUser())
 
       const loginResult = authService.login(createMockAuthRequest())
-      const registerResult = authService.register(createMockAuthRequest())
+      const registerResult = authService.register(createMockRegisterRequest())
       const logoutResult = authService.logout()
       const updateResult = authService.updateUser(createMockAuthUser())
       const getCurrentResult = authService.getCurrentUser()

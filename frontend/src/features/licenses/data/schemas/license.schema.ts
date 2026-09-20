@@ -22,7 +22,7 @@ export interface CreateLicenseRequest {
   technical_grade?: 'dan' | 'kyu';
 }
 
-export interface UpdateLicenseRequest extends Partial<CreateLicenseRequest> {}
+export type UpdateLicenseRequest = Partial<CreateLicenseRequest>
 
 export interface LicenseFilters {
   search?: string;

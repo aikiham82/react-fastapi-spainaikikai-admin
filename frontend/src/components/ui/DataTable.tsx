@@ -1,17 +1,17 @@
 import { type ReactNode } from 'react';
 
-interface DataTableProps {
+interface DataTableProps<T extends { id: string | number }> {
   columns: {
     header: string;
     key: string;
-    cell?: (row: any) => ReactNode;
+    cell?: (row: T) => ReactNode;
   }[];
-  data: any[];
+  data: T[];
   emptyMessage?: string;
   isLoading?: boolean;
 }
 
-export const DataTable = ({ columns, data, emptyMessage = 'No hay datos', isLoading = false }: DataTableProps) => {
+export const DataTable = <T extends { id: string | number }>({ columns, data, emptyMessage = 'No hay datos', isLoading = false }: DataTableProps<T>) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -46,7 +46,7 @@ export const DataTable = ({ columns, data, emptyMessage = 'No hay datos', isLoad
               <tr key={`${row.id}-${index}`} className="border-b hover:bg-gray-50">
                 {columns.map((column) => (
                   <td key={column.key} className="p-4">
-                    {column.cell ? column.cell(row) : row[column.key]}
+                    {column.cell ? column.cell(row) : (row as Record<string, ReactNode>)[column.key]}
                   </td>
                 ))}
               </tr>

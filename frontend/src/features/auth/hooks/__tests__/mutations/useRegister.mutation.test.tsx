@@ -1,18 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React, { type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { useRegisterMutation } from '../../mutations/useRegister.mutation'
 // Mock the auth service at the top
 vi.mock('@/features/auth/data/auth.service')
 
 import { 
-  createMockAuthRequest, 
+  createMockRegisterRequest, 
   createMockAuthResponse 
 } from '@/test-utils/factories'
 import { 
   mockAuthService, 
-  createMockAxiosResponse, 
   createMockAxiosError,
   cleanup 
 } from '@/test-utils/mocks'
@@ -82,7 +81,7 @@ describe('useRegisterMutation', () => {
 
   describe('Successful Registration', () => {
     it('should successfully call register service with correct parameters', async () => {
-      const mockCredentials = createMockAuthRequest({
+      const mockCredentials = createMockRegisterRequest({
         email: 'newuser@example.com',
         password: 'newpassword123'
       })
@@ -102,7 +101,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle successful registration response correctly', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const mockResponse = createMockAuthResponse({
         access_token: 'new.user.token',
         token_type: 'bearer'
@@ -125,7 +124,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should set pending state correctly during mutation', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const mockResponse = createMockAuthResponse()
       
       // Mock with delay to test pending state
@@ -153,7 +152,7 @@ describe('useRegisterMutation', () => {
 
   describe('Error Handling', () => {
     it('should handle network errors correctly', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const networkError = createMockAxiosError('Network Error', 0)
       
       mockAuthService.register.mockRejectedValue(networkError)
@@ -173,7 +172,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle 400 bad request errors (validation errors)', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const validationError = createMockAxiosError('Validation Error', 400, {
         message: 'Email already exists'
       })
@@ -194,7 +193,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle 409 conflict errors (user already exists)', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const conflictError = createMockAxiosError('Conflict', 409, {
         message: 'User with this email already exists'
       })
@@ -215,7 +214,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle 422 unprocessable entity errors', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const validationError = createMockAxiosError('Unprocessable Entity', 422, {
         message: 'Password too weak',
         details: {
@@ -239,7 +238,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle 500 server errors', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const serverError = createMockAxiosError('Internal Server Error', 500)
       
       mockAuthService.register.mockRejectedValue(serverError)
@@ -258,7 +257,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle timeout errors', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const timeoutError = createMockAxiosError('timeout of 10000ms exceeded', 0)
       timeoutError.code = 'ECONNABORTED'
       
@@ -280,7 +279,7 @@ describe('useRegisterMutation', () => {
 
   describe('API Integration', () => {
     it('should call authService.register with exact parameters', async () => {
-      const specificCredentials = createMockAuthRequest({
+      const specificCredentials = createMockRegisterRequest({
         email: 'specific-register@test.com',
         password: 'specificRegisterPass123'
       })
@@ -296,6 +295,7 @@ describe('useRegisterMutation', () => {
       await waitFor(() => {
         expect(mockAuthService.register).toHaveBeenCalledWith({
           email: 'specific-register@test.com',
+          username: 'testuser',
           password: 'specificRegisterPass123'
         })
         expect(mockAuthService.register).toHaveBeenCalledTimes(1)
@@ -303,7 +303,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should not modify the request data', async () => {
-      const originalCredentials = createMockAuthRequest({
+      const originalCredentials = createMockRegisterRequest({
         email: 'register@example.com',
         password: 'registerPassword'
       })
@@ -328,6 +328,7 @@ describe('useRegisterMutation', () => {
     it('should handle different user data formats', async () => {
       const credentialsWithDifferentFormat = {
         email: 'test-format@example.com',
+        username: 'test-format',
         password: 'password-with-special-chars!@#$%'
       }
       
@@ -347,8 +348,8 @@ describe('useRegisterMutation', () => {
 
   describe('Multiple Calls', () => {
     it('should handle multiple sequential registration attempts', async () => {
-      const credentials1 = createMockAuthRequest({ email: 'user1@register.com' })
-      const credentials2 = createMockAuthRequest({ email: 'user2@register.com' })
+      const credentials1 = createMockRegisterRequest({ email: 'user1@register.com' })
+      const credentials2 = createMockRegisterRequest({ email: 'user2@register.com' })
       
       mockAuthService.register
         .mockResolvedValueOnce(createMockAuthResponse({ access_token: 'token1' }))
@@ -376,7 +377,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle rapid successive calls correctly', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       
       mockAuthService.register.mockResolvedValue(createMockAuthResponse())
 
@@ -400,7 +401,7 @@ describe('useRegisterMutation', () => {
 
   describe('State Transitions', () => {
     it('should handle mutation lifecycle correctly', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const mockResponse = createMockAuthResponse()
       
       mockAuthService.register.mockResolvedValue(mockResponse)
@@ -426,7 +427,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should handle error states correctly', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       const mockError = createMockAxiosError('Registration failed', 400)
       
       mockAuthService.register.mockRejectedValue(mockError)
@@ -473,7 +474,7 @@ describe('useRegisterMutation', () => {
     })
 
     it('should work with React Query mutation patterns despite naming inconsistency', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       mockAuthService.register.mockResolvedValue(createMockAuthResponse())
 
       const { result } = renderHook(() => useRegisterMutation(), {
@@ -534,16 +535,16 @@ describe('useRegisterMutation', () => {
         wrapper: createWrapper
       })
 
-      result.current.registerMutation(createMockAuthRequest())
+      result.current.registerMutation(createMockRegisterRequest())
 
       await waitFor(() => {
         expect(result.current.error).toBeTruthy()
-        expect(result.current.error.message).toBe('Register service unavailable')
+        expect(result.current.error!.message).toBe('Register service unavailable')
       })
     })
 
     it('should handle malformed response gracefully', async () => {
-      const mockCredentials = createMockAuthRequest()
+      const mockCredentials = createMockRegisterRequest()
       // Mock response without required fields
       const malformedResponse = { some: 'other data' } as any
       
@@ -568,7 +569,7 @@ describe('useRegisterMutation', () => {
       const longEmail = 'a'.repeat(100) + '@' + 'b'.repeat(100) + '.com'
       const longPassword = 'c'.repeat(200)
       
-      const credentialsWithLongStrings = createMockAuthRequest({
+      const credentialsWithLongStrings = createMockRegisterRequest({
         email: longEmail,
         password: longPassword
       })

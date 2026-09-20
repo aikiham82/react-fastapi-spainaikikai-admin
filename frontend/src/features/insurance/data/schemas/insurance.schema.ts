@@ -28,7 +28,7 @@ export interface CreateInsuranceRequest {
   end_date: string;
 }
 
-export interface UpdateInsuranceRequest extends Partial<CreateInsuranceRequest> {}
+export type UpdateInsuranceRequest = Partial<CreateInsuranceRequest>
 
 export interface InsuranceFilters {
   member_id?: string;

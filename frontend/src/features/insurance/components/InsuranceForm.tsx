@@ -150,7 +150,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
               <Label htmlFor="insurance_type">Tipo de Seguro *</Label>
               <Select
                 value={formData.insurance_type}
-                onValueChange={(value: any) => handleChange('insurance_type', value)}
+                onValueChange={(value: 'accident' | 'rc') => handleChange('insurance_type', value)}
               >
                 <SelectTrigger className={errors.insurance_type ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Selecciona el tipo" />

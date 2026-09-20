@@ -105,7 +105,7 @@ describe('queryClient', () => {
 
         expect(result).toEqual({ success: true, attempt: 2 })
         expect(attemptCount).toBe(2) // Initial attempt + 1 retry
-      } catch (error) {
+      } catch {
         // If it still fails after retry, that's expected behavior
         expect(attemptCount).toBe(2)
       }
@@ -179,7 +179,7 @@ describe('queryClient', () => {
 
         expect(result).toEqual({ success: true, attempt: 2, data: { test: 'data' } })
         expect(attemptCount).toBe(2)
-      } catch (error) {
+      } catch {
         // If it still fails after retry, that's expected
         expect(attemptCount).toBe(2)
       }
@@ -196,7 +196,7 @@ describe('queryClient', () => {
       try {
         await queryClient.getMutationCache().build(queryClient, {
           mutationFn,
-        }).execute()
+        }).execute(undefined)
       } catch (error) {
         expect(attemptCount).toBe(2) // Initial attempt + 1 retry
         expect(error).toBeInstanceOf(Error)
@@ -302,7 +302,7 @@ describe('queryClient', () => {
       try {
         await queryClient.getMutationCache().build(queryClient, {
           mutationFn,
-        }).execute()
+        }).execute(undefined)
       } catch (error) {
         expect(error).toBeInstanceOf(Error)
         expect((error as Error).message).toBe(errorMessage)
@@ -313,7 +313,6 @@ describe('queryClient', () => {
   describe('integration scenarios', () => {
     it('should handle multiple concurrent queries', async () => {
       const promises = []
-      const results: any[] = []
 
       for (let i = 1; i <= 3; i++) {
         promises.push(
@@ -363,7 +362,7 @@ describe('queryClient', () => {
 
       try {
         await query
-      } catch (error) {
+      } catch {
         // Query should be cancelled
         expect(wasAborted).toBe(true)
       }
@@ -432,7 +431,7 @@ describe('queryClient', () => {
       // Add a mutation
       await queryClient.getMutationCache().build(queryClient, {
         mutationFn: async () => ({ success: true }),
-      }).execute()
+      }).execute(undefined)
 
       // Note: Mutations might not stay in cache depending on configuration
       // This test mainly ensures the mutation cache is accessible and functional

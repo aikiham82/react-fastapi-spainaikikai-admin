@@ -27,7 +27,7 @@ export const exportMembers = async (filters?: ExportMembersFilters): Promise<Blo
   return response;
 };
 
-export const parseExcelFile = (file: File): Promise<any[]> => {
+export const parseExcelFile = (file: File): Promise<Array<Record<string, unknown>>> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -37,7 +37,7 @@ export const parseExcelFile = (file: File): Promise<any[]> => {
         const workbook = XLSX.read(data);
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
         resolve(jsonData);
       } catch (error) {
         reject(error);
@@ -52,7 +52,7 @@ export const parseExcelFile = (file: File): Promise<any[]> => {
   });
 };
 
-export const exportToExcel = (data: any[], filename: string): void => {
+export const exportToExcel = (data: Array<Record<string, unknown>>, filename: string): void => {
   const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
