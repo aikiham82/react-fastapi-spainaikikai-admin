@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5"
     reasoning_effort: "high"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-09-20T20:30:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Port the Codely harness structure to spainaikikai-admin
@@ -155,17 +165,17 @@ Unchanged by explicit decision:
 
 Deliver a working harness skeleton an agent can actually use: unblock `docs/` in git, write the thin `AGENTS.md` including the Non-negotiables, point `CLAUDE.md` at it, and fill in the three highest-traffic doc domains (architecture, commands, testing). After this phase the new harness is usable end-to-end even though the process docs are still to come.
 
-- [ ] Remove the `docs/` entry from `.gitignore` and confirm with `git check-ignore -v docs/architecture/backend-hexagonal.md` that new docs are no longer ignored.
-- [ ] Write `docs/documentation-guidelines.md` adopting the reference template (`## 💡 Convention`, `## 🏆 Benefits`, `## 👀 Examples` with a ✅ Good and a ❌ Bad case, `## 🧐 Real world examples`, `## 🔗 Related agreements`) and the one-document-per-convention rule. Write this first, because every doc produced in this phase and the next two must follow it.
-- [ ] Write `docs/architecture/backend-hexagonal.md` from `CLAUDE.md` lines 87–106: domain/application/infrastructure layers, entity validation in `__post_init__`, ports as abstract contracts, one public `execute` per use case, Motor repositories, DTO/mapper/dependency split.
-- [ ] Write `docs/architecture/frontend-features.md` from `CLAUDE.md` lines 107–126: feature folder shape, `components/`, `data/` (Zod schemas + axios services), `hooks/` with context/business/mutations/queries, `src/core/`, `src/components/ui/`.
-- [ ] Write `docs/architecture/project-layout.md`: the backend/frontend/mobile workspace split and the important entry points (`backend/src/app.py`, `backend/src/main.py`, `frontend/src/main.tsx`, `backend/pytest.ini`).
-- [ ] Write `docs/dev-tooling/development-commands.md` from `CLAUDE.md` lines 15–84: Poetry, uvicorn, pytest variants, npm scripts, Expo, `docker compose up -d`, plus the ports (backend 8000, frontend 5173, MongoDB 27017).
-- [ ] Write `docs/testing/testing-strategy.md` from `CLAUDE.md` lines 146–151: layer-based organisation, the 80% coverage gate, and the pytest markers.
-- [ ] Write `AGENTS.md` with the five reference sections. **Non-negotiables** must carry, as hard rules: naive datetimes via `datetime.utcnow()`; `license_paid` derives from the license payment, not the `License` entity; annual licence/cuota is gated by *"Fecha de envío"* while insurance is a separate ungated cycle; the database is `spainaikikai`; no secrets in the repository. **Documentation** embeds the `docs/` tree with the "Do NOT read all docs upfront" instruction.
-- [ ] Delete the old `CLAUDE.md` and recreate it as a symlink: `ln -s AGENTS.md CLAUDE.md`. Verify `git status` records it as a typechange and that `cat CLAUDE.md` resolves.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (backend `poetry run pytest`, frontend `npm run lint && npm run build`). Additionally confirm every relative link in `AGENTS.md` resolves and that the new docs appear in `git status` rather than being ignored. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Remove the `docs/` entry from `.gitignore` and confirm with `git check-ignore -v docs/architecture/backend-hexagonal.md` that new docs are no longer ignored.
+- [x] Write `docs/documentation-guidelines.md` adopting the reference template (`## 💡 Convention`, `## 🏆 Benefits`, `## 👀 Examples` with a ✅ Good and a ❌ Bad case, `## 🧐 Real world examples`, `## 🔗 Related agreements`) and the one-document-per-convention rule. Write this first, because every doc produced in this phase and the next two must follow it.
+- [x] Write `docs/architecture/backend-hexagonal.md` from `CLAUDE.md` lines 87–106: domain/application/infrastructure layers, entity validation in `__post_init__`, ports as abstract contracts, one public `execute` per use case, Motor repositories, DTO/mapper/dependency split.
+- [x] Write `docs/architecture/frontend-features.md` from `CLAUDE.md` lines 107–126: feature folder shape, `components/`, `data/` (Zod schemas + axios services), `hooks/` with context/business/mutations/queries, `src/core/`, `src/components/ui/`.
+- [x] Write `docs/architecture/project-layout.md`: the backend/frontend/mobile workspace split and the important entry points (`backend/src/app.py`, `backend/src/main.py`, `frontend/src/main.tsx`, `backend/pytest.ini`).
+- [x] Write `docs/dev-tooling/development-commands.md` from `CLAUDE.md` lines 15–84: Poetry, uvicorn, pytest variants, npm scripts, Expo, `docker compose up -d`, plus the ports (backend 8000, frontend 5173, MongoDB 27017).
+- [x] Write `docs/testing/testing-strategy.md` from `CLAUDE.md` lines 146–151: layer-based organisation, the 80% coverage gate, and the pytest markers.
+- [x] Write `AGENTS.md` with the five reference sections. **Non-negotiables** must carry, as hard rules: naive datetimes via `datetime.utcnow()`; `license_paid` derives from the license payment, not the `License` entity; annual licence/cuota is gated by *"Fecha de envío"* while insurance is a separate ungated cycle; the database is `spainaikikai`; no secrets in the repository. **Documentation** embeds the `docs/` tree with the "Do NOT read all docs upfront" instruction.
+- [x] Delete the old `CLAUDE.md` and recreate it as a symlink: `ln -s AGENTS.md CLAUDE.md`. Verify `git status` records it as a typechange and that `cat CLAUDE.md` resolves.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (backend `poetry run pytest`, frontend `npm run lint && npm run build`). Additionally confirm every relative link in `AGENTS.md` resolves and that the new docs appear in `git status` rather than being ignored. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: The process layer
 
@@ -200,6 +210,6 @@ Promote the external memory into versioned domain docs, then consolidate the ove
 
 ## ⏭️ Next step
 
-Start with Phase 1: unblock `docs/` in `.gitignore`, write `AGENTS.md` with its Non-negotiables, symlink `CLAUDE.md` to it, and land the architecture, commands and testing docs.
+Phase 1 is done. Next is Phase 2: move the conventions, security, git and workflow rules out of the old monolith (recoverable with `git show 9d3f9f3:CLAUDE.md`) into their own docs, and replace the inlined `autoskills` digest with `docs/dev-tooling/skills.md`.
 
-Harness rebuilt at turbo speed by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Monolith cracked open, conventions set free by 🗺️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

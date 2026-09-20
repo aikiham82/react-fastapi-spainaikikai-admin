@@ -6,7 +6,6 @@ testsprite_tests/
 .claude/sessions
 .claude/doc
 .claude/plans
-docs/
 
 # User-uploaded files
 backend/uploads/
