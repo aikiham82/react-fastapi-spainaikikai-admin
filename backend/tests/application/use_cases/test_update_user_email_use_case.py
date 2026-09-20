@@ -31,9 +31,17 @@ def club_account():
 
 
 @pytest.fixture
-def use_case(mock_repository):
+def mock_token_repository():
+    """Mock password reset token repository."""
+    mock_repo = MagicMock()
+    mock_repo.invalidate_user_tokens = AsyncMock(return_value=0)
+    return mock_repo
+
+
+@pytest.fixture
+def use_case(mock_repository, mock_token_repository):
     """Use case under test."""
-    return UpdateUserEmailUseCase(mock_repository)
+    return UpdateUserEmailUseCase(mock_repository, mock_token_repository)
 
 
 @pytest.mark.service
@@ -97,6 +105,42 @@ class TestUpdateUserEmailUseCase:
         # Assert
         assert result.email == "null@jj"
         mock_repository.update.assert_awaited_once()
+
+    async def test_execute_invalidates_reset_tokens_of_the_old_address(
+        self, use_case, mock_repository, mock_token_repository, club_account
+    ):
+        """Test that a link mailed to the address being replaced stops working.
+
+        Whoever controls the old address can hold a valid 24h token. Correcting
+        the email must not leave that token able to reset the account.
+        """
+        # Arrange
+        mock_repository.find_by_id.return_value = club_account
+
+        # Act
+        await use_case.execute("user123", "leon.aikikai@gmail.com")
+
+        # Assert
+        mock_token_repository.invalidate_user_tokens.assert_awaited_once_with("user123")
+
+    async def test_execute_does_not_invalidate_tokens_when_the_email_is_taken(
+        self, use_case, mock_repository, mock_token_repository, club_account
+    ):
+        """Test that a rejected change leaves the account untouched."""
+        # Arrange
+        mock_repository.find_by_id.return_value = club_account
+        mock_repository.find_by_email.return_value = User(
+            id="other",
+            email="leon.aikikai@gmail.com",
+            username="OTHER CLUB",
+            hashed_password="hashed"
+        )
+
+        # Act & Assert
+        with pytest.raises(EmailAlreadyInUseError):
+            await use_case.execute("user123", "leon.aikikai@gmail.com")
+
+        mock_token_repository.invalidate_user_tokens.assert_not_awaited()
 
     async def test_execute_raises_user_not_found_error_for_unknown_id(self, use_case, mock_repository):
         """Test that an unknown account raises instead of creating one."""

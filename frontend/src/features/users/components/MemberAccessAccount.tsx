@@ -12,23 +12,39 @@ interface MemberAccessAccountProps {
   memberId: string;
 }
 
+const formatExpiry = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return date.toLocaleString('es-ES', {
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
   const { isAssociationAdmin } = usePermissions();
   const isSuperAdmin = isAssociationAdmin();
 
-  const { data: account, isLoading, isError } = useUserByMemberQuery(memberId, isSuperAdmin);
-  const { mutate: generateLink, isPending, data: link } = useGeneratePasswordResetLinkMutation();
+  const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, isSuperAdmin);
+  const { mutate: generateLink, isPending: isGenerating, data: link } = useGeneratePasswordResetLinkMutation();
   const { mutate: updateEmail, isPending: isSavingEmail } = useUpdateUserEmailMutation();
 
   const [editedEmail, setEditedEmail] = useState<string | null>(null);
 
   if (!isSuperAdmin) return null;
 
+  const isEditing = editedEmail !== null;
+
   const saveEmail = () => {
     if (!account || !editedEmail?.trim()) return;
 
-    updateEmail({ userId: account.id, email: editedEmail.trim() });
-    setEditedEmail(null);
+    updateEmail(
+      { userId: account.id, email: editedEmail.trim() },
+      { onSuccess: () => setEditedEmail(null) }
+    );
   };
 
   const copyLink = async () => {
@@ -42,26 +58,34 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
     }
   };
 
-  return (
-    <div className="space-y-2 rounded-md border p-4">
-      <Label>Cuenta de acceso</Label>
+  const errorMessage = (error as { status?: number } | null)?.status === 404
+    ? 'Este socio no tiene cuenta de acceso'
+    : 'No se pudo consultar la cuenta de acceso';
 
-      {isLoading && <p className="text-sm text-muted-foreground">Cargando cuenta...</p>}
+  return (
+    <section
+      aria-labelledby="access-account-heading"
+      className="space-y-3 rounded-lg border bg-muted/50 p-4"
+    >
+      <h3 id="access-account-heading" className="text-sm font-medium">
+        Cuenta de acceso
+      </h3>
+
+      {isLoading && (
+        <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+          Cargando cuenta...
+        </p>
+      )}
 
       {isError && (
-        <p className="text-sm text-muted-foreground">Este socio no tiene cuenta de acceso</p>
+        <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+          {errorMessage}
+        </p>
       )}
 
       {account && (
         <div className="space-y-3">
-          {editedEmail === null ? (
-            <div className="space-y-1">
-              <p className="text-sm font-medium">{account.email}</p>
-              <p className="text-xs text-muted-foreground">
-                Correo con el que entra en la aplicación. Puede no coincidir con el del socio ni con el del club.
-              </p>
-            </div>
-          ) : (
+          {isEditing ? (
             <div className="space-y-2">
               <Label htmlFor="login_email">Correo de acceso</Label>
               <Input
@@ -69,55 +93,90 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                 type="email"
                 value={editedEmail}
                 onChange={(e) => setEditedEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEmail();
+                  }
+                }}
                 placeholder="club@example.com"
               />
             </div>
+          ) : (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{account.email}</p>
+              <p className="text-xs text-muted-foreground">
+                Es el correo con el que este club inicia sesión. Puede ser distinto del correo del socio.
+              </p>
+            </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
-            {editedEmail === null ? (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setEditedEmail(account.email)}
-              >
-                Corregir correo de acceso
+          {isEditing ? (
+            <div className="grid gap-2 sm:flex sm:flex-wrap">
+              <Button type="button" disabled={isSavingEmail} onClick={saveEmail}>
+                {isSavingEmail ? 'Guardando...' : 'Guardar correo'}
               </Button>
-            ) : (
-              <>
-                <Button type="button" disabled={isSavingEmail} onClick={saveEmail}>
-                  Guardar correo
-                </Button>
-                <Button type="button" variant="ghost" onClick={() => setEditedEmail(null)}>
-                  Cancelar
-                </Button>
-              </>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isPending}
-              onClick={() => generateLink(account.id)}
-            >
-              Generar enlace de acceso
-            </Button>
-
-            {link && (
-              <Button type="button" variant="secondary" onClick={copyLink}>
-                Copiar enlace
+              <Button type="button" variant="ghost" onClick={() => setEditedEmail(null)}>
+                Descartar
               </Button>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="grid gap-2 sm:flex sm:flex-wrap">
+                <Button
+                  type="button"
+                  variant={link ? 'ghost' : 'default'}
+                  disabled={isGenerating}
+                  onClick={() => generateLink(account.id)}
+                >
+                  {isGenerating
+                    ? 'Generando...'
+                    : link
+                      ? 'Generar un enlace nuevo'
+                      : 'Generar enlace para cambiar la contraseña'}
+                </Button>
 
-          {link && (
+                {link && (
+                  <Button type="button" onClick={copyLink}>
+                    Copiar enlace
+                  </Button>
+                )}
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setEditedEmail(account.email)}
+                >
+                  Corregir correo de acceso
+                </Button>
+              </div>
+
+              {!link && (
+                <p className="text-xs text-muted-foreground">
+                  El enlace caduca 24 horas después de generarlo.
+                </p>
+              )}
+            </div>
+          )}
+
+          {link && !isEditing && (
             <div className="space-y-1">
-              <p className="break-all text-xs text-muted-foreground">{link.url}</p>
-              <p className="text-xs text-muted-foreground">El enlace caduca en 24 horas</p>
+              <Input
+                readOnly
+                value={link.url}
+                onFocus={(e) => e.target.select()}
+                className="font-mono text-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Enlace para {link.email}. Caduca el {formatExpiry(link.expires_at)}.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Al generar uno nuevo, el anterior deja de funcionar.
+              </p>
             </div>
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 };

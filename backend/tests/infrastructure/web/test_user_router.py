@@ -42,6 +42,19 @@ def mock_use_cases():
 
 
 @pytest.fixture
+def super_admin_entity():
+    """Super admin account, the only role allowed to list every account."""
+    from src.domain.entities.user import GlobalRole
+    return User(
+        id="admin1",
+        email="admin@spainaikikai.org",
+        username="Admin",
+        hashed_password="hashed",
+        global_role=GlobalRole.SUPER_ADMIN
+    )
+
+
+@pytest.fixture
 def mock_security():
     """Mock security functions."""
     return {
@@ -387,7 +400,7 @@ class TestGetUsersEndpoint:
     """Test suite for get all users endpoint."""
 
     def test_get_users_returns_user_list(
-        self, test_app, user_entity_with_id, test_users_list
+        self, test_app, super_admin_entity, test_users_list
     ):
         """Test getting all users returns list of UserResponse."""
         # Arrange - Mock dependencies using FastAPI's dependency override
@@ -398,7 +411,7 @@ class TestGetUsersEndpoint:
         
         # Override dependencies
         test_app.dependency_overrides[get_all_users_use_case] = lambda: mock_use_case
-        test_app.dependency_overrides[get_current_active_user] = lambda: user_entity_with_id
+        test_app.dependency_overrides[get_current_active_user] = lambda: super_admin_entity
         
         client = TestClient(test_app)
         
@@ -416,7 +429,7 @@ class TestGetUsersEndpoint:
         assert data[0]["username"] == test_users_list[0].username
 
     def test_get_users_with_limit_parameter(
-        self, test_app, user_entity_with_id, test_users_list
+        self, test_app, super_admin_entity, test_users_list
     ):
         """Test getting users with custom limit parameter."""
         # Arrange - Mock dependencies using FastAPI's dependency override
@@ -427,7 +440,7 @@ class TestGetUsersEndpoint:
         
         # Override dependencies
         test_app.dependency_overrides[get_all_users_use_case] = lambda: mock_use_case
-        test_app.dependency_overrides[get_current_active_user] = lambda: user_entity_with_id
+        test_app.dependency_overrides[get_current_active_user] = lambda: super_admin_entity
         
         client = TestClient(test_app)
         
@@ -611,7 +624,7 @@ class TestRouterIntegration:
         assert data["token_type"] == "bearer"
 
     def test_get_users_endpoint_response_model(
-        self, test_app, user_entity_with_id, test_users_list
+        self, test_app, super_admin_entity, test_users_list
     ):
         """Test get users endpoint returns correct response model structure."""
         # Arrange - Mock dependencies using FastAPI's dependency override
@@ -622,7 +635,7 @@ class TestRouterIntegration:
         
         # Override dependencies
         test_app.dependency_overrides[get_all_users_use_case] = lambda: mock_use_case
-        test_app.dependency_overrides[get_current_active_user] = lambda: user_entity_with_id
+        test_app.dependency_overrides[get_current_active_user] = lambda: super_admin_entity
         
         client = TestClient(test_app)
         

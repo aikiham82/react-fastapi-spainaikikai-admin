@@ -42,11 +42,12 @@ class GenerateAdminPasswordResetLinkUseCase:
         self.token_repository = token_repository
         self.frontend_base_url = frontend_base_url.rstrip('/')
 
-    async def execute(self, user_id: str) -> AdminPasswordResetLinkResult:
+    async def execute(self, user_id: str, issued_by: str = "") -> AdminPasswordResetLinkResult:
         """Issue a reset link for the given account.
 
         Args:
             user_id: The account the link is issued for.
+            issued_by: The account of the super admin asking for it, for the log.
 
         Returns:
             The link, the account's login email and the link expiration.
@@ -64,7 +65,7 @@ class GenerateAdminPasswordResetLinkUseCase:
         token = PasswordResetToken(user_id=user.id, email=user.email)
         await self.token_repository.create(token)
 
-        logger.info(f"Admin issued a password reset link for user {user.id}")
+        logger.info(f"User {issued_by or 'unknown'} issued a password reset link for user {user.id}")
 
         return AdminPasswordResetLinkResult(
             url=f"{self.frontend_base_url}/reset-password?token={token.token}",

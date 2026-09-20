@@ -599,7 +599,10 @@ def get_user_by_member_id_use_case() -> GetUserByMemberIdUseCase:
 
 def get_update_user_email_use_case() -> UpdateUserEmailUseCase:
     """Get update user email use case."""
-    return UpdateUserEmailUseCase(get_user_repository())
+    return UpdateUserEmailUseCase(
+        get_user_repository(),
+        get_password_reset_token_repository()
+    )
 
 
 def get_create_user_use_case() -> CreateUserUseCase:
@@ -640,7 +643,13 @@ async def get_current_user(
         user = await user_by_email_use_case.execute(email=username)
     except UserNotFoundError:
         raise credentials_exception
-        
+
+    # Emails are mutable through PATCH /users/{user_id}/email, so the subject
+    # alone no longer identifies an account for the whole life of a token.
+    token_user_id = payload.get("user_id")
+    if token_user_id is not None and token_user_id != user.id:
+        raise credentials_exception
+
     return user
 
 

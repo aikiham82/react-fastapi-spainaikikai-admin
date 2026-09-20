@@ -6,7 +6,10 @@ from datetime import datetime
 from bson import ObjectId
 
 from src.domain.entities.user import User
-from src.infrastructure.adapters.repositories.mongodb_user_repository import MongoDBUserRepository
+from src.infrastructure.adapters.repositories.mongodb_user_repository import (
+    MongoDBUserRepository,
+    CASE_INSENSITIVE_COLLATION
+)
 
 
 @pytest.mark.asyncio
@@ -230,7 +233,10 @@ class TestMongoDBUserRepository:
         # Assert
         assert isinstance(result, User)
         assert result.email == email
-        mock_mongo_collection.find_one.assert_called_once_with({"email": email})
+        mock_mongo_collection.find_one.assert_called_once_with(
+            {"email": email},
+            collation=CASE_INSENSITIVE_COLLATION
+        )
 
     async def test_find_by_email_returns_none_when_not_found(self, repository, mock_mongo_collection):
         """Test that find_by_email returns None when document not found."""
@@ -243,7 +249,10 @@ class TestMongoDBUserRepository:
         
         # Assert
         assert result is None
-        mock_mongo_collection.find_one.assert_called_once_with({"email": email})
+        mock_mongo_collection.find_one.assert_called_once_with(
+            {"email": email},
+            collation=CASE_INSENSITIVE_COLLATION
+        )
 
     async def test_find_by_username_returns_user_when_found(self, repository, mock_mongo_collection, user_document):
         """Test that find_by_username returns User when document found."""

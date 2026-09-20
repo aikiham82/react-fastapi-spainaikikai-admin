@@ -14,6 +14,7 @@ from src.infrastructure.web.authorization import AuthContext
 from src.domain.exceptions.user import EmailAlreadyInUseError
 from src.infrastructure.web.dependencies import (
     get_auth_context,
+    get_all_users_use_case,
     get_generate_admin_password_reset_link_use_case,
     get_user_by_member_id_use_case,
     get_update_user_email_use_case,
@@ -90,7 +91,7 @@ class TestGenerateAdminPasswordResetLinkEndpoint:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["url"] == "https://admin.spainaikikai.es/reset-password?token=abc123"
         assert response.json()["email"] == "club@example.com"
-        mock_use_case.execute.assert_awaited_once_with("user123")
+        mock_use_case.execute.assert_awaited_once_with("user123", issued_by="admin1")
 
     def test_club_admin_is_forbidden(self, test_app, mock_use_case):
         """Test that a club admin cannot issue links, not even for their own account."""
@@ -197,6 +198,45 @@ class TestGetUserByMemberEndpoint:
 
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.api
+@pytest.mark.unit
+class TestListUsersEndpoint:
+    """Test suite for GET /users."""
+
+    def test_club_admin_cannot_list_every_account(self, test_app):
+        """Test that the account list, which exposes every login email, is gated.
+
+        This branch gates a single login email behind super admin. Leaving the
+        whole list readable by any authenticated caller would make that pointless.
+        """
+        # Arrange
+        use_case = AsyncMock()
+        use_case.execute.return_value = []
+        test_app.dependency_overrides[get_auth_context] = club_admin_context
+        test_app.dependency_overrides[get_all_users_use_case] = lambda: use_case
+
+        # Act
+        response = TestClient(test_app).get("/api/v1/users")
+
+        # Assert
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        use_case.execute.assert_not_awaited()
+
+    def test_super_admin_lists_every_account(self, test_app):
+        """Test that a super admin still gets the list."""
+        # Arrange
+        use_case = AsyncMock()
+        use_case.execute.return_value = []
+        test_app.dependency_overrides[get_auth_context] = super_admin_context
+        test_app.dependency_overrides[get_all_users_use_case] = lambda: use_case
+
+        # Act
+        response = TestClient(test_app).get("/api/v1/users")
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.fixture

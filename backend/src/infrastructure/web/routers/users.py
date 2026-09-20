@@ -68,7 +68,7 @@ async def register(
         # Create access token for the new user
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": user.email}, expires_delta=access_token_expires
+            data={"sub": user.email, "user_id": user.id}, expires_delta=access_token_expires
         )
         
         return Token(access_token=access_token)
@@ -131,7 +131,13 @@ async def get_users(
     get_all_users_use_case: GetAllUsersUseCase = Depends(get_all_users_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get all users (requires authentication)."""
+    """Get all users (super admin only).
+
+    Every login email in the association is in this response, which is the
+    same data the per-member endpoint gates.
+    """
+    require_super_admin(ctx)
+
     users = await get_all_users_use_case.execute(limit)
     return UserMapper.to_response_list(users)
 
@@ -222,7 +228,7 @@ async def generate_password_reset_link(
     require_super_admin(ctx)
 
     try:
-        result = await use_case.execute(user_id)
+        result = await use_case.execute(user_id, issued_by=ctx.user.id)
     except UserNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

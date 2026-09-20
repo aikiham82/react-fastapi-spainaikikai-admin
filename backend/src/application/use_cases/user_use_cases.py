@@ -8,6 +8,7 @@ from src.domain.exceptions.user import (
     SuperAdminAlreadyExistsError, EmailAlreadyInUseError
 )
 from src.application.ports.repositories import UserRepositoryPort
+from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 
 
 class GetAllUsersUseCase:
@@ -115,10 +116,19 @@ class UpdateUserEmailUseCase:
 
     Uniqueness is enforced here: the users collection carries no unique index
     on email, and two accounts sharing one would make the reset flow ambiguous.
+
+    Any live reset token is dropped as part of the change. The address being
+    replaced is usually one the account holder does not control, and a token
+    already mailed to it stays valid for 24 hours otherwise.
     """
 
-    def __init__(self, user_repository: UserRepositoryPort):
+    def __init__(
+        self,
+        user_repository: UserRepositoryPort,
+        token_repository: PasswordResetTokenRepositoryPort
+    ):
         self.user_repository = user_repository
+        self.token_repository = token_repository
 
     async def execute(self, user_id: str, email: str) -> User:
         """Execute the use case."""
@@ -137,7 +147,11 @@ class UpdateUserEmailUseCase:
         except ValueError as e:
             raise InvalidUserDataError(str(e))
 
-        return await self.user_repository.update(user)
+        updated_user = await self.user_repository.update(user)
+
+        await self.token_repository.invalidate_user_tokens(user.id)
+
+        return updated_user
 
 
 class AuthenticateUserUseCase:
