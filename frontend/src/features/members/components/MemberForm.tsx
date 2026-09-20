@@ -162,7 +162,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email de contacto</Label>
               <Input
                 id="email"
                 type="email"
@@ -276,7 +276,11 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
           </div>
 
-          {isEditing && member?.id && <MemberAccessAccount memberId={member.id} />}
+          {isEditing && member?.id && (
+            <div className="border-t pt-4">
+              <MemberAccessAccount memberId={member.id} />
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
