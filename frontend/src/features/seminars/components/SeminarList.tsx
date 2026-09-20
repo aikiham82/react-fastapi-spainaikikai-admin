@@ -136,7 +136,7 @@ export const SeminarList = () => {
 
   const handleFilterStatus = (value: string) => {
     setStatusFilter(value);
-    setFilters({ ...filters, status: value === 'all' ? undefined : value as any, offset: 0 });
+    setFilters({ ...filters, status: value === 'all' ? undefined : (value as 'upcoming' | 'ongoing' | 'completed' | 'cancelled'), offset: 0 });
   };
 
   const totalPages = Math.ceil(total / limit);

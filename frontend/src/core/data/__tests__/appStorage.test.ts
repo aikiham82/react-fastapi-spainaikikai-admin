@@ -153,11 +153,14 @@ describe('appStorage', () => {
         expect(mockLocalStorage.stringKey).toBe(testString)
       })
 
-      it('should convert non-string values to string', () => {
+      it('should pass non-string values straight through to setItem', () => {
         const storage = appStorage()
 
-        storage.local.setString('numberKey', 42)
-        storage.local.setString('objectKey', { id: 1 })
+        // setString takes a string; these casts document what happens when
+        // untyped callers pass something else. The real localStorage coerces,
+        // the mock records the raw value.
+        storage.local.setString('numberKey', 42 as unknown as string)
+        storage.local.setString('objectKey', { id: 1 } as unknown as string)
 
         expect(localStorage.setItem).toHaveBeenCalledWith('numberKey', 42)
         expect(localStorage.setItem).toHaveBeenCalledWith('objectKey', { id: 1 })

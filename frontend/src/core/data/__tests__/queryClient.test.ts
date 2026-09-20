@@ -105,7 +105,7 @@ describe('queryClient', () => {
 
         expect(result).toEqual({ success: true, attempt: 2 })
         expect(attemptCount).toBe(2) // Initial attempt + 1 retry
-      } catch (error) {
+      } catch {
         // If it still fails after retry, that's expected behavior
         expect(attemptCount).toBe(2)
       }
@@ -179,7 +179,7 @@ describe('queryClient', () => {
 
         expect(result).toEqual({ success: true, attempt: 2, data: { test: 'data' } })
         expect(attemptCount).toBe(2)
-      } catch (error) {
+      } catch {
         // If it still fails after retry, that's expected
         expect(attemptCount).toBe(2)
       }
@@ -362,7 +362,7 @@ describe('queryClient', () => {
 
       try {
         await query
-      } catch (error) {
+      } catch {
         // Query should be cancelled
         expect(wasAborted).toBe(true)
       }

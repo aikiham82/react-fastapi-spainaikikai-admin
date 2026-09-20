@@ -52,7 +52,7 @@ export interface CreateMemberRequest {
   club_id?: string;
 }
 
-export interface UpdateMemberRequest extends Partial<CreateMemberRequest> { }
+export type UpdateMemberRequest = Partial<CreateMemberRequest>
 
 export interface ChangeMemberStatusRequest {
   status: 'active' | 'inactive';

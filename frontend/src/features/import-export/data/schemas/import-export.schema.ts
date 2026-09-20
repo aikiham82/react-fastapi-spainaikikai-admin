@@ -20,7 +20,7 @@ export interface ExportMembersFilters {
 }
 
 export interface ExportDataResponse {
-  data: any[];
+  data: Array<Record<string, unknown>>;
   filename: string;
 }
 

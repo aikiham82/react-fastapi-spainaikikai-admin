@@ -14,6 +14,17 @@ import { appStorage } from "@/core/data/appStorage";
 import { jwtDecode } from "jwt-decode";
 
 
+// The mutation may surface either the ApiError this app builds or a raw
+// axios error, so narrow both shapes instead of trusting one.
+const readErrorMessage = (error: unknown): string | undefined => {
+  if (typeof error !== "object" || error === null) return undefined;
+  const { response, message } = error as {
+    response?: { data?: { detail?: string } };
+    message?: string;
+  };
+  return response?.data?.detail ?? message;
+};
+
 export const RegisterForm = () => {
   const { isAuthenticated } = useAuthContext();
   const navigate = useNavigate();
@@ -149,8 +160,8 @@ export const RegisterForm = () => {
         // Reload to trigger auth context update
         window.location.href = "/";
       },
-      onError: (err: any) => {
-        const errorMessage = err?.response?.data?.detail || err?.message || "Registration failed. Please try again.";
+      onError: (err: unknown) => {
+        const errorMessage = readErrorMessage(err) || "Registration failed. Please try again.";
 
         // Check for specific error types
         if (errorMessage.includes("already exists") || errorMessage.includes("duplicate")) {

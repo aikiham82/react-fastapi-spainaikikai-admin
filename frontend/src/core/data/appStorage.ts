@@ -1,15 +1,15 @@
 export interface IStorageLocal {
-    get: (k: string) => any;
-    set: (k: string, v: any) => void;
-    setString: (k: string, v: any) => void;
+    get: <T = unknown>(k: string) => T | null;
+    set: (k: string, v: unknown) => void;
+    setString: (k: string, v: string) => void;
     getString: (k: string) => string | null;
     remove: (k: string) => void;
     clear: () => void;
 }
 
 export interface IStorageSession {
-    get: (k: string) => any;
-    set: (k: string, v: any) => void;
+    get: <T = unknown>(k: string) => T | null;
+    set: (k: string, v: unknown) => void;
     getString: (k: string) => string | null;
     remove: (k: string) => void;
     clear: () => void;
@@ -17,20 +17,20 @@ export interface IStorageSession {
 
 export const appStorage = () => {
     const local: IStorageLocal = {
-        get(k: string) {
+        get<T = unknown>(k: string): T | null {
             try {
-                return JSON.parse(localStorage.getItem(k) as string);
+                return JSON.parse(localStorage.getItem(k) as string) as T;
             } catch (e) {
                 console.error('Error getting local storage:', e);
                 return null;
             }
         },
 
-        set(k: string, v: any) {
+        set(k: string, v: unknown) {
             localStorage.setItem(k, JSON.stringify(v));
         },
 
-        setString(k: string, v: any) {
+        setString(k: string, v: string) {
             localStorage.setItem(k, v);
         },
 
@@ -61,16 +61,16 @@ export const appStorage = () => {
     };
 
     const session: IStorageSession = {
-        get(k: string) {
+        get<T = unknown>(k: string): T | null {
             try {
-                return JSON.parse(sessionStorage.getItem(k) as string);
+                return JSON.parse(sessionStorage.getItem(k) as string) as T;
             } catch (e) {
                 console.error('Error getting session storage:', e);
                 return null;
             }
         },
 
-        set(k: string, v: any) {
+        set(k: string, v: unknown) {
             sessionStorage.setItem(k, JSON.stringify(v));
         },
 

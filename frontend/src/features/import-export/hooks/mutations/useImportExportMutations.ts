@@ -1,6 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { importExportService } from '../../data/services/import-export.service';
-import type { ExportPaymentsFilters } from '../../data/schemas/import-export.schema';
+import type {
+  ExportPaymentsFilters,
+  ExportMembersFilters,
+  ExportLicensesFilters,
+  ExportInsurancesFilters,
+} from '../../data/schemas/import-export.schema';
+
+// Shape the import endpoints return alongside a failure
+interface ImportErrorLike {
+  response?: { data?: { errors?: string[] } };
+}
 import { toast } from 'sonner';
 
 export const useImportMembersMutation = () => {
@@ -16,7 +26,7 @@ export const useImportMembersMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['licenses'] });
     },
-    onError: (error: any) => {
+    onError: (error: ImportErrorLike) => {
       toast.error('Error al importar miembros');
       if (error.response?.data?.errors) {
         error.response.data.errors.forEach((err: string) => {
@@ -29,7 +39,7 @@ export const useImportMembersMutation = () => {
 
 export const useExportMembersMutation = () => {
   return useMutation({
-    mutationFn: (filters?: any) => importExportService.exportMembers(filters),
+    mutationFn: (filters?: ExportMembersFilters) => importExportService.exportMembers(filters),
     onSuccess: (blob: Blob) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -58,7 +68,7 @@ export const useImportLicensesMutation = () => {
       toast.success(`Licencias: ${parts.length > 0 ? parts.join(', ') : '0 procesadas'}`);
       queryClient.invalidateQueries({ queryKey: ['licenses'] });
     },
-    onError: (error: any) => {
+    onError: (error: ImportErrorLike) => {
       toast.error('Error al importar licencias');
       if (error.response?.data?.errors) {
         error.response.data.errors.forEach((err: string) => {
@@ -71,7 +81,7 @@ export const useImportLicensesMutation = () => {
 
 export const useExportLicensesMutation = () => {
   return useMutation({
-    mutationFn: (filters?: any) => importExportService.exportLicenses(filters),
+    mutationFn: (filters?: ExportLicensesFilters) => importExportService.exportLicenses(filters),
     onSuccess: (blob: Blob) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -100,7 +110,7 @@ export const useImportInsurancesMutation = () => {
       toast.success(`Seguros: ${parts.length > 0 ? parts.join(', ') : '0 procesados'}`);
       queryClient.invalidateQueries({ queryKey: ['insurances'] });
     },
-    onError: (error: any) => {
+    onError: (error: ImportErrorLike) => {
       toast.error('Error al importar seguros');
       if (error.response?.data?.errors) {
         error.response.data.errors.forEach((err: string) => {
@@ -113,7 +123,7 @@ export const useImportInsurancesMutation = () => {
 
 export const useExportInsurancesMutation = () => {
   return useMutation({
-    mutationFn: (filters?: any) => importExportService.exportInsurances(filters),
+    mutationFn: (filters?: ExportInsurancesFilters) => importExportService.exportInsurances(filters),
     onSuccess: (blob: Blob) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -142,7 +152,7 @@ export const useImportPaymentsMutation = () => {
       toast.success(`Pagos: ${parts.length > 0 ? parts.join(', ') : '0 procesados'}`);
       queryClient.invalidateQueries({ queryKey: ['club-payments'] });
     },
-    onError: (error: any) => {
+    onError: (error: ImportErrorLike) => {
       toast.error('Error al importar pagos');
       if (error.response?.data?.errors) {
         error.response.data.errors.forEach((err: string) => {

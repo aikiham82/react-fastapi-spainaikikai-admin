@@ -267,6 +267,12 @@ function ImportCard({ title, description, entityLabel, isPending, onImport }: Im
   );
 }
 
+// Paging parameters drive the table, not the export/filter summary.
+const omitPaging = <T extends object>(filters: T): Record<string, unknown> =>
+  Object.fromEntries(
+    Object.entries(filters).filter(([key]) => key !== 'limit' && key !== 'offset')
+  );
+
 export const ImportExportPage = () => {
   const { isAssociationAdmin } = usePermissions();
   const isSuperAdmin = isAssociationAdmin();
@@ -302,7 +308,7 @@ export const ImportExportPage = () => {
   const [activeTab, setActiveTab] = useState('members');
 
   const handleImportMembers = async (data: Record<string, unknown>[]): Promise<ImportResults> => {
-    const result = await importMembersMutation.mutateAsync({ members: data as any, mode: 'upsert' });
+    const result = await importMembersMutation.mutateAsync({ members: data, mode: 'upsert' });
     return {
       success: result.success,
       imported: result.imported,
@@ -396,7 +402,7 @@ export const ImportExportPage = () => {
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Filtros actuales:</span>
                   {(() => {
-                    const { limit: _l, offset: _o, ...displayFilters } = memberFilters as any;
+                    const displayFilters = omitPaging(memberFilters);
                     const activeFilters = Object.entries(displayFilters).filter(([, v]) => v);
                     return activeFilters.length === 0 ? (
                       <span className="text-gray-500"> Ninguno</span>
@@ -421,7 +427,7 @@ export const ImportExportPage = () => {
 
               <Button
                 onClick={() => {
-                  const { limit: _l, offset: _o, ...exportFilters } = memberFilters as any;
+                  const exportFilters = omitPaging(memberFilters);
                   const columnsParam = memberColumns.length < MEMBER_COLUMNS.length
                     ? memberColumns.join(',')
                     : undefined;

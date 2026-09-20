@@ -28,7 +28,7 @@ export interface CreateClubRequest {
   website?: string;
 }
 
-export interface UpdateClubRequest extends Partial<CreateClubRequest> { }
+export type UpdateClubRequest = Partial<CreateClubRequest>
 
 export interface ClubFilters {
   search?: string;

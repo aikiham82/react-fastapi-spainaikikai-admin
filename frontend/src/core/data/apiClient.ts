@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type AxiosRequestConfig } from 'axios'
+import axios, { type AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { appStorage } from './appStorage'
 
 
@@ -23,14 +23,14 @@ const client = axios.create({
 
 // Add a request interceptor to dynamically set the token for each request
 client.interceptors.request.use(
-  (config:any) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = getToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
-  (error:any) => {
+  (error: unknown) => {
     return Promise.reject(error)
   }
 )
@@ -41,13 +41,15 @@ export interface ApiError {
   status?: number
   requestUrl?: string
   method?: string
-  params?: any
+  params?: unknown
   token?: string | null
-  body?: any
+  body?: unknown
 }
 
 interface ErrorResponse {
-  error: string
+  error?: string
+  // FastAPI raises HTTPException with a `detail` payload
+  detail?: string
 }
 
 export const apiClient = {
@@ -60,7 +62,7 @@ export const apiClient = {
     }
   },
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await client.post<T>(url, data, config)
       return response.data
@@ -69,7 +71,7 @@ export const apiClient = {
     }
   },
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await client.put<T>(url, data, config)
       return response.data
@@ -78,7 +80,7 @@ export const apiClient = {
     }
   },
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await client.patch<T>(url, data, config)
       return response.data
@@ -97,7 +99,7 @@ export const apiClient = {
   }
 }
 
-function handleError(error: any): ApiError {
+function handleError(error: AxiosError<ErrorResponse>): ApiError {
   const { message, response, request } = error
 
 

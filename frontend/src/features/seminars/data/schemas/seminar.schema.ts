@@ -37,7 +37,7 @@ export interface CreateSeminarRequest {
   association_id?: string;
 }
 
-export interface UpdateSeminarRequest extends Partial<CreateSeminarRequest> {}
+export type UpdateSeminarRequest = Partial<CreateSeminarRequest>
 
 export interface SeminarFilters {
   status?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
