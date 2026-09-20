@@ -15,7 +15,7 @@ class TestMemberExceptions:
     def test_member_not_found_error_str(self):
         """Test MemberNotFoundError string representation."""
         error = MemberNotFoundError("member-123")
-        assert "member with id member-123 not found" in str(error).lower()
+        assert "miembro con id member-123 no encontrado" in str(error).lower()
 
     def test_invalid_member_data_error_str(self):
         """Test InvalidMemberDataError string representation."""

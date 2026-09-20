@@ -22,7 +22,7 @@ class TestPaymentExceptions:
         assert error.entity_type == "Payment"
         assert error.entity_type == "Payment"
         assert "payment-123" in error_str
-        assert "not found" in error_str.lower()
+        assert "no encontrado" in error_str.lower()
 
     def test_payment_not_found_error_type(self):
         """Test PaymentNotFoundError entity type."""

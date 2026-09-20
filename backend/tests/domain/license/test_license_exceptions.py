@@ -21,7 +21,7 @@ class TestLicenseExceptions:
         assert error.entity_type == "License"
         assert error.entity_type == "License"
         assert error.entity_id == "LIC-123"
-        assert "not found" in str(error).lower()
+        assert "no encontrado" in str(error).lower()
         assert "LIC-123" in str(error)
 
     def test_invalid_license_data_error(self):

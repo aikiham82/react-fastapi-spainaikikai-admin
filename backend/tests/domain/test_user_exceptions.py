@@ -36,7 +36,7 @@ class TestUserNotFoundError:
         error = UserNotFoundError(user_id)
         
         # Assert
-        assert str(error) == f"User with ID {user_id} not found"
+        assert str(error) == f"User con ID {user_id} no encontrado"
         assert error.entity_type == "User"
         assert error.entity_id == user_id
 
@@ -49,7 +49,7 @@ class TestUserNotFoundError:
         error = UserNotFoundError(email_id)
         
         # Assert
-        assert str(error) == f"User with ID {email_id} not found"
+        assert str(error) == f"User con ID {email_id} no encontrado"
         assert error.entity_type == "User"
         assert error.entity_id == email_id
 
@@ -77,7 +77,7 @@ class TestUserNotFoundError:
             raise UserNotFoundError(user_id)
         
         assert exc_info.value.entity_id == user_id
-        assert "User with ID nonexistent_id not found" in str(exc_info.value)
+        assert "User con ID nonexistent_id no encontrado" in str(exc_info.value)
 
     def test_user_not_found_error_inheritance_chain(self):
         """Test the complete inheritance chain of UserNotFoundError."""
@@ -339,7 +339,7 @@ class TestUserExceptionsIntegration:
         ]
         
         # Assert
-        assert "User with ID test_id not found" in str(exceptions[0])
+        assert "User con ID test_id no encontrado" in str(exceptions[0])
         assert str(exceptions[1]) == test_message
         assert str(exceptions[2]) == test_message
         assert str(exceptions[3]) == test_message

@@ -18,7 +18,7 @@ class TestSeminarExceptions:
         assert error.entity_type == "Seminar"
         assert error.entity_type == "Seminar"
         assert error.entity_id == "seminar-123"
-        assert "not found" in str(error).lower()
+        assert "no encontrado" in str(error).lower()
 
     def test_invalid_seminar_dates_error(self):
         """Test InvalidSeminarDatesError."""

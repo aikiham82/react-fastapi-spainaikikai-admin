@@ -20,7 +20,7 @@ class TestInsuranceExceptions:
         error = InsuranceNotFoundError("insurance-123")
         assert error.entity_type == "Insurance"
         assert error.entity_type == "Insurance"
-        assert "not found" in str(error).lower()
+        assert "no encontrado" in str(error).lower()
         assert "insurance-123" in str(error)
 
     def test_invalid_insurance_data_error(self):
