@@ -210,6 +210,7 @@ def mock_mongo_collection(mock_database):
     # Setup cursor mock for find operations
     cursor_mock = MagicMock()
     cursor_mock.limit = MagicMock(return_value=cursor_mock)
+    cursor_mock.sort = MagicMock(return_value=cursor_mock)
     cursor_mock.to_list = AsyncMock(return_value=[])
     mock_collection.find = MagicMock(return_value=cursor_mock)
 
@@ -237,6 +238,7 @@ def mock_user_repository():
     mock_repo.find_by_email = AsyncMock(return_value=None)
     mock_repo.find_by_username = AsyncMock(return_value=None)
     mock_repo.find_by_member_id = AsyncMock(return_value=None)
+    mock_repo.find_by_username_loose = AsyncMock(return_value=[])
     mock_repo.create = AsyncMock()
     mock_repo.update = AsyncMock()
     mock_repo.delete = AsyncMock(return_value=True)

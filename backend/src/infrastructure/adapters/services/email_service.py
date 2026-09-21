@@ -190,6 +190,7 @@ PASSWORD_RESET_TEMPLATE = """
         <div class="content">
             <p>Hola <strong>{{ user_name }}</strong>,</p>
             <p>Hemos recibido una solicitud para restablecer la contrasena de tu cuenta.</p>
+            <p>Para entrar puedes usar tu correo <strong>{{ login_email }}</strong> o tu nombre de usuario <strong>{{ user_name }}</strong>.</p>
             <p>Haz clic en el siguiente boton para crear una nueva contrasena:</p>
             <p style="text-align: center;">
                 <a href="{{ reset_url }}" class="btn">Restablecer Contrasena</a>
@@ -441,14 +442,20 @@ class EmailService(EmailServicePort):
         html_body = self._render_template(
             PASSWORD_RESET_TEMPLATE,
             user_name=user_name,
-            reset_url=reset_url
+            reset_url=reset_url,
+            login_email=to_email
         )
 
         message = EmailMessage(
             to=[to_email],
             subject="Restablecer Contrasena - Spain Aikikai",
             body_html=html_body,
-            body_text=f"Hola {user_name},\n\nHaz clic en el siguiente enlace para restablecer tu contrasena:\n{reset_url}\n\nEste enlace expirara en 24 horas."
+            body_text=(
+                f"Hola {user_name},\n\n"
+                f"Para entrar puedes usar tu correo {to_email} o tu nombre de usuario {user_name}.\n\n"
+                f"Haz clic en el siguiente enlace para restablecer tu contrasena:\n{reset_url}\n\n"
+                "Este enlace expirara en 24 horas."
+            )
         )
 
         return await self.send_email(message)

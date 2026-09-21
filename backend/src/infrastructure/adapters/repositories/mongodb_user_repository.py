@@ -1,5 +1,7 @@
 """MongoDB User Repository Adapter."""
 
+import logging
+import re
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
@@ -8,11 +10,34 @@ from src.domain.entities.user import User, GlobalRole
 from src.application.ports.repositories import UserRepositoryPort
 from src.infrastructure.database import get_database
 
+logger = logging.getLogger(__name__)
+
 # Emails are matched regardless of case: they are typed by hand at login and
 # corrected by hand in the admin panel, and the collection has no unique index
 # to stop two accounts differing only in case. An index on users.email must be
 # created with this same collation or Mongo will not use it for these lookups.
 CASE_INSENSITIVE_COLLATION = {"locale": "en", "strength": 2}
+
+
+# One identifier resolving to a crowd would let planted look-alike accounts
+# turn a single login into unbounded password hashing.
+MAX_MATCHING_ACCOUNTS = 10
+
+
+def build_loose_username_pattern(username: str) -> str:
+    """Build the pattern that matches a user name as people actually type it.
+
+    User names came from a migration and carry the club's own capitals and,
+    in some rows, repeated spaces. Nobody reproduces those by hand, so the
+    pattern anchors the whole name and lets any run of whitespace stand in
+    for a single space.
+    """
+    words = [re.escape(word) for word in username.split()]
+
+    if not words:
+        raise ValueError("Username cannot be empty")
+
+    return f"^\\s*{'\\s+'.join(words)}\\s*$"
 
 
 class MongoDBUserRepository(UserRepositoryPort):
@@ -84,6 +109,20 @@ class MongoDBUserRepository(UserRepositoryPort):
             collation=CASE_INSENSITIVE_COLLATION
         )
         return self._to_domain(doc) if doc else None
+
+    async def find_by_username_loose(self, username: str) -> List[User]:
+        """Find every account whose user name matches, ignoring case and spacing."""
+        pattern = build_loose_username_pattern(username)
+
+        cursor = self.collection.find(
+            {"username": {"$regex": pattern, "$options": "i"}}
+        ).sort("_id", 1)
+        docs = await cursor.to_list(length=MAX_MATCHING_ACCOUNTS)
+
+        if len(docs) == MAX_MATCHING_ACCOUNTS:
+            logger.warning(f"User name '{username}' matches at least {MAX_MATCHING_ACCOUNTS} accounts")
+
+        return [self._to_domain(doc) for doc in docs]
 
     async def find_by_username(self, username: str) -> Optional[User]:
         """Find a user by username."""

@@ -34,3 +34,8 @@ export interface AuthResponse {
   access_token: string;
   token_type: string;
 }
+
+export interface UpdateOwnEmailRequest {
+  email: string;
+  current_password: string;
+}

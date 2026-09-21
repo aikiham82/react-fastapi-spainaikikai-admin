@@ -53,14 +53,14 @@ describe('LoginForm', () => {
       expect(form).toBeInTheDocument()
 
       // Email field
-      const emailField = screen.getByLabelText(/correo electrónico/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
       expect(emailField).toBeInTheDocument()
-      expect(emailField).toHaveAttribute('type', 'email')
+      expect(emailField).toHaveAttribute('type', 'text')
       expect(emailField).toHaveAttribute('required')
       expect(emailField).toHaveAttribute('placeholder', 'correo@ejemplo.com')
 
       // Password field
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const passwordField = screen.getByLabelText('Contraseña')
       expect(passwordField).toBeInTheDocument()
       expect(passwordField).toHaveAttribute('type', 'password')
       expect(passwordField).toHaveAttribute('required')
@@ -75,15 +75,15 @@ describe('LoginForm', () => {
     it('should render form labels correctly', () => {
       renderWithProviders(<LoginForm />)
 
-      expect(screen.getByText('Correo electrónico')).toBeInTheDocument()
+      expect(screen.getByText('Correo o nombre de usuario')).toBeInTheDocument()
       expect(screen.getByText('Contraseña')).toBeInTheDocument()
     })
 
     it('should have proper form accessibility attributes', () => {
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       // Check that labels are properly associated
       expect(emailField).toHaveAttribute('id', 'email')
@@ -99,7 +99,7 @@ describe('LoginForm', () => {
     it('should update email field when user types', async () => {
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
 
       await user.type(emailField, 'test@example.com')
 
@@ -109,7 +109,7 @@ describe('LoginForm', () => {
     it('should update password field when user types', async () => {
       renderWithProviders(<LoginForm />)
 
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       await user.type(passwordField, 'password123')
 
@@ -119,8 +119,8 @@ describe('LoginForm', () => {
     it('should clear fields after typing and clearing', async () => {
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       // Type values
       await user.type(emailField, 'test@example.com')
@@ -140,8 +140,8 @@ describe('LoginForm', () => {
     it('should maintain field focus states correctly', async () => {
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       // Focus email field
       await user.click(emailField)
@@ -162,8 +162,8 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
       const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
 
       // Fill form
@@ -191,8 +191,8 @@ describe('LoginForm', () => {
         writable: true
       })
 
-      await user.type(screen.getByLabelText(/correo electrónico/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+      await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'password123')
 
       // Trigger form submission
       form!.dispatchEvent(submitEvent)
@@ -204,8 +204,8 @@ describe('LoginForm', () => {
     it('should prevent form submission with empty required fields', async () => {
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
       const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
 
       // Ensure fields are empty and required
@@ -226,8 +226,8 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       // Fill form
       await user.type(emailField, testData.email)
@@ -268,8 +268,8 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
       screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })
 
       // Fields should remain accessible during loading
@@ -385,8 +385,8 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      await user.type(screen.getByLabelText(/correo electrónico/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+      await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'password123')
       await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
       // Form should still be functional
@@ -405,8 +405,8 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       // Fill form
       await user.type(emailField, 'test@example.com')
@@ -428,8 +428,8 @@ describe('LoginForm', () => {
       const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
 
       // Fill form
-      await user.type(screen.getByLabelText(/correo electrónico/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+      await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'password123')
 
       // Rapid clicks
       await user.click(submitButton)
@@ -448,8 +448,8 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       await user.type(emailField, specialData.email)
       await user.type(passwordField, specialData.password)
@@ -468,8 +468,8 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const emailField = screen.getByLabelText(/correo electrónico/i)
-      const passwordField = screen.getByLabelText(/contraseña/i)
+      const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
+      const passwordField = screen.getByLabelText('Contraseña')
 
       await user.type(emailField, longEmail)
       await user.type(passwordField, longPassword)
@@ -489,8 +489,8 @@ describe('LoginForm', () => {
       const { unmount } = renderWithProviders(<LoginForm />)
 
       // Start login process
-      await user.type(screen.getByLabelText(/correo electrónico/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+      await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'password123')
       await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
       // Unmount before login completes
@@ -580,8 +580,8 @@ describe('LoginForm', () => {
       expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument()
 
       // Form fields should be properly labeled
-      expect(screen.getByLabelText(/correo electrónico/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/correo o nombre de usuario/i)).toBeInTheDocument()
+      expect(screen.getByLabelText('Contraseña')).toBeInTheDocument()
     })
 
     it('should support keyboard navigation', async () => {
@@ -589,14 +589,14 @@ describe('LoginForm', () => {
 
       // Tab through form elements
       await user.tab()
-      expect(screen.getByLabelText(/correo electrónico/i)).toHaveFocus()
+      expect(screen.getByLabelText(/correo o nombre de usuario/i)).toHaveFocus()
 
       await user.tab()
-      expect(screen.getByLabelText(/contraseña/i)).toHaveFocus()
+      expect(screen.getByLabelText('Contraseña')).toHaveFocus()
 
       await user.tab()
       // After password field comes the password visibility toggle button
-      expect(screen.getByRole('button', { name: '' })).toHaveFocus() // Password toggle has no accessible name
+      expect(screen.getByRole('button', { name: 'Mostrar contraseña' })).toHaveFocus()
 
       await user.tab()
       // Then skip the "Forgot password?" link
@@ -607,8 +607,8 @@ describe('LoginForm', () => {
     it('should handle form submission via keyboard', async () => {
       renderWithProviders(<LoginForm />)
 
-      await user.type(screen.getByLabelText(/correo electrónico/i), 'test@example.com')
-      await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+      await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'password123')
 
       // Focus submit button and press Enter
       const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })

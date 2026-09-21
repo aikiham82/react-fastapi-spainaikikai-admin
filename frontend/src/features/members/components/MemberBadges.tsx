@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { Shield, ShieldCheck, ShieldX } from 'lucide-react';
+import { KeyRound, Shield, ShieldCheck, ShieldX } from 'lucide-react';
 import type { LicenseSummary, InsuranceSummary } from '../data/schemas/member.schema';
 import {
   formatGrade,
@@ -23,6 +23,21 @@ export function MemberStatusBadge({ status }: MemberStatusBadgeProps) {
   return (
     <Badge variant={getMemberStatusVariant(status)}>
       {label}
+    </Badge>
+  );
+}
+
+interface MemberAccessBadgeProps {
+  hasAccount: boolean;
+}
+
+export function MemberAccessBadge({ hasAccount }: MemberAccessBadgeProps) {
+  if (!hasAccount) return null;
+
+  return (
+    <Badge variant="outline" className="gap-1" title="Este socio tiene cuenta para entrar en la aplicación">
+      <KeyRound className="w-3 h-3" />
+      Acceso
     </Badge>
   );
 }

@@ -33,7 +33,11 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, MemberStatusBadge } from './MemberBadges';
+import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, MemberAccessBadge, MemberStatusBadge } from './MemberBadges';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useMembersWithAccountQuery } from '@/features/users/hooks/queries/useMembersWithAccountQuery';
+import { filterMembersWithAccess } from '../utils/member-access';
 import { cn } from '@/lib/utils';
 
 export const MemberList = () => {
@@ -43,6 +47,7 @@ export const MemberList = () => {
   const { clubs } = useClubContext();
   const isSuperAdmin = userRole === 'super_admin';
   const [searchTerm, setSearchTerm] = useState('');
+  const [onlyWithAccess, setOnlyWithAccess] = useState(false);
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
   const [memberStatusFilter, setMemberStatusFilter] = useState<string>('active');
@@ -72,8 +77,14 @@ export const MemberList = () => {
     setFilters({ ...filters, status: statusValue, offset: 0 });
   }, [memberStatusFilter]);
 
-  const sortedMembers = [...members].sort((a, b) =>
-    (a.first_name || '').localeCompare(b.first_name || '', 'es') || (a.last_name || '').localeCompare(b.last_name || '', 'es')
+  const { memberIdsWithAccount } = useMembersWithAccountQuery(isSuperAdmin);
+
+  const sortedMembers = filterMembersWithAccess(
+    [...members].sort((a, b) =>
+      (a.first_name || '').localeCompare(b.first_name || '', 'es') || (a.last_name || '').localeCompare(b.last_name || '', 'es')
+    ),
+    memberIdsWithAccount,
+    onlyWithAccess
   );
 
   const handleFilterStatus = (value: string) => {
@@ -185,6 +196,19 @@ export const MemberList = () => {
           />
         )}
 
+        {isSuperAdmin && (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="only-with-access"
+              checked={onlyWithAccess}
+              onCheckedChange={setOnlyWithAccess}
+            />
+            <Label htmlFor="only-with-access" className="cursor-pointer whitespace-nowrap">
+              Solo con acceso
+            </Label>
+          </div>
+        )}
+
         <div className="flex gap-2">
           {canAccess({ resource: 'members', action: 'create' }) && (
             <Button onClick={() => { setSelectedMemberForEdit(null); setIsFormOpen(true); }}>
@@ -211,7 +235,7 @@ export const MemberList = () => {
         </div>
       )}
 
-      {members.length === 0 && (
+      {sortedMembers.length === 0 && (
         <div className="text-center py-12">
           <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           {filters.club_id ? (
@@ -247,6 +271,7 @@ export const MemberList = () => {
               </div>
               <div className="flex items-center gap-1 flex-wrap">
                 <MemberStatusBadge status={member.status} />
+                {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
                 <LicenseStatusBadge licenseSummary={member.license_summary} />
               </div>
             </div>
@@ -347,6 +372,7 @@ export const MemberList = () => {
                         <p className="text-sm text-gray-600">{member.phone}</p>
                       </div>
                       <MemberStatusBadge status={member.status} />
+                      {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
                     </div>
                   </td>
                   <td className="p-4 text-gray-600">{member.email}</td>

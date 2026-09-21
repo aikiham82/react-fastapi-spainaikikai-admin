@@ -30,6 +30,14 @@ class UserRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_by_username_loose(self, username: str) -> List[User]:
+        """Find every user whose username matches, ignoring case and spacing.
+
+        User names are not unique, so this returns every match.
+        """
+        pass
+
+    @abstractmethod
     async def find_by_member_id(self, member_id: str) -> Optional[User]:
         """Find a user by linked member ID."""
         pass

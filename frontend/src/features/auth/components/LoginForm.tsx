@@ -43,20 +43,25 @@ export const LoginForm = () => {
           Bienvenido
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
-          Introduce tus credenciales para acceder
+          Entra con tu correo o tu nombre de usuario
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Correo electrónico
+              Correo o nombre de usuario
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="email"
-                type="email"
+                type="text"
+                name="username"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 placeholder="correo@ejemplo.com"
                 className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
@@ -75,6 +80,7 @@ export const LoginForm = () => {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 placeholder="Introduce tu contraseña"
                 className="pl-10 pr-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
@@ -83,6 +89,7 @@ export const LoginForm = () => {
               />
               <button
                 type="button"
+                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 h-6 w-6 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-gray-100"
               >

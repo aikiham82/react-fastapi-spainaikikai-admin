@@ -98,8 +98,10 @@ class CreateUserUseCase:
         if existing_user:
             raise UserAlreadyExistsError("User with this email already exists")
 
-        existing_user = await self.user_repository.find_by_username(username)
-        if existing_user:
+        # Checked the same way logins resolve it, or a name differing only in
+        # case or spacing would be accepted and then compete for every login
+        # and every reset aimed at the original account.
+        if await self.user_repository.find_by_username_loose(username):
             raise UserAlreadyExistsError("User with this username already exists")
 
         # Validate single super_admin constraint
@@ -155,16 +157,41 @@ class UpdateUserEmailUseCase:
         return await self.user_repository.update(user)
 
 
-class AuthenticateUserUseCase:
-    """Use case for authenticating a user."""
+class FindLoginAccountsUseCase:
+    """Use case for resolving what someone typed into login accounts.
+
+    People know the name their club signs in with far better than the address
+    the migration stored, so both are accepted. User names are not unique,
+    hence a list.
+    """
 
     def __init__(self, user_repository: UserRepositoryPort):
         self.user_repository = user_repository
 
-    async def execute(self, username: str) -> Optional[User]:
+    async def execute(self, identifier: str) -> List[User]:
         """Execute the use case."""
-        # Try to find by username first, then by email
-        user = await self.user_repository.find_by_username(username)
-        if not user:
-            user = await self.user_repository.find_by_email(username)
-        return user
+        identifier = identifier.strip()
+
+        if not identifier:
+            return []
+
+        if "@" in identifier:
+            user = await self.user_repository.find_by_email(identifier)
+            return [user] if user else []
+
+        return await self.user_repository.find_by_username_loose(identifier)
+
+
+class AuthenticateUserUseCase:
+    """Use case for authenticating a user.
+
+    Returns every account the identifier resolves to, because user names are
+    not unique and only the password tells the candidates apart.
+    """
+
+    def __init__(self, find_login_accounts_use_case: FindLoginAccountsUseCase):
+        self.find_login_accounts_use_case = find_login_accounts_use_case
+
+    async def execute(self, identifier: str) -> List[User]:
+        """Execute the use case."""
+        return await self.find_login_accounts_use_case.execute(identifier)

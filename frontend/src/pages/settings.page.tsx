@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { UpdateOwnEmailDialog } from '@/features/auth/components/UpdateOwnEmailDialog';
 
 const roleTranslations: Record<string, string> = {
   'super_admin': 'Administrador',
@@ -17,6 +18,7 @@ export const SettingsPage = () => {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const { currentUser, userRole } = useAuthContext();
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -34,7 +36,7 @@ export const SettingsPage = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700">Email</Label>
+                <Label className="text-sm font-medium text-gray-700">Correo de acceso</Label>
                 <p className="text-sm text-gray-900">{currentUser?.email ?? 'No disponible'}</p>
               </div>
               <div>
@@ -42,9 +44,17 @@ export const SettingsPage = () => {
                 <p className="text-sm text-gray-900">{userRole ? (roleTranslations[userRole] || userRole) : 'No disponible'}</p>
               </div>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsEditingEmail(true)}>
               Editar Perfil
             </Button>
+
+            {currentUser && (
+              <UpdateOwnEmailDialog
+                open={isEditingEmail}
+                onOpenChange={setIsEditingEmail}
+                currentEmail={currentUser.email}
+              />
+            )}
           </CardContent>
         </Card>
 

@@ -204,7 +204,7 @@ class TestLoginEndpoint:
         login_data = {"username": "testuser", "password": "password123"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -237,7 +237,7 @@ class TestLoginEndpoint:
         login_data = {"username": "nonexistent", "password": "password123"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = None  # User not found
+        mock_use_case.execute.return_value = []  # No account matches
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -262,7 +262,7 @@ class TestLoginEndpoint:
         login_data = {"username": "testuser", "password": "wrongpassword"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -280,10 +280,10 @@ class TestLoginEndpoint:
         data = response.json()
         assert "Incorrect username or password" in data["detail"]
 
-    def test_login_with_inactive_user_returns_400(
+    def test_login_with_inactive_user_returns_401(
         self, test_app, user_entity_with_id
     ):
-        """Test login with inactive user returns 400 Bad Request."""
+        """Test login with an inactive user returns the same 401 as a wrong password."""
         # Arrange - Mock dependencies using FastAPI's dependency override
         from src.infrastructure.web.dependencies import get_authenticate_user_use_case
         
@@ -292,7 +292,7 @@ class TestLoginEndpoint:
         user_entity_with_id.is_active = False  # Inactive user
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -306,9 +306,9 @@ class TestLoginEndpoint:
             response = client.post("/api/v1/auth/login", data=login_data)
         
         # Assert
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         data = response.json()
-        assert "Inactive user" in data["detail"]
+        assert "Incorrect username or password" in data["detail"]
 
     def test_login_with_email_as_username_succeeds(
         self, test_app, user_entity_with_id
@@ -320,7 +320,7 @@ class TestLoginEndpoint:
         login_data = {"username": "test@example.com", "password": "password123"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -700,7 +700,7 @@ class TestRouterIntegration:
         
         # Setup basic mocking to avoid 500 errors
         mock_create_use_case.execute.return_value = user_entity_with_id
-        mock_auth_use_case.execute.return_value = user_entity_with_id
+        mock_auth_use_case.execute.return_value = [user_entity_with_id]
         mock_get_all_use_case.execute.return_value = [user_entity_with_id]
         mock_get_by_id_use_case.execute.return_value = user_entity_with_id
         

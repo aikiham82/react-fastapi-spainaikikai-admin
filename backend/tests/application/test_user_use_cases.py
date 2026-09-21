@@ -12,6 +12,7 @@ from src.application.use_cases.user_use_cases import (
     GetUserByIdUseCase,
     GetUserByEmailUseCase,
     GetUserByMemberIdUseCase,
+    FindLoginAccountsUseCase,
     CreateUserUseCase,
     AuthenticateUserUseCase
 )
@@ -225,7 +226,7 @@ class TestCreateUserUseCase:
         
         # Mock repository to return None for uniqueness checks
         mock_user_repository.find_by_email.return_value = None
-        mock_user_repository.find_by_username.return_value = None
+        mock_user_repository.find_by_username_loose.return_value = []
         mock_user_repository.create.return_value = user_entity_with_id
         
         use_case = CreateUserUseCase(mock_user_repository)
@@ -236,7 +237,7 @@ class TestCreateUserUseCase:
         # Assert
         assert result == user_entity_with_id
         mock_user_repository.find_by_email.assert_called_once_with(email)
-        mock_user_repository.find_by_username.assert_called_once_with(username)
+        mock_user_repository.find_by_username_loose.assert_called_once_with(username)
         mock_user_repository.create.assert_called_once()
         
         # Verify the User entity passed to create
@@ -261,7 +262,7 @@ class TestCreateUserUseCase:
         assert "User email cannot be empty" in str(exc_info.value)
         # Repository methods should not be called if validation fails
         mock_user_repository.find_by_email.assert_not_called()
-        mock_user_repository.find_by_username.assert_not_called()
+        mock_user_repository.find_by_username_loose.assert_not_called()
         mock_user_repository.create.assert_not_called()
 
     async def test_execute_raises_user_already_exists_error_when_email_exists(self, mock_user_repository, user_entity_with_id):
@@ -282,7 +283,7 @@ class TestCreateUserUseCase:
         
         assert "User with this email already exists" in str(exc_info.value)
         mock_user_repository.find_by_email.assert_called_once_with(email)
-        mock_user_repository.find_by_username.assert_not_called()
+        mock_user_repository.find_by_username_loose.assert_not_called()
         mock_user_repository.create.assert_not_called()
 
     async def test_execute_raises_user_already_exists_error_when_username_exists(self, mock_user_repository, user_entity_with_id):
@@ -294,7 +295,7 @@ class TestCreateUserUseCase:
         
         # Mock repository to return None for email but existing user for username
         mock_user_repository.find_by_email.return_value = None
-        mock_user_repository.find_by_username.return_value = user_entity_with_id
+        mock_user_repository.find_by_username_loose.return_value = [user_entity_with_id]
         
         use_case = CreateUserUseCase(mock_user_repository)
         
@@ -304,7 +305,7 @@ class TestCreateUserUseCase:
         
         assert "User with this username already exists" in str(exc_info.value)
         mock_user_repository.find_by_email.assert_called_once_with(email)
-        mock_user_repository.find_by_username.assert_called_once_with(username)
+        mock_user_repository.find_by_username_loose.assert_called_once_with(username)
         mock_user_repository.create.assert_not_called()
 
     @pytest.mark.parametrize("invalid_email", ["", "   ", "invalid.email"])
@@ -377,129 +378,62 @@ class TestCreateUserUseCase:
 class TestAuthenticateUserUseCase:
     """Test suite for AuthenticateUserUseCase."""
 
-    async def test_execute_returns_user_when_found_by_username(self, mock_user_repository, user_entity_with_id):
-        """Test that execute returns user when found by username."""
-        # Arrange
-        username = "testuser"
-        mock_user_repository.find_by_username.return_value = user_entity_with_id
-        use_case = AuthenticateUserUseCase(mock_user_repository)
-        
-        # Act
-        result = await use_case.execute(username)
-        
-        # Assert
-        assert result == user_entity_with_id
-        mock_user_repository.find_by_username.assert_called_once_with(username)
-        mock_user_repository.find_by_email.assert_not_called()
-
-    async def test_execute_falls_back_to_email_when_username_not_found(self, mock_user_repository, user_entity_with_id):
-        """Test that execute falls back to email lookup when username not found."""
-        # Arrange
-        username_or_email = "test@example.com"
-        mock_user_repository.find_by_username.return_value = None
-        mock_user_repository.find_by_email.return_value = user_entity_with_id
-        use_case = AuthenticateUserUseCase(mock_user_repository)
-        
-        # Act
-        result = await use_case.execute(username_or_email)
-        
-        # Assert
-        assert result == user_entity_with_id
-        mock_user_repository.find_by_username.assert_called_once_with(username_or_email)
-        mock_user_repository.find_by_email.assert_called_once_with(username_or_email)
-
-    async def test_execute_returns_none_when_user_not_found_by_username_or_email(self, mock_user_repository):
-        """Test that execute returns None when user not found by username or email."""
-        # Arrange
-        username_or_email = "nonexistent"
-        mock_user_repository.find_by_username.return_value = None
-        mock_user_repository.find_by_email.return_value = None
-        use_case = AuthenticateUserUseCase(mock_user_repository)
-        
-        # Act
-        result = await use_case.execute(username_or_email)
-        
-        # Assert
-        assert result is None
-        mock_user_repository.find_by_username.assert_called_once_with(username_or_email)
-        mock_user_repository.find_by_email.assert_called_once_with(username_or_email)
-
-    async def test_execute_handles_email_as_username_parameter(self, mock_user_repository, user_entity_with_id):
-        """Test that execute correctly handles email passed as username parameter."""
-        # Arrange
-        email = "test@example.com"
-        # Username lookup fails, email lookup succeeds
-        mock_user_repository.find_by_username.return_value = None
-        mock_user_repository.find_by_email.return_value = user_entity_with_id
-        use_case = AuthenticateUserUseCase(mock_user_repository)
-        
-        # Act
-        result = await use_case.execute(email)
-        
-        # Assert
-        assert result == user_entity_with_id
-        mock_user_repository.find_by_username.assert_called_once_with(email)
-        mock_user_repository.find_by_email.assert_called_once_with(email)
-
-    async def test_execute_propagates_repository_exceptions_from_username_lookup(self, mock_user_repository):
-        """Test that execute propagates repository exceptions from username lookup."""
-        # Arrange
-        username = "testuser"
-        repository_error = Exception("Database connection failed")
-        mock_user_repository.find_by_username.side_effect = repository_error
-        use_case = AuthenticateUserUseCase(mock_user_repository)
-        
-        # Act & Assert
-        with pytest.raises(Exception) as exc_info:
-            await use_case.execute(username)
-        
-        assert str(exc_info.value) == "Database connection failed"
-
-    async def test_execute_propagates_repository_exceptions_from_email_lookup(self, mock_user_repository):
-        """Test that execute propagates repository exceptions from email lookup."""
-        # Arrange
-        username = "testuser"
-        mock_user_repository.find_by_username.return_value = None
-        
-        repository_error = Exception("Database connection failed")
-        mock_user_repository.find_by_email.side_effect = repository_error
-        use_case = AuthenticateUserUseCase(mock_user_repository)
-        
-        # Act & Assert
-        with pytest.raises(Exception) as exc_info:
-            await use_case.execute(username)
-        
-        assert str(exc_info.value) == "Database connection failed"
-
-    @pytest.mark.parametrize("identifier,expected_username_call,expected_email_call", [
-        ("plainusername", True, True),  # Both lookups when username fails
-        ("test@example.com", True, True),  # Email format still tries username first
-        ("user123", True, True),  # Username format still tries both
-    ])
-    async def test_execute_lookup_strategy_with_various_identifiers(
-        self, identifier, expected_username_call, expected_email_call, mock_user_repository
+    async def test_execute_returns_every_account_the_identifier_resolves_to(
+        self, mock_user_repository, user_entity_with_id
     ):
-        """Test the lookup strategy with various identifier formats."""
+        """Test that the caller receives all candidates, not one arbitrary account.
+
+        A user name can belong to more than one account, and only the password
+        tells them apart, so the decision belongs to the web layer.
+        """
         # Arrange
-        mock_user_repository.find_by_username.return_value = None
-        mock_user_repository.find_by_email.return_value = None
-        use_case = AuthenticateUserUseCase(mock_user_repository)
-        
+        find_login_accounts = FindLoginAccountsUseCase(mock_user_repository)
+        mock_user_repository.find_by_username_loose.return_value = [user_entity_with_id]
+        use_case = AuthenticateUserUseCase(find_login_accounts)
+
         # Act
-        result = await use_case.execute(identifier)
-        
+        result = await use_case.execute("testuser")
+
         # Assert
-        assert result is None
-        
-        if expected_username_call:
-            mock_user_repository.find_by_username.assert_called_once_with(identifier)
-        else:
-            mock_user_repository.find_by_username.assert_not_called()
-            
-        if expected_email_call:
-            mock_user_repository.find_by_email.assert_called_once_with(identifier)
-        else:
-            mock_user_repository.find_by_email.assert_not_called()
+        assert result == [user_entity_with_id]
+
+    async def test_execute_resolves_an_email(self, mock_user_repository, user_entity_with_id):
+        """Test that an address still signs in."""
+        # Arrange
+        find_login_accounts = FindLoginAccountsUseCase(mock_user_repository)
+        mock_user_repository.find_by_email.return_value = user_entity_with_id
+        use_case = AuthenticateUserUseCase(find_login_accounts)
+
+        # Act
+        result = await use_case.execute("test@example.com")
+
+        # Assert
+        assert result == [user_entity_with_id]
+
+    async def test_execute_returns_empty_list_when_nothing_matches(self, mock_user_repository):
+        """Test that an unknown identifier yields no candidates."""
+        # Arrange
+        find_login_accounts = FindLoginAccountsUseCase(mock_user_repository)
+        use_case = AuthenticateUserUseCase(find_login_accounts)
+
+        # Act
+        result = await use_case.execute("nonexistent")
+
+        # Assert
+        assert result == []
+
+    async def test_execute_propagates_repository_exceptions(self, mock_user_repository):
+        """Test that a broken database is not silently read as a bad password."""
+        # Arrange
+        mock_user_repository.find_by_username_loose.side_effect = Exception("Database connection failed")
+        use_case = AuthenticateUserUseCase(FindLoginAccountsUseCase(mock_user_repository))
+
+        # Act & Assert
+        with pytest.raises(Exception) as exc_info:
+            await use_case.execute("testuser")
+
+        assert str(exc_info.value) == "Database connection failed"
+
 
 
 @pytest.mark.service
@@ -515,14 +449,14 @@ class TestUserUseCasesIntegration:
         get_by_id = GetUserByIdUseCase(mock_user_repository)
         get_by_email = GetUserByEmailUseCase(mock_user_repository)
         create_user = CreateUserUseCase(mock_user_repository)
-        authenticate = AuthenticateUserUseCase(mock_user_repository)
+        find_login_accounts = FindLoginAccountsUseCase(mock_user_repository)
         
         # Assert
         assert get_all.user_repository is mock_user_repository
         assert get_by_id.user_repository is mock_user_repository
         assert get_by_email.user_repository is mock_user_repository
         assert create_user.user_repository is mock_user_repository
-        assert authenticate.user_repository is mock_user_repository
+        assert find_login_accounts.user_repository is mock_user_repository
 
     async def test_create_and_get_user_workflow(self, mock_user_repository, user_entity_with_id):
         """Test a typical create then get user workflow."""
