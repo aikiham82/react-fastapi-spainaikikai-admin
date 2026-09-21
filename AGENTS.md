@@ -61,7 +61,8 @@ docs/
 │   ├── payment-cycles.md
 │   └── roles-and-permissions.md
 ├── git/
-│   └── commit-messages.md
+│   ├── commit-messages.md
+│   └── integrating-a-finished-branch.md
 ├── history/            (archived, not current — see its README)
 ├── plans/
 │   └── how-to-create-a-plan.md
