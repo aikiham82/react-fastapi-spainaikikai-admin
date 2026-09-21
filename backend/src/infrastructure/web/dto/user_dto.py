@@ -40,6 +40,12 @@ class UpdateUserEmailDTO(BaseModel):
     email: EmailStr
 
 
+class UpdateOwnEmailDTO(BaseModel):
+    """DTO for a user correcting the email they sign in with."""
+    email: EmailStr
+    current_password: str = Field(..., min_length=1)
+
+
 class UserResponse(UserBase):
     """DTO for user response."""
     id: Optional[str] = None

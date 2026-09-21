@@ -16,6 +16,7 @@ from src.infrastructure.web.dto.user_dto import (
     UserResponse,
     UserMeResponse,
     UpdateUserEmailDTO,
+    UpdateOwnEmailDTO,
     Token,
 )
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
@@ -180,6 +181,44 @@ async def get_user_by_member(
         )
 
     return UserMapper.to_response(user)
+
+
+@router.patch(
+    "/users/me/email",
+    response_model=Token,
+    summary="Correct your own login email",
+    description="Change the email you sign in with, confirming your current password."
+)
+async def update_own_email(
+    request: UpdateOwnEmailDTO,
+    use_case: UpdateUserEmailUseCase = Depends(get_update_user_email_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Correct the email the caller signs in with.
+
+    Answers with a fresh token: the JWT subject is the email, so the session
+    would otherwise die the moment the address changes.
+    """
+    if not verify_password(request.current_password, ctx.user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contrasena actual no es correcta"
+        )
+
+    try:
+        user = await use_case.execute(ctx.user.id, request.email)
+    except EmailAlreadyInUseError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ese correo ya pertenece a otra cuenta"
+        )
+
+    access_token = create_access_token(
+        data={"sub": user.email, "user_id": user.id},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+
+    return Token(access_token=access_token)
 
 
 @router.patch(

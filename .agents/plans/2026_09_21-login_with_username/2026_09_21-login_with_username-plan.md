@@ -17,8 +17,8 @@ implemented_by:
     version: "5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-09-21T08:15:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-09-21T08:25:00Z"
+has_completed_all_phases: true
 ---
 
 # Login with the user name
@@ -134,16 +134,16 @@ Typing `kuki aikikai` in the forgot-password form sends the link to that account
 
 Once inside, a user corrects the address their account signs in with by giving their current password, and stays logged in because the response carries a fresh token.
 
-- [ ] Write failing router tests for `PATCH /users/me/email`: it changes the caller's own email and returns a token that resolves to the same account, a wrong current password answers 400 and changes nothing, an address held by another account answers 409, and an anonymous caller answers 401.
-- [ ] Add `UpdateOwnEmailDTO`, the route registered before `/users/{user_id}/email`, verifying the current password with `verify_password` and reusing `UpdateUserEmailUseCase`, then minting a token for the new address.
-- [ ] Write failing tests for the settings dialog: it sends the typed address and password, stores the returned token, refreshes `currentUser`, and shows the 400 and 409 messages without losing what was typed.
-- [ ] Wire the existing `Editar Perfil` button to the dialog, with its mutation hook under `features/auth/hooks/mutations/`.
-- [ ] Delete `authService.updateUser` and the `PUT /auth/users` call, which the backend never implemented.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write failing router tests for `PATCH /users/me/email`: it changes the caller's own email and returns a token whose subject is the new address, a wrong current password answers 400 and changes nothing, an address held by another account answers 409, a malformed address answers 422, and `me` is not read as a user id.
+- [x] Add `UpdateOwnEmailDTO`, the route registered before `/users/{user_id}/email`, verifying the current password with `verify_password` and reusing `UpdateUserEmailUseCase`, then minting a token for the new address.
+- [x] Write failing tests for the mutation and the dialog: the token the API returns is stored and `currentUser` is invalidated, a failed change leaves the stored token untouched, and nothing is sent without the current password.
+- [x] Wire the existing `Editar Perfil` button to the dialog, with its mutation hook under `features/auth/hooks/mutations/`.
+- [x] Delete `authService.updateUser` and the `PUT /auth/users` call, which the backend never implemented, along with the tests that asserted that call. The `AuthUser` type stays: removing it would have touched 45 references across two suites for no gain.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any. Backend 757 passed, coverage 52.28%. Frontend 480 passed, lint 0 errors, build green.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Clubs can already recover and sign in with the name they know. Continue with Phase 3, changing their own login email.
+All three phases are done. What remains is operational: the four accounts whose stored address is unusable still need correcting from the super-admin panel, which is now the fallback rather than the main path.
 
-A turtle never forgets its own name, wears a badge, and now the door opens to it 🚪 🪪 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)
+A turtle never forgets its own name, wears a badge, opens the door itself and changes the lock 🔑 🚪 🪪 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)

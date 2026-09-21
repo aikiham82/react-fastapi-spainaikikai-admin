@@ -5,7 +5,6 @@ import {
   createMockAuthRequest,
   createMockRegisterRequest,
   createMockAuthResponse,
-  createMockAuthUser,
   createMockCurrentUser,
   createMockAxiosError,
   mockApiCall,
@@ -295,72 +294,6 @@ describe('authService', () => {
     })
   })
 
-  describe('updateUser', () => {
-    const mockUserData = createMockAuthUser()
-    const mockUpdatedUser = createMockAuthUser({ email: 'updated@example.com' })
-
-    it('should successfully update user data', async () => {
-      // Arrange
-      mockApiClient.put.mockResolvedValue(mockUpdatedUser)
-
-      // Act
-      const result = await authService.updateUser(mockUserData)
-
-      // Assert
-      expect(result).toEqual(mockUpdatedUser)
-      expect(mockApiClient.put).toHaveBeenCalledWith('/api/v1/auth/users', mockUserData)
-    })
-
-    it('should handle validation errors during update', async () => {
-      // Arrange
-      const mockError = createMockAxiosError('Invalid email format', 400)
-      mockApiClient.put.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.updateUser(mockUserData)).rejects.toThrow()
-    })
-
-    it('should handle unauthorized update attempts', async () => {
-      // Arrange
-      const mockError = createMockAxiosError('Unauthorized', 401)
-      mockApiClient.put.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.updateUser(mockUserData)).rejects.toThrow()
-    })
-
-    it('should handle user not found errors', async () => {
-      // Arrange
-      const mockError = createMockAxiosError('User not found', 404)
-      mockApiClient.put.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.updateUser(mockUserData)).rejects.toThrow()
-    })
-
-    it('should handle server errors during update', async () => {
-      // Arrange
-      const mockError = createMockAxiosError('Internal Server Error', 500)
-      mockApiClient.put.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.updateUser(mockUserData)).rejects.toThrow()
-    })
-
-    it('should update user with partial data', async () => {
-      // Arrange
-      const partialUserData = createMockAuthUser({ email: undefined })
-      mockApiClient.put.mockResolvedValue(mockUpdatedUser)
-
-      // Act
-      const result = await authService.updateUser(partialUserData)
-
-      // Assert
-      expect(result).toEqual(mockUpdatedUser)
-      expect(mockApiClient.put).toHaveBeenCalledWith('/api/v1/auth/users', partialUserData)
-    })
-  })
-
   describe('getCurrentUser', () => {
     const mockCurrentUser = createMockCurrentUser()
 
@@ -633,7 +566,7 @@ describe('authService', () => {
       expect(typeof authService.login).toBe('function')
       expect(typeof authService.register).toBe('function')
       expect(typeof authService.logout).toBe('function')
-      expect(typeof authService.updateUser).toBe('function')
+      expect(typeof authService.updateOwnEmail).toBe('function')
       expect(typeof authService.getCurrentUser).toBe('function')
     })
 
@@ -641,12 +574,12 @@ describe('authService', () => {
       // All methods should return promises
       mockApiClient.post.mockResolvedValue(createMockAuthResponse())
       mockApiClient.get.mockResolvedValue(createMockCurrentUser())
-      mockApiClient.put.mockResolvedValue(createMockAuthUser())
+      mockApiClient.patch.mockResolvedValue(createMockAuthResponse())
 
       const loginResult = authService.login(createMockAuthRequest())
       const registerResult = authService.register(createMockRegisterRequest())
       const logoutResult = authService.logout()
-      const updateResult = authService.updateUser(createMockAuthUser())
+      const updateResult = authService.updateOwnEmail({ email: 'new@example.com', current_password: 'right' })
       const getCurrentResult = authService.getCurrentUser()
 
       expect(loginResult).toBeInstanceOf(Promise)
