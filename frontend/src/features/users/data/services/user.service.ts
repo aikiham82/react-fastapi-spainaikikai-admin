@@ -8,6 +8,11 @@ import {
 
 const BASE_URL = '/api/v1/users';
 
+export const getUserAccounts = async (): Promise<UserAccount[]> => {
+  const response = await apiClient.get<unknown>(BASE_URL);
+  return userAccountSchema.array().parse(response);
+};
+
 export const getUserByMember = async (memberId: string): Promise<UserAccount> => {
   const response = await apiClient.get<unknown>(`${BASE_URL}/by-member/${memberId}`);
   return userAccountSchema.parse(response);
@@ -24,6 +29,7 @@ export const updateUserEmail = async (userId: string, email: string): Promise<Us
 };
 
 export const userService = {
+  getUserAccounts,
   getUserByMember,
   generatePasswordResetLink,
   updateUserEmail,

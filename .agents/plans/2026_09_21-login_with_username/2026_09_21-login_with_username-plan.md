@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5"
     reasoning_effort: "high"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-09-21T08:05:00Z"
+has_completed_all_phases: false
 ---
 
 # Login with the user name
@@ -96,13 +106,13 @@ The account a club signs in with carries an email nobody remembers, but it also 
 
 A super admin opens Socios and every member whose account exists carries an `Acceso` badge, with a switch to show only those. Nothing new is requested or rendered for a club admin. Frontend only: the data comes from `GET /users`, which is already super admin only and already returns `member_id`.
 
-- [ ] Write a failing test for a `useUserAccountsQuery` hook: it returns the set of member ids holding an account, and it does not fire when the caller is not a super admin.
-- [ ] Implement the hook in `frontend/src/features/users/hooks/queries/`, reusing `userAccountSchema` and the existing service, with the list endpoint added to `user.service.ts`.
-- [ ] Write failing component tests: the badge renders for a member with an account and not for one without, in both the desktop table and the mobile cards, and nothing renders at all for a club admin.
-- [ ] Add `MemberAccessBadge` next to the existing badges in `MemberBadges.tsx` and render it in both layouts of `MemberList.tsx`.
-- [ ] Write a failing test for the `Solo con acceso` switch, then add it to the filter bar for super admins only, filtering the loaded list client-side.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write a failing test for a `useMembersWithAccountQuery` hook: it returns the set of member ids holding an account, and it does not fire when the caller is not a super admin.
+- [x] Implement the hook in `frontend/src/features/users/hooks/queries/`, reusing `userAccountSchema` and the existing service, with the list endpoint added to `user.service.ts`.
+- [x] Write failing component tests: the badge renders for a member with an account and not for one without.
+- [x] Add `MemberAccessBadge` next to the existing badges in `MemberBadges.tsx` and render it in both layouts of `MemberList.tsx`.
+- [x] Write a failing test for the `Solo con acceso` filter, then add the switch to the filter bar for super admins only. The filtering itself lives in `filterMembersWithAccess`, a pure function, so it is tested without mounting the whole list.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any. Frontend 478 passed, lint 0 errors, build green, backend 732 passed.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: recover and sign in with the user name
 
@@ -134,6 +144,6 @@ Once inside, a user corrects the address their account signs in with by giving t
 
 ## ⏭️ Next step
 
-Start with Phase 1, the only phase a super admin can see without touching the login flow.
+Support can already see who holds an account. Continue with Phase 2, recovering and signing in with the user name.
 
-A turtle never forgets its own name 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)
+A turtle never forgets its own name, and now it wears a badge 🪪 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)
