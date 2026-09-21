@@ -35,6 +35,8 @@ These are project rules, not preferences. Breaking one is a defect even if the t
 - **Annual licence/cuota and insurance are two separate payment cycles.** The annual licence/cuota cycle is gated by the Excel column *"Fecha de envío"*: no date, not paid. Seguro de accidentes and RC form their own cycle and are **not** gated by that column. Treating them as one cycle marks every member as paid. → [`docs/domain/payment-cycles.md`](docs/domain/payment-cycles.md)
 - **The database is `spainaikikai`**, not `aikikai_admin`. → [`docs/domain/data-model.md`](docs/domain/data-model.md)
 - **No secrets in the repository.** Configuration comes from environment variables; `backend/.env*` is ignored except for `.env.example`. → [`docs/security/security-guidelines.md`](docs/security/security-guidelines.md)
+- **A public auth endpoint answers the same whatever happened, and does bounded work.** The password reset returns one body for a real account, an unknown one, an inactive one and a failed delivery; wrong password, unknown account and disabled account all answer `401`; and no request may cause an unbounded number of password hashes. → [`docs/security/auth-endpoints.md`](docs/security/auth-endpoints.md)
+- **No production data in the repository.** Fixtures, plans and API examples use invented people and `example.com`, never a member's real name or address. → [`docs/testing/no-production-data.md`](docs/testing/no-production-data.md)
 - **Roles are two-level**: `User.global_role` (`super_admin` | `user`) plus `Member.club_role` (`admin` | `member`). The effective role is derived on the frontend; `/users/me` is enriched with `club_role` and `club_id`. Never gate on one level alone. → [`docs/domain/roles-and-permissions.md`](docs/domain/roles-and-permissions.md)
 
 # Documentation
@@ -54,6 +56,7 @@ docs/
 │   └── frontend.md
 ├── dev-tooling/
 │   ├── development-commands.md
+│   ├── github-account.md
 │   └── skills.md
 ├── documentation-guidelines.md
 ├── domain/
@@ -67,8 +70,10 @@ docs/
 ├── plans/
 │   └── how-to-create-a-plan.md
 ├── security/
+│   ├── auth-endpoints.md
 │   └── security-guidelines.md
 ├── testing/
+│   ├── no-production-data.md
 │   └── testing-strategy.md
 └── workflow/
     ├── feature-workflow.md
