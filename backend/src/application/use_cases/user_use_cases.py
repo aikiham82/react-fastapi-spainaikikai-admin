@@ -98,8 +98,10 @@ class CreateUserUseCase:
         if existing_user:
             raise UserAlreadyExistsError("User with this email already exists")
 
-        existing_user = await self.user_repository.find_by_username(username)
-        if existing_user:
+        # Checked the same way logins resolve it, or a name differing only in
+        # case or spacing would be accepted and then compete for every login
+        # and every reset aimed at the original account.
+        if await self.user_repository.find_by_username_loose(username):
             raise UserAlreadyExistsError("User with this username already exists")
 
         # Validate single super_admin constraint

@@ -16,6 +16,11 @@ from src.infrastructure.database import get_database
 CASE_INSENSITIVE_COLLATION = {"locale": "en", "strength": 2}
 
 
+# One identifier resolving to a crowd would let planted look-alike accounts
+# turn a single login into unbounded password hashing.
+MAX_MATCHING_ACCOUNTS = 10
+
+
 def build_loose_username_pattern(username: str) -> str:
     """Build the pattern that matches a user name as people actually type it.
 
@@ -25,6 +30,9 @@ def build_loose_username_pattern(username: str) -> str:
     for a single space.
     """
     words = [re.escape(word) for word in username.split()]
+
+    if not words:
+        raise ValueError("Username cannot be empty")
 
     return f"^\\s*{'\\s+'.join(words)}\\s*$"
 
@@ -106,7 +114,7 @@ class MongoDBUserRepository(UserRepositoryPort):
         cursor = self.collection.find(
             {"username": {"$regex": pattern, "$options": "i"}}
         )
-        docs = await cursor.to_list(length=None)
+        docs = await cursor.to_list(length=MAX_MATCHING_ACCOUNTS)
 
         return [self._to_domain(doc) for doc in docs]
 

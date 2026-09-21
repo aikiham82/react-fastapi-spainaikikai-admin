@@ -66,12 +66,11 @@ class RequestPasswordResetUseCase:
 
             sent = await self._send_link_to(account)
             if not sent:
-                return RequestPasswordResetResult(
-                    success=False,
-                    message="No se pudo enviar el correo. Intentalo mas tarde."
-                )
+                # Reporting the failure would tell the caller the account
+                # exists, and would deny the remaining accounts their link.
+                logger.error(f"Could not deliver a password reset link for user {account.id}")
 
-        # Unknown identifier or inactive account → generic success (anti-enumeration)
+        # Whatever happened, the answer is the same (anti-enumeration)
         return RequestPasswordResetResult()
 
     async def _send_link_to(self, account: User) -> bool:

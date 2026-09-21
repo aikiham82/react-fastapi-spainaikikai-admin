@@ -235,7 +235,7 @@ export const MemberList = () => {
         </div>
       )}
 
-      {members.length === 0 && (
+      {sortedMembers.length === 0 && (
         <div className="text-center py-12">
           <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           {filters.club_id ? (
@@ -271,7 +271,7 @@ export const MemberList = () => {
               </div>
               <div className="flex items-center gap-1 flex-wrap">
                 <MemberStatusBadge status={member.status} />
-                <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />
+                {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
                 <LicenseStatusBadge licenseSummary={member.license_summary} />
               </div>
             </div>
@@ -372,7 +372,7 @@ export const MemberList = () => {
                         <p className="text-sm text-gray-600">{member.phone}</p>
                       </div>
                       <MemberStatusBadge status={member.status} />
-                      <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />
+                      {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
                     </div>
                   </td>
                   <td className="p-4 text-gray-600">{member.email}</td>

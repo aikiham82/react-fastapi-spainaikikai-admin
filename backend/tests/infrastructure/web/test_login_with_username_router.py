@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from src.domain.entities.user import User
 from src.infrastructure.web.dependencies import get_authenticate_user_use_case
-from src.infrastructure.web.routers.users import router
+from src.infrastructure.web.routers.users import router, MAX_LOGIN_CANDIDATES
 
 
 @pytest.fixture
@@ -22,8 +22,8 @@ def test_app():
 def two_accounts_sharing_a_name():
     """The real production case: one person, two accounts, one user name."""
     return [
-        User(id="a", email="alerivrod@gmail.com", username="ALEJANDRO RIVERO RODRIGUEZ", hashed_password="hash-a"),
-        User(id="b", email="info@heijoshin.com", username="ALEJANDRO RIVERO RODRIGUEZ", hashed_password="hash-b"),
+        User(id="a", email="personal@example.com", username="NOMBRE REPETIDO", hashed_password="hash-a"),
+        User(id="b", email="club@example.com", username="NOMBRE REPETIDO", hashed_password="hash-b"),
     ]
 
 
@@ -51,7 +51,7 @@ class TestLoginWithUserName:
             # Act
             response = TestClient(test_app).post(
                 "/api/v1/auth/login",
-                data={"username": "alejandro rivero rodriguez", "password": "the-second-one"}
+                data={"username": "nombre repetido", "password": "the-second-one"}
             )
 
         # Assert
@@ -69,11 +69,60 @@ class TestLoginWithUserName:
             # Act
             response = TestClient(test_app).post(
                 "/api/v1/auth/login",
-                data={"username": "alejandro rivero rodriguez", "password": "wrong"}
+                data={"username": "nombre repetido", "password": "wrong"}
             )
 
         # Assert
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_an_inactive_account_never_shadows_an_active_one(self, test_app):
+        """Test that a disabled twin cannot deny the real account its login.
+
+        Candidates come back in Mongo natural order, so whichever matched
+        first would otherwise decide the answer.
+        """
+        # Arrange
+        use_case = AsyncMock()
+        use_case.execute.return_value = [
+            User(id="old", email="old@example.com", username="SAME NAME", hashed_password="hash", is_active=False),
+            User(id="new", email="new@example.com", username="SAME NAME", hashed_password="hash", is_active=True),
+        ]
+        test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: use_case
+
+        with patch("src.infrastructure.web.routers.users.verify_password", return_value=True):
+            # Act
+            response = TestClient(test_app).post(
+                "/api/v1/auth/login",
+                data={"username": "same name", "password": "shared"}
+            )
+
+        # Assert
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_only_a_bounded_number_of_passwords_is_checked(self, test_app):
+        """Test that planted look-alike accounts cannot turn a login into work.
+
+        Registration is open, user names are matched loosely, and each check
+        is a bcrypt hash that blocks the event loop.
+        """
+        # Arrange
+        use_case = AsyncMock()
+        use_case.execute.return_value = [
+            User(id=str(n), email=f"{n}@example.com", username="KUKI AIKIKAI", hashed_password="hash")
+            for n in range(50)
+        ]
+        test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: use_case
+
+        with patch("src.infrastructure.web.routers.users.verify_password", return_value=False) as verify:
+            # Act
+            response = TestClient(test_app).post(
+                "/api/v1/auth/login",
+                data={"username": "kuki aikikai", "password": "wrong"}
+            )
+
+        # Assert
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert verify.call_count <= MAX_LOGIN_CANDIDATES
 
     def test_unknown_identifier_is_refused(self, test_app):
         """Test that a name matching nothing answers 401."""
@@ -92,7 +141,11 @@ class TestLoginWithUserName:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_inactive_account_is_refused(self, test_app):
-        """Test that a deactivated account cannot sign in."""
+        """Test that a deactivated account cannot sign in.
+
+        The answer is the same 401 as a wrong password, so confirming a
+        password no longer tells an attacker the account exists but is off.
+        """
         # Arrange
         use_case = AsyncMock()
         use_case.execute.return_value = [
@@ -108,4 +161,4 @@ class TestLoginWithUserName:
             )
 
         # Assert
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

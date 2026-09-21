@@ -36,14 +36,14 @@ class TestPasswordResetEmail:
 
         # Act
         await email_service.send_password_reset_email(
-            to_email="jcarlosarevalo2@gmail.com",
+            to_email="director@example.com",
             user_name="KUKI AIKIKAI",
             reset_url="https://admin.spainaikikai.es/reset-password?token=abc123"
         )
 
         # Assert
         message = email_service.send_email.await_args.args[0]
-        assert "jcarlosarevalo2@gmail.com" in message.body_html
+        assert "director@example.com" in message.body_html
         assert "KUKI AIKIKAI" in message.body_html
-        assert "jcarlosarevalo2@gmail.com" in message.body_text
+        assert "director@example.com" in message.body_text
         assert "KUKI AIKIKAI" in message.body_text

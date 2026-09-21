@@ -226,7 +226,7 @@ class TestCreateUserUseCase:
         
         # Mock repository to return None for uniqueness checks
         mock_user_repository.find_by_email.return_value = None
-        mock_user_repository.find_by_username.return_value = None
+        mock_user_repository.find_by_username_loose.return_value = []
         mock_user_repository.create.return_value = user_entity_with_id
         
         use_case = CreateUserUseCase(mock_user_repository)
@@ -237,7 +237,7 @@ class TestCreateUserUseCase:
         # Assert
         assert result == user_entity_with_id
         mock_user_repository.find_by_email.assert_called_once_with(email)
-        mock_user_repository.find_by_username.assert_called_once_with(username)
+        mock_user_repository.find_by_username_loose.assert_called_once_with(username)
         mock_user_repository.create.assert_called_once()
         
         # Verify the User entity passed to create
@@ -262,7 +262,7 @@ class TestCreateUserUseCase:
         assert "User email cannot be empty" in str(exc_info.value)
         # Repository methods should not be called if validation fails
         mock_user_repository.find_by_email.assert_not_called()
-        mock_user_repository.find_by_username.assert_not_called()
+        mock_user_repository.find_by_username_loose.assert_not_called()
         mock_user_repository.create.assert_not_called()
 
     async def test_execute_raises_user_already_exists_error_when_email_exists(self, mock_user_repository, user_entity_with_id):
@@ -283,7 +283,7 @@ class TestCreateUserUseCase:
         
         assert "User with this email already exists" in str(exc_info.value)
         mock_user_repository.find_by_email.assert_called_once_with(email)
-        mock_user_repository.find_by_username.assert_not_called()
+        mock_user_repository.find_by_username_loose.assert_not_called()
         mock_user_repository.create.assert_not_called()
 
     async def test_execute_raises_user_already_exists_error_when_username_exists(self, mock_user_repository, user_entity_with_id):
@@ -295,7 +295,7 @@ class TestCreateUserUseCase:
         
         # Mock repository to return None for email but existing user for username
         mock_user_repository.find_by_email.return_value = None
-        mock_user_repository.find_by_username.return_value = user_entity_with_id
+        mock_user_repository.find_by_username_loose.return_value = [user_entity_with_id]
         
         use_case = CreateUserUseCase(mock_user_repository)
         
@@ -305,7 +305,7 @@ class TestCreateUserUseCase:
         
         assert "User with this username already exists" in str(exc_info.value)
         mock_user_repository.find_by_email.assert_called_once_with(email)
-        mock_user_repository.find_by_username.assert_called_once_with(username)
+        mock_user_repository.find_by_username_loose.assert_called_once_with(username)
         mock_user_repository.create.assert_not_called()
 
     @pytest.mark.parametrize("invalid_email", ["", "   ", "invalid.email"])

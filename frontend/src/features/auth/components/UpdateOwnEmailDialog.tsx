@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,8 +28,19 @@ export const UpdateOwnEmailDialog = ({
   const [currentPassword, setCurrentPassword] = useState('');
   const { mutate: updateOwnEmail, isPending } = useUpdateOwnEmailMutation();
 
-  const save = () => {
-    if (!email.trim() || !currentPassword) return;
+  useEffect(() => {
+    if (open) {
+      setEmail(currentEmail);
+      setCurrentPassword('');
+    }
+  }, [open, currentEmail]);
+
+  const isComplete = Boolean(email.trim()) && Boolean(currentPassword);
+
+  const save = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!isComplete) return;
 
     updateOwnEmail(
       { email: email.trim(), current_password: currentPassword },
@@ -58,18 +69,20 @@ export const UpdateOwnEmailDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle>Editar Perfil</DialogTitle>
+          <DialogTitle>Cambiar correo de acceso</DialogTitle>
           <DialogDescription>
-            Cambia el correo con el que entras en la aplicación.
+            Es el correo con el que entras en la aplicación. A partir de ahora
+            entrarás con el nuevo.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <form className="space-y-4" onSubmit={save}>
           <div className="space-y-2">
             <Label htmlFor="own_email">Correo de acceso</Label>
             <Input
               id="own_email"
               type="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="correo@ejemplo.com"
@@ -81,27 +94,27 @@ export const UpdateOwnEmailDialog = ({
             <Input
               id="current_password"
               type="password"
+              autoComplete="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  save();
-                }
-              }}
               placeholder="Tu contraseña de siempre"
             />
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button type="button" disabled={isPending} onClick={save}>
-            {isPending ? 'Guardando...' : 'Guardar'}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isPending || !isComplete}>
+              {isPending ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

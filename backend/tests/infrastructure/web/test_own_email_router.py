@@ -29,7 +29,7 @@ def caller():
     """The account signing the request."""
     return User(
         id="user123",
-        email="jcarlosarevalo2@gmail.com",
+        email="director@example.com",
         username="KUKI AIKIKAI",
         hashed_password="hashed"
     )
@@ -41,7 +41,7 @@ def mock_use_case(caller):
     use_case = AsyncMock()
     use_case.execute.return_value = User(
         id=caller.id,
-        email="leon.aikikai@gmail.com",
+        email="club@example.com",
         username=caller.username,
         hashed_password=caller.hashed_password
     )
@@ -69,15 +69,15 @@ class TestUpdateOwnEmailEndpoint:
             # Act
             response = TestClient(test_app).patch(
                 "/api/v1/users/me/email",
-                json={"email": "leon.aikikai@gmail.com", "current_password": "right"}
+                json={"email": "club@example.com", "current_password": "right"}
             )
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
         payload = decode_access_token(response.json()["access_token"])
-        assert payload["sub"] == "leon.aikikai@gmail.com"
+        assert payload["sub"] == "club@example.com"
         assert payload["user_id"] == "user123"
-        mock_use_case.execute.assert_awaited_once_with("user123", "leon.aikikai@gmail.com")
+        mock_use_case.execute.assert_awaited_once_with("user123", "club@example.com")
 
     def test_wrong_current_password_changes_nothing(self, test_app, caller, mock_use_case):
         """Test that a stolen session cannot move the account to another address."""
@@ -138,7 +138,7 @@ class TestUpdateOwnEmailEndpoint:
             # Act
             response = TestClient(test_app).patch(
                 "/api/v1/users/me/email",
-                json={"email": "leon.aikikai@gmail.com", "current_password": "right"}
+                json={"email": "club@example.com", "current_password": "right"}
             )
 
         # Assert: a club admin reaching the super-admin route would get a 403

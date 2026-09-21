@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from src.domain.entities.user import User
 from src.application.use_cases.password_reset import RequestPasswordResetUseCase
+from src.application.use_cases.password_reset.request_password_reset_use_case import RequestPasswordResetResult
 
 
 @pytest.fixture
@@ -12,7 +13,7 @@ def club_account():
     """Account of a club, reachable at an address the club may not know."""
     return User(
         id="user123",
-        email="jcarlosarevalo2@gmail.com",
+        email="director@example.com",
         username="KUKI AIKIKAI",
         hashed_password="hashed"
     )
@@ -74,7 +75,7 @@ class TestRequestPasswordResetUseCase:
         created_token = mock_token_repository.create.call_args.args[0]
         mock_email_service.send_password_reset_email.assert_awaited_once()
         sent = mock_email_service.send_password_reset_email.await_args.kwargs
-        assert sent["to_email"] == "jcarlosarevalo2@gmail.com"
+        assert sent["to_email"] == "director@example.com"
         assert sent["user_name"] == "KUKI AIKIKAI"
         assert created_token.token in sent["reset_url"]
 
@@ -84,12 +85,12 @@ class TestRequestPasswordResetUseCase:
         """Test the two people in production holding two accounts each."""
         # Arrange
         mock_find_login_accounts.execute.return_value = [
-            User(id="a", email="alerivrod@gmail.com", username="ALEJANDRO RIVERO RODRIGUEZ", hashed_password="h"),
-            User(id="b", email="info@heijoshin.com", username="ALEJANDRO RIVERO RODRIGUEZ", hashed_password="h"),
+            User(id="a", email="personal@example.com", username="NOMBRE REPETIDO", hashed_password="h"),
+            User(id="b", email="club@example.com", username="NOMBRE REPETIDO", hashed_password="h"),
         ]
 
         # Act
-        await use_case.execute("alejandro rivero rodriguez")
+        await use_case.execute("nombre repetido")
 
         # Assert
         assert mock_token_repository.create.await_count == 2
@@ -97,7 +98,7 @@ class TestRequestPasswordResetUseCase:
             call.kwargs["to_email"]
             for call in mock_email_service.send_password_reset_email.await_args_list
         ]
-        assert recipients == ["alerivrod@gmail.com", "info@heijoshin.com"]
+        assert recipients == ["personal@example.com", "club@example.com"]
 
     async def test_execute_invalidates_previous_tokens_of_each_account(
         self, use_case, mock_token_repository
@@ -154,6 +155,46 @@ class TestRequestPasswordResetUseCase:
         # Assert
         assert result.success is True
         mock_email_service.send_password_reset_email.assert_not_awaited()
+
+    async def test_execute_hides_a_failed_send_behind_the_generic_answer(
+        self, use_case, mock_email_service, mock_find_login_accounts
+    ):
+        """Test that a bounced mail does not confirm the account exists.
+
+        Four production accounts hold an address that cannot receive anything.
+        Answering differently for them turns a public club name into an
+        existence oracle.
+        """
+        # Arrange
+        mock_email_service.send_password_reset_email.return_value = False
+        # Act
+        result = await use_case.execute("kuki aikikai")
+
+        # Assert
+        assert result.success is True
+        assert result.message == RequestPasswordResetResult().message
+
+    async def test_execute_still_reaches_the_other_accounts_when_one_send_fails(
+        self, use_case, mock_find_login_accounts, mock_email_service
+    ):
+        """Test that one dead mailbox does not deny the twin account its link."""
+        # Arrange
+        mock_find_login_accounts.execute.return_value = [
+            User(id="a", email="dead@nowhere", username="SAME NAME", hashed_password="h"),
+            User(id="b", email="alive@example.com", username="SAME NAME", hashed_password="h"),
+        ]
+        mock_email_service.send_password_reset_email.side_effect = [False, True]
+
+        # Act
+        result = await use_case.execute("same name")
+
+        # Assert
+        assert result.success is True
+        recipients = [
+            call.kwargs["to_email"]
+            for call in mock_email_service.send_password_reset_email.await_args_list
+        ]
+        assert recipients == ["dead@nowhere", "alive@example.com"]
 
     async def test_execute_reports_when_the_email_service_is_down(
         self, use_case, mock_email_service

@@ -280,10 +280,10 @@ class TestLoginEndpoint:
         data = response.json()
         assert "Incorrect username or password" in data["detail"]
 
-    def test_login_with_inactive_user_returns_400(
+    def test_login_with_inactive_user_returns_401(
         self, test_app, user_entity_with_id
     ):
-        """Test login with inactive user returns 400 Bad Request."""
+        """Test login with an inactive user returns the same 401 as a wrong password."""
         # Arrange - Mock dependencies using FastAPI's dependency override
         from src.infrastructure.web.dependencies import get_authenticate_user_use_case
         
@@ -306,9 +306,9 @@ class TestLoginEndpoint:
             response = client.post("/api/v1/auth/login", data=login_data)
         
         # Assert
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         data = response.json()
-        assert "Inactive user" in data["detail"]
+        assert "Incorrect username or password" in data["detail"]
 
     def test_login_with_email_as_username_succeeds(
         self, test_app, user_entity_with_id

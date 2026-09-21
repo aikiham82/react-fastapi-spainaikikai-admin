@@ -51,7 +51,7 @@ vi.mock('jwt-decode', () => ({
 }))
 
 vi.mock('sonner', () => ({
-  toast: vi.fn()
+  toast: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() })
 }))
 
 // Mock the mutation hooks to control their behavior
@@ -87,6 +87,7 @@ import { useRegisterMutation } from '../mutations/useRegister.mutation'
 
 const mockJwtDecode = vi.mocked(jwtDecode)
 const mockToast = vi.mocked(toast)
+const mockToastError = vi.mocked(toast.error)
 const mockUseLoginMutation = vi.mocked(useLoginMutation)
 const mockUseLogoutMutation = vi.mocked(useLogoutMutation)
 const mockUseRegisterMutation = vi.mocked(useRegisterMutation)
@@ -293,7 +294,7 @@ describe('useAuthContext', () => {
       })
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith('An error occurred during register')
+        expect(mockToastError).toHaveBeenCalled()
       })
     })
 
@@ -311,7 +312,7 @@ describe('useAuthContext', () => {
       })
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith('An error occurred during register')
+        expect(mockToastError).toHaveBeenCalled()
       })
     })
   })
@@ -415,7 +416,7 @@ describe('useAuthContext', () => {
         })
 
         // Since auth is null, should return early without calling toast
-        expect(mockToast).not.toHaveBeenCalled()
+        expect(mockToastError).not.toHaveBeenCalled()
         expect(result.current.isAuthenticated).toBe(false)
       })
     })
@@ -480,7 +481,7 @@ describe('useAuthContext', () => {
         })
 
         await waitFor(() => {
-          expect(mockToast).toHaveBeenCalledWith('An error occurred during register')
+          expect(mockToastError).toHaveBeenCalled()
         })
       })
     })
@@ -543,7 +544,7 @@ describe('useAuthContext', () => {
         })
 
         await waitFor(() => {
-          expect(mockToast).toHaveBeenCalledWith('An error occurred during register')
+          expect(mockToastError).toHaveBeenCalled()
         })
       })
     })

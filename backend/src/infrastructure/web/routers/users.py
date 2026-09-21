@@ -10,6 +10,7 @@ from src.domain.exceptions.user import (
     UserNotFoundError,
     UserAlreadyExistsError,
     EmailAlreadyInUseError,
+    InvalidUserDataError,
 )
 from src.infrastructure.web.dto.user_dto import (
     UserCreate,
@@ -50,6 +51,11 @@ from src.application.use_cases.password_reset import GenerateAdminPasswordResetL
 
 
 router = APIRouter(tags=["users"])
+
+# A user name is matched loosely and registration is open, so an identifier can
+# resolve to accounts an attacker planted. Each password check is a bcrypt hash
+# that blocks the event loop, so the work one request can cause is capped.
+MAX_LOGIN_CANDIDATES = 5
 
 
 @router.post("/auth/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -97,8 +103,16 @@ async def login(
     """
     candidates = await authenticate_user_use_case.execute(form_data.username)
 
+    # Inactive accounts are dropped before hashing: they cannot sign in anyway,
+    # and letting one match first would deny an active twin its own login. A
+    # migrated row with no hash would make verify_password raise and take the
+    # whole request down with it.
+    active_candidates = [
+        c for c in candidates if c.is_active and c.hashed_password
+    ][:MAX_LOGIN_CANDIDATES]
+
     user = next(
-        (candidate for candidate in candidates
+        (candidate for candidate in active_candidates
          if verify_password(form_data.password, candidate.hashed_password)),
         None
     )
@@ -108,12 +122,6 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
         )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -211,6 +219,16 @@ async def update_own_email(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Ese correo ya pertenece a otra cuenta"
+        )
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+    except InvalidUserDataError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
         )
 
     access_token = create_access_token(

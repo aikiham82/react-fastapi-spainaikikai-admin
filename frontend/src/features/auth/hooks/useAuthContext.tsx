@@ -75,11 +75,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clubId: string | null = effectiveUser?.club_id || null;
 
   useEffect(() => {
-    const err = registerError || loginError;
-    if (err) {
-      toast('An error occurred during register');
+    if (loginError) {
+      toast.error('No hemos podido entrar. Revisa el correo o nombre de usuario y la contraseña.');
     }
-  }, [registerError || loginError]);
+  }, [loginError]);
+
+  useEffect(() => {
+    if (registerError) {
+      toast.error('No se ha podido crear la cuenta. Intentalo de nuevo.');
+    }
+  }, [registerError]);
 
   const loginWithJWT = async () => {
     try {

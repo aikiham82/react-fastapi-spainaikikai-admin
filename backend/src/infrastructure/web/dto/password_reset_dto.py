@@ -11,7 +11,8 @@ class PasswordResetRequestDTO(BaseModel):
     identifier: str = Field(
         ...,
         min_length=1,
-        description="Email or user name of the account, for example KUKI AIKIKAI"
+        max_length=120,
+        description="Email or user name of the account"
     )
 
 

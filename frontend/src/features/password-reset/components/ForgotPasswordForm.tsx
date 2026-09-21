@@ -80,8 +80,9 @@ export const ForgotPasswordForm = () => {
             Correo enviado
           </CardTitle>
           <CardDescription className="text-center text-gray-600">
-            Si existe una cuenta, recibiras un enlace en el correo con el que
-            entras.
+            Si existe una cuenta, te hemos enviado un enlace al correo
+            registrado en ella. Si no sabes cual es, preguntale a la
+            federacion.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -122,8 +123,8 @@ export const ForgotPasswordForm = () => {
           Recuperar contrasena
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
-          Introduce tu correo o el nombre de usuario de tu club y te
-          enviaremos un enlace para restablecer tu contrasena
+          Introduce tu correo o tu nombre de usuario (el de tu club o el
+          tuyo) y te enviaremos un enlace para restablecer tu contrasena
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -140,7 +141,12 @@ export const ForgotPasswordForm = () => {
               <Input
                 id="identifier"
                 type="text"
-                placeholder="correo@ejemplo.com o KUKI AIKIKAI"
+                name="username"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="correo@ejemplo.com"
                 className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
                 value={identifier}
@@ -150,7 +156,7 @@ export const ForgotPasswordForm = () => {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600">
                 Ha ocurrido un error. Por favor, intentalo de nuevo.
               </p>

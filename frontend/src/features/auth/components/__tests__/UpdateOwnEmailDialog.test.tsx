@@ -50,11 +50,31 @@ describe('UpdateOwnEmailDialog', () => {
     )
   })
 
-  it('does not send anything without the current password', async () => {
+  it('cannot be saved without the current password', async () => {
     open()
+
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled()
 
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
 
     expect(mockMutate).not.toHaveBeenCalled()
+  })
+
+  it('saves when Enter is pressed in the email field', async () => {
+    open()
+
+    await userEvent.type(screen.getByLabelText('Contraseña actual'), 'mipassword')
+    await userEvent.type(screen.getByLabelText('Correo de acceso'), '{Enter}')
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      { email: 'jcarlosarevalo2@gmail.com', current_password: 'mipassword' },
+      expect.objectContaining({ onSuccess: expect.any(Function) })
+    )
+  })
+
+  it('says the old address stops working', () => {
+    open()
+
+    expect(screen.getByText(/entrarás con el nuevo/i)).toBeInTheDocument()
   })
 })

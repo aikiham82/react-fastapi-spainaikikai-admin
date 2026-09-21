@@ -57,6 +57,6 @@ describe('ForgotPasswordForm', () => {
 
     renderWithProviders(<ForgotPasswordForm />)
 
-    expect(screen.getByText(/el correo con el que/i)).toBeInTheDocument()
+    expect(screen.getByText(/al correo registrado en ella/i)).toBeInTheDocument()
   })
 })
