@@ -1,5 +1,6 @@
 """MongoDB User Repository Adapter."""
 
+import logging
 import re
 from typing import List, Optional
 from bson import ObjectId
@@ -8,6 +9,8 @@ from datetime import datetime
 from src.domain.entities.user import User, GlobalRole
 from src.application.ports.repositories import UserRepositoryPort
 from src.infrastructure.database import get_database
+
+logger = logging.getLogger(__name__)
 
 # Emails are matched regardless of case: they are typed by hand at login and
 # corrected by hand in the admin panel, and the collection has no unique index
@@ -113,8 +116,11 @@ class MongoDBUserRepository(UserRepositoryPort):
 
         cursor = self.collection.find(
             {"username": {"$regex": pattern, "$options": "i"}}
-        )
+        ).sort("_id", 1)
         docs = await cursor.to_list(length=MAX_MATCHING_ACCOUNTS)
+
+        if len(docs) == MAX_MATCHING_ACCOUNTS:
+            logger.warning(f"User name '{username}' matches at least {MAX_MATCHING_ACCOUNTS} accounts")
 
         return [self._to_domain(doc) for doc in docs]
 

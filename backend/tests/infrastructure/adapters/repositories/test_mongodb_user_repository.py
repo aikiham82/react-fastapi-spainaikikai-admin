@@ -156,6 +156,7 @@ class TestMongoDBUserRepository:
         query = mock_mongo_collection.find.call_args.args[0]
         assert query["username"]["$regex"] == build_loose_username_pattern("kuki aikikai")
         assert query["username"]["$options"] == "i"
+        mock_mongo_collection.find.return_value.sort.assert_called_once_with("_id", 1)
 
     async def test_find_by_username_loose_returns_empty_list_when_nothing_matches(
         self, repository, mock_mongo_collection

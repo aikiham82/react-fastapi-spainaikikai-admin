@@ -103,7 +103,9 @@ function handleError(error: AxiosError<ErrorResponse>): ApiError {
   const { message, response, request } = error
 
 
-  if (response?.status === 401) {
+  const isLoginAttempt = error.config?.url?.includes('/auth/login')
+
+  if (response?.status === 401 && !isLoginAttempt) {
     // Clear local storage and cookies
     appStorage().local.remove('access_token')
     localStorage.clear();

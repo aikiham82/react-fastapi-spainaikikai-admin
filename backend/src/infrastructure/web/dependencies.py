@@ -664,7 +664,9 @@ async def get_current_active_user(
 ) -> User:
     """Get current active user."""
     if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        # 401, not 400: the browser only signs out on 401, so a 400 would
+        # leave a deactivated session erroring on every request instead.
+        raise HTTPException(status_code=401, detail="Inactive user")
     return current_user
 
 
