@@ -4,7 +4,7 @@
 
 // Request password reset
 export interface PasswordResetRequest {
-  email: string;
+  identifier: string;
 }
 
 export interface PasswordResetRequestResponse {

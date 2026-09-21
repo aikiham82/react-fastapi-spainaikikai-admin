@@ -204,7 +204,7 @@ class TestLoginEndpoint:
         login_data = {"username": "testuser", "password": "password123"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -237,7 +237,7 @@ class TestLoginEndpoint:
         login_data = {"username": "nonexistent", "password": "password123"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = None  # User not found
+        mock_use_case.execute.return_value = []  # No account matches
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -262,7 +262,7 @@ class TestLoginEndpoint:
         login_data = {"username": "testuser", "password": "wrongpassword"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -292,7 +292,7 @@ class TestLoginEndpoint:
         user_entity_with_id.is_active = False  # Inactive user
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -320,7 +320,7 @@ class TestLoginEndpoint:
         login_data = {"username": "test@example.com", "password": "password123"}
         
         mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
+        mock_use_case.execute.return_value = [user_entity_with_id]
         
         # Override dependencies
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_use_case
@@ -700,7 +700,7 @@ class TestRouterIntegration:
         
         # Setup basic mocking to avoid 500 errors
         mock_create_use_case.execute.return_value = user_entity_with_id
-        mock_auth_use_case.execute.return_value = user_entity_with_id
+        mock_auth_use_case.execute.return_value = [user_entity_with_id]
         mock_get_all_use_case.execute.return_value = [user_entity_with_id]
         mock_get_by_id_use_case.execute.return_value = user_entity_with_id
         

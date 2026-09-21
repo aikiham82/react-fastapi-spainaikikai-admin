@@ -17,7 +17,7 @@ implemented_by:
     version: "5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-09-21T08:05:00Z"
+last_implementation_at: "2026-09-21T08:15:00Z"
 has_completed_all_phases: false
 ---
 
@@ -118,17 +118,17 @@ A super admin opens Socios and every member whose account exists carries an `Acc
 
 Typing `kuki aikikai` in the forgot-password form sends the link to that account's own mailbox, and the email says which address and which name it signs in with. The same identifier works at login. Both comparisons ignore case and repeated whitespace.
 
-- [ ] Write failing adapter tests for `find_by_username_loose`: matches a different case, matches a name with a double space, returns every account sharing a name, returns an empty list when nothing matches.
-- [ ] Implement it in `MongoDBUserRepository` with an anchored, escaped, case-insensitive regex built from the whitespace-separated words, and declare it on `UserRepositoryPort`.
-- [ ] Write failing tests for `FindLoginAccountsUseCase`, then implement it: `@` routes to the email lookup, anything else to the loose username lookup.
-- [ ] Write failing tests for `RequestPasswordResetUseCase` covering: a user name issues one link per matching active account, each to its own email; an email still works; an unknown identifier still answers the same generic success; an inactive account is skipped; the per-account daily limit still applies.
-- [ ] Rewrite the use case over `FindLoginAccountsUseCase` and change `PasswordResetRequestDTO` to `{ identifier: str }`.
-- [ ] Add the login email and user name to `PASSWORD_RESET_TEMPLATE`, with a test asserting the rendered body carries both.
-- [ ] Write failing router tests for login: the correct password succeeds against the second of two accounts sharing a user name, a wrong password still answers 401.
-- [ ] Change `AuthenticateUserUseCase` to return every candidate and make the login route verify the password against each.
-- [ ] Update the login and forgot-password forms: input type `text`, the new label, placeholder and success copy, and send `identifier`. Update their tests.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write failing tests for the matching itself. The adapter tests mock Mongo, so a regex proves nothing there: the pattern lives in `build_loose_username_pattern`, a pure function tested against real strings, including the production name with a double space.
+- [x] Implement `find_by_username_loose` in `MongoDBUserRepository` with that anchored, escaped, case-insensitive pattern, and declare it on `UserRepositoryPort`. Two adapter tests assert the query it builds.
+- [x] Write failing tests for `FindLoginAccountsUseCase`, then implement it: `@` routes to the email lookup, anything else to the loose username lookup.
+- [x] Write failing tests for `RequestPasswordResetUseCase` covering: a user name issues one link per matching active account, each to its own email; an email still works; an unknown identifier still answers the same generic success; an inactive account is skipped; the per-account daily limit still applies.
+- [x] Rewrite the use case over `FindLoginAccountsUseCase` and change `PasswordResetRequestDTO` to `{ identifier: str }`.
+- [x] Add the login email and user name to `PASSWORD_RESET_TEMPLATE` and to the plain-text body, with a test asserting both carry them.
+- [x] Write failing router tests for login: the correct password succeeds against the second of two accounts sharing a user name, a wrong password still answers 401, an inactive account still answers 400.
+- [x] Change `AuthenticateUserUseCase` to return every candidate and make the login route verify the password against each.
+- [x] Update the login and forgot-password forms: input type `text`, the new label, placeholder and success copy, and send `identifier`. Update their tests.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any. Backend 752 passed, coverage 52.20%. Frontend 481 passed, lint 0 errors, build green.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: change your own login email
 
@@ -144,6 +144,6 @@ Once inside, a user corrects the address their account signs in with by giving t
 
 ## ⏭️ Next step
 
-Support can already see who holds an account. Continue with Phase 2, recovering and signing in with the user name.
+Clubs can already recover and sign in with the name they know. Continue with Phase 3, changing their own login email.
 
-A turtle never forgets its own name, and now it wears a badge 🪪 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)
+A turtle never forgets its own name, wears a badge, and now the door opens to it 🚪 🪪 🐢 💨 ([Codely](https://codely.com)'s Turbotuga™)

@@ -16,14 +16,14 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 export const ForgotPasswordForm = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const { requestResetAsync, isLoading, isSuccess, error, data, reset } =
     useRequestPasswordResetMutation();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await requestResetAsync({ email });
+      await requestResetAsync({ identifier });
     } catch {
       // Error is handled by the mutation
     }
@@ -80,8 +80,8 @@ export const ForgotPasswordForm = () => {
             Correo enviado
           </CardTitle>
           <CardDescription className="text-center text-gray-600">
-            Si existe una cuenta con ese correo, recibiras un enlace para
-            restablecer tu contrasena.
+            Si existe una cuenta, recibiras un enlace en el correo con el que
+            entras.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -104,11 +104,11 @@ export const ForgotPasswordForm = () => {
             type="button"
             onClick={() => {
               reset();
-              setEmail("");
+              setIdentifier("");
             }}
             className="text-sm text-primary hover:text-primary/80 transition-colors font-medium underline-offset-4 hover:underline"
           >
-            Enviar a otro correo
+            Probar con otra cuenta
           </button>
         </CardFooter>
       </Card>
@@ -122,29 +122,29 @@ export const ForgotPasswordForm = () => {
           Recuperar contrasena
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
-          Introduce tu correo electronico y te enviaremos un enlace para
-          restablecer tu contrasena
+          Introduce tu correo o el nombre de usuario de tu club y te
+          enviaremos un enlace para restablecer tu contrasena
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label
-              htmlFor="email"
+              htmlFor="identifier"
               className="text-sm font-medium text-gray-700"
             >
-              Correo electronico
+              Correo o nombre de usuario
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                id="email"
-                type="email"
-                placeholder="correo@ejemplo.com"
+                id="identifier"
+                type="text"
+                placeholder="correo@ejemplo.com o KUKI AIKIKAI"
                 className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
               />
             </div>
           </div>

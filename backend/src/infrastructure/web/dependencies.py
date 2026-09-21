@@ -28,6 +28,7 @@ from src.application.use_cases.user_use_cases import (
     GetUserByIdUseCase,
     GetUserByEmailUseCase,
     GetUserByMemberIdUseCase,
+    FindLoginAccountsUseCase,
     CreateUserUseCase,
     UpdateUserEmailUseCase,
     AuthenticateUserUseCase
@@ -597,6 +598,11 @@ def get_user_by_member_id_use_case() -> GetUserByMemberIdUseCase:
     return GetUserByMemberIdUseCase(get_user_repository())
 
 
+def get_find_login_accounts_use_case() -> FindLoginAccountsUseCase:
+    """Get find login accounts use case."""
+    return FindLoginAccountsUseCase(get_user_repository())
+
+
 def get_update_user_email_use_case() -> UpdateUserEmailUseCase:
     """Get update user email use case."""
     return UpdateUserEmailUseCase(
@@ -612,7 +618,7 @@ def get_create_user_use_case() -> CreateUserUseCase:
 
 def get_authenticate_user_use_case() -> AuthenticateUserUseCase:
     """Get authenticate user use case."""
-    return AuthenticateUserUseCase(get_user_repository())
+    return AuthenticateUserUseCase(get_find_login_accounts_use_case())
 
 
 # Authentication dependencies
@@ -694,7 +700,7 @@ def get_request_password_reset_use_case() -> RequestPasswordResetUseCase:
     """Get request password reset use case."""
     app_settings = get_app_settings()
     return RequestPasswordResetUseCase(
-        user_repository=get_user_repository(),
+        find_login_accounts_use_case=get_find_login_accounts_use_case(),
         token_repository=get_password_reset_token_repository(),
         email_service=get_email_service(),
         frontend_base_url=app_settings.frontend_base_url

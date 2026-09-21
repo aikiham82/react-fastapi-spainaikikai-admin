@@ -89,16 +89,26 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     authenticate_user_use_case: AuthenticateUserUseCase = Depends(get_authenticate_user_use_case)
 ):
-    """Login user and return JWT token."""
-    user = await authenticate_user_use_case.execute(form_data.username)
-    
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    """Login user and return JWT token.
+
+    The identifier is an email or a user name, and a user name can belong to
+    more than one account, so the password decides which one signs in.
+    """
+    candidates = await authenticate_user_use_case.execute(form_data.username)
+
+    user = next(
+        (candidate for candidate in candidates
+         if verify_password(form_data.password, candidate.hashed_password)),
+        None
+    )
+
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

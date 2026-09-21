@@ -45,7 +45,7 @@ async def request_password_reset(
     This endpoint always returns success to prevent email enumeration attacks.
     If the email exists and the user is active, a reset email will be sent.
     """
-    result = await use_case.execute(request.email)
+    result = await use_case.execute(request.identifier)
     return PasswordResetRequestResponseDTO(
         success=result.success,
         message=result.message

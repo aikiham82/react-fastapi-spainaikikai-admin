@@ -8,7 +8,8 @@ from bson import ObjectId
 from src.domain.entities.user import User
 from src.infrastructure.adapters.repositories.mongodb_user_repository import (
     MongoDBUserRepository,
-    CASE_INSENSITIVE_COLLATION
+    CASE_INSENSITIVE_COLLATION,
+    build_loose_username_pattern
 )
 
 
@@ -138,6 +139,37 @@ class TestMongoDBUserRepository:
         
         # Assert
         assert doc["created_at"] == user_entity_with_id.created_at
+
+    async def test_find_by_username_loose_queries_with_an_anchored_pattern(
+        self, repository, mock_mongo_collection, user_documents_list
+    ):
+        """Test that the lookup goes through the loose pattern and ignores case."""
+        # Arrange
+        cursor_mock = mock_mongo_collection.find.return_value
+        cursor_mock.to_list.return_value = user_documents_list
+
+        # Act
+        result = await repository.find_by_username_loose("  kuki   aikikai ")
+
+        # Assert
+        assert all(isinstance(user, User) for user in result)
+        query = mock_mongo_collection.find.call_args.args[0]
+        assert query["username"]["$regex"] == build_loose_username_pattern("kuki aikikai")
+        assert query["username"]["$options"] == "i"
+
+    async def test_find_by_username_loose_returns_empty_list_when_nothing_matches(
+        self, repository, mock_mongo_collection
+    ):
+        """Test that an unknown name yields no accounts rather than raising."""
+        # Arrange
+        cursor_mock = mock_mongo_collection.find.return_value
+        cursor_mock.to_list.return_value = []
+
+        # Act
+        result = await repository.find_by_username_loose("nobody")
+
+        # Assert
+        assert result == []
 
     async def test_find_all_returns_list_of_users(self, repository, mock_mongo_collection, user_documents_list):
         """Test that find_all returns list of User entities."""

@@ -43,21 +43,21 @@ export const LoginForm = () => {
           Bienvenido
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
-          Introduce tus credenciales para acceder
+          Entra con tu correo o el nombre de usuario de tu club
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Correo electrónico
+              Correo o nombre de usuario
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="email"
-                type="email"
-                placeholder="correo@ejemplo.com"
+                type="text"
+                placeholder="correo@ejemplo.com o KUKI AIKIKAI"
                 className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
                 value={email}

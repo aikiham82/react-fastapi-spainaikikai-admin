@@ -237,6 +237,7 @@ def mock_user_repository():
     mock_repo.find_by_email = AsyncMock(return_value=None)
     mock_repo.find_by_username = AsyncMock(return_value=None)
     mock_repo.find_by_member_id = AsyncMock(return_value=None)
+    mock_repo.find_by_username_loose = AsyncMock(return_value=[])
     mock_repo.create = AsyncMock()
     mock_repo.update = AsyncMock()
     mock_repo.delete = AsyncMock(return_value=True)

@@ -8,9 +8,10 @@ from pydantic import BaseModel, EmailStr, Field
 class PasswordResetRequestDTO(BaseModel):
     """DTO for requesting a password reset."""
 
-    email: EmailStr = Field(
+    identifier: str = Field(
         ...,
-        description="Email address to send password reset link"
+        min_length=1,
+        description="Email or user name of the account, for example KUKI AIKIKAI"
     )
 
 
