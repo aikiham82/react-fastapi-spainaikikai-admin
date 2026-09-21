@@ -6,8 +6,13 @@ from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 
 class UserBase(BaseModel):
-    """Base user DTO."""
-    email: EmailStr
+    """Base user DTO.
+
+    The email is a plain string on the way out: migrated accounts store
+    addresses that no validator accepts, and refusing to serialise them hides
+    exactly the accounts support needs to fix. Input DTOs keep EmailStr.
+    """
+    email: str
     username: str
     is_active: bool = True
     global_role: str = "user"
@@ -28,6 +33,11 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     global_role: Optional[str] = None
     member_id: Optional[str] = None
+
+
+class UpdateUserEmailDTO(BaseModel):
+    """DTO for correcting the email an account signs in with."""
+    email: EmailStr
 
 
 class UserResponse(UserBase):

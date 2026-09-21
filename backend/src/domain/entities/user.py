@@ -35,8 +35,6 @@ class User:
             raise ValueError("User email cannot be empty")
         if not self.username or not self.username.strip():
             raise ValueError("User username cannot be empty")
-        if "@" not in self.email:
-            raise ValueError("Invalid email format")
 
     def deactivate(self) -> None:
         """Deactivate the user."""
@@ -45,6 +43,14 @@ class User:
     def activate(self) -> None:
         """Activate the user."""
         self.is_active = True
+
+    def update_email(self, email: str) -> None:
+        """Update the email the user signs in with."""
+        email = email.lower().strip()
+        if not email:
+            raise ValueError("User email cannot be empty")
+        self.email = email
+        self.updated_at = datetime.now()
 
     def update_password(self, hashed_password: str) -> None:
         """Update user password."""

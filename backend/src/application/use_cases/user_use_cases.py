@@ -5,9 +5,10 @@ from typing import List, Optional
 from src.domain.entities.user import User, GlobalRole
 from src.domain.exceptions.user import (
     UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError,
-    SuperAdminAlreadyExistsError
+    SuperAdminAlreadyExistsError, EmailAlreadyInUseError
 )
 from src.application.ports.repositories import UserRepositoryPort
+from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 
 
 class GetAllUsersUseCase:
@@ -32,6 +33,20 @@ class GetUserByIdUseCase:
         user = await self.user_repository.find_by_id(user_id)
         if user is None:
             raise UserNotFoundError(user_id)
+        return user
+
+
+class GetUserByMemberIdUseCase:
+    """Use case for getting the login account linked to a member."""
+
+    def __init__(self, user_repository: UserRepositoryPort):
+        self.user_repository = user_repository
+
+    async def execute(self, member_id: str) -> User:
+        """Execute the use case."""
+        user = await self.user_repository.find_by_member_id(member_id)
+        if user is None:
+            raise UserNotFoundError(f"member:{member_id}")
         return user
 
 
@@ -64,6 +79,9 @@ class CreateUserUseCase:
         member_id: Optional[str] = None
     ) -> User:
         """Execute the use case."""
+        if email.strip() and "@" not in email:
+            raise InvalidUserDataError("Invalid email format")
+
         try:
             user = User(
                 email=email,
@@ -91,6 +109,50 @@ class CreateUserUseCase:
                 raise SuperAdminAlreadyExistsError()
 
         return await self.user_repository.create(user)
+
+
+class UpdateUserEmailUseCase:
+    """Use case for correcting the email an account signs in with.
+
+    Uniqueness is enforced here: the users collection carries no unique index
+    on email, and two accounts sharing one would make the reset flow ambiguous.
+
+    Any live reset token is dropped as part of the change. The address being
+    replaced is usually one the account holder does not control, and a token
+    already mailed to it stays valid for 24 hours otherwise.
+    """
+
+    def __init__(
+        self,
+        user_repository: UserRepositoryPort,
+        token_repository: PasswordResetTokenRepositoryPort
+    ):
+        self.user_repository = user_repository
+        self.token_repository = token_repository
+
+    async def execute(self, user_id: str, email: str) -> User:
+        """Execute the use case."""
+        user = await self.user_repository.find_by_id(user_id)
+        if user is None:
+            raise UserNotFoundError(user_id)
+
+        email = email.lower().strip()
+
+        existing_user = await self.user_repository.find_by_email(email)
+        if existing_user and existing_user.id != user.id:
+            raise EmailAlreadyInUseError(email)
+
+        try:
+            user.update_email(email)
+        except ValueError as e:
+            raise InvalidUserDataError(str(e))
+
+        # Invalidated before the update on purpose: if the update then fails,
+        # the tokens are already dead, which costs nothing. The other order
+        # leaves them alive under a changed email, which is the hole itself.
+        await self.token_repository.invalidate_user_tokens(user.id)
+
+        return await self.user_repository.update(user)
 
 
 class AuthenticateUserUseCase:

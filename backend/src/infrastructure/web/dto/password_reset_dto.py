@@ -1,5 +1,7 @@
 """DTOs for password reset operations."""
 
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -67,4 +69,21 @@ class ResetPasswordResponseDTO(BaseModel):
     message: str = Field(
         ...,
         description="Response message"
+    )
+
+
+class AdminPasswordResetLinkResponseDTO(BaseModel):
+    """DTO for a reset link issued by a super admin."""
+
+    url: str = Field(
+        ...,
+        description="Password reset link to deliver to the account holder"
+    )
+    email: str = Field(
+        ...,
+        description="Login email the account actually uses"
+    )
+    expires_at: datetime = Field(
+        ...,
+        description="Moment the link stops working"
     )

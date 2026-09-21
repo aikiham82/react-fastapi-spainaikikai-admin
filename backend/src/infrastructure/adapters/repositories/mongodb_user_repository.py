@@ -8,6 +8,12 @@ from src.domain.entities.user import User, GlobalRole
 from src.application.ports.repositories import UserRepositoryPort
 from src.infrastructure.database import get_database
 
+# Emails are matched regardless of case: they are typed by hand at login and
+# corrected by hand in the admin panel, and the collection has no unique index
+# to stop two accounts differing only in case. An index on users.email must be
+# created with this same collation or Mongo will not use it for these lookups.
+CASE_INSENSITIVE_COLLATION = {"locale": "en", "strength": 2}
+
 
 class MongoDBUserRepository(UserRepositoryPort):
     """MongoDB implementation of User Repository."""
@@ -72,8 +78,11 @@ class MongoDBUserRepository(UserRepositoryPort):
             return None
 
     async def find_by_email(self, email: str) -> Optional[User]:
-        """Find a user by email."""
-        doc = await self.collection.find_one({"email": email})
+        """Find a user by email, ignoring case."""
+        doc = await self.collection.find_one(
+            {"email": email},
+            collation=CASE_INSENSITIVE_COLLATION
+        )
         return self._to_domain(doc) if doc else None
 
     async def find_by_username(self, username: str) -> Optional[User]:

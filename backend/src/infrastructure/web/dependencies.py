@@ -27,7 +27,9 @@ from src.application.use_cases.user_use_cases import (
     GetAllUsersUseCase,
     GetUserByIdUseCase,
     GetUserByEmailUseCase,
+    GetUserByMemberIdUseCase,
     CreateUserUseCase,
+    UpdateUserEmailUseCase,
     AuthenticateUserUseCase
 )
 from src.application.use_cases import (
@@ -103,7 +105,8 @@ from src.application.use_cases.invoice import (
 from src.application.use_cases.password_reset import (
     RequestPasswordResetUseCase,
     ResetPasswordUseCase,
-    ValidateResetTokenUseCase
+    ValidateResetTokenUseCase,
+    GenerateAdminPasswordResetLinkUseCase
 )
 from src.application.use_cases.member_payment import (
     GetMemberPaymentStatusUseCase,
@@ -589,6 +592,19 @@ def get_user_by_email_use_case() -> GetUserByEmailUseCase:
     return GetUserByEmailUseCase(get_user_repository())
 
 
+def get_user_by_member_id_use_case() -> GetUserByMemberIdUseCase:
+    """Get user by member ID use case."""
+    return GetUserByMemberIdUseCase(get_user_repository())
+
+
+def get_update_user_email_use_case() -> UpdateUserEmailUseCase:
+    """Get update user email use case."""
+    return UpdateUserEmailUseCase(
+        get_user_repository(),
+        get_password_reset_token_repository()
+    )
+
+
 def get_create_user_use_case() -> CreateUserUseCase:
     """Get create user use case."""
     return CreateUserUseCase(get_user_repository())
@@ -627,7 +643,13 @@ async def get_current_user(
         user = await user_by_email_use_case.execute(email=username)
     except UserNotFoundError:
         raise credentials_exception
-        
+
+    # Emails are mutable through PATCH /users/{user_id}/email, so the subject
+    # alone no longer identifies an account for the whole life of a token.
+    token_user_id = payload.get("user_id")
+    if token_user_id is not None and token_user_id != user.id:
+        raise credentials_exception
+
     return user
 
 
@@ -685,6 +707,17 @@ def get_reset_password_use_case() -> ResetPasswordUseCase:
     return ResetPasswordUseCase(
         user_repository=get_user_repository(),
         token_repository=get_password_reset_token_repository()
+    )
+
+
+@lru_cache()
+def get_generate_admin_password_reset_link_use_case() -> GenerateAdminPasswordResetLinkUseCase:
+    """Get generate admin password reset link use case."""
+    app_settings = get_app_settings()
+    return GenerateAdminPasswordResetLinkUseCase(
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository(),
+        frontend_base_url=app_settings.frontend_base_url
     )
 
 

@@ -1,7 +1,7 @@
 """Domain exceptions module."""
 
 from .base import DomainException, EntityNotFoundError, ValidationError, BusinessRuleViolationError
-from .user import UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError, InactiveUserError
+from .user import UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError, InactiveUserError, EmailAlreadyInUseError
 from .club import (
     ClubNotFoundError, InvalidClubDataError,
     ClubAlreadyExistsError, InactiveClubError, ClubHasActiveMembersError
@@ -58,6 +58,7 @@ __all__ = [
     "ValidationError",
     "BusinessRuleViolationError",
     "UserNotFoundError", "InvalidUserDataError", "UserAlreadyExistsError", "InactiveUserError",
+    "EmailAlreadyInUseError",
     "ClubNotFoundError", "InvalidClubDataError",
     "ClubAlreadyExistsError", "InactiveClubError", "ClubHasActiveMembersError",
     "MemberNotFoundError", "InvalidMemberDataError",
