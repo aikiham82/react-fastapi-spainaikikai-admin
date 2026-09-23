@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-09-23T00:00:00Z"
+has_completed_all_phases: true
 ---
 
 # Allow creating members with an empty DNI
@@ -42,13 +51,13 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the test suite and watch the empty-DNI cases fail.
-- [ ] Guard `find_by_dni` with `if dni and dni.strip()` in `CreateMemberUseCase`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the test suite and watch the empty-DNI cases fail.
+- [x] Guard `find_by_dni` with `if dni and dni.strip()` in `CreateMemberUseCase`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases implemented; ready to merge.
 
 A tiny guard, a big relief, delivered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
