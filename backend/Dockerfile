@@ -1,5 +1,5 @@
 # ==================== Builder Stage ====================
-FROM python:3.11-slim AS builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ==================== Production Stage ====================
-FROM python:3.11-slim AS production
+FROM python:3.12-slim AS production
 
 WORKDIR /app
 
