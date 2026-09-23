@@ -37,7 +37,7 @@ def build_loose_username_pattern(username: str) -> str:
     if not words:
         raise ValueError("Username cannot be empty")
 
-    return f"^\\s*{'\\s+'.join(words)}\\s*$"
+    return "^\\s*" + "\\s+".join(words) + "\\s*$"
 
 
 class MongoDBUserRepository(UserRepositoryPort):
