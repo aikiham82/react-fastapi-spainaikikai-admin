@@ -37,7 +37,8 @@ class CreateMemberUseCase:
     ) -> Member:
         """Execute the use case."""
         # Check if member with same DNI exists (skip for empty DNIs)
-        if dni and dni.strip():
+        dni = (dni or "").strip()
+        if dni:
             existing_dni = await self.member_repository.find_by_dni(dni)
             if existing_dni:
                 raise MemberAlreadyExistsError("Ya existe un miembro con ese DNI")

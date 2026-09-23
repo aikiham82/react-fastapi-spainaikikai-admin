@@ -63,10 +63,20 @@ async def test_creates_member_with_empty_dni_when_another_has_empty_dni(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_skips_dni_lookup_for_whitespace_only_dni(use_case, mock_member_repository):
-    await create_with_dni(use_case, "   ")
+async def test_stores_whitespace_only_dni_as_empty_without_lookup(use_case, mock_member_repository):
+    member = await create_with_dni(use_case, "   ")
 
+    assert member.dni == ""
     mock_member_repository.find_by_dni.assert_not_awaited()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_strips_dni_before_checking_and_storing(use_case, mock_member_repository):
+    member = await create_with_dni(use_case, "  12345678Z ")
+
+    mock_member_repository.find_by_dni.assert_awaited_once_with("12345678Z")
+    assert member.dni == "12345678Z"
 
 
 @pytest.mark.unit
