@@ -26,6 +26,7 @@ from src.infrastructure.web.routers.notifications import router as notifications
 from src.infrastructure.web.routers.password_reset import router as password_reset_router
 from src.infrastructure.web.routers.member_payments import router as member_payments_router
 from src.config.logfire import configure_logfire
+from src.config.sentry import configure_sentry
 from src.config.settings import AppSettings
 from dotenv import load_dotenv
 load_dotenv()
@@ -64,6 +65,7 @@ def get_scheduler():
 
 def create_app() -> FastAPI:
     """Create FastAPI application with hexagonal architecture."""
+    configure_sentry()
     app = FastAPI(
         title="Aikido Association Management API",
         description="A FastAPI application implementing hexagonal architecture for Aikido association management",
