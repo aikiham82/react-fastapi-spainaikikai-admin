@@ -90,8 +90,8 @@ class SendLicenseExpirationNotificationsUseCase:
 
         expiring = []
         for license in all_licenses:
-            if license.end_date and license.status == "active":
-                if license.end_date.date() == target_date:
+            if license.expiration_date and license.status == "active":
+                if license.expiration_date.date() == target_date:
                     expiring.append(license)
 
         return expiring
@@ -132,7 +132,7 @@ class SendLicenseExpirationNotificationsUseCase:
 
     def _get_email_body(self, member, license: License, days_before: int) -> str:
         """Generate email body HTML."""
-        expiry_date = license.end_date.strftime("%d/%m/%Y") if license.end_date else "N/A"
+        expiry_date = license.expiration_date.strftime("%d/%m/%Y") if license.expiration_date else "N/A"
 
         urgency_class = "urgent" if days_before <= 7 else "warning" if days_before <= 15 else "info"
 
