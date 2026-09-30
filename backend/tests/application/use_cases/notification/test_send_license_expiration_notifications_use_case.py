@@ -1,5 +1,6 @@
 """Tests for SendLicenseExpirationNotificationsUseCase."""
 
+import logging
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock
 
@@ -65,3 +66,12 @@ class TestSendLicenseExpirationNotificationsUseCase:
         assert result["errors"] == []
         assert result["notifications_sent"] == 0
         email_service.send_email.assert_not_awaited()
+
+    async def test_logs_a_sent_notice_by_member_id_not_address(self, caplog):
+        caplog.set_level(logging.INFO)
+        use_case, _ = _use_case([_license(datetime.utcnow() + timedelta(days=7))])
+
+        await use_case.execute()
+
+        assert "ana@example.com" not in caplog.text
+        assert "member mem-1" in caplog.text

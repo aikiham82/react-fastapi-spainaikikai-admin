@@ -315,11 +315,11 @@ class EmailService(EmailServicePort):
                         msg.as_string()
                     )
 
-            logger.info(f"Email sent via OVH SMTP to {message.to}")
+            logger.info(f"Email sent via OVH SMTP to {len(recipients)} recipient(s)")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to send email: {str(e)}")
+            logger.error(f"Failed to send email: {type(e).__name__}")
             return False
 
     async def send_payment_confirmation(

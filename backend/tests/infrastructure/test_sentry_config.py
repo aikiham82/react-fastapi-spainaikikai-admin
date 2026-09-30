@@ -1,8 +1,9 @@
+import time
 from unittest.mock import patch
 
 import pytest
 
-from src.config.sentry import configure_sentry
+from src.config.sentry import before_breadcrumb, before_send, configure_sentry
 
 
 @pytest.mark.unit
@@ -29,4 +30,75 @@ def test_inits_sentry_without_pii_when_dsn_is_set(monkeypatch):
         environment="production",
         traces_sample_rate=0.2,
         send_default_pii=False,
+        before_send=before_send,
+        before_send_transaction=before_send,
+        before_breadcrumb=before_breadcrumb,
     )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "text",
+    ["a" * 200_000, "a." * 100_000, "a%4" * 70_000, "a%40" * 50_000, "GET /" + "a" * 200_000 + " HTTP/1.1"],
+)
+def test_redaction_stays_linear_on_long_text_without_an_address(text):
+    started = time.perf_counter()
+
+    before_breadcrumb({"message": text}, {})
+
+    assert time.perf_counter() - started < 0.5
+
+
+@pytest.mark.unit
+def test_before_breadcrumb_redacts_url_encoded_addresses():
+    crumb = {"category": "uvicorn.access", "message": "GET /api/v1/members?search=ana%40example.com HTTP/1.1"}
+
+    assert before_breadcrumb(crumb, {})["message"] == "GET /api/v1/members?search=[email] HTTP/1.1"
+
+
+@pytest.mark.unit
+def test_before_send_redacts_email_addresses_anywhere_in_the_event():
+    event = {
+        "message": "Failed for ana@example.com",
+        "logentry": {
+            "message": "Sent to %s",
+            "params": ["ana@example.com"],
+            "formatted": "Sent to ana@example.com",
+        },
+        "exception": {
+            "values": [{"type": "SMTPRecipientsRefused", "value": "{'ana@example.com': (550, 'no')}"}]
+        },
+    }
+
+    redacted = before_send(event, {})
+
+    assert "ana@example.com" not in str(redacted)
+    assert redacted["logentry"]["formatted"] == "Sent to [email]"
+    assert redacted["exception"]["values"][0]["type"] == "SMTPRecipientsRefused"
+
+
+@pytest.mark.unit
+def test_before_send_redacts_email_addresses_used_as_keys():
+    frame_vars = {"senderrs": {"ana@example.com": "(550, 'no')"}}
+
+    redacted = before_send({"exception": {"values": [{"stacktrace": {"frames": [{"vars": frame_vars}]}}]}}, {})
+
+    assert "ana@example.com" not in str(redacted)
+
+
+@pytest.mark.unit
+def test_before_breadcrumb_redacts_email_addresses_in_the_message():
+    crumb = {"category": "src.email", "message": "Email sent to ana.maria+club@sub.example.com"}
+
+    assert before_breadcrumb(crumb, {})["message"] == "Email sent to [email]"
+
+
+@pytest.mark.unit
+def test_text_without_email_addresses_is_unchanged():
+    event = {
+        "message": "Error in scheduler loop: day is out of range for month",
+        "level": "error",
+        "extra": {"count": 3},
+    }
+
+    assert before_send(event, {}) == event
