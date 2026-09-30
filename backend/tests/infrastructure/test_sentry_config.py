@@ -37,7 +37,10 @@ def test_inits_sentry_without_pii_when_dsn_is_set(monkeypatch):
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("text", ["a" * 200_000, "a." * 100_000, "GET /" + "a" * 200_000 + " HTTP/1.1"])
+@pytest.mark.parametrize(
+    "text",
+    ["a" * 200_000, "a." * 100_000, "a%4" * 70_000, "a%40" * 50_000, "GET /" + "a" * 200_000 + " HTTP/1.1"],
+)
 def test_redaction_stays_linear_on_long_text_without_an_address(text):
     started = time.perf_counter()
 
