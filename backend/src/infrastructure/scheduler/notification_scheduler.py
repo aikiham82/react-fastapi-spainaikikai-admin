@@ -51,11 +51,6 @@ class NotificationScheduler:
                 pass
         logger.info("Notification scheduler stopped")
 
-    async def run_now(self) -> dict:
-        """Run the notification job immediately (for testing/manual trigger)."""
-        logger.info("Running notification job manually")
-        return await self.notification_use_case.execute()
-
     def _next_run(self, now: datetime) -> datetime:
         target_time = now.replace(
             hour=self.run_hour,
