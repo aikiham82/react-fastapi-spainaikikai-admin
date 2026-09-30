@@ -1,3 +1,4 @@
+import time
 from unittest.mock import patch
 
 import pytest
@@ -30,8 +31,26 @@ def test_inits_sentry_without_pii_when_dsn_is_set(monkeypatch):
         traces_sample_rate=0.2,
         send_default_pii=False,
         before_send=before_send,
+        before_send_transaction=before_send,
         before_breadcrumb=before_breadcrumb,
     )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("text", ["a" * 200_000, "a." * 100_000, "GET /" + "a" * 200_000 + " HTTP/1.1"])
+def test_redaction_stays_linear_on_long_text_without_an_address(text):
+    started = time.perf_counter()
+
+    before_breadcrumb({"message": text}, {})
+
+    assert time.perf_counter() - started < 0.5
+
+
+@pytest.mark.unit
+def test_before_breadcrumb_redacts_url_encoded_addresses():
+    crumb = {"category": "uvicorn.access", "message": "GET /api/v1/members?search=ana%40example.com HTTP/1.1"}
+
+    assert before_breadcrumb(crumb, {})["message"] == "GET /api/v1/members?search=[email] HTTP/1.1"
 
 
 @pytest.mark.unit

@@ -3,7 +3,7 @@ import re
 
 import sentry_sdk
 
-EMAIL_PATTERN = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+EMAIL_PATTERN = re.compile(r"(?<![\w.+-])[\w.+-]+(?:@|%40)[\w-]+(?:\.[\w-]+)+")
 
 
 def _redact_emails(value):
@@ -35,6 +35,7 @@ def configure_sentry() -> bool:
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0")),
         send_default_pii=False,
         before_send=before_send,
+        before_send_transaction=before_send,
         before_breadcrumb=before_breadcrumb,
     )
     return True
