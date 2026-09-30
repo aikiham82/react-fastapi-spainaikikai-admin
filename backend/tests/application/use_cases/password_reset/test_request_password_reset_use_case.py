@@ -208,3 +208,19 @@ class TestRequestPasswordResetUseCase:
 
         # Assert
         assert result.success is False
+
+    async def test_execute_logs_a_send_error_without_the_address(
+        self, use_case, mock_email_service, caplog
+    ):
+        """Test that a failing mail server does not put the address in the logs."""
+        # Arrange
+        mock_email_service.send_password_reset_email.side_effect = RuntimeError(
+            "recipient director@example.com refused"
+        )
+
+        # Act
+        await use_case.execute("kuki aikikai")
+
+        # Assert
+        assert "director@example.com" not in caplog.text
+        assert "RuntimeError" in caplog.text

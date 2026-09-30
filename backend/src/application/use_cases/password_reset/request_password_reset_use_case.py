@@ -97,7 +97,7 @@ class RequestPasswordResetUseCase:
                 reset_url=reset_url
             )
         except Exception as e:
-            logger.error(f"Error sending password reset email: {e}")
+            logger.error(f"Error sending password reset email: {type(e).__name__}")
             return False
 
         if not email_sent:

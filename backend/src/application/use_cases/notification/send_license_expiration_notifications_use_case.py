@@ -117,7 +117,7 @@ class SendLicenseExpirationNotificationsUseCase:
         )
 
         await self.email_service.send_email(email)
-        logger.info(f"Sent {days_before}-day expiration notice to {member.email} for license {license.license_number}")
+        logger.info(f"Sent {days_before}-day expiration notice to member {member.id} for license {license.id}")
 
     def _get_email_subject(self, days_before: int) -> str:
         """Generate email subject based on days until expiration."""
