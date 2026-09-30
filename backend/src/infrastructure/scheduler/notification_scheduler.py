@@ -1,7 +1,7 @@
 """Background scheduler for sending notifications."""
 import asyncio
 import logging
-from datetime import datetime, time
+from datetime import datetime, timedelta
 from typing import Optional
 import os
 
@@ -56,22 +56,23 @@ class NotificationScheduler:
         logger.info("Running notification job manually")
         return await self.notification_use_case.execute()
 
+    def _next_run(self, now: datetime) -> datetime:
+        target_time = now.replace(
+            hour=self.run_hour,
+            minute=self.run_minute,
+            second=0,
+            microsecond=0,
+        )
+        if now >= target_time:
+            target_time += timedelta(days=1)
+        return target_time
+
     async def _scheduler_loop(self) -> None:
         """Main scheduler loop that runs the job at the configured time."""
         while self._running:
             try:
                 now = datetime.utcnow()
-                target_time = now.replace(
-                    hour=self.run_hour,
-                    minute=self.run_minute,
-                    second=0,
-                    microsecond=0,
-                )
-
-                # If we've passed today's run time, schedule for tomorrow
-                if now >= target_time:
-                    target_time = target_time.replace(day=target_time.day + 1)
-
+                target_time = self._next_run(now)
                 wait_seconds = (target_time - now).total_seconds()
                 logger.debug(f"Next notification run scheduled in {wait_seconds:.0f} seconds")
 
