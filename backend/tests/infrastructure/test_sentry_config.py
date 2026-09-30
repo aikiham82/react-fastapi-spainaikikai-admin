@@ -56,6 +56,15 @@ def test_before_send_redacts_email_addresses_anywhere_in_the_event():
 
 
 @pytest.mark.unit
+def test_before_send_redacts_email_addresses_used_as_keys():
+    frame_vars = {"senderrs": {"ana@example.com": "(550, 'no')"}}
+
+    redacted = before_send({"exception": {"values": [{"stacktrace": {"frames": [{"vars": frame_vars}]}}]}}, {})
+
+    assert "ana@example.com" not in str(redacted)
+
+
+@pytest.mark.unit
 def test_before_breadcrumb_redacts_email_addresses_in_the_message():
     crumb = {"category": "src.email", "message": "Email sent to ana.maria+club@sub.example.com"}
 

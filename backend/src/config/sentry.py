@@ -10,7 +10,7 @@ def _redact_emails(value):
     if isinstance(value, str):
         return EMAIL_PATTERN.sub("[email]", value)
     if isinstance(value, dict):
-        return {key: _redact_emails(item) for key, item in value.items()}
+        return {_redact_emails(key): _redact_emails(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
         return [_redact_emails(item) for item in value]
     return value
