@@ -24,6 +24,7 @@ from src.infrastructure.web.dependencies import (
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
+    require_club_access,
     require_club_admin_ctx
 )
 from src.infrastructure.database import get_database
@@ -70,11 +71,7 @@ async def _require_access_to_member(ctx: AuthContext, member_id: Optional[str]) 
     require_club_admin_ctx(ctx)
     if ctx.is_super_admin:
         return
-    if not member_id or await _get_member_club_id(member_id) != ctx.club_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this insurance"
-        )
+    require_club_access(ctx, await _get_member_club_id(member_id), "Access denied to this insurance")
 
 
 @router.get("", response_model=InsuranceListResponse)

@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-02T00:00:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Club admin cross-club scoping
@@ -60,12 +70,12 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests listed above.
-- [ ] Add `require_club_access` and `require_member_access`, and make the helpers in `routers/members.py` and `routers/insurances.py` call them.
-- [ ] Scope the payment handlers and restrict the refund to a super admin.
-- [ ] Scope the member payment handlers.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests listed above.
+- [x] Add `require_club_access` and `require_member_access`, and make the helpers in `routers/members.py` and `routers/insurances.py` call them.
+- [x] Scope the payment handlers and restrict the refund to a super admin.
+- [x] Scope the member payment handlers. `GET /member-payments/club/{club_id}` was already super admin only.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: invoices and licences
 
@@ -104,6 +114,6 @@ To-do:
 
 ## ⏭️ Next step
 
-Implement Phase 1, payments and member payments.
+Implement Phase 2, invoices and licences.
 
-Each club keeps to its own tatami: plan laid out by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+The till is locked per club before anything else: 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
