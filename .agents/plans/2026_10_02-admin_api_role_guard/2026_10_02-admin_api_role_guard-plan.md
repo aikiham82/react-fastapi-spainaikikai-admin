@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-02T00:00:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Admin API role guard
@@ -70,13 +80,13 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests listed above.
-- [ ] Add `require_admin_access` and apply it when including the administration routers.
-- [ ] Move the Redsys webhook to `public_router` and include it without the guard.
-- [ ] Restrict `GET /users/{user_id}` to a super admin or the account itself.
-- [ ] Update the two documents.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests listed above.
+- [x] Add `require_admin_access` and apply it when including the administration routers.
+- [x] Move the Redsys webhook to `public_router` and include it without the guard.
+- [x] Restrict `GET /users/{user_id}` to a super admin or the account itself.
+- [x] Update the two documents.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: member endpoints hold a club admin to their club
 
@@ -100,6 +110,6 @@ To-do:
 
 ## ⏭️ Next step
 
-Implement Phase 1, the administration API requires an admin.
+Implement Phase 2, member endpoints hold a club admin to their club.
 
-Nobody walks into the dojo without a belt: plan guarded by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+The door now checks belts before anyone steps on the mat: 🚪 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
