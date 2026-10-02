@@ -24,8 +24,7 @@ from src.infrastructure.web.dependencies import (
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
-    check_club_access_ctx,
-    get_club_filter_ctx
+    require_club_admin_ctx
 )
 from src.infrastructure.database import get_database
 
@@ -66,6 +65,18 @@ async def _populate_member_names(items: List[InsuranceResponse]) -> List[Insuran
     return items
 
 
+async def _require_access_to_member(ctx: AuthContext, member_id: Optional[str]) -> None:
+    """Allow a super admin, or a club admin when the member belongs to their club."""
+    require_club_admin_ctx(ctx)
+    if ctx.is_super_admin:
+        return
+    if not member_id or await _get_member_club_id(member_id) != ctx.club_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this insurance"
+        )
+
+
 @router.get("", response_model=InsuranceListResponse)
 async def get_insurances(
     limit: int = 0,
@@ -76,18 +87,13 @@ async def get_insurances(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all insurances, optionally filtered by club or member."""
-    # Club admins are forced to their club only
-    effective_club_id = get_club_filter_ctx(ctx)
+    require_club_admin_ctx(ctx)
+    if not ctx.is_super_admin:
+        if member_id:
+            await _require_access_to_member(ctx, member_id)
+        club_id = ctx.club_id
 
-    if effective_club_id is not None:
-        # Club admin - use their club_id (ignore query param)
-        insurances = await get_all_use_case.execute(limit, effective_club_id, member_id)
-    elif club_id:
-        # Super admin with explicit club filter
-        insurances = await get_all_use_case.execute(limit, club_id, member_id)
-    else:
-        # Super admin - see all insurances
-        insurances = await get_all_use_case.execute(limit, None, member_id)
+    insurances = await get_all_use_case.execute(limit, club_id, member_id)
 
     items = InsuranceMapper.to_response_list(insurances)
     items = await _populate_member_names(items)
@@ -99,32 +105,24 @@ async def get_insurances(
     )
 
 
-@router.get("/{insurance_id}", response_model=InsuranceResponse)
-async def get_insurance(
-    insurance_id: str,
-    get_insurance_use_case = Depends(get_insurance_use_case),
+@router.get("/expiring", response_model=List[InsuranceResponse])
+async def get_expiring_insurances(
+    days: int = 30,
+    limit: int = 0,
+    get_expiring_use_case = Depends(get_expiring_insurances_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get insurance by ID."""
-    insurance = await get_insurance_use_case.execute(insurance_id)
+    """Get insurances expiring soon."""
+    require_club_admin_ctx(ctx)
+    insurances = await get_expiring_use_case.execute(days, limit)
 
-    # Verify club access through member
-    if insurance.member_id and ctx.is_club_admin:
-        member_club_id = await _get_member_club_id(insurance.member_id)
-        if member_club_id:
-            check_club_access_ctx(ctx, member_club_id)
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to this insurance"
-            )
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this insurance"
-        )
+    if not ctx.is_super_admin:
+        insurances = [
+            ins for ins in insurances
+            if await _get_member_club_id(ins.member_id) == ctx.club_id
+        ]
 
-    return InsuranceMapper.to_response_dto(insurance)
+    return InsuranceMapper.to_response_list(insurances)
 
 
 @router.get("/member/{member_id}", response_model=List[InsuranceResponse])
@@ -135,39 +133,24 @@ async def get_insurances_by_member(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get insurances by member ID."""
-    # Verify club admin can access this member
-    if ctx.is_club_admin:
-        member_club_id = await _get_member_club_id(member_id)
-        if member_club_id != ctx.club_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to this member's insurances"
-            )
+    await _require_access_to_member(ctx, member_id)
 
     insurances = await get_all_use_case.execute(limit, club_id=None, member_id=member_id)
     return InsuranceMapper.to_response_list(insurances)
 
 
-@router.get("/expiring", response_model=List[InsuranceResponse])
-async def get_expiring_insurances(
-    days: int = 30,
-    limit: int = 0,
-    get_expiring_use_case = Depends(get_expiring_insurances_use_case),
+@router.get("/{insurance_id}", response_model=InsuranceResponse)
+async def get_insurance(
+    insurance_id: str,
+    get_insurance_use_case = Depends(get_insurance_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get insurances expiring soon."""
-    insurances = await get_expiring_use_case.execute(days, limit)
+    """Get insurance by ID."""
+    require_club_admin_ctx(ctx)
+    insurance = await get_insurance_use_case.execute(insurance_id)
+    await _require_access_to_member(ctx, insurance.member_id)
 
-    # Filter for club admins - only show their club's insurances
-    if ctx.is_club_admin:
-        filtered_insurances = []
-        for ins in insurances:
-            member_club_id = await _get_member_club_id(ins.member_id)
-            if member_club_id == ctx.club_id:
-                filtered_insurances.append(ins)
-        insurances = filtered_insurances
-
-    return InsuranceMapper.to_response_list(insurances)
+    return InsuranceMapper.to_response_dto(insurance)
 
 
 @router.post("", response_model=InsuranceResponse, status_code=status.HTTP_201_CREATED)
@@ -177,14 +160,7 @@ async def create_insurance(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new insurance."""
-    # Verify member access for club admins
-    if ctx.is_club_admin and insurance_data.member_id:
-        member_club_id = await _get_member_club_id(insurance_data.member_id)
-        if member_club_id != ctx.club_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot create insurance for a member in another club"
-            )
+    await _require_access_to_member(ctx, insurance_data.member_id)
 
     insurance = await get_create_use_case.execute(
         member_id=insurance_data.member_id,
@@ -208,23 +184,9 @@ async def update_insurance(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Update insurance."""
-    # First verify access to the insurance
+    require_club_admin_ctx(ctx)
     existing_insurance = await get_insurance_use_case_instance.execute(insurance_id)
-
-    if existing_insurance.member_id and ctx.is_club_admin:
-        member_club_id = await _get_member_club_id(existing_insurance.member_id)
-        if member_club_id:
-            check_club_access_ctx(ctx, member_club_id)
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to this insurance"
-            )
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this insurance"
-        )
+    await _require_access_to_member(ctx, existing_insurance.member_id)
 
     update_data = insurance_data.model_dump(exclude_none=True)
     insurance = await get_update_use_case.execute(insurance_id, **update_data)
@@ -239,23 +201,9 @@ async def delete_insurance(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete insurance."""
-    # First verify access to the insurance
+    require_club_admin_ctx(ctx)
     existing_insurance = await get_insurance_use_case_instance.execute(insurance_id)
-
-    if existing_insurance.member_id and ctx.is_club_admin:
-        member_club_id = await _get_member_club_id(existing_insurance.member_id)
-        if member_club_id:
-            check_club_access_ctx(ctx, member_club_id)
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to this insurance"
-            )
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this insurance"
-        )
+    await _require_access_to_member(ctx, existing_insurance.member_id)
 
     await get_delete_use_case.execute(insurance_id)
     return None
