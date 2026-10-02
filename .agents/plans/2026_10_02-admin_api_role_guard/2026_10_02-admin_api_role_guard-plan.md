@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "low"
 
 last_implementation_at: "2026-10-02T00:00:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # Admin API role guard
@@ -102,14 +102,14 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests listed above.
-- [ ] Replace the per-handler branches with one helper that requires a super admin, or a club admin of the member's club.
-- [ ] Scope list and search for club admins, and declare `/search` before `/{member_id}`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests listed above.
+- [x] Replace the per-handler branches with one helper that requires a super admin, or a club admin of the member's club.
+- [x] Scope list and search for club admins, and declare `/search` before `/{member_id}`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 2, member endpoints hold a club admin to their club.
+All phases are complete. The follow-up branch is the cross-club limits for club admins on invoices, payments and licences.
 
-The door now checks belts before anyone steps on the mat: 🚪 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Door checked, mat tidy, every club on its own tatami: 🚪 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
