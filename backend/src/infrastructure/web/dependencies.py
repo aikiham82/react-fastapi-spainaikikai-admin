@@ -671,7 +671,7 @@ async def get_current_active_user(
 
 
 # Import AuthContext for the new authentication pattern
-from src.infrastructure.web.authorization import AuthContext
+from src.infrastructure.web.authorization import AuthContext, require_club_admin_ctx
 
 
 async def get_auth_context(
@@ -688,6 +688,12 @@ async def get_auth_context(
         member = await member_repository.find_by_id(current_user.member_id)
 
     return AuthContext(user=current_user, member=member)
+
+
+async def require_admin_access(ctx: AuthContext = Depends(get_auth_context)) -> AuthContext:
+    """Refuse a caller who is neither a super admin nor a club admin."""
+    require_club_admin_ctx(ctx)
+    return ctx
 
 
 # Password reset repository and use cases

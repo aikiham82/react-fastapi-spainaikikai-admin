@@ -55,6 +55,7 @@ from src.application.use_cases.payment.register_manual_payment_use_case import M
 from src.config.settings import get_app_settings
 
 router = APIRouter(prefix="/payments", tags=["payments"])
+public_router = APIRouter(prefix="/payments", tags=["payments"])
 
 
 @router.get("", response_model=List[PaymentResponse])
@@ -234,7 +235,7 @@ async def initiate_annual_payment(
     )
 
 
-@router.post("/webhook", response_model=RedsysWebhookResponse)
+@public_router.post("/webhook", response_model=RedsysWebhookResponse)
 async def redsys_webhook(
     Ds_SignatureVersion: str = Form(...),
     Ds_MerchantParameters: str = Form(...),

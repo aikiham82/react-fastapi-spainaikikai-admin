@@ -5,6 +5,8 @@
 - **Authentication is OAuth2 with JWT tokens.** The token carries identity; authorisation is decided server-side from it, never from a value the client supplies.
 - **Passwords are hashed with bcrypt.** No other algorithm, no plaintext, no reversible encoding, not even in fixtures.
 - **Routes are protected on both sides.** The frontend hides what a user may not reach; the backend rejects it. Frontend gating is user experience, not security, so the backend check is never optional.
+- **The administration API requires an admin, and the rule lives in one place.** Every router except the public and self-service ones is included in `backend/src/app.py` with `require_admin_access`, which answers `403` unless the caller is a super admin or a club admin. A router added without it fails `backend/tests/api/test_admin_api_requires_admin.py`, which walks every route of the real application. A route meant for any caller is added to that test's open list on purpose, never by leaving the guard off.
+- **"No club" never means "no filter".** A user with no linked member has no club; only `ctx.is_super_admin` may lift a club filter.
 - **Configuration comes from the environment.** No credential, connection string, key or token is committed. `backend/.env*` is ignored except for `backend/.env.example`, which holds placeholders only.
 - **Validate at the boundary.** Every request body is a Pydantic DTO with real constraints; a query parameter reaching a Mongo filter is validated before it gets there.
 - **Errors do not leak internals.** Return a useful message and status to the client, log the detail server-side.

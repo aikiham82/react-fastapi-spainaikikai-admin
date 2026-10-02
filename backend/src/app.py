@@ -1,7 +1,7 @@
 """FastAPI application using hexagonal architecture."""
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,8 +15,11 @@ from src.infrastructure.web.routers.users import router as users_router
 from src.infrastructure.web.routers.clubs import router as clubs_router
 from src.infrastructure.web.routers.members import router as members_router
 from src.infrastructure.web.routers.licenses import router as licenses_router
+from src.infrastructure.web.routers.licenses import self_service_router as licenses_self_service_router
 from src.infrastructure.web.routers.seminars import router as seminars_router
 from src.infrastructure.web.routers.payments import router as payments_router
+from src.infrastructure.web.routers.payments import public_router as payments_public_router
+from src.infrastructure.web.dependencies import require_admin_access
 from src.infrastructure.web.routers.insurances import router as insurances_router
 from src.infrastructure.web.routers.dashboard import router as dashboard_router
 from src.infrastructure.web.routers.import_export import router as import_export_router
@@ -111,18 +114,22 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(users_router, prefix="/api/v1")
-    app.include_router(clubs_router, prefix="/api/v1")
-    app.include_router(members_router, prefix="/api/v1")
-    app.include_router(licenses_router, prefix="/api/v1")
-    app.include_router(seminars_router, prefix="/api/v1")
-    app.include_router(payments_router, prefix="/api/v1")
-    app.include_router(insurances_router, prefix="/api/v1")
-    app.include_router(dashboard_router, prefix="/api")
-    app.include_router(import_export_router, prefix="/api/v1")
-    app.include_router(price_configurations_router, prefix="/api/v1")
-    app.include_router(invoices_router, prefix="/api/v1")
     app.include_router(password_reset_router, prefix="/api/v1")
-    app.include_router(member_payments_router, prefix="/api/v1")
+    app.include_router(payments_public_router, prefix="/api/v1")
+    app.include_router(licenses_self_service_router, prefix="/api/v1")
+
+    admin_only = [Depends(require_admin_access)]
+    app.include_router(clubs_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(members_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(licenses_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(seminars_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(payments_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(insurances_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(dashboard_router, prefix="/api", dependencies=admin_only)
+    app.include_router(import_export_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(price_configurations_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(invoices_router, prefix="/api/v1", dependencies=admin_only)
+    app.include_router(member_payments_router, prefix="/api/v1", dependencies=admin_only)
 
     @app.get("/")
     async def root():

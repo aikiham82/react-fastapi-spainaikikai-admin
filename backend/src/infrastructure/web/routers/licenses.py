@@ -39,6 +39,20 @@ from src.domain.exceptions.license import LicenseNotFoundError, LicenseImageGene
 from src.domain.exceptions.member import MemberNotFoundError
 
 router = APIRouter(prefix="/licenses", tags=["licenses"])
+self_service_router = APIRouter(prefix="/licenses", tags=["licenses"])
+
+
+def _is_admin(ctx: AuthContext) -> bool:
+    return ctx.is_super_admin or ctx.is_club_admin
+
+
+def _require_own_member(ctx: AuthContext, member_id: Optional[str]) -> None:
+    """A member who administers nothing reads their own licence and no other."""
+    if not member_id or member_id != ctx.member_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this license"
+        )
 
 GRADE_GROUP_ORDER = {"shidoin": 0, "fukushidoin": 1, "dan": 2, "kyu": 3, "unknown": 4}
 
@@ -174,7 +188,7 @@ async def get_licenses(
     )
 
 
-@router.get("/{license_id}/image")
+@self_service_router.get("/{license_id}/image")
 async def get_license_image(
     license_id: str,
     generate_image_use_case = Depends(get_generate_license_image_use_case),
@@ -185,6 +199,15 @@ async def get_license_image(
 
     Returns a PNG image of the license card with member data overlaid.
     """
+    if not _is_admin(ctx):
+        _require_own_member(ctx, ctx.member_id)
+        license = await get_license_use_case_instance.execute(license_id)
+        if license.member_id != ctx.member_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"License with ID {license_id} not found"
+            )
+
     try:
         result = await generate_image_use_case.execute(license_id)
         return StreamingResponse(
@@ -222,7 +245,7 @@ async def get_license(
     return LicenseMapper.to_response_dto(license)
 
 
-@router.get("/member/{member_id}", response_model=List[LicenseResponse])
+@self_service_router.get("/member/{member_id}", response_model=List[LicenseResponse])
 async def get_licenses_by_member(
     member_id: str,
     limit: int = 0,
@@ -230,9 +253,10 @@ async def get_licenses_by_member(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get licenses by member ID."""
-    # Club admins are forced to their club only
-    effective_club_id = get_club_filter_ctx(ctx)
-    licenses = await get_all_use_case.execute(limit, club_id=effective_club_id, member_id=member_id)
+    if not _is_admin(ctx):
+        _require_own_member(ctx, member_id)
+
+    licenses = await get_all_use_case.execute(limit, club_id=None, member_id=member_id)
 
     return LicenseMapper.to_response_list(licenses)
 

@@ -97,9 +97,18 @@ def get_club_filter_ctx(ctx: AuthContext) -> Optional[str]:
 
     Returns:
         club_id to filter by, or None for no filter
+
+    Raises:
+        HTTPException: 403 Forbidden if a caller who is not a super admin has no club
     """
     if ctx.is_super_admin:
         return None  # No filter - see all clubs/members
+
+    if not ctx.club_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This action requires a club"
+        )
 
     return ctx.club_id
 

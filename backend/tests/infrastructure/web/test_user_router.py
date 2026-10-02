@@ -512,18 +512,21 @@ class TestGetUserByIdEndpoint:
     def test_get_user_by_id_not_found_returns_404(
         self, test_app, user_entity_with_id
     ):
-        """Test getting nonexistent user by ID returns 404."""
+        """A super admin asking for a nonexistent user by ID gets 404."""
         # Arrange - Mock dependencies using FastAPI's dependency override
+        from dataclasses import replace
+        from src.domain.entities.user import GlobalRole
         from src.infrastructure.web.dependencies import get_user_by_id_use_case, get_current_active_user
-        
+
         user_id = "nonexistent_id"
-        
+        super_admin = replace(user_entity_with_id, global_role=GlobalRole.SUPER_ADMIN)
+
         mock_use_case = AsyncMock()
         mock_use_case.execute.side_effect = UserNotFoundError(user_id)
-        
+
         # Override dependencies
         test_app.dependency_overrides[get_user_by_id_use_case] = lambda: mock_use_case
-        test_app.dependency_overrides[get_current_active_user] = lambda: user_entity_with_id
+        test_app.dependency_overrides[get_current_active_user] = lambda: super_admin
         
         client = TestClient(test_app)
         

@@ -31,11 +31,22 @@ from src.infrastructure.web.dependencies import (
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
-    check_club_access_ctx,
-    get_club_filter_ctx,
+    require_club_admin_ctx,
 )
 
 router = APIRouter(prefix="/members", tags=["members"])
+
+
+def _require_access_to_club(ctx: AuthContext, club_id: Optional[str]) -> None:
+    """Allow a super admin, or a club admin when the club is their own."""
+    require_club_admin_ctx(ctx)
+    if ctx.is_super_admin:
+        return
+    if not club_id or club_id != ctx.club_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes acceso a este miembro"
+        )
 
 
 def _pick_primary_license(licenses: List[License]) -> Optional[License]:
@@ -152,74 +163,20 @@ async def get_members(
     club_repo = Depends(get_club_repository),
 ):
     """Get all members, optionally filtered by club, search term, or status."""
+    if not ctx.is_super_admin:
+        _require_access_to_club(ctx, ctx.club_id)
+        club_id = ctx.club_id
+
     if search:
         members = await get_search_use_case.execute(search, limit)
-        # For club admins, filter to only return members from their club
-        effective_club_id = get_club_filter_ctx(ctx)
-        if effective_club_id is not None:
-            members = [m for m in members if m.club_id == effective_club_id]
-        elif club_id:
+        if club_id:
             members = [m for m in members if m.club_id == club_id]
     else:
-        # Club admins are forced to their club only
-        effective_club_id = get_club_filter_ctx(ctx)
-
-        if effective_club_id is not None:
-            members = await get_all_use_case.execute(limit, effective_club_id)
-        elif club_id:
-            members = await get_all_use_case.execute(limit, club_id)
-        else:
-            members = await get_all_use_case.execute(limit, None)
+        members = await get_all_use_case.execute(limit, club_id)
 
     if status:
         members = [m for m in members if m.status.value == status]
 
-    responses = MemberMapper.to_response_list(members)
-    responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
-    return await _enrich_members_with_club_names(responses, club_repo)
-
-
-@router.get("/{member_id}", response_model=MemberResponse)
-async def get_member(
-    member_id: str,
-    get_member_use_case = Depends(get_member_use_case),
-    ctx: AuthContext = Depends(get_auth_context),
-    license_repo = Depends(get_license_repository),
-    insurance_repo = Depends(get_insurance_repository),
-    club_repo = Depends(get_club_repository),
-):
-    """Get member by ID."""
-    member = await get_member_use_case.execute(member_id)
-
-    # Verify club access
-    if member.club_id:
-        check_club_access_ctx(ctx, member.club_id)
-    elif ctx.is_club_admin:
-        # Member has no club, but user is club admin - deny
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este miembro"
-        )
-
-    response = MemberMapper.to_response_dto(member)
-    enriched = await _enrich_members_with_summaries([response], license_repo, insurance_repo)
-    enriched = await _enrich_members_with_club_names(enriched, club_repo)
-    return enriched[0]
-
-
-@router.get("/club/{club_id}", response_model=List[MemberResponse])
-async def get_members_by_club(
-    club_id: str,
-    limit: int = 0,
-    get_all_use_case = Depends(get_all_members_use_case),
-    ctx: AuthContext = Depends(get_auth_context),
-    license_repo = Depends(get_license_repository),
-    insurance_repo = Depends(get_insurance_repository),
-    club_repo = Depends(get_club_repository),
-):
-    """Get members by club ID."""
-    check_club_access_ctx(ctx, club_id)
-    members = await get_all_use_case.execute(limit, club_id)
     responses = MemberMapper.to_response_list(members)
     responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
     return await _enrich_members_with_club_names(responses, club_repo)
@@ -236,15 +193,54 @@ async def search_members(
     club_repo = Depends(get_club_repository),
 ):
     """Search members by name."""
+    if not ctx.is_super_admin:
+        _require_access_to_club(ctx, ctx.club_id)
     members = await get_search_use_case.execute(name, limit)
 
-    # For club admins, filter to only return members from their club
-    if ctx.is_club_admin:
+    if not ctx.is_super_admin:
         members = [m for m in members if m.club_id == ctx.club_id]
 
     responses = MemberMapper.to_response_list(members)
     responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
     return await _enrich_members_with_club_names(responses, club_repo)
+
+
+@router.get("/club/{club_id}", response_model=List[MemberResponse])
+async def get_members_by_club(
+    club_id: str,
+    limit: int = 0,
+    get_all_use_case = Depends(get_all_members_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+    license_repo = Depends(get_license_repository),
+    insurance_repo = Depends(get_insurance_repository),
+    club_repo = Depends(get_club_repository),
+):
+    """Get members by club ID."""
+    _require_access_to_club(ctx, club_id)
+    members = await get_all_use_case.execute(limit, club_id)
+    responses = MemberMapper.to_response_list(members)
+    responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    return await _enrich_members_with_club_names(responses, club_repo)
+
+
+@router.get("/{member_id}", response_model=MemberResponse)
+async def get_member(
+    member_id: str,
+    get_member_use_case = Depends(get_member_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+    license_repo = Depends(get_license_repository),
+    insurance_repo = Depends(get_insurance_repository),
+    club_repo = Depends(get_club_repository),
+):
+    """Get member by ID."""
+    require_club_admin_ctx(ctx)
+    member = await get_member_use_case.execute(member_id)
+    _require_access_to_club(ctx, member.club_id)
+
+    response = MemberMapper.to_response_dto(member)
+    enriched = await _enrich_members_with_summaries([response], license_repo, insurance_repo)
+    enriched = await _enrich_members_with_club_names(enriched, club_repo)
+    return enriched[0]
 
 
 @router.post("", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)
@@ -254,21 +250,16 @@ async def create_member(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new member."""
-    # Determine effective club_id
     effective_club_id = member_data.club_id
 
-    if ctx.is_club_admin:
-        # Club admin must create members in their own club
+    if not ctx.is_super_admin:
+        _require_access_to_club(ctx, ctx.club_id)
         if member_data.club_id and member_data.club_id != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="No puedes crear un miembro en otro club"
             )
-        # Force club_id to be the user's club
         effective_club_id = ctx.club_id
-    elif member_data.club_id:
-        # Association admin with explicit club - verify it exists (optional)
-        check_club_access_ctx(ctx, member_data.club_id)
 
     member = await get_create_use_case.execute(
         first_name=member_data.first_name,
@@ -296,20 +287,12 @@ async def update_member(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Update member."""
-    # First fetch the member to check access
+    require_club_admin_ctx(ctx)
     existing_member = await get_member_use_case_instance.execute(member_id)
+    _require_access_to_club(ctx, existing_member.club_id)
 
-    if existing_member.club_id:
-        check_club_access_ctx(ctx, existing_member.club_id)
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este miembro"
-        )
-
-    # Prevent club_id change by club_admin
     update_data = member_data.model_dump(exclude_none=True)
-    if ctx.is_club_admin and 'club_id' in update_data:
+    if not ctx.is_super_admin and 'club_id' in update_data:
         if update_data['club_id'] != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -331,15 +314,9 @@ async def change_member_status(
     insurance_repo = Depends(get_insurance_repository),
 ):
     """Change member status (activate/deactivate)."""
+    require_club_admin_ctx(ctx)
     existing_member = await get_member_use_case_instance.execute(member_id)
-
-    if existing_member.club_id:
-        check_club_access_ctx(ctx, existing_member.club_id)
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este miembro"
-        )
+    _require_access_to_club(ctx, existing_member.club_id)
 
     member = await change_status_use_case.execute(member_id, status_data.status)
     response = MemberMapper.to_response_dto(member)
@@ -355,16 +332,9 @@ async def delete_member(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Delete member."""
-    # First fetch the member to check access
+    require_club_admin_ctx(ctx)
     existing_member = await get_member_use_case_instance.execute(member_id)
-
-    if existing_member.club_id:
-        check_club_access_ctx(ctx, existing_member.club_id)
-    elif ctx.is_club_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este miembro"
-        )
+    _require_access_to_club(ctx, existing_member.club_id)
 
     await get_delete_use_case.execute(member_id)
     return None

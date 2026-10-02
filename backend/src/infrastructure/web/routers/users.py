@@ -315,7 +315,13 @@ async def get_user(
     get_user_by_id_use_case: GetUserByIdUseCase = Depends(get_user_by_id_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get user by ID (requires authentication)."""
+    """Get user by ID (super admin, or the account itself)."""
+    if not ctx.is_super_admin and ctx.user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this account"
+        )
+
     try:
         user = await get_user_by_id_use_case.execute(user_id)
         return UserMapper.to_response(user)
