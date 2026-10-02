@@ -89,11 +89,20 @@ def test_a_member_downloads_the_image_of_their_own_licence(client_as):
     assert response.content == b"png"
 
 
-def test_a_member_is_refused_the_image_of_another_members_licence(client_as, use_cases):
+def test_another_members_licence_image_looks_like_a_missing_one(client_as, use_cases):
     response = client_as(plain_member(), licence_owner=OTHER_MEMBER).get("/api/v1/licenses/licence-id/image")
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     use_cases.image.execute.assert_not_called()
+
+
+def test_a_member_whose_club_is_missing_still_lists_their_own_licences(client_as):
+    ctx = plain_member()
+    ctx.member.club_id = None
+
+    response = client_as(ctx).get(f"/api/v1/licenses/member/{OWN_MEMBER}")
+
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_a_user_with_no_member_is_refused_both(client_as, use_cases):

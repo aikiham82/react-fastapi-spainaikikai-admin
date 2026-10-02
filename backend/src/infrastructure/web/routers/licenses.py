@@ -202,7 +202,11 @@ async def get_license_image(
     if not _is_admin(ctx):
         _require_own_member(ctx, ctx.member_id)
         license = await get_license_use_case_instance.execute(license_id)
-        _require_own_member(ctx, license.member_id)
+        if license.member_id != ctx.member_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"License with ID {license_id} not found"
+            )
 
     try:
         result = await generate_image_use_case.execute(license_id)
@@ -252,9 +256,7 @@ async def get_licenses_by_member(
     if not _is_admin(ctx):
         _require_own_member(ctx, member_id)
 
-    # Club admins are forced to their club only
-    effective_club_id = get_club_filter_ctx(ctx)
-    licenses = await get_all_use_case.execute(limit, club_id=effective_club_id, member_id=member_id)
+    licenses = await get_all_use_case.execute(limit, club_id=None, member_id=member_id)
 
     return LicenseMapper.to_response_list(licenses)
 
