@@ -31,6 +31,7 @@ from src.infrastructure.web.dependencies import (
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
+    require_club_access,
     require_club_admin_ctx,
 )
 
@@ -39,14 +40,7 @@ router = APIRouter(prefix="/members", tags=["members"])
 
 def _require_access_to_club(ctx: AuthContext, club_id: Optional[str]) -> None:
     """Allow a super admin, or a club admin when the club is their own."""
-    require_club_admin_ctx(ctx)
-    if ctx.is_super_admin:
-        return
-    if not club_id or club_id != ctx.club_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes acceso a este miembro"
-        )
+    require_club_access(ctx, club_id, "No tienes acceso a este miembro")
 
 
 def _pick_primary_license(licenses: List[License]) -> Optional[License]:

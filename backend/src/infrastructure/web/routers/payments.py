@@ -34,8 +34,13 @@ from src.infrastructure.web.dependencies import (
     get_delete_payment_use_case,
     get_process_redsys_webhook_use_case
 )
-from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext, require_super_admin
+from src.infrastructure.web.dependencies import get_auth_context, get_member_repository
+from src.infrastructure.web.authorization import (
+    AuthContext,
+    require_club_access,
+    require_member_access,
+    require_super_admin,
+)
 from src.domain.exceptions.payment import (
     DuplicatePaymentForYearError,
     PaymentNotFoundError,
@@ -57,6 +62,17 @@ from src.config.settings import get_app_settings
 router = APIRouter(prefix="/payments", tags=["payments"])
 public_router = APIRouter(prefix="/payments", tags=["payments"])
 
+PAYMENT_DENIED = "Access denied to this payment"
+SEMINAR_PAYMENT_TYPES = {"seminar", "seminar_oficialidad"}
+
+
+async def _require_payment_access(ctx: AuthContext, payment, member_repository) -> None:
+    """A payment belongs to its club, or to the club of its member when it has no club."""
+    if payment.club_id or not payment.member_id:
+        require_club_access(ctx, payment.club_id, PAYMENT_DENIED)
+    else:
+        await require_member_access(ctx, payment.member_id, member_repository, PAYMENT_DENIED)
+
 
 @router.get("", response_model=List[PaymentResponse])
 async def get_payments(
@@ -65,9 +81,16 @@ async def get_payments(
     member_id: Optional[str] = None,
     payment_year: Optional[int] = None,
     get_all_use_case = Depends(get_all_payments_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all payments, optionally filtered by club, member, or year."""
+    if not ctx.is_super_admin:
+        require_club_access(ctx, ctx.club_id)
+        if member_id:
+            await require_member_access(ctx, member_id, member_repository)
+        club_id = ctx.club_id
+
     payments = await get_all_use_case.execute(limit, club_id, member_id, payment_year)
     return PaymentMapper.to_response_list(payments)
 
@@ -80,6 +103,7 @@ async def prefill_annual_payment(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Get prefill data for the annual payment form based on club members."""
+    require_club_access(ctx, club_id)
     result = await get_prefill_use_case.execute(
         club_id=club_id,
         payment_year=payment_year,
@@ -113,10 +137,12 @@ async def prefill_annual_payment(
 async def get_payment(
     payment_id: str,
     get_payment_use_case = Depends(get_payment_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get payment by ID."""
     payment = await get_payment_use_case.execute(payment_id)
+    await _require_payment_access(ctx, payment, member_repository)
     return PaymentMapper.to_response_dto(payment)
 
 
@@ -124,9 +150,19 @@ async def get_payment(
 async def initiate_payment(
     payment_request: InitiatePaymentRequest,
     get_initiate_use_case = Depends(get_initiate_redsys_payment_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Initiate payment through Redsys."""
+    require_club_access(ctx, payment_request.club_id)
+    if payment_request.member_id:
+        await require_member_access(ctx, payment_request.member_id, member_repository)
+    if not ctx.is_super_admin and payment_request.payment_type in SEMINAR_PAYMENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seminar payments are started from the seminar"
+        )
+
     app_settings = get_app_settings()
 
     # Build URLs for Redsys callbacks
@@ -166,9 +202,20 @@ async def initiate_payment(
 async def initiate_annual_payment(
     payment_request: InitiateAnnualPaymentRequest,
     get_initiate_use_case = Depends(get_initiate_annual_payment_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Initiate annual payment through Redsys."""
+    require_club_access(ctx, payment_request.club_id)
+    if not ctx.is_super_admin and payment_request.member_assignments:
+        club_members = await member_repository.find_by_club_id(ctx.club_id, limit=0)
+        own_member_ids = {member.id for member in club_members}
+        if any(a.member_id not in own_member_ids for a in payment_request.member_assignments):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied to this member"
+            )
+
     app_settings = get_app_settings()
 
     # Build URLs for Redsys callbacks
@@ -277,7 +324,8 @@ async def refund_payment(
     get_refund_use_case = Depends(get_refund_payment_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Refund payment."""
+    """Refund payment. Super admin only."""
+    require_super_admin(ctx)
     payment = await get_refund_use_case.execute(payment_id, refund_data.refund_amount)
     return PaymentMapper.to_response_dto(payment)
 
@@ -286,10 +334,12 @@ async def refund_payment(
 async def get_payment_status(
     payment_id: str,
     get_payment_use_case = Depends(get_payment_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Check payment status."""
     payment = await get_payment_use_case.execute(payment_id)
+    await _require_payment_access(ctx, payment, member_repository)
     return PaymentMapper.to_response_dto(payment)
 
 

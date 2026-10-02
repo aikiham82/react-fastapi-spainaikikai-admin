@@ -33,12 +33,14 @@ from src.infrastructure.web.dependencies import (
     get_club_repository
 )
 from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx
+from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx, require_club_access
 from src.domain.entities.license import LicenseStatus, TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType, InsuranceStatus
 from src.domain.entities.member_payment import MemberPaymentType, MemberPaymentStatus, MemberPayment
 
 router = APIRouter(prefix="/import-export", tags=["import-export"])
+
+IMPORT_OTHER_CLUB_ERROR = "No puedes importar miembros en otro club"
 
 
 def _parse_date(value) -> Optional[datetime]:
@@ -65,6 +67,9 @@ async def import_members(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Import members from Excel data. Supports 'create' and 'upsert' modes."""
+    if not ctx.is_super_admin:
+        require_club_access(ctx, ctx.club_id)
+
     imported = 0
     updated = 0
     failed = 0
@@ -86,6 +91,13 @@ async def import_members(
             country = row.get('country') or row.get('País') or row.get('pais') or 'España'
             club_id = row.get('club_id') or row.get('Club ID') or None
             birth_date_str = row.get('birth_date') or row.get('Fecha Nacimiento') or row.get('fecha_nacimiento') or None
+
+            if not ctx.is_super_admin:
+                if club_id and club_id != ctx.club_id:
+                    errors.append(f"Fila {idx + 1}: {IMPORT_OTHER_CLUB_ERROR}")
+                    failed += 1
+                    continue
+                club_id = ctx.club_id
 
             birth_date = None
             if birth_date_str:
@@ -112,6 +124,11 @@ async def import_members(
                     existing = await member_repo.find_by_dni(dni)
                 if not existing and email:
                     existing = await member_repo.find_by_email(email)
+
+                if existing and not ctx.is_super_admin and existing.club_id != ctx.club_id:
+                    errors.append(f"Fila {idx + 1}: {IMPORT_OTHER_CLUB_ERROR}")
+                    failed += 1
+                    continue
 
                 if existing:
                     update_fields = {}

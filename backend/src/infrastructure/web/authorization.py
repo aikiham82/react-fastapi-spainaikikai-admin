@@ -145,3 +145,44 @@ def require_club_admin_ctx(ctx: AuthContext) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="This action requires club admin privileges"
         )
+
+
+def require_club_access(
+    ctx: AuthContext,
+    club_id: Optional[str],
+    detail: str = "Access denied to this club"
+) -> None:
+    """
+    Hold a club admin to their own club.
+
+    A super admin passes. A club admin passes only when club_id is their own,
+    so a record with no club is refused to them.
+
+    Raises:
+        HTTPException: 403 Forbidden otherwise
+    """
+    require_club_admin_ctx(ctx)
+    if ctx.is_super_admin:
+        return
+    if not club_id or club_id != ctx.club_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
+
+
+async def require_member_access(
+    ctx: AuthContext,
+    member_id: Optional[str],
+    member_repository,
+    detail: str = "Access denied to this member"
+) -> None:
+    """
+    Hold a club admin to the members of their own club.
+
+    Raises:
+        HTTPException: 403 Forbidden unless the caller is a super admin or
+            the member belongs to the caller's club
+    """
+    require_club_admin_ctx(ctx)
+    if ctx.is_super_admin:
+        return
+    member = await member_repository.find_by_id(member_id) if member_id else None
+    require_club_access(ctx, member.club_id if member else None, detail)

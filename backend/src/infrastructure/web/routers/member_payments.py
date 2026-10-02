@@ -29,8 +29,14 @@ from src.infrastructure.web.dependencies import (
     get_update_member_payment_use_case,
     get_delete_member_payment_use_case,
     get_auth_context,
+    get_member_repository,
 )
-from src.infrastructure.web.authorization import AuthContext, require_super_admin
+from src.infrastructure.web.authorization import (
+    AuthContext,
+    require_club_access,
+    require_member_access,
+    require_super_admin,
+)
 from src.domain.exceptions.payment import (
     MemberPaymentNotFoundError,
     InvalidPaymentDataError,
@@ -44,6 +50,7 @@ async def get_member_payment_status(
     member_id: str,
     payment_year: Optional[int] = None,
     use_case=Depends(get_member_payment_status_use_case),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """
@@ -51,6 +58,7 @@ async def get_member_payment_status(
 
     Returns all payment types with paid/pending status.
     """
+    await require_member_access(ctx, member_id, member_repository)
     try:
         result = await use_case.execute(
             member_id=member_id,
@@ -85,6 +93,7 @@ async def get_member_payment_history(
     member_id: str,
     limit: int = 0,
     use_case=Depends(get_member_payment_history_use_case),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """
@@ -92,6 +101,7 @@ async def get_member_payment_history(
 
     Returns all historical payments sorted by year (newest first).
     """
+    await require_member_access(ctx, member_id, member_repository)
     try:
         result = await use_case.execute(
             member_id=member_id,
@@ -165,6 +175,7 @@ async def get_club_payment_summary(
 
     Returns aggregated stats and member-level payment status.
     """
+    require_club_access(ctx, club_id)
     try:
         result = await use_case.execute(
             club_id=club_id,
@@ -218,6 +229,7 @@ async def get_unpaid_members(
 
     If payment_type is not specified, returns all members without any payment.
     """
+    require_club_access(ctx, club_id)
     try:
         result = await use_case.execute(
             club_id=club_id,
