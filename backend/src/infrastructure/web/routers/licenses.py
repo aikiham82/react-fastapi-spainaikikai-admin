@@ -128,11 +128,14 @@ async def get_licenses(
     search: Optional[str] = None,
     status: Optional[str] = None,
     get_all_use_case = Depends(get_all_licenses_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all licenses, optionally filtered by club, member, status, or member name search."""
     # Club admins are forced to their club only
     effective_club_id = get_club_filter_ctx(ctx)
+    if member_id:
+        await require_member_access(ctx, member_id, member_repository, LICENSE_DENIED)
 
     # Status is computed in-domain (based on expiration_date), so we must
     # fetch all matching licenses from the DB and filter/paginate in memory.

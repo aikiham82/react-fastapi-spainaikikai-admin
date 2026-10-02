@@ -77,6 +77,14 @@ def test_a_club_admin_is_refused_the_licences_of_another_club(client_as, use_cas
     use_cases.get_all.execute.assert_not_called()
 
 
+def test_a_club_admin_cannot_list_the_licences_of_a_foreign_member(client_as, use_cases):
+    client = client_as(club_admin())
+
+    assert client.get(f"/api/v1/licenses?member_id={FOREIGN_MEMBER}").status_code == status.HTTP_403_FORBIDDEN
+    use_cases.get_all.execute.assert_not_called()
+    assert client.get(f"/api/v1/licenses?member_id={OWN_MEMBER}").status_code == status.HTTP_200_OK
+
+
 def test_a_club_admin_reads_the_licences_of_their_club(client_as):
     answered = by_licence(client_as(club_admin()), OWN_MEMBER)
 

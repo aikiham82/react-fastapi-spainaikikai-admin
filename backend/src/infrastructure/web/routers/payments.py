@@ -63,6 +63,7 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 public_router = APIRouter(prefix="/payments", tags=["payments"])
 
 PAYMENT_DENIED = "Access denied to this payment"
+SEMINAR_PAYMENT_TYPES = {"seminar", "seminar_oficialidad"}
 
 
 async def _require_payment_access(ctx: AuthContext, payment, member_repository) -> None:
@@ -156,6 +157,11 @@ async def initiate_payment(
     require_club_access(ctx, payment_request.club_id)
     if payment_request.member_id:
         await require_member_access(ctx, payment_request.member_id, member_repository)
+    if not ctx.is_super_admin and payment_request.payment_type in SEMINAR_PAYMENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seminar payments are started from the seminar"
+        )
 
     app_settings = get_app_settings()
 

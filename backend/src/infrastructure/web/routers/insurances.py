@@ -84,8 +84,8 @@ async def get_insurances(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all insurances, optionally filtered by club or member."""
-    require_club_admin_ctx(ctx)
     if not ctx.is_super_admin:
+        require_club_access(ctx, ctx.club_id)
         if member_id:
             await _require_access_to_member(ctx, member_id)
         club_id = ctx.club_id
@@ -110,7 +110,8 @@ async def get_expiring_insurances(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get insurances expiring soon."""
-    require_club_admin_ctx(ctx)
+    if not ctx.is_super_admin:
+        require_club_access(ctx, ctx.club_id)
     insurances = await get_expiring_use_case.execute(days, limit)
 
     if not ctx.is_super_admin:

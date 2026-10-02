@@ -154,6 +154,7 @@ def test_a_payment_with_no_club_follows_the_club_of_its_member(client_as, use_ca
     {"club_id": OTHER_CLUB, "payment_type": "license", "amount": 10},
     {"club_id": OWN_CLUB, "member_id": FOREIGN_MEMBER, "payment_type": "license", "amount": 10},
     {"payment_type": "license", "amount": 10},
+    {"club_id": OWN_CLUB, "payment_type": "seminar_oficialidad", "amount": 10, "related_entity_id": "seminar-foreign"},
 ])
 def test_a_club_admin_cannot_start_a_payment_outside_their_club(client_as, use_cases, body):
     response = client_as(club_admin()).post("/api/v1/payments/initiate", json=body)
