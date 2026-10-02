@@ -41,7 +41,7 @@ Root cause, established with systematic debugging and reproduced on a local inst
 
 Findings that shape the plan:
 
-- The mobile app calls no `/api/v1` endpoint, so guarding the routers breaks no member-facing client.
+- Corrected after code review: the mobile app does call the API. A plain member reads `GET /licenses/member/{member_id}` and `GET /licenses/{license_id}/image` to see their own licence, besides login and `GET /users/me`. Those two routes live in a `self_service_router` in `routers/licenses.py`, outside the admin guard, and a caller who administers nothing may only use them for their own member. `tests/api/test_license_self_service.py` covers them. The first research missed this because the mobile client uses paths relative to its base URL.
 - A plain member reads their own data through `GET /users/me`, which stays open to any authenticated user.
 - Self-registration stays open by the user's decision. After Phase 1 such an account can reach nothing but its own profile.
 

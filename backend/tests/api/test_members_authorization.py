@@ -183,6 +183,17 @@ def test_a_club_admin_creates_members_in_their_own_club(client_as, use_cases):
     assert use_cases.create.execute.call_args.kwargs["club_id"] == OWN_CLUB
 
 
+def test_a_club_admin_whose_member_has_no_club_is_refused(client_as, use_cases):
+    without_club = AuthContext(user=user(), member=SimpleNamespace(club_role=ClubRole.ADMIN, club_id=None))
+
+    responses = every_request(client_as(without_club, stored_club=None), club_id=OTHER_CLUB)
+
+    assert codes(responses) == refused(responses)
+    use_cases.get_all.execute.assert_not_called()
+    use_cases.search.execute.assert_not_called()
+    use_cases.create.execute.assert_not_called()
+
+
 def test_a_club_admin_works_with_members_of_their_own_club(client_as):
     responses = every_request(client_as(club_admin()))
 

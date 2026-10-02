@@ -163,8 +163,8 @@ async def get_members(
     club_repo = Depends(get_club_repository),
 ):
     """Get all members, optionally filtered by club, search term, or status."""
-    require_club_admin_ctx(ctx)
     if not ctx.is_super_admin:
+        _require_access_to_club(ctx, ctx.club_id)
         club_id = ctx.club_id
 
     if search:
@@ -193,7 +193,8 @@ async def search_members(
     club_repo = Depends(get_club_repository),
 ):
     """Search members by name."""
-    require_club_admin_ctx(ctx)
+    if not ctx.is_super_admin:
+        _require_access_to_club(ctx, ctx.club_id)
     members = await get_search_use_case.execute(name, limit)
 
     if not ctx.is_super_admin:
@@ -249,10 +250,10 @@ async def create_member(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Create a new member."""
-    require_club_admin_ctx(ctx)
     effective_club_id = member_data.club_id
 
     if not ctx.is_super_admin:
+        _require_access_to_club(ctx, ctx.club_id)
         if member_data.club_id and member_data.club_id != ctx.club_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
