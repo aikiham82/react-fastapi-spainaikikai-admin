@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "low"
 
 last_implementation_at: "2026-10-02T00:00:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # Insurance season validity
@@ -102,16 +102,17 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests listed above.
-- [ ] Add `effective_status` and switch `is_expired` to `datetime.utcnow()`.
-- [ ] Return the effective status from `InsuranceMapper.to_response_dto`.
-- [ ] Use the effective status in the member list summary and in the export filter.
-- [ ] Add the lower bound to `find_expiring_soon`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests listed above.
+- [x] Add `effective_status` and switch `is_expired` to `datetime.utcnow()`.
+- [x] Return the effective status from `InsuranceMapper.to_response_dto`.
+- [x] Use the effective status in the member list summary and in the export filter.
+- [x] Add the lower bound to `find_expiring_soon`.
+- [x] Read dates stored as text in `MongoDBInsuranceRepository._to_domain`. Added during implementation: 750 production documents hold `start_date` and `end_date` as ISO strings, and comparing a string against `datetime.utcnow()` would have turned the insurance list into a 500.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 2, the status derived from the end date.
+All phases are complete. What remains is the production data dry-run report, which needs the user's approval before any write.
 
-The calendar year fell off the shell: season delivered by 🍂 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Expired policies finally admit it: finish line crossed by 🍂 ⌛ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

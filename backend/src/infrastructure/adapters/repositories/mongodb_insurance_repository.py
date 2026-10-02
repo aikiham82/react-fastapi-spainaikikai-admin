@@ -9,6 +9,12 @@ from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.infrastructure.database import get_database
 
 
+def _as_naive_datetime(value) -> Optional[datetime]:
+    if isinstance(value, str):
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
+    return value
+
+
 class MongoDBInsuranceRepository(InsuranceRepositoryPort):
     """MongoDB implementation of Insurance Repository."""
 
@@ -25,8 +31,8 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
             insurance_type=InsuranceType(doc.get("insurance_type", "accident")),
             policy_number=doc.get("policy_number", ""),
             insurance_company=doc.get("insurance_company", ""),
-            start_date=doc.get("start_date"),
-            end_date=doc.get("end_date"),
+            start_date=_as_naive_datetime(doc.get("start_date")),
+            end_date=_as_naive_datetime(doc.get("end_date")),
             status=InsuranceStatus(doc.get("status", "active")),
             coverage_amount=doc.get("coverage_amount"),
             payment_id=doc.get("payment_id"),
@@ -101,10 +107,10 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         return [self._to_domain(doc) for doc in documents]
 
     async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 0) -> List[Insurance]:
-        threshold_date = datetime.utcnow() + timedelta(days=days_threshold)
+        now = datetime.utcnow()
         cursor = self.collection.find({
             "status": "active",
-            "end_date": {"$lte": threshold_date}
+            "end_date": {"$gte": now, "$lte": now + timedelta(days=days_threshold)}
         }).limit(limit)
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]

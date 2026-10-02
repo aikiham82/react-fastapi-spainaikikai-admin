@@ -98,14 +98,14 @@ class TestInsuranceEntity:
     def test_insurance_expiration_check(self):
         """Test insurance expiration check."""
         # Expired insurance
-        past_date = datetime.now() - timedelta(days=10)
+        past_date = datetime.utcnow() - timedelta(days=10)
         insurance = Insurance(
             member_id="member-id",
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-12345",
             insurance_company="Insurance Company Inc",
             start_date=past_date,
-            end_date=past_date + timedelta(days=10),
+            end_date=past_date + timedelta(days=9),
             coverage_amount=100000.0,
             payment_id="payment-id",
             status=InsuranceStatus.ACTIVE

@@ -86,8 +86,15 @@ class Insurance:
     def is_expired(self) -> bool:
         """Check if insurance is expired."""
         if self.end_date:
-            return datetime.now() > self.end_date
+            return datetime.utcnow() > self.end_date
         return False
+
+    @property
+    def effective_status(self) -> InsuranceStatus:
+        """Status to report: an insurance stored as active stops being active once its end date passes."""
+        if self.status == InsuranceStatus.ACTIVE and self.is_expired():
+            return InsuranceStatus.EXPIRED
+        return self.status
 
     def check_and_update_status(self) -> None:
         """Check and update insurance status based on end date."""

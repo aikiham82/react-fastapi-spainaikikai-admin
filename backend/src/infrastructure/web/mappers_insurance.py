@@ -35,7 +35,7 @@ class InsuranceMapper:
             insurance_type=entity.insurance_type.value,
             policy_number=entity.policy_number,
             insurance_company=entity.insurance_company,
-            status=entity.status.value,
+            status=entity.effective_status.value,
             start_date=entity.start_date,
             end_date=entity.end_date,
             coverage_amount=entity.coverage_amount,
