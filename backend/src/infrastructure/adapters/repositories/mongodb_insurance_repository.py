@@ -2,11 +2,19 @@
 
 from typing import List, Optional
 from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
+from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType, insurance_season
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.infrastructure.database import get_database
+
+
+def _as_naive_datetime(value) -> Optional[datetime]:
+    if isinstance(value, str):
+        value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if isinstance(value, datetime) and value.tzinfo is not None:
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+    return value
 
 
 class MongoDBInsuranceRepository(InsuranceRepositoryPort):
@@ -25,8 +33,8 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
             insurance_type=InsuranceType(doc.get("insurance_type", "accident")),
             policy_number=doc.get("policy_number", ""),
             insurance_company=doc.get("insurance_company", ""),
-            start_date=doc.get("start_date"),
-            end_date=doc.get("end_date"),
+            start_date=_as_naive_datetime(doc.get("start_date")),
+            end_date=_as_naive_datetime(doc.get("end_date")),
             status=InsuranceStatus(doc.get("status", "active")),
             coverage_amount=doc.get("coverage_amount"),
             payment_id=doc.get("payment_id"),
@@ -101,10 +109,10 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         return [self._to_domain(doc) for doc in documents]
 
     async def find_expiring_soon(self, days_threshold: int = 30, limit: int = 0) -> List[Insurance]:
-        threshold_date = datetime.utcnow() + timedelta(days=days_threshold)
+        now = datetime.utcnow()
         cursor = self.collection.find({
             "status": "active",
-            "end_date": {"$lte": threshold_date}
+            "end_date": {"$gte": now, "$lte": now + timedelta(days=days_threshold)}
         }).limit(limit)
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
@@ -112,9 +120,8 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
     async def find_active_by_member_year_type(
         self, member_id: str, payment_year: int, insurance_type: InsuranceType
     ) -> Optional[Insurance]:
-        """Find an active insurance for a member matching type and year."""
-        start = datetime(payment_year, 1, 1)
-        end = datetime(payment_year, 12, 31, 23, 59, 59)
+        """Find an active insurance for a member matching type and season."""
+        start, end = insurance_season(payment_year)
         doc = await self.collection.find_one({
             "member_id": member_id,
             "insurance_type": insurance_type.value,

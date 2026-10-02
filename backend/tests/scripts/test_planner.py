@@ -250,3 +250,33 @@ def test_submitted_zero_cuota_warns():
     plan = p.build()
     assert any(w["type"] == "submitted_zero_cuota" for w in plan.warnings)
     assert not any(a["payment_type"] == "licencia_dan" for a in plan.payment_upserts)
+
+
+def test_insurances_carry_the_october_to_september_season():
+    p = Planner(
+        excel_members=[excel_member()],
+        excel_fees={"100": excel_fee(seg_acc=15, rc=True)},
+        excel_insurances=[],
+        prod_members=[prod_member()],
+        prod_licenses={}, prod_insurances={}, prod_payments={},
+    )
+    plan = p.build()
+    assert len(plan.insurance_upserts) == 2
+    for insurance in plan.insurance_upserts:
+        assert insurance["start_date"] == datetime(2025, 10, 1)
+        assert insurance["end_date"] == datetime(2026, 9, 30, 23, 59, 59)
+
+
+def test_license_keeps_the_calendar_year():
+    p = Planner(
+        excel_members=[excel_member()],
+        excel_fees={"100": excel_fee()},
+        excel_insurances=[],
+        prod_members=[prod_member()],
+        prod_licenses={}, prod_insurances={}, prod_payments={},
+    )
+    plan = p.build()
+    issue_date = plan.license_upserts[0]["issue_date"]
+    expiration_date = plan.license_upserts[0]["expiration_date"]
+    assert (issue_date.year, issue_date.month, issue_date.day) == (2026, 1, 1)
+    assert (expiration_date.year, expiration_date.month, expiration_date.day) == (2026, 12, 31)

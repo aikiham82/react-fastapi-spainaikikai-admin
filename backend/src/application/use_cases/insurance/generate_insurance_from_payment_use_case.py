@@ -4,7 +4,13 @@ import logging
 from datetime import datetime
 from typing import List
 
-from src.domain.entities.insurance import Insurance, InsuranceType, InsuranceStatus
+from src.domain.entities.insurance import (
+    Insurance,
+    InsuranceStatus,
+    InsuranceType,
+    insurance_season,
+    insurance_season_year,
+)
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentType
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 
@@ -27,37 +33,37 @@ class GenerateInsuranceFromPaymentUseCase:
         self,
         member_payments: List[MemberPayment],
         payment_id: str,
-        payment_year: int,
+        paid_at: datetime,
     ) -> List[Insurance]:
         """Generate insurance for each insurance-type member payment.
 
         Args:
             member_payments: List of MemberPayment records (already filtered to insurance types).
             payment_id: The parent payment ID.
-            payment_year: The year of the payment (determines insurance validity period).
+            paid_at: When the payment was completed. The insurance covers the season in force on that date.
 
         Returns:
             List of created Insurance entities.
         """
         created_insurances: List[Insurance] = []
-        start_date = datetime(payment_year, 1, 1)
-        end_date = datetime(payment_year, 12, 31, 23, 59, 59)
+        season_year = insurance_season_year(paid_at)
+        start_date, end_date = insurance_season(season_year)
 
         for mp in member_payments:
             insurance_type = PAYMENT_TYPE_TO_INSURANCE_TYPE.get(mp.payment_type)
             if not insurance_type:
                 continue
 
-            # Idempotency: check if insurance already exists for this member+year+type
+            # Idempotency: check if insurance already exists for this member+season+type
             existing = await self.insurance_repository.find_active_by_member_year_type(
                 member_id=mp.member_id,
-                payment_year=payment_year,
+                payment_year=season_year,
                 insurance_type=insurance_type,
             )
             if existing:
                 logger.info(
-                    "Insurance already exists for member %s, type %s, year %d — skipping",
-                    mp.member_id, mp.payment_type.value, payment_year
+                    "Insurance already exists for member %s, type %s, season %d — skipping",
+                    mp.member_id, mp.payment_type.value, season_year
                 )
                 continue
 
@@ -75,8 +81,8 @@ class GenerateInsuranceFromPaymentUseCase:
             created = await self.insurance_repository.create(insurance)
             created_insurances.append(created)
             logger.info(
-                "Created insurance for member %s (type: %s, year: %d)",
-                mp.member_id, insurance_type.value, payment_year
+                "Created insurance for member %s (type: %s, season: %d)",
+                mp.member_id, insurance_type.value, season_year
             )
 
         return created_insurances

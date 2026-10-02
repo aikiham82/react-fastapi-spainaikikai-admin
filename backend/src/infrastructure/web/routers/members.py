@@ -73,10 +73,9 @@ def _build_insurance_summary(insurances: List[Insurance]) -> Optional[InsuranceS
     def _best_status(items: list) -> Optional[str]:
         if not items:
             return None
-        active = [i for i in items if i.status.value == "active"]
-        if active:
+        if any(i.effective_status.value == "active" for i in items):
             return "active"
-        return items[0].status.value
+        return items[0].effective_status.value
 
     return InsuranceSummary(
         has_accident=len(accident_ins) > 0,

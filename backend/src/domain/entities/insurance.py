@@ -18,6 +18,16 @@ class InsuranceStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+def insurance_season(payment_year: int) -> tuple[datetime, datetime]:
+    """Validity window of an insurance paid for payment_year: 1 October of the previous year to 30 September."""
+    return datetime(payment_year - 1, 10, 1), datetime(payment_year, 9, 30, 23, 59, 59)
+
+
+def insurance_season_year(on: datetime) -> int:
+    """Payment year of the season in force on a date: from 1 October it is the following year."""
+    return on.year + 1 if on.month >= 10 else on.year
+
+
 @dataclass
 class Insurance:
     """Insurance domain entity representing accident or civil liability insurance.
@@ -81,8 +91,15 @@ class Insurance:
     def is_expired(self) -> bool:
         """Check if insurance is expired."""
         if self.end_date:
-            return datetime.now() > self.end_date
+            return datetime.utcnow() > self.end_date
         return False
+
+    @property
+    def effective_status(self) -> InsuranceStatus:
+        """Status to report: an insurance stored as active stops being active once its end date passes."""
+        if self.status == InsuranceStatus.ACTIVE and self.is_expired():
+            return InsuranceStatus.EXPIRED
+        return self.status
 
     def check_and_update_status(self) -> None:
         """Check and update insurance status based on end date."""

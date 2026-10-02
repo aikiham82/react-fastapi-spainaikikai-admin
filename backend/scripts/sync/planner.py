@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Any
 
+from src.domain.entities.insurance import insurance_season
+
 from .constants import DEFAULT_SEGURO_RC_AMOUNT, LICENSE_YEAR
 from .excel_loader import (
     ExcelFeeRow,
@@ -323,6 +325,7 @@ class Planner:
             })
 
         # --- Cycle 2: accident + civil-liability insurance (NOT gated on send_date) ---
+        season_start, season_end = insurance_season(LICENSE_YEAR)
         if fee.seguro_accidentes > 0:
             plan.payment_upserts.append({
                 "member_id": member_id_ref,
@@ -335,8 +338,8 @@ class Planner:
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "accident",
-                "start_date": datetime(LICENSE_YEAR, 1, 1, tzinfo=timezone.utc),
-                "end_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
+                "start_date": season_start,
+                "end_date": season_end,
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
                 "policy_number": "PENDIENTE",
@@ -354,8 +357,8 @@ class Planner:
             plan.insurance_upserts.append({
                 "member_id": member_id_ref,
                 "insurance_type": "civil_liability",
-                "start_date": datetime(LICENSE_YEAR, 1, 1, tzinfo=timezone.utc),
-                "end_date": datetime(LICENSE_YEAR, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
+                "start_date": season_start,
+                "end_date": season_end,
                 "status": "active",
                 "insurance_company": "Spain Aikikai",
                 "policy_number": "PENDIENTE",

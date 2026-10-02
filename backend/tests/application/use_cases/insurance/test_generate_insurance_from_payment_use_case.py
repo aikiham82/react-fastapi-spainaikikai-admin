@@ -12,6 +12,9 @@ from src.application.use_cases.insurance.generate_insurance_from_payment_use_cas
 )
 
 
+PAID_IN_SEASON_2026 = datetime(2026, 3, 15)
+
+
 @pytest.fixture
 def mock_insurance_repository():
     """Mock insurance repository for use case testing."""
@@ -64,8 +67,8 @@ def sample_insurance():
         insurance_type=InsuranceType.ACCIDENT,
         policy_number="PENDIENTE",
         insurance_company="Spain Aikikai",
-        start_date=datetime(2026, 1, 1),
-        end_date=datetime(2026, 12, 31, 23, 59, 59),
+        start_date=datetime(2025, 10, 1),
+        end_date=datetime(2026, 9, 30, 23, 59, 59),
         status=InsuranceStatus.ACTIVE,
         payment_id="payment123"
     )
@@ -83,7 +86,6 @@ class TestGenerateInsuranceFromPaymentUseCase:
         # Arrange
         member_payments = [sample_accident_member_payment]
         payment_id = "payment123"
-        payment_year = 2026
 
         mock_insurance_repository.find_active_by_member_year_type.return_value = None
         mock_insurance_repository.create.return_value = sample_insurance
@@ -91,7 +93,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute(member_payments, payment_id, payment_year)
+        result = await use_case.execute(member_payments, payment_id, PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 1
@@ -105,8 +107,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
         assert created_insurance.insurance_type == InsuranceType.ACCIDENT
         assert created_insurance.policy_number == "PENDIENTE"
         assert created_insurance.insurance_company == "Spain Aikikai"
-        assert created_insurance.start_date == datetime(2026, 1, 1)
-        assert created_insurance.end_date == datetime(2026, 12, 31, 23, 59, 59)
+        assert created_insurance.start_date == datetime(2025, 10, 1)
+        assert created_insurance.end_date == datetime(2026, 9, 30, 23, 59, 59)
         assert created_insurance.status == InsuranceStatus.ACTIVE
         assert created_insurance.payment_id == "payment123"
 
@@ -121,8 +123,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
             insurance_type=InsuranceType.CIVIL_LIABILITY,
             policy_number="PENDIENTE",
             insurance_company="Spain Aikikai",
-            start_date=datetime(2026, 1, 1),
-            end_date=datetime(2026, 12, 31, 23, 59, 59),
+            start_date=datetime(2025, 10, 1),
+            end_date=datetime(2026, 9, 30, 23, 59, 59),
             status=InsuranceStatus.ACTIVE,
             payment_id="payment123"
         )
@@ -131,7 +133,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([sample_civil_liability_member_payment], "payment123", 2026)
+        result = await use_case.execute([sample_civil_liability_member_payment], "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 1
@@ -152,7 +154,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([sample_accident_member_payment], "payment123", 2026)
+        result = await use_case.execute([sample_accident_member_payment], "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 1
@@ -170,7 +172,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([sample_accident_member_payment], "payment123", 2026)
+        result = await use_case.execute([sample_accident_member_payment], "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 1
@@ -187,8 +189,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-2026-001",
             insurance_company="Spain Aikikai",
-            start_date=datetime(2026, 1, 1),
-            end_date=datetime(2026, 12, 31, 23, 59, 59),
+            start_date=datetime(2025, 10, 1),
+            end_date=datetime(2026, 9, 30, 23, 59, 59),
             status=InsuranceStatus.ACTIVE,
             payment_id="payment123"
         )
@@ -197,7 +199,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([sample_accident_member_payment], "payment123", 2026)
+        result = await use_case.execute([sample_accident_member_payment], "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 0  # No new insurance created
@@ -220,7 +222,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([member_payment], "payment123", 2026)
+        result = await use_case.execute([member_payment], "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 0
@@ -233,7 +235,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([], "payment123", 2026)
+        result = await use_case.execute([], "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert result == []
@@ -263,7 +265,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute(member_payments, "payment123", 2026)
+        result = await use_case.execute(member_payments, "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 3
@@ -272,14 +274,13 @@ class TestGenerateInsuranceFromPaymentUseCase:
         assert result[1].member_id == "member1"
         assert result[2].member_id == "member2"
 
-    async def test_execute_uses_correct_year_in_validity_dates(self, mock_insurance_repository):
-        """Test that execute uses the payment_year correctly in start_date and end_date."""
+    async def test_execute_covers_the_season_in_force_when_paid_from_october(self, mock_insurance_repository):
+        """A payment made from October covers the season that has just started, not the payment's calendar year."""
         # Arrange
-        payment_year = 2027
         member_payment = MemberPayment(
             payment_id="payment123",
             member_id="member123",
-            payment_year=payment_year,
+            payment_year=2026,
             payment_type=MemberPaymentType.SEGURO_ACCIDENTES,
             concept="Seguro de Accidentes",
             amount=25.0,
@@ -293,13 +294,18 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([member_payment], "payment123", payment_year)
+        result = await use_case.execute([member_payment], "payment123", datetime(2026, 10, 2))
 
         # Assert
         assert len(result) == 1
+        mock_insurance_repository.find_active_by_member_year_type.assert_called_once_with(
+            member_id="member123",
+            payment_year=2027,
+            insurance_type=InsuranceType.ACCIDENT
+        )
         created_insurance = mock_insurance_repository.create.call_args[0][0]
-        assert created_insurance.start_date == datetime(2027, 1, 1)
-        assert created_insurance.end_date == datetime(2027, 12, 31, 23, 59, 59)
+        assert created_insurance.start_date == datetime(2026, 10, 1)
+        assert created_insurance.end_date == datetime(2027, 9, 30, 23, 59, 59)
 
     async def test_execute_handles_both_insurance_types_in_single_call(self, mock_insurance_repository):
         """Test that execute handles both ACCIDENT and CIVIL_LIABILITY types in a single call."""
@@ -332,7 +338,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute(member_payments, "payment123", 2026)
+        result = await use_case.execute(member_payments, "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 2
@@ -360,7 +366,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([member_payment], payment_id, 2026)
+        result = await use_case.execute([member_payment], payment_id, PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 1
@@ -377,7 +383,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
 
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
-            await use_case.execute([sample_accident_member_payment], "payment123", 2026)
+            await use_case.execute([sample_accident_member_payment], "payment123", PAID_IN_SEASON_2026)
 
         assert str(exc_info.value) == "Database connection failed"
 
@@ -392,7 +398,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
 
         # Act & Assert
         with pytest.raises(Exception) as exc_info:
-            await use_case.execute([sample_accident_member_payment], "payment123", 2026)
+            await use_case.execute([sample_accident_member_payment], "payment123", PAID_IN_SEASON_2026)
 
         assert str(exc_info.value) == "Insert operation failed"
 
@@ -427,7 +433,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute(member_payments, "payment123", 2026)
+        result = await use_case.execute(member_payments, "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 2
@@ -473,7 +479,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute(member_payments, "payment123", 2026)
+        result = await use_case.execute(member_payments, "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 2  # Only insurance types processed
@@ -499,7 +505,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute([member_payment], "payment123", 2026)
+        result = await use_case.execute([member_payment], "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         mock_insurance_repository.find_active_by_member_year_type.assert_called_once_with(
@@ -539,8 +545,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-2026-001",
             insurance_company="Spain Aikikai",
-            start_date=datetime(2026, 1, 1),
-            end_date=datetime(2026, 12, 31, 23, 59, 59),
+            start_date=datetime(2025, 10, 1),
+            end_date=datetime(2026, 9, 30, 23, 59, 59),
             status=InsuranceStatus.ACTIVE
         )
 
@@ -561,7 +567,7 @@ class TestGenerateInsuranceFromPaymentUseCase:
         use_case = GenerateInsuranceFromPaymentUseCase(mock_insurance_repository)
 
         # Act
-        result = await use_case.execute(member_payments, "payment123", 2026)
+        result = await use_case.execute(member_payments, "payment123", PAID_IN_SEASON_2026)
 
         # Assert
         assert len(result) == 1  # Only member2 insurance created
