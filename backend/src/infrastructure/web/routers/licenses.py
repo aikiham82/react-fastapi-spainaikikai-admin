@@ -27,12 +27,14 @@ from src.infrastructure.web.dependencies import (
     get_update_license_use_case,
     get_delete_license_use_case,
     get_generate_license_image_use_case,
+    get_member_repository,
     get_auth_context
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
-    check_club_access_ctx,
     get_club_filter_ctx,
+    require_club_access,
+    require_member_access,
     require_super_admin
 )
 from src.domain.exceptions.license import LicenseNotFoundError, LicenseImageGenerationError
@@ -40,6 +42,8 @@ from src.domain.exceptions.member import MemberNotFoundError
 
 router = APIRouter(prefix="/licenses", tags=["licenses"])
 self_service_router = APIRouter(prefix="/licenses", tags=["licenses"])
+
+LICENSE_DENIED = "Access denied to this license"
 
 
 def _is_admin(ctx: AuthContext) -> bool:
@@ -51,7 +55,7 @@ def _require_own_member(ctx: AuthContext, member_id: Optional[str]) -> None:
     if not member_id or member_id != ctx.member_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied to this license"
+            detail=LICENSE_DENIED
         )
 
 GRADE_GROUP_ORDER = {"shidoin": 0, "fukushidoin": 1, "dan": 2, "kyu": 3, "unknown": 4}
@@ -193,13 +197,17 @@ async def get_license_image(
     license_id: str,
     generate_image_use_case = Depends(get_generate_license_image_use_case),
     get_license_use_case_instance = Depends(get_license_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get license image as PNG.
 
     Returns a PNG image of the license card with member data overlaid.
     """
-    if not _is_admin(ctx):
+    if ctx.is_club_admin and not ctx.is_super_admin:
+        license = await get_license_use_case_instance.execute(license_id)
+        await require_member_access(ctx, license.member_id, member_repository, LICENSE_DENIED)
+    elif not _is_admin(ctx):
         _require_own_member(ctx, ctx.member_id)
         license = await get_license_use_case_instance.execute(license_id)
         if license.member_id != ctx.member_id:
@@ -234,14 +242,36 @@ async def get_license_image(
         )
 
 
+@router.get("/expiring", response_model=List[LicenseResponse])
+async def get_expiring_licenses(
+    days: int = 30,
+    limit: int = 0,
+    get_expiring_use_case = Depends(get_expiring_licenses_use_case),
+    member_repository = Depends(get_member_repository),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Get licenses expiring soon."""
+    licenses = await get_expiring_use_case.execute(days, limit)
+
+    if not ctx.is_super_admin:
+        require_club_access(ctx, ctx.club_id)
+        club_members = await member_repository.find_by_club_id(ctx.club_id, limit=0)
+        own_member_ids = {member.id for member in club_members}
+        licenses = [lic for lic in licenses if lic.member_id in own_member_ids]
+
+    return LicenseMapper.to_response_list(licenses)
+
+
 @router.get("/{license_id}", response_model=LicenseResponse)
 async def get_license(
     license_id: str,
     get_license_use_case = Depends(get_license_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get license by ID."""
     license = await get_license_use_case.execute(license_id)
+    await require_member_access(ctx, license.member_id, member_repository, LICENSE_DENIED)
     return LicenseMapper.to_response_dto(license)
 
 
@@ -250,30 +280,16 @@ async def get_licenses_by_member(
     member_id: str,
     limit: int = 0,
     get_all_use_case = Depends(get_all_licenses_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get licenses by member ID."""
-    if not _is_admin(ctx):
+    if _is_admin(ctx):
+        await require_member_access(ctx, member_id, member_repository, LICENSE_DENIED)
+    else:
         _require_own_member(ctx, member_id)
 
     licenses = await get_all_use_case.execute(limit, club_id=None, member_id=member_id)
-
-    return LicenseMapper.to_response_list(licenses)
-
-
-@router.get("/expiring", response_model=List[LicenseResponse])
-async def get_expiring_licenses(
-    days: int = 30,
-    limit: int = 0,
-    get_expiring_use_case = Depends(get_expiring_licenses_use_case),
-    ctx: AuthContext = Depends(get_auth_context)
-):
-    """Get licenses expiring soon."""
-    licenses = await get_expiring_use_case.execute(days, limit)
-
-    # Filter for club admins - only show their club's licenses
-    if ctx.is_club_admin:
-        licenses = [lic for lic in licenses if lic.club_id == ctx.club_id]
 
     return LicenseMapper.to_response_list(licenses)
 

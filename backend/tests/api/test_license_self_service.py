@@ -114,12 +114,8 @@ def test_a_user_with_no_member_is_refused_both(client_as, use_cases):
     use_cases.image.execute.assert_not_called()
 
 
-@pytest.mark.parametrize("ctx", [
-    caller(member_id="member-admin", club_role=ClubRole.ADMIN),
-    caller(global_role=GlobalRole.SUPER_ADMIN),
-])
-def test_admins_keep_reading_licences_of_other_members(client_as, ctx):
-    client = client_as(ctx, licence_owner=OTHER_MEMBER)
+def test_a_super_admin_keeps_reading_licences_of_other_members(client_as):
+    client = client_as(caller(global_role=GlobalRole.SUPER_ADMIN), licence_owner=OTHER_MEMBER)
 
     assert client.get(f"/api/v1/licenses/member/{OTHER_MEMBER}").status_code == status.HTTP_200_OK
     assert client.get("/api/v1/licenses/licence-id/image").status_code == status.HTTP_200_OK

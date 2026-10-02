@@ -89,11 +89,12 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests listed above.
-- [ ] Scope the invoice handlers.
-- [ ] Scope the three licence handlers for club admins.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests listed above.
+- [x] Scope the invoice handlers.
+- [x] Scope the three licence handlers for club admins.
+- [x] Added during implementation: `GET /licenses/expiring` was declared after `GET /licenses/{license_id}`, which captured it, and its club filter read a `club_id` the licence entity no longer has. It is now declared first and filters by the members of the caller's club.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: member import
 
@@ -114,6 +115,6 @@ To-do:
 
 ## ⏭️ Next step
 
-Implement Phase 2, invoices and licences.
+Implement Phase 3, member import.
 
-The till is locked per club before anything else: 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Till locked, then the filing cabinet, one club per drawer: 💶 🗄️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

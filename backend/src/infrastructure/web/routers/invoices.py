@@ -19,11 +19,13 @@ from src.infrastructure.web.dependencies import (
     get_download_invoice_pdf_use_case,
     get_regenerate_invoice_pdf_use_case
 )
-from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext
+from src.infrastructure.web.dependencies import get_auth_context, get_member_repository
+from src.infrastructure.web.authorization import AuthContext, require_club_access, require_member_access
 from src.domain.exceptions.invoice import InvoiceNotFoundError, InvoicePDFGenerationError
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
+
+INVOICE_DENIED = "Access denied to this invoice"
 
 
 def _invoice_to_response(invoice) -> InvoiceResponse:
@@ -78,6 +80,9 @@ async def get_all_invoices(
         end_date=end_date,
         limit=limit
     )
+    if not ctx.is_super_admin:
+        require_club_access(ctx, ctx.club_id)
+        invoices = [inv for inv in invoices if inv.club_id == ctx.club_id]
     return [_invoice_to_response(inv) for inv in invoices]
 
 
@@ -86,9 +91,11 @@ async def get_member_invoices(
     member_id: str,
     limit: int = 0,
     get_invoices_use_case = Depends(get_invoices_by_member_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all invoices for a member."""
+    await require_member_access(ctx, member_id, member_repository)
     invoices = await get_invoices_use_case.execute(member_id, limit)
     return [_invoice_to_response(inv) for inv in invoices]
 
@@ -102,6 +109,7 @@ async def get_invoice(
     """Get invoice by ID."""
     try:
         invoice = await get_invoice_use_case.execute(invoice_id)
+        require_club_access(ctx, invoice.club_id, INVOICE_DENIED)
         return _invoice_to_response(invoice)
     except InvoiceNotFoundError as e:
         raise HTTPException(
@@ -114,10 +122,14 @@ async def get_invoice(
 async def download_invoice_pdf(
     invoice_id: str,
     download_use_case = Depends(get_download_invoice_pdf_use_case),
+    get_invoice_use_case = Depends(get_invoice_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Download invoice PDF."""
     try:
+        if not ctx.is_super_admin:
+            invoice = await get_invoice_use_case.execute(invoice_id)
+            require_club_access(ctx, invoice.club_id, INVOICE_DENIED)
         result = await download_use_case.execute(invoice_id)
         return StreamingResponse(
             BytesIO(result.pdf_bytes),
@@ -142,10 +154,14 @@ async def download_invoice_pdf(
 async def regenerate_invoice_pdf(
     invoice_id: str,
     regenerate_use_case = Depends(get_regenerate_invoice_pdf_use_case),
+    get_invoice_use_case = Depends(get_invoice_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Regenerate invoice PDF."""
     try:
+        if not ctx.is_super_admin:
+            existing = await get_invoice_use_case.execute(invoice_id)
+            require_club_access(ctx, existing.club_id, INVOICE_DENIED)
         invoice = await regenerate_use_case.execute(invoice_id)
         return _invoice_to_response(invoice)
     except InvoiceNotFoundError as e:
