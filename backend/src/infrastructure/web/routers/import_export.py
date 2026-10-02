@@ -439,7 +439,7 @@ async def export_insurances(
             'insurance_type': ins.insurance_type.value if ins.insurance_type else '',
             'insurance_company': ins.insurance_company or '',
             'coverage_amount': str(ins.coverage_amount) if ins.coverage_amount else '',
-            'status': ins.effective_status.value if ins.status else '',
+            'status': ins.effective_status.value,
             'start_date': ins.start_date.strftime('%d/%m/%Y') if ins.start_date else '',
             'end_date': ins.end_date.strftime('%d/%m/%Y') if ins.end_date else '',
         })()
