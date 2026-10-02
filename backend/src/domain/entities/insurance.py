@@ -23,6 +23,11 @@ def insurance_season(payment_year: int) -> tuple[datetime, datetime]:
     return datetime(payment_year - 1, 10, 1), datetime(payment_year, 9, 30, 23, 59, 59)
 
 
+def insurance_season_year(on: datetime) -> int:
+    """Payment year of the season in force on a date: from 1 October it is the following year."""
+    return on.year + 1 if on.month >= 10 else on.year
+
+
 @dataclass
 class Insurance:
     """Insurance domain entity representing accident or civil liability insurance.

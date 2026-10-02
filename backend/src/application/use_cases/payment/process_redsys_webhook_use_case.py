@@ -548,7 +548,7 @@ class ProcessRedsysWebhookUseCase:
         if insurance_payments and self.insurance_repository:
             try:
                 use_case = GenerateInsuranceFromPaymentUseCase(self.insurance_repository)
-                await use_case.execute(insurance_payments, payment_id, payment_year)
+                await use_case.execute(insurance_payments, payment_id, datetime.utcnow())
             except Exception:
                 import logging
                 logging.getLogger(__name__).exception(

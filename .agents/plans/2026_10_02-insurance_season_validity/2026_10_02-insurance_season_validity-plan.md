@@ -45,6 +45,7 @@ Decisions taken with the user:
 
 - Payment year N maps to the season 1 October N-1 to 30 September N.
 - Status is derived when reading, not persisted by a scheduled job.
+- Added after code review: an insurance paid in the app covers the season in force on the payment date, through `insurance_season_year(on: datetime) -> int`. `GenerateInsuranceFromPaymentUseCase.execute` now takes `paid_at: datetime` instead of `payment_year: int`. The Excel import keeps the payment-year mapping.
 - Production data is not touched by this plan. A dry-run report follows for approval.
 
 Documentation to follow:
