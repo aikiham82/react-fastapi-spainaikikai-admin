@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "low"
 
 last_implementation_at: "2026-10-02T00:00:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # Club admin cross-club scoping
@@ -107,14 +107,14 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests listed above.
-- [ ] Force the club on the member import for a club admin and reject rows naming another club.
-- [ ] Update the security guidelines.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests listed above.
+- [x] Force the club on the member import for a club admin and reject rows naming another club. Added during implementation: in upsert mode a row matching an existing member of another club (by id, DNI or email) is rejected too, since it would have overwritten that member.
+- [x] Update the security guidelines.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 3, member import.
+All phases are complete.
 
-Till locked, then the filing cabinet, one club per drawer: 💶 🗄️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Till, filing cabinet and front desk, one club each: 💶 🗄️ 📥 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
