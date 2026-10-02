@@ -74,15 +74,24 @@ async def get_all_invoices(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get all invoices with optional filters."""
-    invoices = await get_all_use_case.execute(
-        status=status,
-        start_date=start_date,
-        end_date=end_date,
-        limit=limit
-    )
-    if not ctx.is_super_admin:
+    if ctx.is_super_admin:
+        invoices = await get_all_use_case.execute(
+            status=status,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit
+        )
+    else:
         require_club_access(ctx, ctx.club_id)
-        invoices = [inv for inv in invoices if inv.club_id == ctx.club_id]
+        every_invoice = await get_all_use_case.execute(
+            status=status,
+            start_date=start_date,
+            end_date=end_date,
+            limit=0
+        )
+        invoices = [inv for inv in every_invoice if inv.club_id == ctx.club_id]
+        if limit > 0:
+            invoices = invoices[:limit]
     return [_invoice_to_response(inv) for inv in invoices]
 
 

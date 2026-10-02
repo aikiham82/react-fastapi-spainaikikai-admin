@@ -94,6 +94,13 @@ def test_a_club_admin_lists_only_the_invoices_of_their_club(client_as):
     assert [invoice["id"] for invoice in response.json()] == ["invoice-own"]
 
 
+def test_a_club_admins_limit_counts_their_own_invoices(client_as, use_cases):
+    response = client_as(club_admin()).get("/api/v1/invoices?limit=1")
+
+    assert [invoice["id"] for invoice in response.json()] == ["invoice-own"]
+    assert use_cases.get_all.execute.call_args.kwargs["limit"] == 0
+
+
 def test_a_super_admin_lists_every_invoice(client_as):
     response = client_as(super_admin()).get("/api/v1/invoices")
 

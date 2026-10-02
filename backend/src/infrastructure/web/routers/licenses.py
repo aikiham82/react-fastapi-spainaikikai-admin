@@ -251,13 +251,16 @@ async def get_expiring_licenses(
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get licenses expiring soon."""
-    licenses = await get_expiring_use_case.execute(days, limit)
-
-    if not ctx.is_super_admin:
+    if ctx.is_super_admin:
+        licenses = await get_expiring_use_case.execute(days, limit)
+    else:
         require_club_access(ctx, ctx.club_id)
+        every_license = await get_expiring_use_case.execute(days, 0)
         club_members = await member_repository.find_by_club_id(ctx.club_id, limit=0)
         own_member_ids = {member.id for member in club_members}
-        licenses = [lic for lic in licenses if lic.member_id in own_member_ids]
+        licenses = [lic for lic in every_license if lic.member_id in own_member_ids]
+        if limit > 0:
+            licenses = licenses[:limit]
 
     return LicenseMapper.to_response_list(licenses)
 

@@ -138,6 +138,18 @@ def test_a_club_admin_reads_a_payment_of_their_club(client_as, path):
     assert client_as(club_admin()).get(path).status_code == status.HTTP_200_OK
 
 
+@pytest.mark.parametrize("member_id, expected", [
+    (OWN_MEMBER, status.HTTP_200_OK),
+    (FOREIGN_MEMBER, status.HTTP_403_FORBIDDEN),
+])
+def test_a_payment_with_no_club_follows_the_club_of_its_member(client_as, use_cases, member_id, expected):
+    client = client_as(club_admin())
+    use_cases.get_one.execute.return_value = Payment(id="payment-id", member_id=member_id, amount=10.0)
+
+    assert client.get("/api/v1/payments/payment-id").status_code == expected
+    assert client.get("/api/v1/payments/payment-id/status").status_code == expected
+
+
 @pytest.mark.parametrize("body", [
     {"club_id": OTHER_CLUB, "payment_type": "license", "amount": 10},
     {"club_id": OWN_CLUB, "member_id": FOREIGN_MEMBER, "payment_type": "license", "amount": 10},

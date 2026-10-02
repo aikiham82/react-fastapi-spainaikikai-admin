@@ -65,6 +65,14 @@ public_router = APIRouter(prefix="/payments", tags=["payments"])
 PAYMENT_DENIED = "Access denied to this payment"
 
 
+async def _require_payment_access(ctx: AuthContext, payment, member_repository) -> None:
+    """A payment belongs to its club, or to the club of its member when it has no club."""
+    if payment.club_id or not payment.member_id:
+        require_club_access(ctx, payment.club_id, PAYMENT_DENIED)
+    else:
+        await require_member_access(ctx, payment.member_id, member_repository, PAYMENT_DENIED)
+
+
 @router.get("", response_model=List[PaymentResponse])
 async def get_payments(
     limit: int = 0,
@@ -128,11 +136,12 @@ async def prefill_annual_payment(
 async def get_payment(
     payment_id: str,
     get_payment_use_case = Depends(get_payment_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Get payment by ID."""
     payment = await get_payment_use_case.execute(payment_id)
-    require_club_access(ctx, payment.club_id, PAYMENT_DENIED)
+    await _require_payment_access(ctx, payment, member_repository)
     return PaymentMapper.to_response_dto(payment)
 
 
@@ -319,11 +328,12 @@ async def refund_payment(
 async def get_payment_status(
     payment_id: str,
     get_payment_use_case = Depends(get_payment_use_case),
+    member_repository = Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Check payment status."""
     payment = await get_payment_use_case.execute(payment_id)
-    require_club_access(ctx, payment.club_id, PAYMENT_DENIED)
+    await _require_payment_access(ctx, payment, member_repository)
     return PaymentMapper.to_response_dto(payment)
 
 
