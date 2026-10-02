@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 from bson import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType, insurance_season
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
@@ -11,7 +11,9 @@ from src.infrastructure.database import get_database
 
 def _as_naive_datetime(value) -> Optional[datetime]:
     if isinstance(value, str):
-        return datetime.fromisoformat(value.replace("Z", "+00:00")).replace(tzinfo=None)
+        value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if isinstance(value, datetime) and value.tzinfo is not None:
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
     return value
 
 
