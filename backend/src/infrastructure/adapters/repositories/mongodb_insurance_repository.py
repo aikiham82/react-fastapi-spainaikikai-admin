@@ -4,7 +4,7 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime, timedelta
 
-from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
+from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType, insurance_season
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -112,9 +112,8 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
     async def find_active_by_member_year_type(
         self, member_id: str, payment_year: int, insurance_type: InsuranceType
     ) -> Optional[Insurance]:
-        """Find an active insurance for a member matching type and year."""
-        start = datetime(payment_year, 1, 1)
-        end = datetime(payment_year, 12, 31, 23, 59, 59)
+        """Find an active insurance for a member matching type and season."""
+        start, end = insurance_season(payment_year)
         doc = await self.collection.find_one({
             "member_id": member_id,
             "insurance_type": insurance_type.value,

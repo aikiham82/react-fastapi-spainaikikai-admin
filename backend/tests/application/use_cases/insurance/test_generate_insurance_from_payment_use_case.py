@@ -64,8 +64,8 @@ def sample_insurance():
         insurance_type=InsuranceType.ACCIDENT,
         policy_number="PENDIENTE",
         insurance_company="Spain Aikikai",
-        start_date=datetime(2026, 1, 1),
-        end_date=datetime(2026, 12, 31, 23, 59, 59),
+        start_date=datetime(2025, 10, 1),
+        end_date=datetime(2026, 9, 30, 23, 59, 59),
         status=InsuranceStatus.ACTIVE,
         payment_id="payment123"
     )
@@ -105,8 +105,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
         assert created_insurance.insurance_type == InsuranceType.ACCIDENT
         assert created_insurance.policy_number == "PENDIENTE"
         assert created_insurance.insurance_company == "Spain Aikikai"
-        assert created_insurance.start_date == datetime(2026, 1, 1)
-        assert created_insurance.end_date == datetime(2026, 12, 31, 23, 59, 59)
+        assert created_insurance.start_date == datetime(2025, 10, 1)
+        assert created_insurance.end_date == datetime(2026, 9, 30, 23, 59, 59)
         assert created_insurance.status == InsuranceStatus.ACTIVE
         assert created_insurance.payment_id == "payment123"
 
@@ -121,8 +121,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
             insurance_type=InsuranceType.CIVIL_LIABILITY,
             policy_number="PENDIENTE",
             insurance_company="Spain Aikikai",
-            start_date=datetime(2026, 1, 1),
-            end_date=datetime(2026, 12, 31, 23, 59, 59),
+            start_date=datetime(2025, 10, 1),
+            end_date=datetime(2026, 9, 30, 23, 59, 59),
             status=InsuranceStatus.ACTIVE,
             payment_id="payment123"
         )
@@ -187,8 +187,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-2026-001",
             insurance_company="Spain Aikikai",
-            start_date=datetime(2026, 1, 1),
-            end_date=datetime(2026, 12, 31, 23, 59, 59),
+            start_date=datetime(2025, 10, 1),
+            end_date=datetime(2026, 9, 30, 23, 59, 59),
             status=InsuranceStatus.ACTIVE,
             payment_id="payment123"
         )
@@ -298,8 +298,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
         # Assert
         assert len(result) == 1
         created_insurance = mock_insurance_repository.create.call_args[0][0]
-        assert created_insurance.start_date == datetime(2027, 1, 1)
-        assert created_insurance.end_date == datetime(2027, 12, 31, 23, 59, 59)
+        assert created_insurance.start_date == datetime(2026, 10, 1)
+        assert created_insurance.end_date == datetime(2027, 9, 30, 23, 59, 59)
 
     async def test_execute_handles_both_insurance_types_in_single_call(self, mock_insurance_repository):
         """Test that execute handles both ACCIDENT and CIVIL_LIABILITY types in a single call."""
@@ -539,8 +539,8 @@ class TestGenerateInsuranceFromPaymentUseCase:
             insurance_type=InsuranceType.ACCIDENT,
             policy_number="POL-2026-001",
             insurance_company="Spain Aikikai",
-            start_date=datetime(2026, 1, 1),
-            end_date=datetime(2026, 12, 31, 23, 59, 59),
+            start_date=datetime(2025, 10, 1),
+            end_date=datetime(2026, 9, 30, 23, 59, 59),
             status=InsuranceStatus.ACTIVE
         )
 

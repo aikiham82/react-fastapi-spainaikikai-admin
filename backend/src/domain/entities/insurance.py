@@ -18,6 +18,11 @@ class InsuranceStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+def insurance_season(payment_year: int) -> tuple[datetime, datetime]:
+    """Validity window of an insurance paid for payment_year: 1 October of the previous year to 30 September."""
+    return datetime(payment_year - 1, 10, 1), datetime(payment_year, 9, 30, 23, 59, 59)
+
+
 @dataclass
 class Insurance:
     """Insurance domain entity representing accident or civil liability insurance.

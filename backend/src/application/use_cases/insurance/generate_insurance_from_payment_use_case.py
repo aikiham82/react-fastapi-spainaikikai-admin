@@ -1,10 +1,9 @@
 """Generate insurance automatically from completed annual payment."""
 
 import logging
-from datetime import datetime
 from typing import List
 
-from src.domain.entities.insurance import Insurance, InsuranceType, InsuranceStatus
+from src.domain.entities.insurance import Insurance, InsuranceType, InsuranceStatus, insurance_season
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentType
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 
@@ -40,8 +39,7 @@ class GenerateInsuranceFromPaymentUseCase:
             List of created Insurance entities.
         """
         created_insurances: List[Insurance] = []
-        start_date = datetime(payment_year, 1, 1)
-        end_date = datetime(payment_year, 12, 31, 23, 59, 59)
+        start_date, end_date = insurance_season(payment_year)
 
         for mp in member_payments:
             insurance_type = PAYMENT_TYPE_TO_INSURANCE_TYPE.get(mp.payment_type)

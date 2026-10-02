@@ -14,8 +14,10 @@ The federation's yearly renewal: `licencia_kyu` or `licencia_dan`, plus the per-
 
 ### 2. Seguro de accidentes + seguro RC
 
-A **separate** cycle running roughly 1 October to 30 September.
+A **separate** cycle running from 1 October to 30 September.
 
+- An insurance paid for payment year N is valid from **1 October N-1 to 30 September N**: the 2026 payment covers 1 October 2025 to 30 September 2026.
+- The window is computed in one place, `insurance_season` in [`backend/src/domain/entities/insurance.py`](../../backend/src/domain/entities/insurance.py). Never write a calendar year into an insurance.
 - Paid independently of the annual renewal and **not** gated on the send date.
 - The authoritative coverage list is the sheet **"Seguro de accidentes APP"**.
 - A club can hold valid insurance while never having renewed the annual licence.

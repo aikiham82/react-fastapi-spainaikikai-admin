@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-02T00:00:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Insurance season validity
@@ -64,14 +74,14 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests listed above.
-- [ ] Add `insurance_season` to the domain.
-- [ ] Use it in `GenerateInsuranceFromPaymentUseCase`.
-- [ ] Use it in `find_active_by_member_year_type`.
-- [ ] Use it in `scripts/sync/planner.py` for both insurance types.
-- [ ] Update [`docs/domain/payment-cycles.md`](../../../docs/domain/payment-cycles.md) with the exact window and the mapping from payment year.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests listed above.
+- [x] Add `insurance_season` to the domain.
+- [x] Use it in `GenerateInsuranceFromPaymentUseCase`.
+- [x] Use it in `find_active_by_member_year_type`.
+- [x] Use it in `scripts/sync/planner.py` for both insurance types.
+- [x] Update [`docs/domain/payment-cycles.md`](../../../docs/domain/payment-cycles.md) with the exact window and the mapping from payment year.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: status derived from the end date
 
@@ -102,6 +112,6 @@ To-do:
 
 ## ⏭️ Next step
 
-Implement Phase 1, the season validity window.
+Implement Phase 2, the status derived from the end date.
 
-Seasons change, shells do not: plan carried over the line by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+The calendar year fell off the shell: season delivered by 🍂 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
