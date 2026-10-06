@@ -1,5 +1,6 @@
 """Initiate Seminar Oficialidad payment use case."""
 
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
@@ -7,6 +8,7 @@ from typing import Optional
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
 from src.domain.exceptions.seminar import SeminarNotFoundError, SeminarAlreadyOfficialError
 from src.application.ports.seminar_repository import SeminarRepositoryPort
+from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.redsys_service import (
@@ -43,11 +45,13 @@ class InitiateSeminarOfficialidadUseCase:
     def __init__(
         self,
         seminar_repository: SeminarRepositoryPort,
+        club_repository: ClubRepositoryPort,
         payment_repository: PaymentRepositoryPort,
         price_configuration_repository: PriceConfigurationRepositoryPort,
         redsys_service: RedsysServicePort,
     ):
         self.seminar_repository = seminar_repository
+        self.club_repository = club_repository
         self.payment_repository = payment_repository
         self.price_configuration_repository = price_configuration_repository
         self.redsys_service = redsys_service
@@ -94,6 +98,8 @@ class InitiateSeminarOfficialidadUseCase:
                 f"Create a PriceConfiguration with key='{OFICIALIDAD_PRICE_KEY}' and category='seminar'."
             )
         amount = price_config.price
+        club = await self.club_repository.find_by_id(club_id)
+        description = f"Oficialidad seminario: {seminar.title}"
 
         # 4. Create pending payment
         payment = Payment(
@@ -104,6 +110,10 @@ class InitiateSeminarOfficialidadUseCase:
             status=PaymentStatus.PENDING,
             related_entity_id=seminar_id,
             payment_year=datetime.now().year,
+            payer_name=club.name if club else None,
+            line_items_data=json.dumps([
+                {"description": description, "quantity": 1, "unit_price": amount},
+            ]),
         )
         payment = await self.payment_repository.create(payment)
 
@@ -118,7 +128,7 @@ class InitiateSeminarOfficialidadUseCase:
         redsys_request = RedsysPaymentRequest(
             order_id=order_id,
             amount_cents=amount_cents,
-            description=f"Oficialidad seminario: {seminar.title}",
+            description=description,
             merchant_url=webhook_url,
             ok_url=success_url,
             ko_url=failure_url,

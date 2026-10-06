@@ -312,6 +312,7 @@ def get_initiate_seminar_oficialidad_use_case() -> InitiateSeminarOfficialidadUs
     """Initiate seminar oficialidad payment use case."""
     return InitiateSeminarOfficialidadUseCase(
         seminar_repository=get_seminar_repository(),
+        club_repository=get_club_repository(),
         payment_repository=get_payment_repository(),
         price_configuration_repository=get_price_configuration_repository(),
         redsys_service=get_redsys_service(),
