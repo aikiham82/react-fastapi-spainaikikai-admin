@@ -261,15 +261,13 @@ class ProcessRedsysWebhookUseCase:
         invoice = Invoice(
             invoice_number=invoice_number,
             payment_id=payment.id,
-            member_id=payment.member_id or "",
+            member_id=payment.member_id or payment.club_id,
             club_id=payment.club_id,
-            license_id=payment.related_entity_id,
             customer_name=customer_name,
             customer_email=customer_email,
             line_items=line_items,
             status=InvoiceStatus.ISSUED,
-            issue_date=datetime.now().isoformat(),
-            paid_date=datetime.now().isoformat()
+            issue_date=datetime.utcnow(),
         )
         invoice.calculate_totals()
 
