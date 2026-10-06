@@ -7,40 +7,5 @@
     ]
   },
   "enabledMcpjsonServers": [
-  ],
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "say -v Kate \"Se ha terminado el trabajo\"", 
-            "timeout": 120
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "say -v Kate \"El subagente ha terminado su tarea\"",
-            "timeout": 120
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/on-notification-say.sh ",
-            "timeout": 60
-          }
-        ]
-      }
-    ]
-  }
+  ]
 }

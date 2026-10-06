@@ -61,8 +61,10 @@ docs/
 ├── documentation-guidelines.md
 ├── domain/
 │   ├── data-model.md
+│   ├── invoice-creation.md
 │   ├── payment-cycles.md
-│   └── roles-and-permissions.md
+│   ├── roles-and-permissions.md
+│   └── unique-optional-fields.md
 ├── git/
 │   ├── commit-messages.md
 │   └── integrating-a-finished-branch.md
