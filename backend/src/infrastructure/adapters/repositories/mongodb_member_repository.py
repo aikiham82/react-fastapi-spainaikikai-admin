@@ -31,7 +31,7 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         return Member(
             id=str(doc.get("_id")),
             first_name=doc.get("first_name", ""),
-            last_name=doc.get("last_name", ""),
+            last_name=doc.get("last_name") or "",
             dni=doc.get("dni", ""),
             email=email,
             phone=doc.get("phone", ""),
