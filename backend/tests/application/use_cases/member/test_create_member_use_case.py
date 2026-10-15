@@ -1,6 +1,7 @@
 """Tests for CreateMemberUseCase."""
 
 import pytest
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 from src.domain.entities.member import Member
@@ -88,3 +89,27 @@ async def test_raises_for_duplicate_non_empty_dni(use_case, mock_member_reposito
         await create_with_dni(use_case, "12345678Z")
 
     mock_member_repository.create.assert_not_awaited()
+
+
+async def create_with_registration_date(use_case, registration_date):
+    return await use_case.execute(
+        first_name="Luis", last_name="Example", dni="", email="", phone="",
+        address="", city="", province="", postal_code="",
+        registration_date=registration_date,
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_new_member_takes_the_given_registration_date(use_case):
+    member = await create_with_registration_date(use_case, datetime(2018, 3, 5))
+
+    assert member.registration_date == datetime(2018, 3, 5)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_new_member_without_registration_date_joins_today(use_case):
+    member = await create_with_registration_date(use_case, None)
+
+    assert member.registration_date.date() == datetime.utcnow().date()

@@ -16,6 +16,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+const localToday = (): string => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+
+const joinDateOf = (member: Member): string =>
+  (member.registration_date ?? member.created_at ?? '').substring(0, 10);
+
 interface MemberFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -59,6 +67,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         postal_code: member.postal_code || '',
         country: member.country || 'España',
         club_id: member.club_id || '',
+        registration_date: joinDateOf(member),
       });
     } else {
       setFormData({
@@ -74,6 +83,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         postal_code: '',
         country: 'España',
         club_id: clubs.length > 0 ? clubs[0].id : '',
+        registration_date: localToday(),
       });
     }
     setErrors({});
@@ -97,6 +107,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         newErrors.birth_date = 'Fecha de nacimiento inválida';
       }
     }
+    if (formData.registration_date && formData.registration_date > localToday()) {
+      newErrors.registration_date = 'La fecha de alta no puede ser futura';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -110,7 +123,8 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     }
 
     if (isEditing && member) {
-      updateMember(member.id, formData);
+      const { registration_date, ...rest } = formData;
+      updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData);
     } else {
       createMember(formData);
     }
@@ -186,14 +200,32 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dni">DNI/NIE</Label>
-            <Input
-              id="dni"
-              value={formData.dni}
-              onChange={(e) => handleChange('dni', e.target.value)}
-              placeholder="12345678X"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="dni">DNI/NIE</Label>
+              <Input
+                id="dni"
+                value={formData.dni}
+                onChange={(e) => handleChange('dni', e.target.value)}
+                placeholder="12345678X"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="registration_date">Fecha de Alta</Label>
+              <Input
+                id="registration_date"
+                type="date"
+                value={formData.registration_date ?? ''}
+                onChange={(e) => handleChange('registration_date', e.target.value)}
+                className={errors.registration_date ? 'border-red-500' : ''}
+                aria-invalid={!!errors.registration_date}
+                aria-describedby={errors.registration_date ? 'registration_date-error' : undefined}
+              />
+              {errors.registration_date && (
+                <p id="registration_date-error" className="text-sm text-red-500">{errors.registration_date}</p>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -33,7 +33,8 @@ class CreateMemberUseCase:
         postal_code: str,
         country: str = "Spain",
         club_id: Optional[str] = None,
-        birth_date: Optional[datetime] = None
+        birth_date: Optional[datetime] = None,
+        registration_date: Optional[datetime] = None,
     ) -> Member:
         """Execute the use case."""
         # Check if member with same DNI exists (skip for empty DNIs)
@@ -67,7 +68,7 @@ class CreateMemberUseCase:
             birth_date=birth_date,
             club_id=club_id,
             status=MemberStatus.ACTIVE,
-            registration_date=datetime.utcnow()
+            registration_date=registration_date or datetime.utcnow()
         )
 
         return await self.member_repository.create(member)

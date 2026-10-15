@@ -62,6 +62,7 @@ docs/
 ├── domain/
 │   ├── data-model.md
 │   ├── invoice-creation.md
+│   ├── member-join-date.md
 │   ├── payment-cycles.md
 │   ├── roles-and-permissions.md
 │   └── unique-optional-fields.md

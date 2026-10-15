@@ -31,6 +31,7 @@ export interface Member {
   license_status: 'active' | 'expired' | 'pending';
   club_id: string;
   club_name?: string;
+  registration_date?: string | null;
   created_at: string;
   updated_at: string;
   license_summary?: LicenseSummary;
@@ -50,6 +51,7 @@ export interface CreateMemberRequest {
   postal_code?: string;
   country?: string;
   club_id?: string;
+  registration_date?: string;
 }
 
 export type UpdateMemberRequest = Partial<CreateMemberRequest>
