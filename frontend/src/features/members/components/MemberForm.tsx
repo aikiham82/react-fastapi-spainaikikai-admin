@@ -212,15 +212,19 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="registration_date">Fecha de alta</Label>
+              <Label htmlFor="registration_date">Fecha de Alta</Label>
               <Input
                 id="registration_date"
                 type="date"
                 value={formData.registration_date ?? ''}
                 onChange={(e) => handleChange('registration_date', e.target.value)}
                 className={errors.registration_date ? 'border-red-500' : ''}
+                aria-invalid={!!errors.registration_date}
+                aria-describedby={errors.registration_date ? 'registration_date-error' : undefined}
               />
-              {errors.registration_date && <p className="text-sm text-red-500">{errors.registration_date}</p>}
+              {errors.registration_date && (
+                <p id="registration_date-error" className="text-sm text-red-500">{errors.registration_date}</p>
+              )}
             </div>
           </div>
 

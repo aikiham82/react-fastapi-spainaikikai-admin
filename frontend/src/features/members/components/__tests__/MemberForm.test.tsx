@@ -42,19 +42,19 @@ describe('MemberForm registration date', () => {
   it('prefills the join date with the creation date when there is no registration date', () => {
     renderEditing()
 
-    expect(screen.getByLabelText('Fecha de alta')).toHaveValue('2025-10-01')
+    expect(screen.getByLabelText('Fecha de Alta')).toHaveValue('2025-10-01')
   })
 
   it('prefills the join date with the registration date when present', () => {
     renderEditing({ registration_date: '2018-03-05T00:00:00' })
 
-    expect(screen.getByLabelText('Fecha de alta')).toHaveValue('2018-03-05')
+    expect(screen.getByLabelText('Fecha de Alta')).toHaveValue('2018-03-05')
   })
 
   it('sends the edited registration date on submit', async () => {
     renderEditing()
 
-    fireEvent.change(screen.getByLabelText('Fecha de alta'), { target: { value: '2024-09-01' } })
+    fireEvent.change(screen.getByLabelText('Fecha de Alta'), { target: { value: '2024-09-01' } })
     await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
 
     expect(updateMember).toHaveBeenCalledWith(
@@ -69,7 +69,7 @@ describe('MemberForm registration date', () => {
 
     renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
 
-    expect(screen.getByLabelText('Fecha de alta')).toHaveValue(today)
+    expect(screen.getByLabelText('Fecha de Alta')).toHaveValue(today)
   })
 
   it('does not write the creation date as join date when the join date is left alone', async () => {
@@ -83,7 +83,7 @@ describe('MemberForm registration date', () => {
   it('refuses a future join date', async () => {
     renderEditing()
 
-    fireEvent.change(screen.getByLabelText('Fecha de alta'), { target: { value: '2999-01-01' } })
+    fireEvent.change(screen.getByLabelText('Fecha de Alta'), { target: { value: '2999-01-01' } })
     await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
 
     expect(screen.getByText('La fecha de alta no puede ser futura')).toBeInTheDocument()
