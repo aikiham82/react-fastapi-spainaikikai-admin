@@ -1,5 +1,6 @@
 """A club admin reads the invoices of their own club only."""
 
+from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -7,6 +8,7 @@ import pytest
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
+from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
 from src.infrastructure.web.dependencies import (
     get_all_invoices_use_case,
     get_auth_context,
@@ -31,12 +33,10 @@ pytestmark = [pytest.mark.api, pytest.mark.auth]
 
 
 def invoice_of(club_id, invoice_id="invoice-id"):
-    return SimpleNamespace(
+    return Invoice(
         id=invoice_id, invoice_number="2026-0001", payment_id="payment-id", member_id=OWN_MEMBER,
-        club_id=club_id, license_id=None, customer_name="Club Example", customer_address=None,
-        customer_tax_id=None, customer_email=None, line_items=[], subtotal=10.0, tax_amount=0.0,
-        total_amount=10.0, status=SimpleNamespace(value="paid"), issue_date=None, due_date=None,
-        paid_date=None, pdf_path=None, notes=None, created_at=None, updated_at=None,
+        club_id=club_id, customer_name="Club Example", status=InvoiceStatus.PAID,
+        subtotal=10.0, tax_total=0.0, total=10.0,
     )
 
 
@@ -92,6 +92,23 @@ def test_a_club_admin_lists_only_the_invoices_of_their_club(client_as):
 
     assert response.status_code == status.HTTP_200_OK
     assert [invoice["id"] for invoice in response.json()] == ["invoice-own"]
+
+
+def test_a_stored_invoice_entity_is_listed(client_as, use_cases):
+    issued = datetime(2026, 10, 15, 7, 57, 17)
+    client = client_as(super_admin())
+    use_cases.get_all.execute.return_value = [Invoice(
+        id="invoice-real", invoice_number="2025-000002", payment_id="payment-id", member_id=OWN_CLUB,
+        club_id=OWN_CLUB, customer_name="Club Example", status=InvoiceStatus.ISSUED, issue_date=issued,
+        line_items=[InvoiceLineItem(description="Licencia DAN", quantity=3, unit_price=20)],
+        subtotal=60, tax_total=0.0, total=60.0, created_at=issued, updated_at=issued,
+    )]
+
+    response = client.get("/api/v1/invoices")
+
+    assert response.status_code == status.HTTP_200_OK
+    listed = response.json()[0]
+    assert (listed["total_amount"], listed["tax_amount"], listed["issue_date"][:10]) == (60.0, 0.0, "2026-10-15")
 
 
 def test_a_club_admins_limit_counts_their_own_invoices(client_as, use_cases):
