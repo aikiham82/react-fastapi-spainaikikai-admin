@@ -78,7 +78,8 @@ export const InvoiceList = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Buscar por numero de factura o cliente..."
+            placeholder="Buscar factura o cliente"
+            aria-label="Buscar factura o cliente"
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
@@ -86,7 +87,7 @@ export const InvoiceList = () => {
         </div>
 
         <Select value={statusFilter} onValueChange={handleFilterStatus}>
-          <SelectTrigger className="w-full sm:w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]" aria-label="Filtrar por estado">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
@@ -151,9 +152,9 @@ export const InvoiceList = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b bg-gray-50">
-                <th className="text-left p-4 font-medium text-gray-900">N Factura</th>
+                <th className="text-left p-4 font-medium text-gray-900">Nº factura</th>
                 <th className="text-left p-4 font-medium text-gray-900">Cliente</th>
-                <th className="text-left p-4 font-medium text-gray-900">Fecha Emision</th>
+                <th className="text-left p-4 font-medium text-gray-900">Fecha de emisión</th>
                 <th className="text-right p-4 font-medium text-gray-900">Subtotal</th>
                 <th className="text-right p-4 font-medium text-gray-900">IVA</th>
                 <th className="text-right p-4 font-medium text-gray-900">Total</th>
@@ -280,32 +281,32 @@ const InvoiceDetailDialog = ({ invoice }: { invoice: Invoice }) => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-900">Direccion</p>
+            <p className="text-sm font-medium text-gray-900">Dirección</p>
             <p className="text-sm text-gray-600">{invoice.customer_address || '-'}</p>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-900">Fecha Emision</p>
+              <p className="text-sm font-medium text-gray-900">Fecha de emisión</p>
               <p className="text-sm text-gray-600">{formatDate(invoice.issue_date)}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Fecha Vencimiento</p>
+              <p className="text-sm font-medium text-gray-900">Fecha de vencimiento</p>
               <p className="text-sm text-gray-600">{formatDate(invoice.due_date)}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Fecha Pago</p>
+              <p className="text-sm font-medium text-gray-900">Fecha de pago</p>
               <p className="text-sm text-gray-600">{formatDate(invoice.paid_date)}</p>
             </div>
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-900 mb-2">Lineas de Factura</p>
+            <p className="text-sm font-medium text-gray-900 mb-2">Líneas de factura</p>
             <div className="border rounded-md">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-gray-50">
-                    <th className="text-left p-2">Descripcion</th>
+                    <th className="text-left p-2">Descripción</th>
                     <th className="text-right p-2">Cant.</th>
                     <th className="text-right p-2">Precio</th>
                     <th className="text-right p-2">IVA</th>
