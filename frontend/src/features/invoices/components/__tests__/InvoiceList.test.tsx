@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { InvoiceList } from '../InvoiceList'
-import type { Invoice } from '../../data/schemas/invoice.schema'
+import type { Invoice, InvoiceFilters } from '../../data/schemas/invoice.schema'
 
 const context = vi.hoisted(() => ({
   invoices: [] as Invoice[],
+  filters: {} as InvoiceFilters,
   setFilters: vi.fn(),
 }))
 
@@ -14,7 +15,7 @@ vi.mock('../../hooks/useInvoiceContext', () => ({
     invoices: context.invoices,
     isLoading: false,
     error: null,
-    filters: {},
+    filters: context.filters,
     setFilters: context.setFilters,
     downloadPdf: vi.fn(),
     regeneratePdf: vi.fn(),
@@ -71,6 +72,7 @@ describe('InvoiceList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     context.invoices = [issuedClubInvoice]
+    context.filters = {}
   })
 
   it('renders an issued invoice without a PDF', () => {
@@ -88,9 +90,9 @@ describe('InvoiceList', () => {
   })
 
   it('clears the status filter when "Todos" is chosen', async () => {
+    context.filters = { status: 'issued' }
     renderWithProviders(<InvoiceList />)
 
-    await chooseStatus('Emitida')
     await chooseStatus('Todos')
 
     expect(context.setFilters).toHaveBeenLastCalledWith({ status: undefined })

@@ -42,11 +42,10 @@ export const InvoiceList = () => {
     isRegenerating,
   } = useInvoiceContext();
   const { canAccess } = usePermissions();
-  const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUSES);
+  const statusFilter = filters.status ?? ALL_STATUSES;
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleFilterStatus = (value: string) => {
-    setStatusFilter(value);
     setFilters({ ...filters, status: value === ALL_STATUSES ? undefined : (value as InvoiceStatus) });
   };
 
