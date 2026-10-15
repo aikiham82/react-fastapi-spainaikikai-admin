@@ -30,7 +30,13 @@ import {
 
 const ALL_STATUSES = 'all';
 
-const foldForSearch = (text: string): string =>
+const emptyListMessage = (searchHidAll: boolean, statusFilter: string): string => {
+  if (searchHidAll) return 'No se encontraron facturas para tu búsqueda';
+  if (statusFilter === ALL_STATUSES) return 'No hay facturas registradas';
+  return 'No se encontraron facturas con ese estado';
+};
+
+const foldForSearch =(text: string): string =>
   text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 export const InvoiceList = () => {
@@ -118,11 +124,7 @@ export const InvoiceList = () => {
             {invoices.length > 0 ? 'Sin resultados' : 'No hay facturas'}
           </h3>
           <p className="text-gray-600 mb-4">
-            {invoices.length > 0
-              ? 'No se encontraron facturas para tu búsqueda'
-              : statusFilter === ALL_STATUSES
-                ? 'No hay facturas registradas'
-                : 'No se encontraron facturas con ese estado'}
+            {emptyListMessage(invoices.length > 0, statusFilter)}
           </p>
         </div>
       ) : (
