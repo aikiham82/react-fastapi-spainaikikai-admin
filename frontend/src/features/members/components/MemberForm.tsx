@@ -16,6 +16,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+const localToday = (): string => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+
 interface MemberFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -59,6 +64,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         postal_code: member.postal_code || '',
         country: member.country || 'España',
         club_id: member.club_id || '',
+        registration_date: (member.registration_date ?? member.created_at ?? '').substring(0, 10),
       });
     } else {
       setFormData({
@@ -96,6 +102,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
       if (age < 0 || age > 120) {
         newErrors.birth_date = 'Fecha de nacimiento inválida';
       }
+    }
+    if (formData.registration_date && formData.registration_date > localToday()) {
+      newErrors.registration_date = 'La fecha de alta no puede ser futura';
     }
 
     setErrors(newErrors);
@@ -186,14 +195,28 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dni">DNI/NIE</Label>
-            <Input
-              id="dni"
-              value={formData.dni}
-              onChange={(e) => handleChange('dni', e.target.value)}
-              placeholder="12345678X"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="dni">DNI/NIE</Label>
+              <Input
+                id="dni"
+                value={formData.dni}
+                onChange={(e) => handleChange('dni', e.target.value)}
+                placeholder="12345678X"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="registration_date">Fecha de alta</Label>
+              <Input
+                id="registration_date"
+                type="date"
+                value={formData.registration_date ?? ''}
+                onChange={(e) => handleChange('registration_date', e.target.value)}
+                className={errors.registration_date ? 'border-red-500' : ''}
+              />
+              {errors.registration_date && <p className="text-sm text-red-500">{errors.registration_date}</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

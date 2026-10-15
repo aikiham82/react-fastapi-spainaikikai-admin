@@ -2,7 +2,17 @@
 
 from pydantic import BaseModel, field_validator
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def naive_past_registration_date(value: Optional[datetime]) -> Optional[datetime]:
+    if value is None:
+        return None
+    if value.tzinfo is not None:
+        value = value.astimezone(timezone.utc).replace(tzinfo=None)
+    if value > datetime.utcnow():
+        raise ValueError("La fecha de alta no puede ser futura")
+    return value
 
 
 class MemberBase(BaseModel):
@@ -50,6 +60,9 @@ class MemberUpdate(BaseModel):
     club_id: Optional[str] = None
     status: Optional[str] = None
     club_role: Optional[str] = None
+    registration_date: Optional[datetime] = None
+
+    _registration_date = field_validator('registration_date')(naive_past_registration_date)
 
     @field_validator('email', mode='before')
     @classmethod

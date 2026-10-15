@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-15T08:50:00Z"
+has_completed_all_phases: false
 ---
 
 # Member registration date
@@ -45,20 +55,22 @@ Permissions: both super admin and club admin may edit it, club admins only for m
 
 Description: `PUT /members/{id}` accepts `registration_date`, stored naive and never in the future; the member form shows "Fecha de alta" prefilled with `registration_date ?? created_at` and sends it on save.
 
-- [ ] `MemberUpdate.registration_date: Optional[datetime] = None`, validator converting an aware value to naive UTC and rejecting a future date (422).
-- [ ] `MemberMapper.update_entity_from_dto` applies `registration_date`.
-- [ ] Frontend `Member.registration_date?: string | null`; `CreateMemberRequest.registration_date?: string` (so `UpdateMemberRequest` gets it).
-- [ ] `MemberForm`: date input "Fecha de alta", prefilled on edit with `(registration_date ?? created_at).substring(0, 10)`; validation message "La fecha de alta no puede ser futura".
-- [ ] Tests, `backend/tests/api/test_members_registration_date.py`:
-  - [ ] `test_a_club_admin_changes_the_registration_date_of_a_member_of_their_club`
-  - [ ] `test_a_future_registration_date_is_rejected`
-  - [ ] `test_a_club_admin_cannot_change_a_member_of_another_club`
-- [ ] Tests, `frontend/src/features/members/components/__tests__/MemberForm.test.tsx`:
-  - [ ] prefills "Fecha de alta" with `created_at` when `registration_date` is null
-  - [ ] prefills "Fecha de alta" with `registration_date` when present
-  - [ ] sends the edited `registration_date` on submit
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd backend && poetry run pytest`, `cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MemberUpdate.registration_date: Optional[datetime] = None`, validator converting an aware value to naive UTC and rejecting a future date (422).
+- [x] ~~`MemberMapper.update_entity_from_dto` applies `registration_date`.~~ Not needed: the router passes the DTO to `UpdateMemberUseCase`, which already sets the attribute.
+- [x] Frontend `Member.registration_date?: string | null`; `CreateMemberRequest.registration_date?: string` (so `UpdateMemberRequest` gets it).
+- [x] `MemberForm`: date input "Fecha de alta", prefilled on edit with `(registration_date ?? created_at).substring(0, 10)`; validation message "La fecha de alta no puede ser futura".
+- [x] Tests, `backend/tests/api/test_members_registration_date.py`:
+  - [x] `test_a_club_admin_changes_the_registration_date_of_a_member_of_their_club`
+  - [x] `test_an_aware_registration_date_is_stored_naive`
+  - [x] `test_a_future_registration_date_is_rejected`
+  - [x] `test_a_club_admin_cannot_change_a_member_of_another_club`
+- [x] Tests, `frontend/src/features/members/components/__tests__/MemberForm.test.tsx`:
+  - [x] prefills "Fecha de alta" with `created_at` when `registration_date` is null
+  - [x] prefills "Fecha de alta" with `registration_date` when present
+  - [x] sends the edited `registration_date` on submit
+  - [x] refuses a future join date
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd backend && poetry run pytest`, `cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Choose the registration date when creating a member
 
@@ -77,6 +89,6 @@ Description: `POST /members` accepts an optional `registration_date` (defaults t
 
 ## Next step
 
-Implement Phase 1: edit the registration date of an existing member.
+Implement Phase 2: choose the registration date when creating a member.
 
-Join date sorted, payments in the right year, carried by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Old members found their real join date, carried by 📅 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
