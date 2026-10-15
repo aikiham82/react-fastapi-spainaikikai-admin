@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { invoiceService } from '../../data/services/invoice.service';
 import type { InvoiceFilters } from '../../data/schemas/invoice.schema';
 
@@ -9,6 +9,7 @@ export const useInvoicesQuery = (filters?: InvoiceFilters) => {
     queryKey: [INVOICES_QUERY_KEY, filters],
     queryFn: () => invoiceService.getInvoices(filters),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    placeholderData: keepPreviousData,
   });
 };
 

@@ -111,6 +111,13 @@ def test_a_stored_invoice_entity_is_listed(client_as, use_cases):
     assert (listed["total_amount"], listed["tax_amount"], listed["issue_date"][:10]) == (60.0, 0.0, "2026-10-15")
 
 
+def test_an_unknown_invoice_status_is_a_422(client_as, use_cases):
+    response = client_as(super_admin()).get("/api/v1/invoices?status=void")
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    use_cases.get_all.execute.assert_not_called()
+
+
 def test_a_club_admins_limit_counts_their_own_invoices(client_as, use_cases):
     response = client_as(club_admin()).get("/api/v1/invoices?limit=1")
 

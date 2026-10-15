@@ -15,17 +15,14 @@ class GetAllInvoicesUseCase:
 
     async def execute(
         self,
-        status: Optional[str] = None,
+        status: Optional[InvoiceStatus] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         limit: int = 0
     ) -> List[Invoice]:
         """Execute the use case."""
         if status:
-            return await self.invoice_repository.find_by_status(
-                InvoiceStatus(status),
-                limit
-            )
+            return await self.invoice_repository.find_by_status(status, limit)
         elif start_date or end_date:
             return await self.invoice_repository.find_by_date_range(
                 start_date,

@@ -1,4 +1,4 @@
-export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'cancelled' | 'void';
+export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'cancelled';
 
 export interface InvoiceLineItem {
   description: string;
@@ -46,7 +46,6 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   issued: 'Emitida',
   paid: 'Pagada',
   cancelled: 'Cancelada',
-  void: 'Anulada',
 };
 
 // Invoice status badge variants
@@ -55,7 +54,6 @@ export const INVOICE_STATUS_VARIANTS: Record<InvoiceStatus, 'default' | 'seconda
   issued: 'warning',
   paid: 'success',
   cancelled: 'destructive',
-  void: 'destructive',
 };
 
 // Format currency in EUR
