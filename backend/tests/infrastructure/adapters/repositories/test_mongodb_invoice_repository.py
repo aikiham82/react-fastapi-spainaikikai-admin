@@ -285,3 +285,10 @@ class TestFindByDateRange:
 
         query = found.collection.find.call_args[0][0]
         assert query == {"issue_date": {"$lt": datetime(2026, 10, 16)}}
+
+    @pytest.mark.asyncio
+    async def test_find_by_date_range_also_filters_by_status(self, found):
+        await found.find_by_date_range(date(2026, 10, 1), None, status=InvoiceStatus.PAID)
+
+        query = found.collection.find.call_args[0][0]
+        assert query == {"issue_date": {"$gte": datetime(2026, 10, 1)}, "status": "paid"}

@@ -50,9 +50,10 @@ class InvoiceRepositoryPort(ABC):
         self,
         start_date: Optional[date],
         end_date: Optional[date],
-        limit: int = 0
+        limit: int = 0,
+        status: Optional[InvoiceStatus] = None,
     ) -> List[Invoice]:
-        """Find invoices within a date range."""
+        """Find invoices within a date range, optionally with a status."""
         pass
 
     @abstractmethod
