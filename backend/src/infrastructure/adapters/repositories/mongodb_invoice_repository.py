@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 from bson import ObjectId
-from datetime import datetime, date
+from datetime import date, datetime, time, timedelta
 
 from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
 from src.application.ports.invoice_repository import InvoiceRepositoryPort
@@ -136,13 +136,12 @@ class MongoDBInvoiceRepository(InvoiceRepositoryPort):
         end_date: Optional[date],
         limit: int = 0
     ) -> List[Invoice]:
-        query = {}
+        issue_date = {}
         if start_date:
-            query["issue_date"] = {"$gte": start_date.isoformat()}
+            issue_date["$gte"] = datetime.combine(start_date, time.min)
         if end_date:
-            if "issue_date" not in query:
-                query["issue_date"] = {}
-            query["issue_date"]["$lte"] = end_date.isoformat()
+            issue_date["$lt"] = datetime.combine(end_date + timedelta(days=1), time.min)
+        query = {"issue_date": issue_date} if issue_date else {}
         cursor = self.collection.find(query).sort("issue_date", -1).limit(limit)
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]

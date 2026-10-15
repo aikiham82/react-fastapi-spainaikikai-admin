@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-15T10:15:00Z"
+last_implementation_at: "2026-10-15T10:25:00Z"
 has_completed_all_phases: false
 ---
 
@@ -63,12 +63,12 @@ Description: client-side, debounced, case- and accent-insensitive search over th
 
 Description: `find_by_date_range` queries naive datetime bounds: start day from 00:00, end day included through the end of the day.
 
-- [ ] `MongoDBInvoiceRepository.find_by_date_range` builds `{"issue_date": {"$gte": datetime(start), "$lt": datetime(end) + 1 day}}`.
-- [ ] Tests, `backend/tests/infrastructure/adapters/repositories/test_mongodb_invoice_repository.py`:
-  - [ ] `test_find_by_date_range_queries_naive_datetime_bounds_including_the_end_day`
-  - [ ] `test_find_by_date_range_with_only_an_end_date`
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd backend && poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MongoDBInvoiceRepository.find_by_date_range` builds `{"issue_date": {"$gte": datetime(start), "$lt": datetime(end) + 1 day}}`.
+- [x] Tests, `backend/tests/infrastructure/adapters/repositories/test_mongodb_invoice_repository.py`:
+  - [x] `test_find_by_date_range_queries_naive_datetime_bounds_including_the_end_day`
+  - [x] `test_find_by_date_range_with_only_an_end_date`
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd backend && poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: PDF errors stay on the server and the response stops exposing the PDF path
 
@@ -87,6 +87,6 @@ Description: PDF 500s log the cause and answer a generic Spanish message; `Invoi
 
 ## Next step
 
-Implement Phase 2: the invoice date filter returns the invoices in range.
+Implement Phase 3: PDF errors stay on the server and the response stops exposing the PDF path.
 
-Search found its invoices: 🔎 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Search and dates line up: 🔎 📅 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
