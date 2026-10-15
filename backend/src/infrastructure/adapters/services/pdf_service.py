@@ -72,8 +72,10 @@ class PDFService(PDFServicePort):
         """Format amount as currency."""
         return f"{amount:.2f} EUR"
 
-    def _format_date(self, date_str: str) -> str:
-        """Format date string for display."""
+    def _format_date(self, date_str) -> str:
+        """Format a datetime or an ISO date string for display."""
+        if isinstance(date_str, datetime):
+            return date_str.strftime("%d/%m/%Y")
         try:
             date_obj = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
             return date_obj.strftime("%d/%m/%Y")
@@ -161,8 +163,8 @@ class PDFService(PDFServicePort):
 
         # Add totals
         table_data.append(["", "", "", "Base Imponible:", self._format_currency(invoice.subtotal)])
-        table_data.append(["", "", "", "IVA:", self._format_currency(invoice.tax_amount)])
-        table_data.append(["", "", "", "TOTAL:", self._format_currency(invoice.total_amount)])
+        table_data.append(["", "", "", "IVA:", self._format_currency(invoice.tax_total)])
+        table_data.append(["", "", "", "TOTAL:", self._format_currency(invoice.total)])
 
         items_table = Table(
             table_data,
