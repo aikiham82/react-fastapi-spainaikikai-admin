@@ -1,19 +1,20 @@
 """Member DTOs for request/response validation."""
 
-from pydantic import BaseModel, field_validator
-from typing import List, Optional
+from pydantic import AfterValidator, BaseModel, field_validator
+from typing import Annotated, List, Optional
 from datetime import datetime, timedelta, timezone
 
 
-def naive_past_registration_date(value: Optional[datetime]) -> Optional[datetime]:
-    if value is None:
-        return None
+def naive_past_registration_date(value: datetime) -> datetime:
     if value.tzinfo is not None:
         value = value.astimezone(timezone.utc).replace(tzinfo=None)
     # ponytail: allows one day past UTC so Spain's today passes after its midnight
     if value.date() > (datetime.utcnow() + timedelta(days=1)).date():
         raise ValueError("La fecha de alta no puede ser futura")
     return value
+
+
+RegistrationDate = Annotated[datetime, AfterValidator(naive_past_registration_date)]
 
 
 class MemberBase(BaseModel):
@@ -44,9 +45,7 @@ class MemberBase(BaseModel):
 class MemberCreate(MemberBase):
     """DTO for creating a new member."""
     birth_date: Optional[datetime] = None
-    registration_date: Optional[datetime] = None
-
-    check_registration_date = field_validator('registration_date')(naive_past_registration_date)
+    registration_date: Optional[RegistrationDate] = None
 
 
 class MemberUpdate(BaseModel):
@@ -64,9 +63,7 @@ class MemberUpdate(BaseModel):
     club_id: Optional[str] = None
     status: Optional[str] = None
     club_role: Optional[str] = None
-    registration_date: Optional[datetime] = None
-
-    check_registration_date = field_validator('registration_date')(naive_past_registration_date)
+    registration_date: Optional[RegistrationDate] = None
 
     @field_validator('email', mode='before')
     @classmethod

@@ -21,6 +21,9 @@ const localToday = (): string => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
+const joinDateOf = (member: Member): string =>
+  (member.registration_date ?? member.created_at ?? '').substring(0, 10);
+
 interface MemberFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -64,7 +67,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         postal_code: member.postal_code || '',
         country: member.country || 'España',
         club_id: member.club_id || '',
-        registration_date: (member.registration_date ?? member.created_at ?? '').substring(0, 10),
+        registration_date: joinDateOf(member),
       });
     } else {
       setFormData({
@@ -121,8 +124,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
 
     if (isEditing && member) {
       const { registration_date, ...rest } = formData;
-      const shownJoinDate = (member.registration_date ?? member.created_at ?? '').substring(0, 10);
-      updateMember(member.id, registration_date === shownJoinDate ? rest : formData);
+      updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData);
     } else {
       createMember(formData);
     }
