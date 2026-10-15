@@ -104,7 +104,9 @@ class GenerateLicensesFromPaymentUseCase:
 
             if renewable:
                 # Renew the existing license
-                renewable.expiration_date = expiration_date
+                renewable.expiration_date = max(
+                    expiration_date, renewable.expiration_date or expiration_date
+                )
                 renewable.renewal_date = datetime.now()
                 renewable.is_renewed = True
                 renewable.status = LicenseStatus.ACTIVE

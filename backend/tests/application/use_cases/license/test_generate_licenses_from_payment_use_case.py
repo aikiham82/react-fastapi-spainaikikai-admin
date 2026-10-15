@@ -628,6 +628,27 @@ class TestGenerateLicensesFromPaymentUseCase:
         assert renewed.is_renewed is True
         assert renewed.last_payment_id == "new_payment_456"
 
+    async def test_paying_an_earlier_year_never_shortens_a_later_expiration(self, mock_license_repository, sample_license):
+        """A club that paid 2026 and then pays 2025 keeps its licences valid to the end of 2026."""
+        late_payment = MemberPayment(
+            payment_id="payment_2025",
+            member_id="member123",
+            payment_year=2025,
+            payment_type=MemberPaymentType.LICENCIA_KYU,
+            concept="Licencia Kyu",
+            amount=15.0,
+            status=MemberPaymentStatus.COMPLETED,
+        )
+        mock_license_repository.find_by_member_id.return_value = [sample_license]
+        mock_license_repository.update = AsyncMock(side_effect=lambda lic: lic)
+
+        await GenerateLicensesFromPaymentUseCase(mock_license_repository).execute(
+            [late_payment], "payment_2025", 2025
+        )
+
+        renewed = mock_license_repository.update.call_args[0][0]
+        assert renewed.expiration_date == datetime(2026, 12, 31, 23, 59, 59)
+
     async def test_execute_creates_new_license_when_no_existing_license_for_member(self, mock_license_repository, sample_member_payment, sample_license):
         """Test that when no license exists at all for the member, a new one is created."""
         # Arrange
