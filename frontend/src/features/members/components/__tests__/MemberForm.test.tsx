@@ -72,6 +72,14 @@ describe('MemberForm registration date', () => {
     expect(screen.getByLabelText('Fecha de alta')).toHaveValue(today)
   })
 
+  it('does not write the creation date as join date when the join date is left alone', async () => {
+    renderEditing()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+
+    expect(updateMember.mock.calls[0][1]).not.toHaveProperty('registration_date')
+  })
+
   it('refuses a future join date', async () => {
     renderEditing()
 

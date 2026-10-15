@@ -33,12 +33,24 @@ def test_an_aware_registration_date_is_stored_naive(client_as, use_cases):
 
 
 def test_a_future_registration_date_is_rejected(client_as, use_cases):
-    tomorrow = (datetime.utcnow() + timedelta(days=1)).date().isoformat()
+    after_tomorrow = (datetime.utcnow() + timedelta(days=2)).date().isoformat()
 
-    response = client_as(club_admin()).put("/api/v1/members/member-id", json={"registration_date": tomorrow})
+    response = client_as(club_admin()).put(
+        "/api/v1/members/member-id", json={"registration_date": after_tomorrow}
+    )
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     use_cases.update.execute.assert_not_called()
+
+
+def test_today_in_spain_is_accepted_while_utc_is_still_on_yesterday(client_as, use_cases):
+    spanish_today_after_midnight = (datetime.utcnow() + timedelta(days=1)).date().isoformat()
+
+    response = client_as(club_admin()).put(
+        "/api/v1/members/member-id", json={"registration_date": spanish_today_after_midnight}
+    )
+
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_a_club_admin_cannot_change_a_member_of_another_club(client_as, use_cases):
@@ -60,10 +72,10 @@ def test_a_new_member_is_created_with_the_given_registration_date(client_as, use
 
 
 def test_a_new_member_with_a_future_registration_date_is_rejected(client_as, use_cases):
-    tomorrow = (datetime.utcnow() + timedelta(days=1)).date().isoformat()
+    after_tomorrow = (datetime.utcnow() + timedelta(days=2)).date().isoformat()
 
     response = client_as(club_admin()).post(
-        "/api/v1/members", json={"first_name": "Ana", "registration_date": tomorrow}
+        "/api/v1/members", json={"first_name": "Ana", "registration_date": after_tomorrow}
     )
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

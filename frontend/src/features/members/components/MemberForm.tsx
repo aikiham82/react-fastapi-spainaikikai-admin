@@ -120,7 +120,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     }
 
     if (isEditing && member) {
-      updateMember(member.id, formData);
+      const { registration_date, ...rest } = formData;
+      const shownJoinDate = (member.registration_date ?? member.created_at ?? '').substring(0, 10);
+      updateMember(member.id, registration_date === shownJoinDate ? rest : formData);
     } else {
       createMember(formData);
     }

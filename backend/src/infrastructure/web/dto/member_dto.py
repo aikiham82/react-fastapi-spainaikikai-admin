@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, field_validator
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 def naive_past_registration_date(value: Optional[datetime]) -> Optional[datetime]:
@@ -10,7 +10,8 @@ def naive_past_registration_date(value: Optional[datetime]) -> Optional[datetime
         return None
     if value.tzinfo is not None:
         value = value.astimezone(timezone.utc).replace(tzinfo=None)
-    if value > datetime.utcnow():
+    # ponytail: allows one day past UTC so Spain's today passes after its midnight
+    if value.date() > (datetime.utcnow() + timedelta(days=1)).date():
         raise ValueError("La fecha de alta no puede ser futura")
     return value
 
@@ -45,7 +46,7 @@ class MemberCreate(MemberBase):
     birth_date: Optional[datetime] = None
     registration_date: Optional[datetime] = None
 
-    _registration_date = field_validator('registration_date')(naive_past_registration_date)
+    check_registration_date = field_validator('registration_date')(naive_past_registration_date)
 
 
 class MemberUpdate(BaseModel):
@@ -65,7 +66,7 @@ class MemberUpdate(BaseModel):
     club_role: Optional[str] = None
     registration_date: Optional[datetime] = None
 
-    _registration_date = field_validator('registration_date')(naive_past_registration_date)
+    check_registration_date = field_validator('registration_date')(naive_past_registration_date)
 
     @field_validator('email', mode='before')
     @classmethod
