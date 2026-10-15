@@ -53,7 +53,8 @@ docs/
 │   └── project-layout.md
 ├── conventions/
 │   ├── backend.md
-│   └── frontend.md
+│   ├── frontend.md
+│   └── select-all-option.md
 ├── dev-tooling/
 │   ├── development-commands.md
 │   ├── github-account.md
@@ -76,6 +77,7 @@ docs/
 │   ├── auth-endpoints.md
 │   └── security-guidelines.md
 ├── testing/
+│   ├── fixtures-are-real-entities.md
 │   ├── no-production-data.md
 │   └── testing-strategy.md
 └── workflow/
