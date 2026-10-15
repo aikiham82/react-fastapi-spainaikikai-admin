@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { InvoiceList } from '../InvoiceList'
@@ -59,18 +59,7 @@ const chooseStatus = async (label: string) => {
 }
 
 describe('InvoiceList', () => {
-  beforeAll(() => {
-    Element.prototype.hasPointerCapture = () => false
-    Element.prototype.scrollIntoView = () => {}
-    globalThis.ResizeObserver = class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    }
-  })
-
   beforeEach(() => {
-    vi.clearAllMocks()
     context.invoices = [issuedClubInvoice]
     context.filters = {}
   })
