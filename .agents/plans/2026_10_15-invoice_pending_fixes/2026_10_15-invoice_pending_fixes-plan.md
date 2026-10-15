@@ -86,6 +86,8 @@ Description: PDF 500s log the cause and answer a generic Spanish message; `Invoi
 - [x] Verify the changes in terms of typechecking, linting and tests using the project's verification commands. Fix issues if any.
 - [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
+> Review change: `GET /invoices/{id}/pdf` generates the PDF on request when none is stored, so the download is always available. The response drops `pdf_path` without adding `has_pdf`, and the download button is shown for every invoice.
+
 ## Next step
 
 All phases are complete.

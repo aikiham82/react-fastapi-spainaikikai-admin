@@ -36,7 +36,6 @@ class InvoiceResponse(BaseModel):
     issue_date: Optional[str] = None
     due_date: Optional[str] = None
     paid_date: Optional[str] = None
-    has_pdf: bool = False
     notes: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

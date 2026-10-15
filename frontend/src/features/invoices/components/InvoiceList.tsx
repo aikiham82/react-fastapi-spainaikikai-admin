@@ -114,7 +114,9 @@ export const InvoiceList = () => {
       {visibleInvoices.length === 0 ? (
         <div className="text-center py-12">
           <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No hay facturas</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {invoices.length > 0 ? 'Sin resultados' : 'No hay facturas'}
+          </h3>
           <p className="text-gray-600 mb-4">
             {invoices.length > 0
               ? 'No se encontraron facturas para tu búsqueda'
@@ -145,11 +147,9 @@ export const InvoiceList = () => {
             </div>
             <div className="flex items-center gap-2 pt-2 border-t">
               <InvoiceDetailDialog invoice={invoice} />
-              {invoice.has_pdf && (
-                <Button variant="ghost" size="icon" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
-                  <Download className="w-4 h-4" />
-                </Button>
-              )}
+              <Button variant="ghost" size="icon" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
+                <Download className="w-4 h-4" />
+              </Button>
               {canAccess({ resource: 'invoices', action: 'update' }) && (
                 <Button variant="ghost" size="icon" onClick={() => regeneratePdf(invoice.id)} disabled={isRegenerating} aria-label="Regenerar PDF">
                   <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
@@ -241,17 +241,15 @@ const InvoiceRow = ({
         <div className="flex items-center justify-end gap-2">
           <InvoiceDetailDialog invoice={invoice} />
 
-          {invoice.has_pdf && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDownload(invoice.id, invoice.invoice_number)}
-              disabled={isDownloading}
-              aria-label="Descargar PDF"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDownload(invoice.id, invoice.invoice_number)}
+            disabled={isDownloading}
+            aria-label="Descargar PDF"
+          >
+            <Download className="w-4 h-4" />
+          </Button>
 
           {canUpdate && (
             <Button

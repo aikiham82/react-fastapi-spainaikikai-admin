@@ -60,7 +60,6 @@ def _invoice_to_response(invoice) -> InvoiceResponse:
         status=invoice.status.value,
         issue_date=invoice.issue_date.isoformat() if invoice.issue_date else None,
         due_date=invoice.due_date.isoformat() if invoice.due_date else None,
-        has_pdf=bool(invoice.pdf_path),
         notes=invoice.notes,
         created_at=invoice.created_at,
         updated_at=invoice.updated_at

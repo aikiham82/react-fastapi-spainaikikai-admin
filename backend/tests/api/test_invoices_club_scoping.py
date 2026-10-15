@@ -128,7 +128,7 @@ def test_a_failed_pdf_does_not_reveal_the_cause(client_as, use_cases, request_pd
     assert response.json() == {"detail": "No se pudo generar el PDF de la factura"}
 
 
-def test_the_invoice_response_says_whether_a_pdf_exists_without_its_path(client_as, use_cases):
+def test_the_invoice_response_does_not_reveal_the_pdf_path(client_as, use_cases):
     client = client_as(super_admin())
     stored = invoice_of(OWN_CLUB)
     stored.pdf_path = "/srv/invoices/2026-0001.pdf"
@@ -136,8 +136,8 @@ def test_the_invoice_response_says_whether_a_pdf_exists_without_its_path(client_
 
     body = client.get("/api/v1/invoices/invoice-id").json()
 
-    assert body["has_pdf"] is True
     assert "pdf_path" not in body
+    assert "/srv/" not in str(body)
 
 
 def test_an_unknown_invoice_status_is_a_422(client_as, use_cases):
