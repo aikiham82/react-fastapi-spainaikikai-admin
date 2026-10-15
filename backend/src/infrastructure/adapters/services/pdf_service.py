@@ -1,5 +1,6 @@
 """PDF Service Implementation using ReportLab."""
 
+from xml.sax.saxutils import escape
 import os
 from datetime import datetime
 from typing import Optional
@@ -72,8 +73,10 @@ class PDFService(PDFServicePort):
         """Format amount as currency."""
         return f"{amount:.2f} EUR"
 
-    def _format_date(self, date_str: str) -> str:
-        """Format date string for display."""
+    def _format_date(self, date_str) -> str:
+        """Format a datetime or an ISO date string for display."""
+        if isinstance(date_str, datetime):
+            return date_str.strftime("%d/%m/%Y")
         try:
             date_obj = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
             return date_obj.strftime("%d/%m/%Y")
@@ -112,16 +115,16 @@ class PDFService(PDFServicePort):
 
         # Company info
         company_info = f"""
-        <b>{company_name}</b><br/>
-        {company_address}<br/>
-        CIF/NIF: {company_tax_id}
+        <b>{escape(company_name)}</b><br/>
+        {escape(company_address)}<br/>
+        CIF/NIF: {escape(company_tax_id)}
         """
         header_data[0][0] = Paragraph(company_info, self.styles["CompanyInfo"])
 
         # Invoice info
         invoice_info = f"""
         <b>FACTURA</b><br/>
-        Numero: {invoice.invoice_number}<br/>
+        Numero: {escape(invoice.invoice_number)}<br/>
         Fecha: {self._format_date(invoice.issue_date)}<br/>
         """
         header_data[0][1] = Paragraph(invoice_info, self.styles["InvoiceHeader"])
@@ -137,9 +140,9 @@ class PDFService(PDFServicePort):
         # Customer info section
         customer_info = f"""
         <b>Datos del cliente:</b><br/>
-        {invoice.customer_name or "N/A"}<br/>
-        {invoice.customer_address or ""}<br/>
-        {f"CIF/NIF: {invoice.customer_tax_id}" if invoice.customer_tax_id else ""}
+        {escape(invoice.customer_name or "N/A")}<br/>
+        {escape(invoice.customer_address or "")}<br/>
+        {f"CIF/NIF: {escape(invoice.customer_tax_id)}" if invoice.customer_tax_id else ""}
         """
         elements.append(Paragraph(customer_info, self.styles["CustomerInfo"]))
         elements.append(Spacer(1, 1 * cm))
@@ -161,8 +164,8 @@ class PDFService(PDFServicePort):
 
         # Add totals
         table_data.append(["", "", "", "Base Imponible:", self._format_currency(invoice.subtotal)])
-        table_data.append(["", "", "", "IVA:", self._format_currency(invoice.tax_amount)])
-        table_data.append(["", "", "", "TOTAL:", self._format_currency(invoice.total_amount)])
+        table_data.append(["", "", "", "IVA:", self._format_currency(invoice.tax_total)])
+        table_data.append(["", "", "", "TOTAL:", self._format_currency(invoice.total)])
 
         items_table = Table(
             table_data,
@@ -202,7 +205,7 @@ class PDFService(PDFServicePort):
 
         # Payment info
         if invoice.notes:
-            elements.append(Paragraph(f"<b>Notas:</b> {invoice.notes}", self.styles["Normal"]))
+            elements.append(Paragraph(f"<b>Notas:</b> {escape(invoice.notes)}", self.styles["Normal"]))
             elements.append(Spacer(1, 0.5 * cm))
 
         # Footer
@@ -278,10 +281,10 @@ class PDFService(PDFServicePort):
         certificate_text = f"""
         Se certifica que:
         <br/><br/>
-        <b>{member_name}</b>
+        <b>{escape(member_name)}</b>
         <br/><br/>
-        Es titular de la licencia federativa numero <b>{license_number}</b>,
-        con categoria <b>{license_type}</b>, perteneciente al club <b>{club_name}</b>.
+        Es titular de la licencia federativa numero <b>{escape(license_number)}</b>,
+        con categoria <b>{escape(license_type)}</b>, perteneciente al club <b>{escape(club_name)}</b>.
         <br/><br/>
         <b>Fecha de emision:</b> {self._format_date(issue_date)}
         <br/>

@@ -51,10 +51,7 @@ class DownloadInvoicePDFUseCase:
                     logo_path=invoice_settings.logo_path if invoice_settings.logo_path else None
                 )
             except Exception as e:
-                raise InvoicePDFGenerationError(
-                    invoice_number=invoice.invoice_number,
-                    reason=str(e)
-                )
+                raise InvoicePDFGenerationError(invoice_number=invoice.invoice_number) from e
 
         filename = f"factura_{invoice.invoice_number.replace('/', '-')}.pdf"
 

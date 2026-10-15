@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { InvoiceList } from '../InvoiceList'
 import type { Invoice, InvoiceFilters } from '../../data/schemas/invoice.schema'
@@ -47,7 +47,6 @@ const issuedClubInvoice: Invoice = {
   issue_date: '2026-10-15T07:57:17.442000',
   due_date: null,
   paid_date: null,
-  pdf_path: null,
   notes: '',
   created_at: '2026-10-15T07:57:17.442000',
   updated_at: '2026-10-15T07:57:17.442000',
@@ -93,6 +92,64 @@ describe('InvoiceList', () => {
     renderWithProviders(<InvoiceList />)
 
     expect(screen.getByRole('combobox')).toBeInTheDocument()
+  })
+
+  it('offers the download for an invoice whose PDF is generated on request', () => {
+    renderWithProviders(<InvoiceList />)
+
+    expect(screen.getAllByRole('button', { name: 'Descargar PDF' }).length).toBeGreaterThan(0)
+  })
+
+  describe('search', () => {
+    const accentedClubInvoice: Invoice = {
+      ...issuedClubInvoice,
+      id: 'invoice-2',
+      invoice_number: '2026-000007',
+      customer_name: 'Aikido Almería Example',
+    }
+
+    const visibleNumbers = () =>
+      [...new Set(screen.queryAllByText(/^20\d\d-\d{6}$/).map((el) => el.textContent))]
+
+    beforeEach(() => {
+      context.invoices = [issuedClubInvoice, accentedClubInvoice]
+    })
+
+    it('finds an invoice by its number', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), '2025-000002')
+
+      await waitFor(() => expect(visibleNumbers()).toEqual(['2025-000002']))
+    })
+
+    it('finds an invoice by client name typed without accents', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'ALMERIA')
+
+      await waitFor(() => expect(visibleNumbers()).toEqual(['2026-000007']))
+    })
+
+    it('clears a search that hid every invoice', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
+      await userEvent.click(await screen.findByRole('button', { name: 'Limpiar búsqueda' }))
+
+      expect(screen.getByRole('textbox', { name: 'Buscar factura o cliente' })).toHaveValue('')
+      await waitFor(() => expect(visibleNumbers()).toEqual(['2025-000002', '2026-000007']))
+    })
+
+    it('says so when nothing matches, keeping the filters on screen', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
+
+      expect(await screen.findByText('Sin resultados')).toBeInTheDocument()
+      expect(screen.getByText('No se encontraron facturas para tu búsqueda')).toBeInTheDocument()
+      expect(screen.getByRole('combobox')).toBeInTheDocument()
+    })
   })
 
   it('offers only the statuses the backend knows', async () => {

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useDebounce } from '@/core/hooks/useDebounce';
 import { useInvoiceContext } from '../hooks/useInvoiceContext';
 import { FileText, Search, Download, RefreshCw, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,15 @@ import {
 
 const ALL_STATUSES = 'all';
 
+const emptyListMessage = (searchHidAll: boolean, statusFilter: string): string => {
+  if (searchHidAll) return 'No se encontraron facturas para tu búsqueda';
+  if (statusFilter === ALL_STATUSES) return 'No hay facturas registradas';
+  return 'No se encontraron facturas con ese estado';
+};
+
+const foldForSearch = (text: string): string =>
+  text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
 export const InvoiceList = () => {
   const {
     invoices,
@@ -44,14 +54,20 @@ export const InvoiceList = () => {
   const { canAccess } = usePermissions();
   const statusFilter = filters.status ?? ALL_STATUSES;
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(foldForSearch(searchTerm.trim()));
+
+  const visibleInvoices = useMemo(
+    () =>
+      debouncedSearch
+        ? invoices.filter((invoice) =>
+            foldForSearch(`${invoice.invoice_number} ${invoice.customer_name ?? ''}`).includes(debouncedSearch)
+          )
+        : invoices,
+    [invoices, debouncedSearch]
+  );
 
   const handleFilterStatus = (value: string) => {
     setFilters({ ...filters, status: value === ALL_STATUSES ? undefined : (value as InvoiceStatus) });
-  };
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    // Note: Backend filtering by member_id would need to be implemented
   };
 
   if (isLoading) {
@@ -81,7 +97,7 @@ export const InvoiceList = () => {
             placeholder="Buscar factura o cliente"
             aria-label="Buscar factura o cliente"
             value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -101,19 +117,26 @@ export const InvoiceList = () => {
         </Select>
       </div>
 
-      {invoices.length === 0 ? (
+      {visibleInvoices.length === 0 ? (
         <div className="text-center py-12">
           <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No hay facturas</h3>
-          <p className="text-gray-600 mb-4">
-            {statusFilter === ALL_STATUSES ? 'No hay facturas registradas' : 'No se encontraron facturas con ese estado'}
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {invoices.length > 0 ? 'Sin resultados' : 'No hay facturas'}
+          </h3>
+          <p className="text-gray-600 mb-4 text-pretty">
+            {emptyListMessage(invoices.length > 0, statusFilter)}
           </p>
+          {invoices.length > 0 && (
+            <Button variant="outline" onClick={() => setSearchTerm('')}>
+              Limpiar búsqueda
+            </Button>
+          )}
         </div>
       ) : (
       <>
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {invoices.map((invoice) => (
+        {visibleInvoices.map((invoice) => (
           <div key={invoice.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
@@ -131,13 +154,11 @@ export const InvoiceList = () => {
             </div>
             <div className="flex items-center gap-2 pt-2 border-t">
               <InvoiceDetailDialog invoice={invoice} />
-              {invoice.pdf_path && (
-                <Button variant="ghost" size="icon" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
-                  <Download className="w-4 h-4" />
-                </Button>
-              )}
+              <Button variant="ghost" size="icon" className="size-11" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
+                <Download className="w-4 h-4" />
+              </Button>
               {canAccess({ resource: 'invoices', action: 'update' }) && (
-                <Button variant="ghost" size="icon" onClick={() => regeneratePdf(invoice.id)} disabled={isRegenerating} aria-label="Regenerar PDF">
+                <Button variant="ghost" size="icon" className="size-11" onClick={() => regeneratePdf(invoice.id)} disabled={isRegenerating} aria-label="Regenerar PDF">
                   <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
                 </Button>
               )}
@@ -163,7 +184,7 @@ export const InvoiceList = () => {
               </tr>
             </thead>
             <tbody>
-              {invoices.map((invoice) => (
+              {visibleInvoices.map((invoice) => (
                 <InvoiceRow
                   key={invoice.id}
                   invoice={invoice}
@@ -227,17 +248,15 @@ const InvoiceRow = ({
         <div className="flex items-center justify-end gap-2">
           <InvoiceDetailDialog invoice={invoice} />
 
-          {invoice.pdf_path && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDownload(invoice.id, invoice.invoice_number)}
-              disabled={isDownloading}
-              aria-label="Descargar PDF"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDownload(invoice.id, invoice.invoice_number)}
+            disabled={isDownloading}
+            aria-label="Descargar PDF"
+          >
+            <Download className="w-4 h-4" />
+          </Button>
 
           {canUpdate && (
             <Button

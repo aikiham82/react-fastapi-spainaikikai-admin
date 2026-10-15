@@ -5,9 +5,9 @@ that blocked manual-payment invoice creation in production.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from bson import ObjectId
-from datetime import datetime
+from datetime import date, datetime
 
 from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
 from src.infrastructure.adapters.repositories.mongodb_invoice_repository import (
@@ -258,3 +258,30 @@ class TestRoundTrip:
         doc["_id"] = ObjectId("507f1f77bcf86cd799439075")
         restored = repository._to_domain(doc)
         assert restored.status == InvoiceStatus.ISSUED
+
+
+@pytest.mark.unit
+@pytest.mark.repository
+class TestFindByDateRange:
+    @pytest.fixture
+    def found(self, repository):
+        cursor = MagicMock()
+        cursor.sort.return_value = cursor
+        cursor.limit.return_value = cursor
+        cursor.to_list = AsyncMock(return_value=[])
+        repository.collection.find = MagicMock(return_value=cursor)
+        return repository
+
+    @pytest.mark.asyncio
+    async def test_find_by_date_range_queries_naive_datetime_bounds_including_the_end_day(self, found):
+        await found.find_by_date_range(date(2026, 10, 1), date(2026, 10, 15))
+
+        query = found.collection.find.call_args[0][0]
+        assert query == {"issue_date": {"$gte": datetime(2026, 10, 1), "$lt": datetime(2026, 10, 16)}}
+
+    @pytest.mark.asyncio
+    async def test_find_by_date_range_with_only_an_end_date(self, found):
+        await found.find_by_date_range(None, date(2026, 10, 15))
+
+        query = found.collection.find.call_args[0][0]
+        assert query == {"issue_date": {"$lt": datetime(2026, 10, 16)}}

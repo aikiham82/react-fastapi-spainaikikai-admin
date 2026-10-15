@@ -37,9 +37,6 @@ class RegenerateInvoicePDFUseCase:
             )
             invoice.pdf_path = pdf_path
         except Exception as e:
-            raise InvoicePDFGenerationError(
-                invoice_number=invoice.invoice_number,
-                reason=str(e)
-            )
+            raise InvoicePDFGenerationError(invoice_number=invoice.invoice_number) from e
 
         return await self.invoice_repository.update(invoice)

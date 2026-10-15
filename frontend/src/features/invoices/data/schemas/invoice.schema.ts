@@ -26,7 +26,6 @@ export interface Invoice {
   issue_date: string | null;
   due_date: string | null;
   paid_date: string | null;
-  pdf_path: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
