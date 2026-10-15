@@ -124,7 +124,7 @@ class PDFService(PDFServicePort):
         # Invoice info
         invoice_info = f"""
         <b>FACTURA</b><br/>
-        Numero: {escape(invoice.invoice_number)}<br/>
+        Número: {escape(invoice.invoice_number)}<br/>
         Fecha: {self._format_date(invoice.issue_date)}<br/>
         """
         header_data[0][1] = Paragraph(invoice_info, self.styles["InvoiceHeader"])
@@ -148,7 +148,7 @@ class PDFService(PDFServicePort):
         elements.append(Spacer(1, 1 * cm))
 
         # Line items table
-        table_data = [["Descripcion", "Cantidad", "Precio Unit.", "IVA %", "Total"]]
+        table_data = [["Descripción", "Cantidad", "Precio Unit.", "IVA %", "Total"]]
 
         for item in invoice.line_items:
             subtotal = item.quantity * item.unit_price
@@ -209,7 +209,7 @@ class PDFService(PDFServicePort):
             elements.append(Spacer(1, 0.5 * cm))
 
         # Footer
-        footer_text = "Documento generado electronicamente - Conserve este documento para su contabilidad"
+        footer_text = "Documento generado electrónicamente - Conserve este documento para su contabilidad"
         elements.append(Spacer(1, 1 * cm))
         elements.append(Paragraph(footer_text, self.styles["Footer"]))
 
@@ -283,10 +283,10 @@ class PDFService(PDFServicePort):
         <br/><br/>
         <b>{escape(member_name)}</b>
         <br/><br/>
-        Es titular de la licencia federativa numero <b>{escape(license_number)}</b>,
-        con categoria <b>{escape(license_type)}</b>, perteneciente al club <b>{escape(club_name)}</b>.
+        Es titular de la licencia federativa número <b>{escape(license_number)}</b>,
+        con categoría <b>{escape(license_type)}</b>, perteneciente al club <b>{escape(club_name)}</b>.
         <br/><br/>
-        <b>Fecha de emision:</b> {self._format_date(issue_date)}
+        <b>Fecha de emisión:</b> {self._format_date(issue_date)}
         <br/>
         <b>Fecha de vencimiento:</b> {self._format_date(expiration_date)}
         """
