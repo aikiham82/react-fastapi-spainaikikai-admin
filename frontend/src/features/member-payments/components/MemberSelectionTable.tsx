@@ -57,6 +57,9 @@ interface MemberSelectionTableProps {
   };
 }
 
+const toAssignmentMap = (assignments: MemberPaymentAssignment[]): Map<string, Set<string>> =>
+  new Map(assignments.map((a) => [a.member_id, new Set(a.payment_types)]));
+
 export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
   isOpen,
   onClose,
@@ -66,15 +69,12 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
   maxQuantities,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [assignments, setAssignments] = useState<Map<string, Set<string>>>(
-    () => {
-      const map = new Map<string, Set<string>>();
-      initialAssignments.forEach((a) => {
-        map.set(a.member_id, new Set(a.payment_types));
-      });
-      return map;
-    }
-  );
+  const [assignments, setAssignments] = useState(() => toAssignmentMap(initialAssignments));
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) setAssignments(toAssignmentMap(initialAssignments));
+  }
 
   // Determine member group priority: F/S(0) > DAN(1) > KYU(2) > KYU Inf.(3) > None(4)
   const getGroupPriority = useCallback((member: Member): number => {
