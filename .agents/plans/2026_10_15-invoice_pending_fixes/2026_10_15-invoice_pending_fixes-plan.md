@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-15T10:25:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-15T10:40:00Z"
+has_completed_all_phases: true
 ---
 
 # Invoice pending fixes
@@ -74,19 +74,20 @@ Description: `find_by_date_range` queries naive datetime bounds: start day from 
 
 Description: PDF 500s log the cause and answer a generic Spanish message; `InvoiceResponse.pdf_path` becomes `has_pdf: bool`, and the frontend gates the download button on it.
 
-- [ ] Router: `logger.exception` on `InvoicePDFGenerationError`, `detail="No se pudo generar el PDF de la factura"` for download and regenerate.
-- [ ] `InvoiceResponse`: drop `pdf_path`, add `has_pdf: bool`.
-- [ ] Frontend: `Invoice.has_pdf: boolean` replaces `pdf_path`; download buttons use `invoice.has_pdf`.
-- [ ] Tests, `backend/tests/api/test_invoices_club_scoping.py`:
-  - [ ] `test_a_failed_pdf_does_not_reveal_the_cause`
-  - [ ] `test_the_invoice_response_says_whether_a_pdf_exists_without_its_path`
-- [ ] Tests, `InvoiceList.test.tsx`:
-  - [ ] offers the download when the invoice has a PDF
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Router: `logger.exception` on `InvoicePDFGenerationError`, `detail="No se pudo generar el PDF de la factura"` for download and regenerate.
+- [x] `InvoiceResponse`: drop `pdf_path`, add `has_pdf: bool`.
+- [x] Frontend: `Invoice.has_pdf: boolean` replaces `pdf_path`; download buttons use `invoice.has_pdf`.
+- [x] Tests, `backend/tests/api/test_invoices_club_scoping.py`:
+  - [x] `test_a_failed_pdf_does_not_reveal_the_cause`
+  - [x] `test_the_invoice_response_says_whether_a_pdf_exists_without_its_path`
+- [x] Tests, `InvoiceList.test.tsx`:
+  - [x] offers the download when the invoice has a PDF
+  - [x] hides the download when the invoice has no PDF
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 3: PDF errors stay on the server and the response stops exposing the PDF path.
+All phases are complete.
 
-Search and dates line up: 🔎 📅 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Search, dates and quiet PDFs: 🔎 📅 🤐 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

@@ -9,6 +9,7 @@ from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
 from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
+from src.domain.exceptions.invoice import InvoicePDFGenerationError
 from src.infrastructure.web.dependencies import (
     get_all_invoices_use_case,
     get_auth_context,
@@ -109,6 +110,34 @@ def test_a_stored_invoice_entity_is_listed(client_as, use_cases):
     assert response.status_code == status.HTTP_200_OK
     listed = response.json()[0]
     assert (listed["total_amount"], listed["tax_amount"], listed["issue_date"][:10]) == (60.0, 0.0, "2026-10-15")
+
+
+@pytest.mark.parametrize("request_pdf", [
+    lambda client: client.get("/api/v1/invoices/invoice-id/pdf"),
+    lambda client: client.post("/api/v1/invoices/invoice-id/regenerate-pdf"),
+])
+def test_a_failed_pdf_does_not_reveal_the_cause(client_as, use_cases, request_pdf):
+    client = client_as(super_admin())
+    failure = InvoicePDFGenerationError("2026-0001", "/srv/invoices/secret.pdf: Permission denied")
+    use_cases.pdf.execute.side_effect = failure
+    use_cases.regenerate.execute.side_effect = failure
+
+    response = request_pdf(client)
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.json() == {"detail": "No se pudo generar el PDF de la factura"}
+
+
+def test_the_invoice_response_says_whether_a_pdf_exists_without_its_path(client_as, use_cases):
+    client = client_as(super_admin())
+    stored = invoice_of(OWN_CLUB)
+    stored.pdf_path = "/srv/invoices/2026-0001.pdf"
+    use_cases.get_one.execute.return_value = stored
+
+    body = client.get("/api/v1/invoices/invoice-id").json()
+
+    assert body["has_pdf"] is True
+    assert "pdf_path" not in body
 
 
 def test_an_unknown_invoice_status_is_a_422(client_as, use_cases):

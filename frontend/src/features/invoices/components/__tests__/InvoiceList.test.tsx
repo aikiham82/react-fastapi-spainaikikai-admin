@@ -47,7 +47,7 @@ const issuedClubInvoice: Invoice = {
   issue_date: '2026-10-15T07:57:17.442000',
   due_date: null,
   paid_date: null,
-  pdf_path: null,
+  has_pdf: false,
   notes: '',
   created_at: '2026-10-15T07:57:17.442000',
   updated_at: '2026-10-15T07:57:17.442000',
@@ -93,6 +93,20 @@ describe('InvoiceList', () => {
     renderWithProviders(<InvoiceList />)
 
     expect(screen.getByRole('combobox')).toBeInTheDocument()
+  })
+
+  it('offers the download only when the invoice has a PDF', () => {
+    context.invoices = [{ ...issuedClubInvoice, has_pdf: true }]
+
+    renderWithProviders(<InvoiceList />)
+
+    expect(screen.getAllByRole('button', { name: 'Descargar PDF' }).length).toBeGreaterThan(0)
+  })
+
+  it('hides the download when the invoice has no PDF', () => {
+    renderWithProviders(<InvoiceList />)
+
+    expect(screen.queryByRole('button', { name: 'Descargar PDF' })).not.toBeInTheDocument()
   })
 
   describe('search', () => {

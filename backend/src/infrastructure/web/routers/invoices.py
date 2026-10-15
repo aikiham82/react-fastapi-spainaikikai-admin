@@ -1,5 +1,6 @@
 """Invoice routes."""
 
+import logging
 from typing import List, Optional
 from datetime import date
 
@@ -27,6 +28,9 @@ from src.domain.exceptions.invoice import InvoiceNotFoundError, InvoicePDFGenera
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
 INVOICE_DENIED = "Access denied to this invoice"
+PDF_FAILED = "No se pudo generar el PDF de la factura"
+
+logger = logging.getLogger(__name__)
 
 
 def _invoice_to_response(invoice) -> InvoiceResponse:
@@ -56,7 +60,7 @@ def _invoice_to_response(invoice) -> InvoiceResponse:
         status=invoice.status.value,
         issue_date=invoice.issue_date.isoformat() if invoice.issue_date else None,
         due_date=invoice.due_date.isoformat() if invoice.due_date else None,
-        pdf_path=invoice.pdf_path,
+        has_pdf=bool(invoice.pdf_path),
         notes=invoice.notes,
         created_at=invoice.created_at,
         updated_at=invoice.updated_at
@@ -151,10 +155,11 @@ async def download_invoice_pdf(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
-    except InvoicePDFGenerationError as e:
+    except InvoicePDFGenerationError:
+        logger.exception("Invoice PDF generation failed for %s", invoice_id)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail=PDF_FAILED
         )
 
 
@@ -177,8 +182,9 @@ async def regenerate_invoice_pdf(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
-    except InvoicePDFGenerationError as e:
+    except InvoicePDFGenerationError:
+        logger.exception("Invoice PDF generation failed for %s", invoice_id)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail=PDF_FAILED
         )

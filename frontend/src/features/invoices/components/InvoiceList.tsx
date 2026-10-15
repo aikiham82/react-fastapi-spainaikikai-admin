@@ -145,7 +145,7 @@ export const InvoiceList = () => {
             </div>
             <div className="flex items-center gap-2 pt-2 border-t">
               <InvoiceDetailDialog invoice={invoice} />
-              {invoice.pdf_path && (
+              {invoice.has_pdf && (
                 <Button variant="ghost" size="icon" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
                   <Download className="w-4 h-4" />
                 </Button>
@@ -241,7 +241,7 @@ const InvoiceRow = ({
         <div className="flex items-center justify-end gap-2">
           <InvoiceDetailDialog invoice={invoice} />
 
-          {invoice.pdf_path && (
+          {invoice.has_pdf && (
             <Button
               variant="ghost"
               size="icon"
