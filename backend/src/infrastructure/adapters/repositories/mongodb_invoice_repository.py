@@ -134,7 +134,8 @@ class MongoDBInvoiceRepository(InvoiceRepositoryPort):
         self,
         start_date: Optional[date],
         end_date: Optional[date],
-        limit: int = 0
+        limit: int = 0,
+        status: Optional[InvoiceStatus] = None,
     ) -> List[Invoice]:
         issue_date = {}
         if start_date:
@@ -142,6 +143,8 @@ class MongoDBInvoiceRepository(InvoiceRepositoryPort):
         if end_date:
             issue_date["$lt"] = datetime.combine(end_date + timedelta(days=1), time.min)
         query = {"issue_date": issue_date} if issue_date else {}
+        if status:
+            query["status"] = status.value
         cursor = self.collection.find(query).sort("issue_date", -1).limit(limit)
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
