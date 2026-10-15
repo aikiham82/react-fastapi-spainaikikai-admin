@@ -131,6 +131,16 @@ describe('InvoiceList', () => {
       await waitFor(() => expect(visibleNumbers()).toEqual(['2026-000007']))
     })
 
+    it('clears a search that hid every invoice', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
+      await userEvent.click(await screen.findByRole('button', { name: 'Limpiar búsqueda' }))
+
+      expect(screen.getByRole('textbox', { name: 'Buscar factura o cliente' })).toHaveValue('')
+      await waitFor(() => expect(visibleNumbers()).toEqual(['2025-000002', '2026-000007']))
+    })
+
     it('says so when nothing matches, keeping the filters on screen', async () => {
       renderWithProviders(<InvoiceList />)
 

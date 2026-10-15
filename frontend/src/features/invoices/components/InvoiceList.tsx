@@ -36,7 +36,7 @@ const emptyListMessage = (searchHidAll: boolean, statusFilter: string): string =
   return 'No se encontraron facturas con ese estado';
 };
 
-const foldForSearch =(text: string): string =>
+const foldForSearch = (text: string): string =>
   text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 export const InvoiceList = () => {
@@ -123,9 +123,14 @@ export const InvoiceList = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             {invoices.length > 0 ? 'Sin resultados' : 'No hay facturas'}
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 mb-4 text-pretty">
             {emptyListMessage(invoices.length > 0, statusFilter)}
           </p>
+          {invoices.length > 0 && (
+            <Button variant="outline" onClick={() => setSearchTerm('')}>
+              Limpiar búsqueda
+            </Button>
+          )}
         </div>
       ) : (
       <>
@@ -149,11 +154,11 @@ export const InvoiceList = () => {
             </div>
             <div className="flex items-center gap-2 pt-2 border-t">
               <InvoiceDetailDialog invoice={invoice} />
-              <Button variant="ghost" size="icon" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
+              <Button variant="ghost" size="icon" className="size-11" onClick={() => downloadPdf(invoice.id, invoice.invoice_number)} disabled={isDownloading} aria-label="Descargar PDF">
                 <Download className="w-4 h-4" />
               </Button>
               {canAccess({ resource: 'invoices', action: 'update' }) && (
-                <Button variant="ghost" size="icon" onClick={() => regeneratePdf(invoice.id)} disabled={isRegenerating} aria-label="Regenerar PDF">
+                <Button variant="ghost" size="icon" className="size-11" onClick={() => regeneratePdf(invoice.id)} disabled={isRegenerating} aria-label="Regenerar PDF">
                   <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
                 </Button>
               )}
