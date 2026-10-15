@@ -75,6 +75,7 @@ docs/
 │   └── how-to-create-a-plan.md
 ├── security/
 │   ├── auth-endpoints.md
+│   ├── pdf-text-is-escaped.md
 │   └── security-guidelines.md
 ├── testing/
 │   ├── fixtures-are-real-entities.md

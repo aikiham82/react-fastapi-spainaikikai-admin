@@ -7,6 +7,7 @@ A test that feeds a router, mapper or use case builds its data with the domain e
 ## 🏆 Benefits
 
 - A hand-written fake carries whatever fields the code reads, so the test passes while production breaks. The invoice response read `license_id`, `tax_amount`, `total_amount` and `paid_date`, which `Invoice` never had; its test used a `SimpleNamespace` with those same fields, and `GET /invoices` answered 500 as soon as the first real invoice existed.
+- The same drift hid in the PDF service, which read `tax_amount`, `total_amount` and an ISO-string `issue_date` that `Invoice` never had; with no test built on a real `Invoice`, every PDF generation failed for months.
 - Renaming or removing an entity field turns the fixture red at once.
 
 ## 👀 Examples
