@@ -48,3 +48,23 @@ def test_a_club_admin_cannot_change_a_member_of_another_club(client_as, use_case
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     use_cases.update.execute.assert_not_called()
+
+
+def test_a_new_member_is_created_with_the_given_registration_date(client_as, use_cases):
+    response = client_as(club_admin()).post(
+        "/api/v1/members", json={"first_name": "Ana", "registration_date": "2018-03-05"}
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert use_cases.create.execute.call_args.kwargs["registration_date"] == datetime(2018, 3, 5)
+
+
+def test_a_new_member_with_a_future_registration_date_is_rejected(client_as, use_cases):
+    tomorrow = (datetime.utcnow() + timedelta(days=1)).date().isoformat()
+
+    response = client_as(club_admin()).post(
+        "/api/v1/members", json={"first_name": "Ana", "registration_date": tomorrow}
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    use_cases.create.execute.assert_not_called()

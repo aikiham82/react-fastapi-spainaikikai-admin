@@ -63,6 +63,15 @@ describe('MemberForm registration date', () => {
     )
   })
 
+  it('defaults the join date to today when creating', () => {
+    const now = new Date()
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
+    renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
+
+    expect(screen.getByLabelText('Fecha de alta')).toHaveValue(today)
+  })
+
   it('refuses a future join date', async () => {
     renderEditing()
 

@@ -267,7 +267,8 @@ async def create_member(
         postal_code=member_data.postal_code,
         country=member_data.country,
         club_id=effective_club_id,
-        birth_date=member_data.birth_date
+        birth_date=member_data.birth_date,
+        registration_date=member_data.registration_date,
     )
     return MemberMapper.to_response_dto(member)
 

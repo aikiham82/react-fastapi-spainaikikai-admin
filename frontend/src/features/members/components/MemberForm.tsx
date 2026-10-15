@@ -80,6 +80,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         postal_code: '',
         country: 'España',
         club_id: clubs.length > 0 ? clubs[0].id : '',
+        registration_date: localToday(),
       });
     }
     setErrors({});

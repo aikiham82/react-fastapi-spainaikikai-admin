@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-15T08:50:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-15T09:05:00Z"
+has_completed_all_phases: true
 ---
 
 # Member registration date
@@ -76,19 +76,22 @@ Description: `PUT /members/{id}` accepts `registration_date`, stored naive and n
 
 Description: `POST /members` accepts an optional `registration_date` (defaults to today, same validation); the create form shows "Fecha de alta" defaulting to today.
 
-- [ ] `MemberCreate.registration_date: Optional[datetime] = None` with the same validator.
-- [ ] `MemberMapper` create uses the given date or `datetime.utcnow()`.
-- [ ] `MemberForm` create mode defaults "Fecha de alta" to today.
-- [ ] Tests, `backend/tests/api/test_members_registration_date.py`:
-  - [ ] `test_a_new_member_takes_the_given_registration_date`
-  - [ ] `test_a_new_member_without_registration_date_joins_today`
-- [ ] Tests, `MemberForm.test.tsx`:
-  - [ ] defaults "Fecha de alta" to today when creating
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MemberCreate.registration_date: Optional[datetime] = None` with the same validator.
+- [x] `CreateMemberUseCase.execute(..., registration_date: Optional[datetime] = None)` uses the given date or `datetime.utcnow()`; `POST /members` passes it (the member mapper's create method is unused).
+- [x] `MemberForm` create mode defaults "Fecha de alta" to today.
+- [x] Tests, `backend/tests/api/test_members_registration_date.py`:
+  - [x] `test_a_new_member_is_created_with_the_given_registration_date`
+  - [x] `test_a_new_member_with_a_future_registration_date_is_rejected`
+- [x] Tests, `backend/tests/application/use_cases/member/test_create_member_use_case.py`:
+  - [x] `test_a_new_member_takes_the_given_registration_date`
+  - [x] `test_a_new_member_without_registration_date_joins_today`
+- [x] Tests, `MemberForm.test.tsx`:
+  - [x] defaults "Fecha de alta" to today when creating
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2: choose the registration date when creating a member.
+All phases are complete.
 
-Old members found their real join date, carried by 📅 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+New members join on the right day too, 🆕 📅 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

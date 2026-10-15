@@ -43,6 +43,9 @@ class MemberBase(BaseModel):
 class MemberCreate(MemberBase):
     """DTO for creating a new member."""
     birth_date: Optional[datetime] = None
+    registration_date: Optional[datetime] = None
+
+    _registration_date = field_validator('registration_date')(naive_past_registration_date)
 
 
 class MemberUpdate(BaseModel):
