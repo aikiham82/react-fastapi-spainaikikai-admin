@@ -43,6 +43,14 @@ def test_a_future_registration_date_is_rejected(client_as, use_cases):
     use_cases.update.execute.assert_not_called()
 
 
+@pytest.mark.parametrize("extreme", ["0001-01-01T00:00:00+05:00", "1899-12-31", "9999-12-31T23:59:59-05:00"])
+def test_an_extreme_registration_date_is_rejected_not_crashed(client_as, use_cases, extreme):
+    response = client_as(club_admin()).put("/api/v1/members/member-id", json={"registration_date": extreme})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    use_cases.update.execute.assert_not_called()
+
+
 def test_today_in_spain_is_accepted_while_utc_is_still_on_yesterday(client_as, use_cases):
     spanish_today_after_midnight = (datetime.utcnow() + timedelta(days=1)).date().isoformat()
 

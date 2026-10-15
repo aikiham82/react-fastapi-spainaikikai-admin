@@ -6,6 +6,8 @@ from datetime import datetime, timedelta, timezone
 
 
 def naive_past_registration_date(value: datetime) -> datetime:
+    if not 1900 <= value.year <= 9998:
+        raise ValueError("Fecha de alta no válida")
     if value.tzinfo is not None:
         value = value.astimezone(timezone.utc).replace(tzinfo=None)
     # ponytail: allows one day past UTC so Spain's today passes after its midnight
