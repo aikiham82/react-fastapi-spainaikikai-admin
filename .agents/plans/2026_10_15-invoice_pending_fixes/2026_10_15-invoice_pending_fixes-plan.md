@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-15T10:15:00Z"
+has_completed_all_phases: false
 ---
 
 # Invoice pending fixes
@@ -40,14 +50,14 @@ Close the four invoice issues found while fixing the invoice list: the search bo
 
 Description: client-side, debounced, case- and accent-insensitive search over the loaded invoices.
 
-- [ ] `InvoiceList`: debounce the term with `useDebounce`, filter `invoices` by `invoice_number` and `customer_name` ignoring case and accents.
-- [ ] Empty search result shows "No se encontraron facturas para tu búsqueda" with the filter bar still on screen.
-- [ ] Tests, `frontend/src/features/invoices/components/__tests__/InvoiceList.test.tsx`:
-  - [ ] finds an invoice by its number
-  - [ ] finds an invoice by client name typed without accents
-  - [ ] shows the no-results message when nothing matches
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `InvoiceList`: debounce the term with `useDebounce`, filter `invoices` by `invoice_number` and `customer_name` ignoring case and accents.
+- [x] Empty search result shows "No se encontraron facturas para tu búsqueda" with the filter bar still on screen.
+- [x] Tests, `frontend/src/features/invoices/components/__tests__/InvoiceList.test.tsx`:
+  - [x] finds an invoice by its number
+  - [x] finds an invoice by client name typed without accents
+  - [x] shows the no-results message when nothing matches
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: The invoice date filter returns the invoices in range
 
@@ -77,6 +87,6 @@ Description: PDF 500s log the cause and answer a generic Spanish message; `Invoi
 
 ## Next step
 
-Implement Phase 1: the Facturas search filters by invoice number or client.
+Implement Phase 2: the invoice date filter returns the invoices in range.
 
-Four loose ends, one tidy ledger, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Search found its invoices: 🔎 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

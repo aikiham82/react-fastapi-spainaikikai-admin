@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { InvoiceList } from '../InvoiceList'
 import type { Invoice, InvoiceFilters } from '../../data/schemas/invoice.schema'
@@ -93,6 +93,47 @@ describe('InvoiceList', () => {
     renderWithProviders(<InvoiceList />)
 
     expect(screen.getByRole('combobox')).toBeInTheDocument()
+  })
+
+  describe('search', () => {
+    const accentedClubInvoice: Invoice = {
+      ...issuedClubInvoice,
+      id: 'invoice-2',
+      invoice_number: '2026-000007',
+      customer_name: 'Aikido Almería Example',
+    }
+
+    const visibleNumbers = () =>
+      [...new Set(screen.queryAllByText(/^20\d\d-\d{6}$/).map((el) => el.textContent))]
+
+    beforeEach(() => {
+      context.invoices = [issuedClubInvoice, accentedClubInvoice]
+    })
+
+    it('finds an invoice by its number', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), '2025-000002')
+
+      await waitFor(() => expect(visibleNumbers()).toEqual(['2025-000002']))
+    })
+
+    it('finds an invoice by client name typed without accents', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'ALMERIA')
+
+      await waitFor(() => expect(visibleNumbers()).toEqual(['2026-000007']))
+    })
+
+    it('says so when nothing matches, keeping the filters on screen', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
+
+      expect(await screen.findByText('No se encontraron facturas para tu búsqueda')).toBeInTheDocument()
+      expect(screen.getByRole('combobox')).toBeInTheDocument()
+    })
   })
 
   it('offers only the statuses the backend knows', async () => {
