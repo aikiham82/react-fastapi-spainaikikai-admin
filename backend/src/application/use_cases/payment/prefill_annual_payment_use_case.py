@@ -67,7 +67,9 @@ class PrefillAnnualPaymentUseCase:
     ) -> PrefillResult:
         # 1. Get all active members for this club
         members = await self._member_repo.find_by_club_id(club_id)
-        active_members = [m for m in members if m.status.value == "active"]
+        active_members = [
+            m for m in members if m.status.value == "active" and m.joined_by(payment_year)
+        ]
 
         if not active_members:
             return await self._prefill_from_previous_payment(

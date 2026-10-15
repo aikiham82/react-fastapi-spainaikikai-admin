@@ -63,8 +63,8 @@ class GetAllClubsPaymentSummaryUseCase:
 
             all_members = await self.member_repository.find_by_club_id(club.id)
             members = [m for m in all_members if m.is_active]
-            total_members = len(members)
             member_ids = [m.id for m in members if m.id]
+            total_members = len(members)
 
             if not member_ids:
                 club_summaries.append(ClubSummaryItem(
@@ -88,6 +88,10 @@ class GetAllClubsPaymentSummaryUseCase:
                 member_ids=member_ids,
                 payment_year=payment_year,
                 status=MemberPaymentStatus.COMPLETED
+            )
+            paid_member_ids = {p.member_id for p in payments}
+            total_members = sum(
+                1 for m in members if m.joined_by(payment_year) or m.id in paid_member_ids
             )
 
             license_members = set()

@@ -54,6 +54,10 @@ class Member:
         """Get member full name."""
         return f"{self.first_name} {self.last_name}"
 
+    def joined_by(self, year: int) -> bool:
+        joined_at = self.registration_date or self.created_at
+        return joined_at.year <= year
+
     def deactivate(self) -> None:
         """Deactivate member."""
         self.status = MemberStatus.INACTIVE

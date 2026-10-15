@@ -89,7 +89,6 @@ class GetClubPaymentSummaryUseCase:
         # Get only active club members (exclude deactivated members)
         all_members = await self.member_repository.find_by_club_id(club_id)
         members = [m for m in all_members if m.is_active]
-        total_members = len(members)
         member_ids = [m.id for m in members if m.id]
 
         # Get aggregated summary using member IDs
@@ -104,6 +103,9 @@ class GetClubPaymentSummaryUseCase:
             payment_year=payment_year,
             status=MemberPaymentStatus.COMPLETED
         )
+        paid_member_ids = {p.member_id for p in payments}
+        members = [m for m in members if m.joined_by(payment_year) or m.id in paid_member_ids]
+        total_members = len(members)
 
         # Classify grade group from the federation License entity (technical grade is
         # independent of payment). NOTE: the License entity is intentionally NOT used to

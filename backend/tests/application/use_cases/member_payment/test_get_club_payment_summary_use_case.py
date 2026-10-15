@@ -5,6 +5,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 from src.domain.entities.license import LicenseStatus
+from src.domain.entities.member import Member
 from src.application.use_cases.member_payment.get_club_payment_summary_use_case import (
     GetClubPaymentSummaryUseCase,
 )
@@ -155,3 +156,35 @@ class TestGetClubPaymentSummaryLicensePaid:
         result = await use_case.execute("club1", payment_year=2026)
 
         assert result.members_with_license == 2
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestGetClubPaymentSummaryJoinedMembers:
+    """A member who joined after the year has nothing pending in it."""
+
+    @pytest.fixture
+    def use_case(self, mock_repos):
+        old = Member(id="m1", first_name="Ana", last_name="Old", registration_date=datetime(2024, 1, 1))
+        new = Member(id="m2", first_name="Ben", last_name="New", registration_date=datetime(2026, 3, 1))
+        mock_repos["member_repo"].find_by_club_id.return_value = [old, new]
+        return GetClubPaymentSummaryUseCase(
+            member_payment_repository=mock_repos["member_payment_repo"],
+            club_repository=mock_repos["club_repo"],
+            member_repository=mock_repos["member_repo"],
+            license_repository=mock_repos["license_repo"],
+        )
+
+    async def test_leaves_out_a_member_who_joined_after_the_year(self, use_case):
+        result = await use_case.execute("club1", payment_year=2025)
+
+        assert [m.member_id for m in result.members] == ["m1"]
+        assert result.total_members == 1
+
+    async def test_keeps_a_later_member_who_paid_in_the_year(self, use_case, mock_repos):
+        mock_repos["member_payment_repo"].find_by_member_ids_year.return_value = [_license_payment("m2")]
+
+        result = await use_case.execute("club1", payment_year=2025)
+
+        assert {m.member_id for m in result.members} == {"m1", "m2"}
+        assert result.total_members == 2

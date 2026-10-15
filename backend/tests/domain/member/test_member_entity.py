@@ -123,3 +123,18 @@ class TestMemberEntity:
         """Test member club change with invalid club id raises error."""
         with pytest.raises(ValueError, match="Club ID cannot be empty"):
             member_fixture.change_club("")
+
+
+@pytest.mark.unit
+class TestMemberJoinedBy:
+    def test_counts_from_the_registration_year(self):
+        member = Member(first_name="Ana", registration_date=datetime(2026, 3, 1), created_at=datetime(2024, 1, 1))
+
+        assert not member.joined_by(2025)
+        assert member.joined_by(2026)
+
+    def test_falls_back_to_the_creation_year_without_a_registration_date(self):
+        member = Member(first_name="Ana", created_at=datetime(2026, 4, 17))
+
+        assert not member.joined_by(2025)
+        assert member.joined_by(2026)

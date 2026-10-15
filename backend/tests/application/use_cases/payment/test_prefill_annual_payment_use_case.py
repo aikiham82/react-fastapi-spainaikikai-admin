@@ -890,3 +890,22 @@ class TestPrefillAnnualPaymentUseCase:
         assert result.dan_count == 0
         assert len(result.member_assignments) == 0
         assert result.payer_name == "Previous Payer"  # Still uses valid fields
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_leaves_out_members_who_joined_after_the_year(use_case, mock_repos):
+    old = Member(id="m1", first_name="Ana", status=MemberStatus.ACTIVE, registration_date=datetime(2024, 1, 1))
+    new = Member(id="m2", first_name="Ben", status=MemberStatus.ACTIVE, registration_date=datetime(2026, 3, 1))
+    mock_repos["member_repo"].find_by_club_id.return_value = [old, new]
+    mock_repos["license_repo"].find_by_member_ids.return_value = [
+        License(member_id=mid, license_number=f"L-{mid}", grade="5º Kyu", technical_grade=TechnicalGrade.KYU,
+                age_category=AgeCategory.ADULTO, status=LicenseStatus.ACTIVE)
+        for mid in ("m1", "m2")
+    ]
+    mock_repos["insurance_repo"].find_by_member_ids.return_value = []
+
+    result = await use_case.execute("club-123", 2025)
+
+    assert result.kyu_count == 1
+    assert [a.member_id for a in result.member_assignments] == ["m1"]
