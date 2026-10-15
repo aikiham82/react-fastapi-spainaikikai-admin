@@ -27,6 +27,8 @@ import {
   formatDate,
 } from '../data/schemas/invoice.schema';
 
+const ALL_STATUSES = 'all';
+
 export const InvoiceList = () => {
   const {
     invoices,
@@ -40,12 +42,12 @@ export const InvoiceList = () => {
     isRegenerating,
   } = useInvoiceContext();
   const { canAccess } = usePermissions();
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUSES);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleFilterStatus = (value: string) => {
     setStatusFilter(value);
-    setFilters({ ...filters, status: value as InvoiceStatus || undefined });
+    setFilters({ ...filters, status: value === ALL_STATUSES ? undefined : (value as InvoiceStatus) });
   };
 
   const handleSearch = (value: string) => {
@@ -70,18 +72,6 @@ export const InvoiceList = () => {
     );
   }
 
-  if (invoices.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay facturas</h3>
-        <p className="text-gray-600 mb-4">
-          {statusFilter ? 'No se encontraron facturas con ese estado' : 'No hay facturas registradas'}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -101,7 +91,7 @@ export const InvoiceList = () => {
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value={ALL_STATUSES}>Todos</SelectItem>
             {Object.entries(INVOICE_STATUS_LABELS).map(([value, label]) => (
               <SelectItem key={value} value={value}>
                 {label}
@@ -113,7 +103,11 @@ export const InvoiceList = () => {
 
       {invoices.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+          <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No hay facturas</h3>
+          <p className="text-gray-600 mb-4">
+            {statusFilter === ALL_STATUSES ? 'No hay facturas registradas' : 'No se encontraron facturas con ese estado'}
+          </p>
         </div>
       ) : (
       <>

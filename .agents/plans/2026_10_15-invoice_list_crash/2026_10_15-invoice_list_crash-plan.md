@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-15T09:30:00Z"
+has_completed_all_phases: true
 ---
 
 # Invoice list crash
@@ -41,20 +51,22 @@ The Facturas page crashes as soon as it has an invoice to show, because its stat
 
 Description: "Todos" uses the `"all"` sentinel and sends no status; the status options are the four the backend knows; an unknown `status` query value answers 422.
 
-- [ ] `InvoiceList`: `statusFilter` defaults to `'all'`; "Todos" is `value="all"`; `handleFilterStatus` maps `'all'` to `status: undefined`.
-- [ ] Drop `void` from `InvoiceStatus`, `INVOICE_STATUS_LABELS` and `INVOICE_STATUS_VARIANTS`.
-- [ ] `GET /invoices` types `status` as the domain `InvoiceStatus`, so an unknown value is a 422.
-- [ ] Tests, `frontend/src/features/invoices/components/__tests__/InvoiceList.test.tsx`:
-  - [ ] renders an issued invoice without a PDF
-  - [ ] "Todos" clears the status filter
-  - [ ] "Emitida" filters by `issued`
-- [ ] Tests, `backend/tests/api/test_invoices_club_scoping.py`:
-  - [ ] `test_an_unknown_invoice_status_is_a_422`
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd backend && poetry run pytest`, `cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `InvoiceList`: `statusFilter` defaults to `'all'`; "Todos" is `value="all"`; `handleFilterStatus` maps `'all'` to `status: undefined`.
+- [x] Drop `void` from `InvoiceStatus`, `INVOICE_STATUS_LABELS` and `INVOICE_STATUS_VARIANTS`.
+- [x] `GET /invoices` types `status` as the domain `InvoiceStatus`, so an unknown value is a 422.
+- [x] Tests, `frontend/src/features/invoices/components/__tests__/InvoiceList.test.tsx`:
+  - [x] renders an issued invoice without a PDF
+  - [x] "Todos" clears the status filter
+  - [x] "Emitida" filters by `issued`
+  - [x] keeps the status filter on screen when no invoice matches (the empty state returned before the filter was drawn)
+  - [x] offers only the statuses the backend knows
+- [x] Tests, `backend/tests/api/test_invoices_club_scoping.py`:
+  - [x] `test_an_unknown_invoice_status_is_a_422`
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd backend && poetry run pytest`, `cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1: the Facturas page renders and its status filter works.
+All phases are complete.
 
-Invoices back on screen, escorted by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Invoices back on screen, filter and all: 🧾 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

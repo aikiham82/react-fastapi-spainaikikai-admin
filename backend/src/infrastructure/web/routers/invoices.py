@@ -21,6 +21,7 @@ from src.infrastructure.web.dependencies import (
 )
 from src.infrastructure.web.dependencies import get_auth_context, get_member_repository
 from src.infrastructure.web.authorization import AuthContext, require_club_access, require_member_access
+from src.domain.entities.invoice import InvoiceStatus
 from src.domain.exceptions.invoice import InvoiceNotFoundError, InvoicePDFGenerationError
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
@@ -64,7 +65,7 @@ def _invoice_to_response(invoice) -> InvoiceResponse:
 
 @router.get("", response_model=List[InvoiceResponse])
 async def get_all_invoices(
-    status: Optional[str] = None,
+    status: Optional[InvoiceStatus] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     limit: int = 0,
