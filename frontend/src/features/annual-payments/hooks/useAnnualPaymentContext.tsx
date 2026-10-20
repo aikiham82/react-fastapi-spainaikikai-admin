@@ -30,7 +30,7 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   prefillSource: 'members' | 'previous_payment' | null;
   isLoadingPrefill: boolean;
   clubFeeAlreadyPaid: boolean;
-  paidAssignments: MemberPaymentAssignment[];
+  paidAssignments?: MemberPaymentAssignment[];
   // Member selection
   isMemberSelectionOpen: boolean;
   openMemberSelection: () => void;
@@ -43,8 +43,6 @@ const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>
 interface AnnualPaymentProviderProps {
   children: ReactNode;
 }
-
-const NO_PAID_ASSIGNMENTS: MemberPaymentAssignment[] = [];
 
 export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children }) => {
   const { userRole, clubId } = useAuthContext();
@@ -272,7 +270,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     prefillSource: prefillData?.source ?? null,
     isLoadingPrefill,
     clubFeeAlreadyPaid: prefillData?.club_fee_already_paid ?? false,
-    paidAssignments: prefillData?.paid_assignments ?? NO_PAID_ASSIGNMENTS,
+    paidAssignments: prefillData?.paid_assignments,
     isMemberSelectionOpen,
     openMemberSelection,
     closeMemberSelection,
