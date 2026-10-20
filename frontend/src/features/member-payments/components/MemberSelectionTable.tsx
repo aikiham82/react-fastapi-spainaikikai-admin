@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Users } from 'lucide-react';
+import { CheckCircle2, Search, Users } from 'lucide-react';
 import type { Member } from '@/features/members/data/schemas/member.schema';
 import type { MemberPaymentAssignment } from '../data/schemas/member-payment.schema';
 
@@ -55,10 +55,24 @@ interface MemberSelectionTableProps {
     seguro_accidentes: number;
     seguro_rc: number;
   };
+  paidAssignments?: MemberPaymentAssignment[];
+  paidYear?: number;
 }
+
+const NO_PAID_ASSIGNMENTS: MemberPaymentAssignment[] = [];
 
 const toAssignmentMap = (assignments: MemberPaymentAssignment[]): Map<string, Set<string>> =>
   new Map(assignments.map((a) => [a.member_id, new Set(a.payment_types)]));
+
+const withoutPaid = (
+  assignments: MemberPaymentAssignment[],
+  paid: Map<string, Set<string>>
+): Map<string, Set<string>> =>
+  toAssignmentMap(
+    assignments
+      .map((a) => ({ ...a, payment_types: a.payment_types.filter((t) => !paid.get(a.member_id)?.has(t)) }))
+      .filter((a) => a.payment_types.length > 0)
+  );
 
 export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
   isOpen,
@@ -67,14 +81,22 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
   initialAssignments = [],
   onConfirm,
   maxQuantities,
+  paidAssignments = NO_PAID_ASSIGNMENTS,
+  paidYear,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [assignments, setAssignments] = useState(() => toAssignmentMap(initialAssignments));
+  const paidTypes = useMemo(() => toAssignmentMap(paidAssignments), [paidAssignments]);
+  const [assignments, setAssignments] = useState(() => withoutPaid(initialAssignments, paidTypes));
   const [wasOpen, setWasOpen] = useState(isOpen);
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
-    if (isOpen) setAssignments(toAssignmentMap(initialAssignments));
+    if (isOpen) setAssignments(withoutPaid(initialAssignments, paidTypes));
   }
+
+  const isPaid = useCallback(
+    (memberId: string, paymentType: string) => paidTypes.get(memberId)?.has(paymentType) ?? false,
+    [paidTypes]
+  );
 
   // Determine member group priority: F/S(0) > DAN(1) > KYU(2) > KYU Inf.(3) > None(4)
   const getGroupPriority = useCallback((member: Member): number => {
@@ -172,15 +194,16 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
     (paymentType: string) => {
       setAssignments((prev) => {
         const newMap = new Map(prev);
+        const eligibleMembers = filteredMembers.filter((m) => !isPaid(m.id, paymentType));
 
         // If all visible members have this type, remove it from all
-        const allHaveType = filteredMembers.every((m) =>
+        const allHaveType = eligibleMembers.every((m) =>
           newMap.get(m.id)?.has(paymentType)
         );
 
         if (allHaveType) {
           // Remove from all visible members
-          filteredMembers.forEach((m) => {
+          eligibleMembers.forEach((m) => {
             const types = newMap.get(m.id);
             if (types) {
               types.delete(paymentType);
@@ -191,7 +214,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
           });
         } else {
           // Add to all visible members that don't have it
-          filteredMembers.forEach((m) => {
+          eligibleMembers.forEach((m) => {
             const types = newMap.get(m.id);
             // Skip if member already has an instructor type and we're trying to add Seg. RC
             if (INSTRUCTOR_EXCLUDES_RC.has(paymentType) && [...INSTRUCTOR_TYPES].some((t) => types?.has(t))) {
@@ -216,7 +239,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         return newMap;
       });
     },
-    [filteredMembers]
+    [filteredMembers, isPaid]
   );
 
   // Get member name for assignment
@@ -331,6 +354,19 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                       </div>
                     </TableCell>
                     {PAYMENT_TYPE_OPTIONS.map((opt) => {
+                      if (isPaid(member.id, opt.value)) {
+                        const paidLabel = `Ya pagado en ${paidYear}`;
+                        return (
+                          <TableCell key={opt.value} className="text-center">
+                            <CheckCircle2
+                              aria-label={paidLabel}
+                              className="mx-auto h-4 w-4 text-green-600"
+                            >
+                              <title>{paidLabel}</title>
+                            </CheckCircle2>
+                          </TableCell>
+                        );
+                      }
                       const isChecked = memberTypes.has(opt.value);
                       // Disable Seg. RC when an instructor type is selected (includes RC)
                       const isDisabled = INSTRUCTOR_EXCLUDES_RC.has(opt.value) && [...INSTRUCTOR_TYPES].some((t) => memberTypes.has(t));

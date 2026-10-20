@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-20T11:00:00Z"
+has_completed_all_phases: true
 ---
 
 # Mark paid members in the annual payment selector
@@ -52,23 +61,23 @@ In the annual payment form, the member selector shows which concepts each member
 
 Return the paid pairs from the prefill and use them in the selector.
 
-- [ ] Test suite `test_prefill_annual_payment_use_case.py`, new cases:
+- [x] Test suite `test_prefill_annual_payment_use_case.py`, new cases:
   - `test_prefill_returns_paid_assignments_for_completed_payments`
   - `test_prefill_paid_assignments_include_implicit_rc_for_instructors`
   - `test_prefill_paid_assignments_ignore_other_years`
-- [ ] `PrefillResult.paid_assignments: List[PrefillMemberAssignment]`, built from `paid_set` (empty on the previous-payment fallback).
-- [ ] HTTP contract: `PrefillAnnualPaymentResponse.paid_assignments: [{member_id, member_name, payment_types}]` with selector keys (`kyu`, `seguro_rc`...).
-- [ ] Frontend schema: `PrefillAnnualPaymentResponse.paid_assignments`.
-- [ ] Test suite `MemberSelectionTable.test.tsx`, new cases:
+- [x] `PrefillResult.paid_assignments: List[PrefillMemberAssignment]`, built from `paid_set` (empty on the previous-payment fallback).
+- [x] HTTP contract: `PrefillAnnualPaymentResponse.paid_assignments: [{member_id, member_name, payment_types}]` with selector keys (`kyu`, `seguro_rc`...).
+- [x] Frontend schema: `PrefillAnnualPaymentResponse.paid_assignments`.
+- [x] Test suite `MemberSelectionTable.test.tsx`, new cases:
   - `disables and marks the concept a member already paid`
   - `select-all of a column skips members who already paid it`
-- [ ] `MemberSelectionTable` prop `paidAssignments?: MemberPaymentAssignment[]` and `paidYear?: number`: paid cells disabled, unchecked, with a check icon and the tooltip `Ya pagado en {año}`; select-all skips them.
-- [ ] `MemberSelectionSection` passes the prefill `paid_assignments` and the payment year.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MemberSelectionTable` prop `paidAssignments?: MemberPaymentAssignment[]` and `paidYear?: number`: paid cells disabled, unchecked, with a check icon and the tooltip `Ya pagado en {año}`; select-all skips them.
+- [x] `MemberSelectionSection` passes the prefill `paid_assignments` and the payment year.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases implemented; run the quality and QA passes before merging.
 
 No more duplicate insurance surprises, guarded by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

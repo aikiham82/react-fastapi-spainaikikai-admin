@@ -119,3 +119,4 @@ class PrefillAnnualPaymentResponse(BaseModel):
     seguro_rc_count: int = 0
     member_assignments: List[PrefillMemberAssignment] = []
     source: str = "members"  # "members" or "previous_payment"
+    paid_assignments: List[PrefillMemberAssignment] = []

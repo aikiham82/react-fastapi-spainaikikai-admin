@@ -130,6 +130,14 @@ async def prefill_annual_payment(
             for a in result.member_assignments
         ],
         source=result.source,
+        paid_assignments=[
+            PrefillMemberAssignmentDTO(
+                member_id=a.member_id,
+                member_name=a.member_name,
+                payment_types=a.payment_types,
+            )
+            for a in result.paid_assignments
+        ],
     )
 
 
