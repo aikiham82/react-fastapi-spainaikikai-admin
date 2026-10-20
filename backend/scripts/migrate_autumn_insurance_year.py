@@ -39,14 +39,20 @@ def plan_changes(member_payments: List[dict], payments_by_id: Dict[str, dict]) -
         if paid_at is None:
             continue
         season_year = insurance_season_year(paid_at)
-        if year != season_year and (mp.get("member_id"), mp["payment_type"], season_year) not in taken:
+        target = (mp.get("member_id"), mp["payment_type"], season_year)
+        if year != season_year and target not in taken:
             changes.append((mp["_id"], year, season_year))
+            taken.add(target)
     return changes
 
 
 async def main(apply: bool) -> None:
     load_dotenv()
-    db = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URL"])[os.environ["DATABASE_NAME"]]
+    client = motor.motor_asyncio.AsyncIOMotorClient(os.environ["MONGODB_URL"])
+    db = client[os.environ["DATABASE_NAME"]]
+    await client.server_info()
+    host, port = client.address
+    print(f"Target: {host}:{port} / {db.name}")
     member_payments = await db.member_payments.find(
         {"status": "completed", "payment_type": {"$in": list(INSURANCE_TYPES)}}
     ).to_list(None)

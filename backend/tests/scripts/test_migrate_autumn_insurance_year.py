@@ -50,6 +50,13 @@ def test_a_change_that_would_duplicate_the_target_year_is_skipped():
     ) == []
 
 
+def test_two_records_moving_to_the_same_season_move_only_once():
+    first = {**member_payment("mp-1", "seguro_accidentes", 2026), "member_id": "member-1"}
+    second = {**member_payment("mp-2", "seguro_accidentes", 2026), "member_id": "member-1"}
+
+    assert plan_changes([first, second], paid_on(datetime(2026, 10, 5))) == [("mp-1", 2026, 2027)]
+
+
 def test_a_record_without_year_or_payment_date_is_skipped():
     no_year = {k: v for k, v in member_payment("mp-1", "seguro_accidentes", 2026).items() if k != "payment_year"}
 
