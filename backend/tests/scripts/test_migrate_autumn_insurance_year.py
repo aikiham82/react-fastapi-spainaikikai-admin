@@ -37,6 +37,29 @@ def test_licences_and_september_insurances_are_left_alone():
     ) == []
 
 
+def test_a_change_that_would_duplicate_the_target_year_is_skipped():
+    moving = {**member_payment("mp-1", "seguro_accidentes", 2026), "member_id": "member-1"}
+    already_there = {
+        **member_payment("mp-2", "seguro_accidentes", 2027, payment_id="payment-2"),
+        "member_id": "member-1",
+    }
+
+    assert plan_changes(
+        [moving, already_there],
+        {**paid_on(datetime(2026, 10, 5)), **paid_on(datetime(2026, 10, 6), payment_id="payment-2")},
+    ) == []
+
+
+def test_a_record_without_year_or_payment_date_is_skipped():
+    no_year = {k: v for k, v in member_payment("mp-1", "seguro_accidentes", 2026).items() if k != "payment_year"}
+
+    assert plan_changes([no_year], paid_on(datetime(2026, 10, 5))) == []
+    assert plan_changes(
+        [member_payment("mp-2", "seguro_accidentes", 2026)],
+        {"payment-1": {"payment_date": None, "created_at": None}},
+    ) == []
+
+
 def test_an_insurance_without_an_app_payment_is_left_alone():
     assert plan_changes(
         [member_payment("mp-1", "seguro_accidentes", 2026, payment_id="excel-import")],

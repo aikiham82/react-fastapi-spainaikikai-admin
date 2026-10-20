@@ -22,20 +22,25 @@ from dotenv import load_dotenv
 import motor.motor_asyncio
 
 from src.domain.entities.insurance import insurance_season_year
+from src.domain.entities.member_payment import INSURANCE_PAYMENT_TYPES
 
-INSURANCE_TYPES = {"seguro_accidentes", "seguro_rc"}
+INSURANCE_TYPES = {t.value for t in INSURANCE_PAYMENT_TYPES}
 
 
 def plan_changes(member_payments: List[dict], payments_by_id: Dict[str, dict]) -> List[Tuple]:
+    taken = {(mp.get("member_id"), mp.get("payment_type"), mp.get("payment_year")) for mp in member_payments}
     changes = []
     for mp in member_payments:
         payment = payments_by_id.get(mp.get("payment_id"))
-        if mp.get("payment_type") not in INSURANCE_TYPES or not payment:
+        year = mp.get("payment_year")
+        if mp.get("payment_type") not in INSURANCE_TYPES or not payment or year is None:
             continue
         paid_at = payment.get("payment_date") or payment.get("created_at")
+        if paid_at is None:
+            continue
         season_year = insurance_season_year(paid_at)
-        if mp["payment_year"] != season_year:
-            changes.append((mp["_id"], mp["payment_year"], season_year))
+        if year != season_year and (mp.get("member_id"), mp["payment_type"], season_year) not in taken:
+            changes.append((mp["_id"], year, season_year))
     return changes
 
 
@@ -56,8 +61,12 @@ async def main(apply: bool) -> None:
     print(f"{len(changes)} change(s){'' if apply else ' (dry run, nothing written)'}")
 
     if apply:
+        payment_type_by_id = {mp["_id"]: mp["payment_type"] for mp in member_payments}
         for mp_id, _, new_year in changes:
-            await db.member_payments.update_one({"_id": mp_id}, {"$set": {"payment_year": new_year}})
+            await db.member_payments.update_one(
+                {"_id": mp_id},
+                {"$set": {"payment_year": new_year, "concept": f"{payment_type_by_id[mp_id]} - {new_year}"}},
+            )
 
 
 if __name__ == "__main__":
