@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { annualPaymentService } from '../../data/services/annual-payment.service';
 import type { InitiateAnnualPaymentResponse } from '../../data/schemas/annual-payment.schema';
 import { toast } from 'sonner';
+import type { ApiError } from '@/core/data/apiClient';
 
 export const useInitiateAnnualPaymentMutation = () => {
   return useMutation({
@@ -29,8 +30,8 @@ export const useInitiateAnnualPaymentMutation = () => {
       document.body.appendChild(form);
       form.submit();
     },
-    onError: (error: Error & { response?: { data?: { detail?: string } } }) => {
-      const message = error.response?.data?.detail || 'Error al iniciar el pago';
+    onError: (error: ApiError) => {
+      const message = error.detail || 'Error al iniciar el pago';
       toast.error(message);
     },
   });
