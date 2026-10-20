@@ -95,7 +95,10 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
   const [wasOpen, setWasOpen] = useState(isOpen);
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
-    if (isOpen) setAssignments(withoutPaid(initialAssignments, paidTypes));
+    if (isOpen) {
+      setAssignments(withoutPaid(initialAssignments, paidTypes));
+      setSearchTerm('');
+    }
   }
 
   const isPaid = useCallback(
@@ -272,14 +275,8 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
     onClose();
   }, [assignments, getMemberName, onConfirm, onClose]);
 
-  // Reset on close
-  const handleClose = useCallback(() => {
-    setSearchTerm('');
-    onClose();
-  }, [onClose]);
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl sm:max-w-6xl max-h-[90vh] flex flex-col overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -405,7 +402,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
           <Button onClick={handleConfirm}>
