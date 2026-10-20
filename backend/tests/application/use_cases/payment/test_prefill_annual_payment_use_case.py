@@ -936,6 +936,7 @@ def _use_case_with_paid(mock_repos, members, member_payments):
         mock_repos["insurance_repo"],
         mock_repos["payment_repo"],
         member_payment_repo,
+        clock=lambda: datetime(2026, 5, 1),
     ), member_payment_repo
 
 

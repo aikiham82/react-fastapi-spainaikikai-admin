@@ -2,12 +2,13 @@
 
 import json
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Callable, Optional, List, Dict
 from dataclasses import dataclass
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
 from src.domain.entities.member_payment import MemberPaymentStatus, ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
 from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.use_cases.payment.completed_member_payments import find_completed_member_payments
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.redsys_service import (
@@ -82,11 +83,13 @@ class InitiateAnnualPaymentUseCase:
         redsys_service: RedsysServicePort,
         price_repository: PriceConfigurationRepositoryPort,
         member_payment_repository: MemberPaymentRepositoryPort = None,
+        clock: Callable[[], datetime] = datetime.utcnow,
     ):
         self.payment_repository = payment_repository
         self.redsys_service = redsys_service
         self.price_repository = price_repository
         self.member_payment_repository = member_payment_repository
+        self._clock = clock
 
     async def _get_prices(self) -> Dict[str, float]:
         """Fetch all annual payment prices from database.
@@ -174,8 +177,8 @@ class InitiateAnnualPaymentUseCase:
         # Check for duplicate member-level payments (same member + item_type + year)
         if member_assignments and self.member_payment_repository:
             assigned_member_ids = [a.member_id for a in member_assignments]
-            existing_mp = await self.member_payment_repository.find_by_member_ids_year(
-                assigned_member_ids, payment_year, status=MemberPaymentStatus.COMPLETED
+            existing_mp = await find_completed_member_payments(
+                self.member_payment_repository, assigned_member_ids, payment_year, self._clock()
             )
             # Build set of already-paid (member_id, item_type) pairs
             mp_type_to_item = {v: k for k, v in ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.items()}

@@ -16,7 +16,7 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-20T11:45:00Z"
+last_implementation_at: "2026-10-20T12:15:00Z"
 has_completed_all_phases: false
 ---
 
@@ -69,15 +69,15 @@ Edges: 30 September 23:59:59 and 1 October 00:00 (naive UTC).
 
 ### Phase 2: insurances are identified by their season year
 
-- [ ] Tests:
+- [x] Tests:
   - Webhook: `test_an_october_payment_records_insurance_in_the_next_season_year_and_licence_in_the_form_year` (rows A, B), `test_a_september_payment_records_insurance_in_the_form_year` (row C, edge 30 September 23:59:59).
   - Initiate: `test_an_insurance_of_the_expired_season_does_not_block_an_autumn_renewal`, `test_an_insurance_of_the_current_season_blocks_a_new_one`.
   - Prefill: `test_paid_insurances_are_marked_by_the_current_season_year`.
-- [ ] Webhook `_create_member_payments`: insurance member payments store `insurance_season_year(paid_at)`; licences and club fee keep `payment.payment_year`.
-- [ ] `InitiateAnnualPaymentUseCase` and `PrefillAnnualPaymentUseCase`: insurance types compare against `insurance_season_year(datetime.utcnow())`; other types keep `payment_year`.
-- [ ] Update [`docs/domain/payment-cycles.md`](../../../docs/domain/payment-cycles.md) with the rule now enforced.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Webhook `_create_member_payments`: insurance member payments store `insurance_season_year(paid_at)`; licences and club fee keep `payment.payment_year`.
+- [x] `InitiateAnnualPaymentUseCase` and `PrefillAnnualPaymentUseCase`: insurance types compare against `insurance_season_year(datetime.utcnow())`; other types keep `payment_year`.
+- [x] Update [`docs/domain/payment-cycles.md`](../../../docs/domain/payment-cycles.md) with the rule now enforced.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: migrate autumn insurances already recorded
 
@@ -92,6 +92,6 @@ Edges: 30 September 23:59:59 and 1 October 00:00 (naive UTC).
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
 One season, one year, no more blocked renewals, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
