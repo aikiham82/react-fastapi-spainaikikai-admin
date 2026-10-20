@@ -37,6 +37,22 @@ describe('MemberSelectionTable', () => {
     expect(screen.getByText('DAN: 1')).toBeInTheDocument()
   })
 
+  it('opens with an empty search after confirming a filtered selection', () => {
+    const other = { ...member, id: 'member-2', first_name: 'Luis' } as Member
+    const { rerender } = renderWithProviders(
+      <MemberSelectionTable {...props} members={[member, other]} isOpen />
+    )
+    fireEvent.change(screen.getByPlaceholderText('Buscar por nombre o DNI...'), { target: { value: 'Luis' } })
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar Seleccion/ }))
+
+    rerender(<MemberSelectionTable {...props} members={[member, other]} isOpen={false} />)
+    rerender(<MemberSelectionTable {...props} members={[member, other]} isOpen />)
+
+    expect(screen.getByPlaceholderText('Buscar por nombre o DNI...')).toHaveValue('')
+    expect(screen.getByText('Ana Example')).toBeInTheDocument()
+    expect(screen.getByText('Luis Example')).toBeInTheDocument()
+  })
+
   it('disables and marks the concept a member already paid, licences by year and insurances by season', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 9, 20))
