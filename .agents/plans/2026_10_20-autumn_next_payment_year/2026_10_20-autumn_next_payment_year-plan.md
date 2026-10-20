@@ -16,8 +16,8 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-20T12:15:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-20T12:30:00Z"
+has_completed_all_phases: true
 ---
 
 # Autumn payments belong to the next payment year
@@ -81,17 +81,17 @@ Edges: 30 September 23:59:59 and 1 October 00:00 (naive UTC).
 
 ### Phase 3: migrate autumn insurances already recorded
 
-- [ ] Test suite `backend/tests/scripts/test_migrate_autumn_insurance_year.py`:
+- [x] Test suite `backend/tests/scripts/test_migrate_autumn_insurance_year.py`:
   - `test_an_autumn_insurance_recorded_with_the_form_year_moves_to_its_season_year`
   - `test_licences_and_september_insurances_are_left_alone`
-  - `test_dry_run_changes_nothing`
-- [ ] `backend/scripts/migrate_autumn_insurance_year.py`, dry run by default, `--apply` to write; prints each change.
-- [ ] Do NOT run it against production without explicit user permission.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+  - `test_an_insurance_without_an_app_payment_is_left_alone` (Excel imports keep the payment-year mapping)
+- [x] `backend/scripts/migrate_autumn_insurance_year.py`, dry run by default, `--apply` to write; prints each change.
+- [x] Do NOT run it against production without explicit user permission.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 3.
+All phases implemented; run the migration against production only with explicit permission.
 
 One season, one year, no more blocked renewals, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
