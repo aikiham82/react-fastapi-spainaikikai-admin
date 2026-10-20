@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-20T11:45:00Z"
+has_completed_all_phases: false
 ---
 
 # Autumn payments belong to the next payment year
@@ -49,14 +58,14 @@ Edges: 30 September 23:59:59 and 1 October 00:00 (naive UTC).
 
 ### Phase 1: the form proposes N+1 from October to December
 
-- [ ] Test suite `frontend/src/core/utils/__tests__/defaultPaymentYear.test.ts`:
+- [x] Test suite `frontend/src/core/utils/__tests__/defaultPaymentYear.test.ts`:
   - `proposes the current year until 30 September`
   - `proposes the next year from 1 October`
   - `proposes the next year on 31 December`
-- [ ] `defaultPaymentYear(today: Date): number` in `frontend/src/core/utils/defaultPaymentYear.ts`.
-- [ ] Annual payment default value, year options and zod bounds derive from `defaultPaymentYear(new Date())`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `defaultPaymentYear(today: Date): number` in `frontend/src/core/utils/defaultPaymentYear.ts`.
+- [x] Annual payment default value derives from `defaultPaymentYear(new Date())`. Year options and zod bounds stay calendar based (N-1..N+1): row B pays N-1 licences in October and the backend DTO validator accepts current year +-1.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: insurances are identified by their season year
 
@@ -83,6 +92,6 @@ Edges: 30 September 23:59:59 and 1 October 00:00 (naive UTC).
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
 One season, one year, no more blocked renewals, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
