@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Search, Users } from 'lucide-react';
 import type { Member } from '@/features/members/data/schemas/member.schema';
+import { insuranceSeasonYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
 import type { MemberPaymentAssignment } from '../data/schemas/member-payment.schema';
 
 // Payment type options for selection
@@ -39,6 +40,7 @@ const EXCLUSIVE_LICENSE_TYPES = new Set(['kyu', 'kyu_infantil', 'dan', 'fukushid
 // Instructor types (fukushidoin/shidoin) already include Seguro RC
 const INSTRUCTOR_TYPES = new Set(['fukushidoin', 'shidoin']);
 const INSTRUCTOR_EXCLUDES_RC = new Set(['seguro_rc']);
+const INSURANCE_TYPES = new Set(['seguro_accidentes', 'seguro_rc']);
 
 interface MemberSelectionTableProps {
   isOpen: boolean;
@@ -85,7 +87,9 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
   paidYear,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const paidLabel = paidYear ? `Ya pagado en ${paidYear}` : 'Ya pagado';
+  const currentSeason = seasonLabel(insuranceSeasonYear(new Date()));
+  const licencePaidLabel = paidYear ? `Ya pagado para ${paidYear}` : 'Ya pagado';
+  const insurancePaidLabel = `Ya pagado para la temporada ${currentSeason}`;
   const paidTypes = useMemo(() => toAssignmentMap(paidAssignments), [paidAssignments]);
   const [assignments, setAssignments] = useState(() => withoutPaid(initialAssignments, paidTypes));
   const [wasOpen, setWasOpen] = useState(isOpen);
@@ -322,7 +326,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         {paidAssignments.length > 0 && (
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <CheckCircle2 aria-hidden className="h-4 w-4 text-green-700" />
-            {paidLabel}: no se puede volver a seleccionar
+            Ya pagado (licencias {paidYear} · seguros temporada {currentSeason}): no se puede volver a seleccionar
           </p>
         )}
 
@@ -363,14 +367,15 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                     </TableCell>
                     {PAYMENT_TYPE_OPTIONS.map((opt) => {
                       if (isPaid(member.id, opt.value)) {
+                        const cellLabel = INSURANCE_TYPES.has(opt.value) ? insurancePaidLabel : licencePaidLabel;
                         return (
                           <TableCell key={opt.value} className="text-center">
                             <CheckCircle2
                               role="img"
-                              aria-label={paidLabel}
+                              aria-label={cellLabel}
                               className="mx-auto h-4 w-4 text-green-700"
                             >
-                              <title>{paidLabel}</title>
+                              <title>{cellLabel}</title>
                             </CheckCircle2>
                           </TableCell>
                         );

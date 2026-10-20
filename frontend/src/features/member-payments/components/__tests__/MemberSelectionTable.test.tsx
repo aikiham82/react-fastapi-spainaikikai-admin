@@ -37,19 +37,23 @@ describe('MemberSelectionTable', () => {
     expect(screen.getByText('DAN: 1')).toBeInTheDocument()
   })
 
-  it('disables and marks the concept a member already paid', () => {
+  it('disables and marks the concept a member already paid, licences by year and insurances by season', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 20))
     renderWithProviders(
       <MemberSelectionTable
         {...props}
         isOpen
         paidYear={2026}
-        paidAssignments={[{ member_id: 'member-1', member_name: 'Ana Example', payment_types: ['seguro_accidentes'] }]}
+        paidAssignments={[{ member_id: 'member-1', member_name: 'Ana Example', payment_types: ['kyu', 'seguro_accidentes'] }]}
       />
     )
+    vi.useRealTimers()
 
     const row = screen.getByText('Ana Example').closest('tr') as HTMLElement
-    expect(within(row).getByLabelText('Ya pagado en 2026')).toBeInTheDocument()
-    expect(within(row).getAllByRole('checkbox')).toHaveLength(6)
+    expect(within(row).getByLabelText('Ya pagado para 2026')).toBeInTheDocument()
+    expect(within(row).getByLabelText('Ya pagado para la temporada 2026-27')).toBeInTheDocument()
+    expect(within(row).getAllByRole('checkbox')).toHaveLength(5)
   })
 
   it('select-all of a column skips members who already paid it', () => {
@@ -85,6 +89,8 @@ describe('MemberSelectionTable', () => {
   })
 
   it('explains the paid mark in a legend that needs no hover', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 20))
     renderWithProviders(
       <MemberSelectionTable
         {...props}
@@ -93,7 +99,10 @@ describe('MemberSelectionTable', () => {
         paidAssignments={[{ member_id: 'member-1', member_name: 'Ana Example', payment_types: ['seguro_accidentes'] }]}
       />
     )
+    vi.useRealTimers()
 
-    expect(screen.getByText('Ya pagado en 2026: no se puede volver a seleccionar')).toBeInTheDocument()
+    expect(
+      screen.getByText('Ya pagado (licencias 2026 · seguros temporada 2026-27): no se puede volver a seleccionar')
+    ).toBeInTheDocument()
   })
 })

@@ -10,9 +10,11 @@ import {
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Lock } from 'lucide-react';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
+import { insuranceSeasonYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
 
 const currentYear = new Date().getFullYear();
 const yearOptions = [currentYear - 1, currentYear, currentYear + 1];
+const currentSeason = seasonLabel(insuranceSeasonYear(new Date()));
 
 export const PayerDataSection: React.FC = () => {
   const {
@@ -77,7 +79,7 @@ export const PayerDataSection: React.FC = () => {
             value={formData.payment_year.toString()}
             onValueChange={(value) => setField('payment_year', parseInt(value, 10))}
           >
-            <SelectTrigger id="payment_year">
+            <SelectTrigger id="payment_year" aria-describedby="payment_year_hint">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -88,6 +90,9 @@ export const PayerDataSection: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          <p id="payment_year_hint" className="text-xs text-slate-500">
+            Licencias y cuota de club: año {formData.payment_year}. Seguros: temporada en curso {currentSeason} (1 oct – 30 sep).
+          </p>
         </div>
       </div>
     </div>
