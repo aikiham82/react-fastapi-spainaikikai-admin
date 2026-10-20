@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-20T13:20:00Z"
+has_completed_all_phases: true
 ---
 
 # Member selector dialog footer always visible
@@ -38,13 +47,13 @@ Not tenant data dependent; the variety is the viewport.
 
 ### Phase 1: the footer stays visible
 
-- [ ] `DialogContent` gets `flex flex-col`; the table container drops the fixed height for `min-h-0 flex-1 overflow-auto` capped at 400px on desktop.
-- [ ] Screenshots for every row of the viewport matrix (jsdom does not compute layout, so a class assertion would prove nothing).
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `DialogContent` gets `flex flex-col`; the table container drops the fixed height for `min-h-0 flex-1 overflow-auto` capped at 400px on desktop.
+- [x] Screenshots for every row of the viewport matrix (jsdom does not compute layout, so a class assertion would prove nothing). Before: at 360x740 "Confirmar" ended at y=754. After, with 33 members: 360x740 y=634, 390x844 visible, 1280x800 y=711 (table 400px as before), 1280x600 y=545.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases implemented.
 
 Buttons within reach on every phone, courtesy of 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

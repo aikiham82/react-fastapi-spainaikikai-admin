@@ -280,7 +280,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl sm:max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl sm:max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -331,7 +331,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         )}
 
         {/* Table */}
-        <div className="h-[400px] overflow-auto border rounded-md">
+        <div className="min-h-0 flex-1 sm:max-h-[400px] overflow-auto border rounded-md">
           <table className="w-full min-w-[800px] caption-bottom text-sm">
             <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow>
