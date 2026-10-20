@@ -23,7 +23,9 @@ from src.application.ports.redsys_service import RedsysServicePort
 from src.application.ports.email_service import EmailServicePort
 from src.application.ports.pdf_service import PDFServicePort
 from src.config.settings import get_invoice_settings
+from src.domain.entities.insurance import insurance_season_year
 from src.domain.entities.member_payment import (
+    INSURANCE_PAYMENT_TYPES,
     MemberPayment,
     MemberPaymentStatus,
     MemberPaymentType,
@@ -154,11 +156,12 @@ class ProcessRedsysWebhookUseCase:
 
             # Create member payment records if assignments exist
             if self.member_payment_repository and payment.member_assignments:
-                member_payments = await self._create_member_payments(payment)
+                paid_at = datetime.utcnow()
+                member_payments = await self._create_member_payments(payment, paid_at)
 
                 # Auto-generate licenses and insurance from member payments
                 await self._generate_licenses_and_insurance(
-                    member_payments, payment.id, payment.payment_year
+                    member_payments, payment.id, payment.payment_year, paid_at
                 )
 
             # Update payment status BEFORE invoice/email so it's always persisted
@@ -359,7 +362,7 @@ class ProcessRedsysWebhookUseCase:
             # Log error but don't fail
             pass
 
-    async def _create_member_payments(self, payment: Payment) -> List[MemberPayment]:
+    async def _create_member_payments(self, payment: Payment, paid_at: datetime) -> List[MemberPayment]:
         """Create individual MemberPayment records from payment assignments.
 
         This is called when an annual payment is completed and has member
@@ -439,12 +442,17 @@ class ProcessRedsysWebhookUseCase:
                         if price_config:
                             price = price_config.price
 
+                payment_year = (
+                    insurance_season_year(paid_at)
+                    if member_payment_type in INSURANCE_PAYMENT_TYPES
+                    else payment.payment_year
+                )
                 member_payments.append(MemberPayment(
                     payment_id=payment.id,
                     member_id=member_id,
-                    payment_year=payment.payment_year,
+                    payment_year=payment_year,
                     payment_type=member_payment_type,
-                    concept=f"{member_payment_type.value} - {payment.payment_year}",
+                    concept=f"{member_payment_type.value} - {payment_year}",
                     amount=price,
                     status=MemberPaymentStatus.COMPLETED
                 ))
@@ -496,6 +504,7 @@ class ProcessRedsysWebhookUseCase:
         member_payments: List[MemberPayment],
         payment_id: str,
         payment_year: int,
+        paid_at: datetime,
     ) -> None:
         """Auto-generate License and Insurance entities from member payments.
 
@@ -546,7 +555,7 @@ class ProcessRedsysWebhookUseCase:
         if insurance_payments and self.insurance_repository:
             try:
                 use_case = GenerateInsuranceFromPaymentUseCase(self.insurance_repository)
-                await use_case.execute(insurance_payments, payment_id, datetime.utcnow())
+                await use_case.execute(insurance_payments, payment_id, paid_at)
             except Exception:
                 import logging
                 logging.getLogger(__name__).exception(

@@ -2,12 +2,14 @@
 
 import json
 from dataclasses import dataclass, field
-from typing import List
+from datetime import datetime
+from typing import Callable, List
 
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.use_cases.payment.completed_member_payments import find_completed_member_payments
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.domain.entities.license import TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType
@@ -53,12 +55,14 @@ class PrefillAnnualPaymentUseCase:
         insurance_repository: InsuranceRepositoryPort,
         payment_repository: PaymentRepositoryPort,
         member_payment_repository: MemberPaymentRepositoryPort = None,
+        clock: Callable[[], datetime] = datetime.utcnow,
     ):
         self._member_repo = member_repository
         self._license_repo = license_repository
         self._insurance_repo = insurance_repository
         self._payment_repo = payment_repository
         self._member_payment_repo = member_payment_repository
+        self._clock = clock
 
     async def execute(
         self,
@@ -111,8 +115,8 @@ class PrefillAnnualPaymentUseCase:
         paid_set: set = set()
         existing_mp = []
         if self._member_payment_repo and member_ids:
-            existing_mp = await self._member_payment_repo.find_by_member_ids_year(
-                member_ids, payment_year, status=MemberPaymentStatus.COMPLETED
+            existing_mp = await find_completed_member_payments(
+                self._member_payment_repo, member_ids, payment_year, self._clock()
             )
             # Map MemberPaymentType back to prefill item_type
             mp_type_to_item = {

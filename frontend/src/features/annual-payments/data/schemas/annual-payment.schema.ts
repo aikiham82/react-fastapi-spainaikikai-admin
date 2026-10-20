@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear';
 
 // Maximum quantity limits
 export const QUANTITY_LIMITS = {
@@ -204,7 +205,7 @@ export function calculateTotals(formData: AnnualPaymentFormData, prices: AnnualP
 export const defaultFormValues: AnnualPaymentFormData = {
   payer_name: '',
   club_id: '',
-  payment_year: currentYear,
+  payment_year: defaultPaymentYear(new Date()),
   include_club_fee: false,
   kyu_count: 0,
   kyu_infantil_count: 0,

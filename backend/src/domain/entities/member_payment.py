@@ -37,6 +37,8 @@ ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE = {
     "club_fee": MemberPaymentType.CUOTA_CLUB,
 }
 
+INSURANCE_PAYMENT_TYPES = frozenset({MemberPaymentType.SEGURO_ACCIDENTES, MemberPaymentType.SEGURO_RC})
+
 
 @dataclass
 class MemberPayment:
@@ -107,7 +109,4 @@ class MemberPayment:
     @property
     def is_insurance_payment(self) -> bool:
         """Check if this is an insurance-related payment."""
-        return self.payment_type in [
-            MemberPaymentType.SEGURO_ACCIDENTES,
-            MemberPaymentType.SEGURO_RC,
-        ]
+        return self.payment_type in INSURANCE_PAYMENT_TYPES
