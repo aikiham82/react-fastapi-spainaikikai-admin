@@ -121,16 +121,21 @@ async def prefill_annual_payment(
         shidoin_count=result.shidoin_count,
         seguro_accidentes_count=result.seguro_accidentes_count,
         seguro_rc_count=result.seguro_rc_count,
-        member_assignments=[
-            PrefillMemberAssignmentDTO(
-                member_id=a.member_id,
-                member_name=a.member_name,
-                payment_types=a.payment_types,
-            )
-            for a in result.member_assignments
-        ],
+        member_assignments=_to_assignment_dtos(result.member_assignments),
         source=result.source,
+        paid_assignments=_to_assignment_dtos(result.paid_assignments),
     )
+
+
+def _to_assignment_dtos(assignments) -> list[PrefillMemberAssignmentDTO]:
+    return [
+        PrefillMemberAssignmentDTO(
+            member_id=a.member_id,
+            member_name=a.member_name,
+            payment_types=a.payment_types,
+        )
+        for a in assignments
+    ]
 
 
 @router.get("/{payment_id}", response_model=PaymentResponse)

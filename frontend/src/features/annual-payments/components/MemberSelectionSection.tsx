@@ -13,6 +13,7 @@ export const MemberSelectionSection: React.FC = () => {
     openMemberSelection,
     closeMemberSelection,
     setMemberAssignments,
+    paidAssignments,
   } = useAnnualPaymentContext();
 
   const hasQuantities =
@@ -149,6 +150,8 @@ export const MemberSelectionSection: React.FC = () => {
         members={members}
         initialAssignments={formData.member_assignments}
         onConfirm={setMemberAssignments}
+        paidAssignments={paidAssignments}
+        paidYear={formData.payment_year}
         maxQuantities={{
           kyu: formData.kyu_count,
           kyu_infantil: formData.kyu_infantil_count,

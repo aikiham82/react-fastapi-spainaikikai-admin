@@ -18,6 +18,7 @@ A **separate** cycle running from 1 October to 30 September.
 
 - An insurance paid for payment year N is valid from **1 October N-1 to 30 September N**: the 2026 payment covers 1 October 2025 to 30 September 2026.
 - An insurance paid **in the app** covers the season in force on the day it is paid, whatever year the form says: a payment on 2 October 2026 covers 1 October 2026 to 30 September 2027. The form has a single year for licence and insurance, so taking the year literally gave a club paying in autumn an insurance that was already over. The Excel import keeps the payment-year mapping.
+- An insurance paid from October to December belongs to **payment year N+1**, the year its season ends (decided 2026-10-20). Duplicate checks compare by payment year, so recording an autumn renewal as year N clashes with the previous season's payment of year N and blocks the renewal: a club renewing on 20 October 2026 got a 400 because the June 2026 insurance, already expired, was "year 2026". Until the form defaults to N+1 in autumn, the club picks N+1 by hand.
 - The window is computed in one place, `insurance_season` in [`backend/src/domain/entities/insurance.py`](../../backend/src/domain/entities/insurance.py). Never write a calendar year into an insurance.
 - Paid independently of the annual renewal and **not** gated on the send date.
 - The authoritative coverage list is the sheet **"Seguro de accidentes APP"**.

@@ -909,3 +909,93 @@ async def test_prefill_leaves_out_members_who_joined_after_the_year(use_case, mo
 
     assert result.kyu_count == 1
     assert [a.member_id for a in result.member_assignments] == ["m1"]
+
+
+def _completed_member_payment(member_id, payment_type, payment_year=2026):
+    return MemberPayment(
+        id=f"mp-{member_id}-{payment_type.value}",
+        payment_id="payment-1",
+        member_id=member_id,
+        payment_year=payment_year,
+        payment_type=payment_type,
+        concept=payment_type.value,
+        amount=20.0,
+        status=MemberPaymentStatus.COMPLETED,
+    )
+
+
+def _use_case_with_paid(mock_repos, members, member_payments):
+    member_payment_repo = AsyncMock()
+    member_payment_repo.find_by_member_ids_year.return_value = member_payments
+    mock_repos["member_repo"].find_by_club_id.return_value = members
+    mock_repos["license_repo"].find_by_member_ids.return_value = []
+    mock_repos["insurance_repo"].find_by_member_ids.return_value = []
+    return PrefillAnnualPaymentUseCase(
+        mock_repos["member_repo"],
+        mock_repos["license_repo"],
+        mock_repos["insurance_repo"],
+        mock_repos["payment_repo"],
+        member_payment_repo,
+    ), member_payment_repo
+
+
+def _active_member(member_id, first_name):
+    return Member(
+        id=member_id,
+        first_name=first_name,
+        last_name="Example",
+        status=MemberStatus.ACTIVE,
+        club_id="club-1",
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_returns_paid_assignments_for_completed_payments(mock_repos):
+    uc, _ = _use_case_with_paid(
+        mock_repos,
+        [_active_member("member-1", "Ana"), _active_member("member-2", "Luis")],
+        [
+            _completed_member_payment("member-1", MemberPaymentType.SEGURO_ACCIDENTES),
+            _completed_member_payment("member-1", MemberPaymentType.LICENCIA_KYU),
+        ],
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert len(result.paid_assignments) == 1
+    paid = result.paid_assignments[0]
+    assert paid.member_id == "member-1"
+    assert paid.member_name == "Ana Example"
+    assert sorted(paid.payment_types) == ["kyu", "seguro_accidentes"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_paid_assignments_include_implicit_rc_for_instructors(mock_repos):
+    uc, _ = _use_case_with_paid(
+        mock_repos,
+        [_active_member("member-1", "Ana")],
+        [_completed_member_payment("member-1", MemberPaymentType.TITULO_SHIDOIN)],
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert sorted(result.paid_assignments[0].payment_types) == ["seguro_rc", "shidoin"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_paid_assignments_ignore_other_years(mock_repos):
+    uc, member_payment_repo = _use_case_with_paid(
+        mock_repos, [_active_member("member-1", "Ana")], []
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert result.paid_assignments == []
+    assert member_payment_repo.find_by_member_ids_year.call_args.args[1] == 2026
+    assert (
+        member_payment_repo.find_by_member_ids_year.call_args.kwargs["status"]
+        == MemberPaymentStatus.COMPLETED
+    )

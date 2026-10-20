@@ -1,7 +1,7 @@
 """Use case for pre-filling annual payment form with existing data."""
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 from src.application.ports.member_repository import MemberRepositoryPort
@@ -36,6 +36,7 @@ class PrefillResult:
     seguro_rc_count: int
     member_assignments: List[PrefillMemberAssignment]
     source: str  # "members" or "previous_payment"
+    paid_assignments: List[PrefillMemberAssignment] = field(default_factory=list)
 
 
 class PrefillAnnualPaymentUseCase:
@@ -182,6 +183,19 @@ class PrefillAnnualPaymentUseCase:
                     payment_types=member_types,
                 ))
 
+        paid_types_by_member: dict = {}
+        for member_id, item_type in paid_set:
+            paid_types_by_member.setdefault(member_id, []).append(item_type)
+        paid_assignments = [
+            PrefillMemberAssignment(
+                member_id=member.id or "",
+                member_name=member.get_full_name(),
+                payment_types=sorted(paid_types_by_member[member.id]),
+            )
+            for member in active_members
+            if member.id in paid_types_by_member
+        ]
+
         # 7. Determine club fee (check if CUOTA_CLUB already paid via MemberPayment)
         club_fee_already_paid = any(
             mp.payment_type == MemberPaymentType.CUOTA_CLUB
@@ -202,6 +216,7 @@ class PrefillAnnualPaymentUseCase:
             seguro_rc_count=counts["seguro_rc"],
             member_assignments=assignments,
             source="members",
+            paid_assignments=paid_assignments,
         )
 
     async def _prefill_from_previous_payment(

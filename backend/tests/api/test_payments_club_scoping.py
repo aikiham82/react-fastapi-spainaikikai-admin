@@ -77,7 +77,7 @@ def client_as(use_cases):
         use_cases.prefill.execute.return_value = SimpleNamespace(
             payer_name="Club Example", include_club_fee=True, club_fee_already_paid=False,
             kyu_count=0, kyu_infantil_count=0, dan_count=0, fukushidoin_count=0, shidoin_count=0,
-            seguro_accidentes_count=0, seguro_rc_count=0, member_assignments=[], source="members",
+            seguro_accidentes_count=0, seguro_rc_count=0, member_assignments=[], source="members", paid_assignments=[],
         )
         use_cases.initiate.execute.return_value = SimpleNamespace(
             payment_id="payment-id", order_id="order-id", form_data=FORM_DATA
