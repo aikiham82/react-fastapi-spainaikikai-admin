@@ -204,12 +204,12 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
         if (allHaveType) {
           // Remove from all visible members
           eligibleMembers.forEach((m) => {
-            const types = newMap.get(m.id);
-            if (types) {
-              types.delete(paymentType);
-              if (types.size === 0) {
-                newMap.delete(m.id);
-              }
+            const types = new Set(newMap.get(m.id));
+            types.delete(paymentType);
+            if (types.size === 0) {
+              newMap.delete(m.id);
+            } else {
+              newMap.set(m.id, types);
             }
           });
         } else {
@@ -355,7 +355,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                     </TableCell>
                     {PAYMENT_TYPE_OPTIONS.map((opt) => {
                       if (isPaid(member.id, opt.value)) {
-                        const paidLabel = `Ya pagado en ${paidYear}`;
+                        const paidLabel = paidYear ? `Ya pagado en ${paidYear}` : 'Ya pagado';
                         return (
                           <TableCell key={opt.value} className="text-center">
                             <CheckCircle2
