@@ -85,6 +85,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
   paidYear,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const paidLabel = paidYear ? `Ya pagado en ${paidYear}` : 'Ya pagado';
   const paidTypes = useMemo(() => toAssignmentMap(paidAssignments), [paidAssignments]);
   const [assignments, setAssignments] = useState(() => withoutPaid(initialAssignments, paidTypes));
   const [wasOpen, setWasOpen] = useState(isOpen);
@@ -318,6 +319,13 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
           />
         </div>
 
+        {paidAssignments.length > 0 && (
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <CheckCircle2 aria-hidden className="h-4 w-4 text-green-700" />
+            {paidLabel}: no se puede volver a seleccionar
+          </p>
+        )}
+
         {/* Table */}
         <div className="h-[400px] overflow-auto border rounded-md">
           <table className="w-full min-w-[800px] caption-bottom text-sm">
@@ -355,12 +363,12 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
                     </TableCell>
                     {PAYMENT_TYPE_OPTIONS.map((opt) => {
                       if (isPaid(member.id, opt.value)) {
-                        const paidLabel = paidYear ? `Ya pagado en ${paidYear}` : 'Ya pagado';
                         return (
                           <TableCell key={opt.value} className="text-center">
                             <CheckCircle2
+                              role="img"
                               aria-label={paidLabel}
-                              className="mx-auto h-4 w-4 text-green-600"
+                              className="mx-auto h-4 w-4 text-green-700"
                             >
                               <title>{paidLabel}</title>
                             </CheckCircle2>

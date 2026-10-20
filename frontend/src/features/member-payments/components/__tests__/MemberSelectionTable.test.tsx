@@ -83,4 +83,17 @@ describe('MemberSelectionTable', () => {
     expect(screen.getByText('Seg. Acc.: 0')).toBeInTheDocument()
     expect(screen.getByText('KYU: 1')).toBeInTheDocument()
   })
+
+  it('explains the paid mark in a legend that needs no hover', () => {
+    renderWithProviders(
+      <MemberSelectionTable
+        {...props}
+        isOpen
+        paidYear={2026}
+        paidAssignments={[{ member_id: 'member-1', member_name: 'Ana Example', payment_types: ['seguro_accidentes'] }]}
+      />
+    )
+
+    expect(screen.getByText('Ya pagado en 2026: no se puede volver a seleccionar')).toBeInTheDocument()
+  })
 })
