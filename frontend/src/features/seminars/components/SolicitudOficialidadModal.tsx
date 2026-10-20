@@ -8,6 +8,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import type { ApiError } from '@/core/data/apiClient';
 import { useInitiateSeminarOfficialidadMutation } from '../hooks/mutations/useInitiateSeminarOficialidad.mutation';
 import { formatCurrency } from '@/features/price-configurations/data/schemas/price-configuration.schema';
 
@@ -41,8 +42,8 @@ export const SolicitudOficialidadModal = ({
   const handleConfirm = () => {
     setErrorMessage(null);
     mutation.mutate(seminarId, {
-      onError: (error: Error & { response?: { data?: { detail?: string } } }) => {
-        const detail = error.response?.data?.detail || 'Error al iniciar el pago. Inténtalo de nuevo.';
+      onError: (error) => {
+        const detail = (error as unknown as ApiError).detail || 'Error al iniciar el pago. Inténtalo de nuevo.';
         setErrorMessage(detail);
       },
     });

@@ -3,6 +3,7 @@ import { useAnnualPaymentForm, type UseAnnualPaymentFormReturn } from './useAnnu
 import { useInitiateAnnualPaymentMutation } from './mutations/useInitiateAnnualPayment.mutation';
 import { useAnnualPaymentPricesQuery } from './queries/useAnnualPaymentPricesQuery';
 import { useAnnualPaymentPrefillQuery } from './queries/useAnnualPaymentPrefillQuery';
+import type { ApiError } from '@/core/data/apiClient';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
@@ -52,8 +53,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
 
   const pricesError = useMemo(() => {
     if (pricesQueryError) {
-      const err = pricesQueryError as Error & { response?: { data?: { detail?: string } } };
-      return err.response?.data?.detail || err.message || 'Error al cargar los precios';
+      const err = pricesQueryError as unknown as ApiError;
+      return err.detail || err.message || 'Error al cargar los precios';
     }
     return null;
   }, [pricesQueryError]);
@@ -244,8 +245,8 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
 
   const submitError = useMemo(() => {
     if (initiatePaymentMutation.error) {
-      const err = initiatePaymentMutation.error as Error & { response?: { data?: { detail?: string } } };
-      return err.response?.data?.detail || err.message || 'Error al procesar el pago';
+      const err = initiatePaymentMutation.error as unknown as ApiError;
+      return err.detail || err.message || 'Error al procesar el pago';
     }
     return null;
   }, [initiatePaymentMutation.error]);
