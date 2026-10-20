@@ -6,6 +6,7 @@ so that GenerateInsuranceFromPaymentUseCase generates RC insurance.
 """
 
 import pytest
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch, call
 
 from src.domain.entities.member_payment import (
@@ -28,6 +29,9 @@ def mock_repos():
         "license_repository": MagicMock(),
         "insurance_repository": MagicMock(),
     }
+
+
+PAID_AT = datetime(2026, 5, 1)
 
 
 def _build_use_case(mock_repos):
@@ -75,7 +79,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026)
+            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
 
             # Insurance use case should have been called
             mock_ins_instance.execute.assert_called_once()
@@ -107,7 +111,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026)
+            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
 
             mock_ins_instance.execute.assert_called_once()
             insurance_payments = mock_ins_instance.execute.call_args[0][0]
@@ -138,7 +142,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026)
+            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
 
             mock_ins_instance.execute.assert_called_once()
             insurance_payments = mock_ins_instance.execute.call_args[0][0]
@@ -168,7 +172,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026)
+            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
 
             mock_ins_instance.execute.assert_called_once()
             insurance_payments = mock_ins_instance.execute.call_args[0][0]
@@ -199,7 +203,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026)
+            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
 
             # Licenses: kyu + fukushidoin (both are is_license_payment)
             mock_lic_instance.execute.assert_called_once()
@@ -233,7 +237,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026)
+            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
 
             # No insurance payments at all
             mock_ins_instance.execute.assert_not_called()

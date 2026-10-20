@@ -504,7 +504,7 @@ class ProcessRedsysWebhookUseCase:
         member_payments: List[MemberPayment],
         payment_id: str,
         payment_year: int,
-        paid_at: Optional[datetime] = None,
+        paid_at: datetime,
     ) -> None:
         """Auto-generate License and Insurance entities from member payments.
 
@@ -555,7 +555,7 @@ class ProcessRedsysWebhookUseCase:
         if insurance_payments and self.insurance_repository:
             try:
                 use_case = GenerateInsuranceFromPaymentUseCase(self.insurance_repository)
-                await use_case.execute(insurance_payments, payment_id, paid_at or datetime.utcnow())
+                await use_case.execute(insurance_payments, payment_id, paid_at)
             except Exception:
                 import logging
                 logging.getLogger(__name__).exception(
