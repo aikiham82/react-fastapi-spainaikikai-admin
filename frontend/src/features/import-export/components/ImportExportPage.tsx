@@ -669,7 +669,7 @@ export const ImportExportPage = () => {
                 </Button>
 
                 <div className="text-xs text-gray-500">
-                  Incluye nombre y DNI del miembro en la exportación
+                  Incluye nombre, DNI y fecha de nacimiento del miembro en la exportación
                 </div>
               </CardContent>
             </Card>
