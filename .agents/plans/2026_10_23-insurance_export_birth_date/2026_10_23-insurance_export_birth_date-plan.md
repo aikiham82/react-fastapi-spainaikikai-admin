@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-23T11:08:00Z"
+has_completed_all_phases: true
 ---
 
 # Birth date in the insurance export
@@ -34,11 +43,13 @@ The federation asked for the member's birth date in the accident insurance downl
 
 ### Phase 1: Fecha Nacimiento column in the insurance export
 
-- [ ] Test suite `test_insurances_export.py` with both cases, red first.
-- [ ] Add `birth_date` to the insurance row and registry; add it to `INSURANCE_COLUMNS`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test suite `test_insurances_export.py` with both cases, red first.
+- [x] Add `birth_date` to the insurance row and registry; add it to `INSURANCE_COLUMNS`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement phase 1.
+All phases implemented.
+
+Every policy now knows its birthday, delivered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

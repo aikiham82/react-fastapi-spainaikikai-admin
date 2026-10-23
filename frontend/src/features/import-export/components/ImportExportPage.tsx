@@ -63,6 +63,7 @@ const INSURANCE_COLUMNS: ColumnOption[] = [
   { key: 'last_name_1', label: '1er Apellido' },
   { key: 'last_name_2', label: '2do Apellido' },
   { key: 'dni', label: 'DNI' },
+  { key: 'birth_date', label: 'Fecha Nacimiento' },
   { key: 'club', label: 'Club' },
   { key: 'insurance_type', label: 'Tipo Seguro' },
   { key: 'insurance_company', label: 'Compañía' },
