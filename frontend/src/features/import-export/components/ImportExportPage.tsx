@@ -63,6 +63,7 @@ const INSURANCE_COLUMNS: ColumnOption[] = [
   { key: 'last_name_1', label: '1er Apellido' },
   { key: 'last_name_2', label: '2do Apellido' },
   { key: 'dni', label: 'DNI' },
+  { key: 'birth_date', label: 'Fecha Nacimiento' },
   { key: 'club', label: 'Club' },
   { key: 'insurance_type', label: 'Tipo Seguro' },
   { key: 'insurance_company', label: 'Compañía' },
@@ -668,7 +669,7 @@ export const ImportExportPage = () => {
                 </Button>
 
                 <div className="text-xs text-gray-500">
-                  Incluye nombre y DNI del miembro en la exportación
+                  Incluye nombre, DNI y fecha de nacimiento del miembro en la exportación
                 </div>
               </CardContent>
             </Card>
