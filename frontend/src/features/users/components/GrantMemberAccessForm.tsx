@@ -34,8 +34,8 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
   if (link) {
     return (
       <div role="status" aria-live="polite" className="space-y-2">
-        <p className="text-sm">
-          Le hemos enviado un correo a {link.email} para que ponga su contraseña
+        <p className="text-sm break-all">
+          Le hemos enviado un correo a {link.email} para que ponga su contraseña.
         </p>
         <p className="text-xs text-muted-foreground">
           Si no le llega, mándale este enlace. Caduca en 24 horas.
@@ -66,13 +66,14 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
           placeholder="correo@ejemplo.com"
         />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex min-h-11 items-start gap-3">
         <Checkbox
           id="grant_club_admin"
+          className="mt-2.5"
           checked={clubAdmin}
           onCheckedChange={(checked) => setClubAdmin(checked === true)}
         />
-        <Label htmlFor="grant_club_admin" className="font-normal">
+        <Label htmlFor="grant_club_admin" className="flex-1 cursor-pointer py-2 font-normal">
           Puede gestionar el club (pagos, altas y consultas)
         </Label>
       </div>

@@ -38,8 +38,8 @@ export const AccountManagerControls = ({ memberId, memberName, clubRole = 'membe
 
   return (
     <div className="space-y-3 border-t pt-3">
-      <div className="flex items-center justify-between gap-3">
-        <Label htmlFor="manages_club" className="font-normal">
+      <div className="flex min-h-11 items-center justify-between gap-3">
+        <Label htmlFor="manages_club" className="flex-1 cursor-pointer py-2 font-normal">
           Puede gestionar el club (pagos, altas y consultas)
         </Label>
         <Switch id="manages_club" checked={managesClub} disabled={isSavingRole} onCheckedChange={changeRole} />
@@ -60,7 +60,12 @@ export const AccountManagerControls = ({ memberId, memberName, clubRole = 'membe
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => revoke(memberId)}>Sí, quitar acceso</AlertDialogAction>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90"
+              onClick={() => revoke(memberId)}
+            >
+              Sí, quitar acceso
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

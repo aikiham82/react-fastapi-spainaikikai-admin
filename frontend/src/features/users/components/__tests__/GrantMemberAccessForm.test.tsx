@@ -62,7 +62,7 @@ describe('GrantMemberAccessForm', () => {
     })
     renderWithProviders(<GrantMemberAccessForm memberId="m1" />)
 
-    expect(screen.getByText('Le hemos enviado un correo a ana@example.com para que ponga su contraseña')).toBeInTheDocument()
+    expect(screen.getByText('Le hemos enviado un correo a ana@example.com para que ponga su contraseña.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Copiar enlace' })).toBeInTheDocument()
   })
 })

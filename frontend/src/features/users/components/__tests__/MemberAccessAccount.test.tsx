@@ -143,6 +143,19 @@ describe('MemberAccessAccount', () => {
     expect(screen.queryByRole('switch')).not.toBeInTheDocument()
   })
 
+  it('does not offer a club admin the login of another manager', () => {
+    vi.mocked(usePermissions).mockReturnValue({
+      isAssociationAdmin: () => false,
+      isClubAdmin: () => true,
+    } as ReturnType<typeof usePermissions>)
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" memberClubRole="admin" />)
+
+    expect(screen.queryByRole('button', { name: 'Generar enlace de contraseña' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Corregir correo de acceso' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Quitar acceso' })).toBeInTheDocument()
+  })
+
   it('offers to give access again when the account was switched off', () => {
     mockQuery({ data: { ...account, is_active: false } })
 
@@ -164,7 +177,7 @@ describe('MemberAccessAccount', () => {
   it('generates the link for the account', async () => {
     renderWithProviders(<MemberAccessAccount memberId="member123" />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Generar enlace para cambiar la contraseña' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Generar enlace de contraseña' }))
 
     expect(mockMutate).toHaveBeenCalledWith('user123')
   })
