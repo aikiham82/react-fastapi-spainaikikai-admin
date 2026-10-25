@@ -13,6 +13,11 @@ from src.domain.exceptions.base import BusinessRuleViolationError
 from src.domain.exceptions.payment import MemberPaymentNotFoundError, InvalidPaymentDataError
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.ports.license_repository import LicenseRepositoryPort
+from src.application.ports.insurance_repository import InsuranceRepositoryPort
+from src.application.use_cases.insurance.generate_insurance_from_payment_use_case import PAYMENT_TYPE_TO_INSURANCE_TYPE
+from src.application.use_cases.license.generate_licenses_from_payment_use_case import PAYMENT_TYPE_TO_LICENSE_ATTRS
+from src.domain.entities.insurance import insurance_season
 
 
 class UpdateMemberPaymentUseCase:
@@ -25,9 +30,13 @@ class UpdateMemberPaymentUseCase:
         self,
         member_payment_repository: MemberPaymentRepositoryPort,
         payment_repository: PaymentRepositoryPort,
+        license_repository: Optional[LicenseRepositoryPort] = None,
+        insurance_repository: Optional[InsuranceRepositoryPort] = None,
     ):
         self.member_payment_repository = member_payment_repository
         self.payment_repository = payment_repository
+        self.license_repository = license_repository
+        self.insurance_repository = insurance_repository
 
     async def execute(
         self,
@@ -56,6 +65,7 @@ class UpdateMemberPaymentUseCase:
                 raise BusinessRuleViolationError(
                     f"Este miembro ya tiene {PAYMENT_TYPE_LABELS[target_type.value]} en {target_year}"
                 )
+        moved_year = target_year != mp.payment_year
         mp.payment_type = target_type
         mp.payment_year = target_year
         if concept is not None:
@@ -75,8 +85,31 @@ class UpdateMemberPaymentUseCase:
 
         # Recompute parent Payment.amount = sum of COMPLETED lines
         await self._recompute_parent_amount(updated_mp.payment_id)
+        if moved_year:
+            await self._move_what_it_generated(updated_mp)
 
         return updated_mp
+
+    async def _move_what_it_generated(self, mp: MemberPayment) -> None:
+        """The licence and insurances this payment generated for the member follow the line's year."""
+        licence_types = {
+            PAYMENT_TYPE_TO_LICENSE_ATTRS[t]["license_type"] for t in mp.covered_types if t in PAYMENT_TYPE_TO_LICENSE_ATTRS
+        }
+        insurance_types = {
+            PAYMENT_TYPE_TO_INSURANCE_TYPE[t] for t in mp.covered_types if t in PAYMENT_TYPE_TO_INSURANCE_TYPE
+        }
+        if licence_types and self.license_repository:
+            for licence in await self.license_repository.find_by_member_id(mp.member_id):
+                if licence.last_payment_id == mp.payment_id and licence.license_type in licence_types:
+                    licence.update_dates(
+                        datetime(mp.payment_year, 1, 1), datetime(mp.payment_year, 12, 31, 23, 59, 59)
+                    )
+                    await self.license_repository.update(licence)
+        if insurance_types and self.insurance_repository:
+            for insurance in await self.insurance_repository.find_by_member_id(mp.member_id):
+                if insurance.payment_id == mp.payment_id and insurance.insurance_type in insurance_types:
+                    insurance.update_dates(*insurance_season(mp.payment_year))
+                    await self.insurance_repository.update(insurance)
 
     async def _recompute_parent_amount(self, payment_id: str) -> None:
         """Set Payment.amount = sum of all COMPLETED MemberPayment.amount."""

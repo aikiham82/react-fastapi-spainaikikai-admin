@@ -440,6 +440,8 @@ def get_update_member_payment_use_case() -> UpdateMemberPaymentUseCase:
     return UpdateMemberPaymentUseCase(
         member_payment_repository=get_member_payment_repository(),
         payment_repository=get_payment_repository(),
+        license_repository=get_license_repository(),
+        insurance_repository=get_insurance_repository(),
     )
 
 

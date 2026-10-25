@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T23:00:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-10-25T23:20:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Minor follow-ups of the club reports
@@ -69,13 +69,13 @@ Licence lines: licencia_kyu, licencia_kyu_infantil, licencia_dan, titulo_fukushi
 
 ### Phase 4: moving a line's year moves what it generated
 
-- [ ] When a licence or title line moves year, the member's licence linked to that payment covers 1 January to 31 December of the new year; when an insurance line moves, the member's insurance of that type linked to that payment covers `insurance_season(new year)`.
-- [ ] Tests: `test_moving_a_licence_line_moves_its_licence`, `test_moving_an_insurance_line_moves_its_insurance`, `test_moving_a_line_without_a_generated_record_changes_only_the_line`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] When a licence or title line moves year, the member's licence linked to that payment covers 1 January to 31 December of the new year; when an insurance line moves, the member's insurance of that type linked to that payment covers `insurance_season(new year)`.
+- [x] Tests `test_moving_a_line_moves_what_it_generated.py`: `test_moving_a_licence_line_moves_its_licence`, `test_moving_an_insurance_line_moves_its_insurance`, `test_moving_a_title_line_moves_its_licence_and_its_rc`, `test_moving_a_line_without_a_generated_record_changes_only_the_line`, `test_editing_the_amount_leaves_the_licence_alone`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 4.
+All phases are implemented; next is review, QA and merge.
 
-A title now carries its RC everywhere 🥋 🛡️ → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Loose ends tied, one by one 🧶 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
