@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/core/hooks/usePermissions';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useUserByMemberQuery } from '../hooks/queries/useUserByMemberQuery';
 import { useGeneratePasswordResetLinkMutation } from '../hooks/mutations/useGeneratePasswordResetLinkMutation';
 import { useUpdateUserEmailMutation } from '../hooks/mutations/useUpdateUserEmailMutation';
@@ -40,6 +41,7 @@ export const MemberAccessAccount = ({
   memberClubRole,
 }: MemberAccessAccountProps) => {
   const { isAssociationAdmin, isClubAdmin } = usePermissions();
+  const { userEmail } = useAuthContext();
   const managesAccounts = isAssociationAdmin() || isClubAdmin();
 
   const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, managesAccounts);
@@ -56,6 +58,7 @@ export const MemberAccessAccount = ({
   if (!managesAccounts) return null;
 
   const isEditing = editedEmail !== null;
+  const isOwnAccount = !!account && account.email.toLowerCase() === userEmail?.toLowerCase();
 
   const saveEmail = () => {
     if (!account || !editedEmail?.trim()) return;
@@ -215,8 +218,13 @@ export const MemberAccessAccount = ({
             </div>
           )}
 
-          {!isEditing && (
-            <AccountManagerControls memberId={memberId} memberName={memberName} clubRole={memberClubRole} />
+          {!isEditing && !isOwnAccount && (
+            <AccountManagerControls
+              key={memberClubRole}
+              memberId={memberId}
+              memberName={memberName}
+              clubRole={memberClubRole}
+            />
           )}
         </div>
       )}

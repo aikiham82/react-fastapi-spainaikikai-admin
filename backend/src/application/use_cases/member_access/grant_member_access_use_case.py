@@ -5,9 +5,9 @@ import secrets
 from typing import Callable
 
 from src.domain.entities.password_reset_token import PasswordResetToken
-from src.domain.entities.user import User
+from src.domain.entities.user import GlobalRole, User
 from src.domain.exceptions.member import MemberNotFoundError
-from src.domain.exceptions.user import EmailAlreadyInUseError, UserAlreadyExistsError
+from src.domain.exceptions.user import AccessChangeNotAllowedError, EmailAlreadyInUseError, UserAlreadyExistsError
 from src.application.ports.email_service import EmailServicePort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
@@ -51,6 +51,8 @@ class GrantMemberAccessUseCase:
         linked = await self.user_repository.find_by_member_id(member_id)
         if linked and linked.is_active:
             raise UserAlreadyExistsError("This member already has an account")
+        if linked and linked.global_role == GlobalRole.SUPER_ADMIN:
+            raise AccessChangeNotAllowedError("The super admin account cannot be reactivated here")
 
         email = email.lower().strip()
         holder = await self.user_repository.find_by_email(email)

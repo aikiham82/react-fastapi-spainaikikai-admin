@@ -7,6 +7,7 @@ import { usePermissions } from '@/core/hooks/usePermissions'
 import { useUserByMemberQuery } from '../../hooks/queries/useUserByMemberQuery'
 import { useGeneratePasswordResetLinkMutation } from '../../hooks/mutations/useGeneratePasswordResetLinkMutation'
 import { useUpdateUserEmailMutation } from '../../hooks/mutations/useUpdateUserEmailMutation'
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
@@ -15,6 +16,11 @@ vi.mock('sonner', () => ({
 
 vi.mock('@/core/hooks/usePermissions', () => ({
   usePermissions: vi.fn(() => ({ isAssociationAdmin: () => true })),
+}))
+
+vi.mock('@/features/auth/hooks/useAuthContext', () => ({
+  useAuthContext: vi.fn(() => ({ userEmail: 'admin@example.com' })),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 vi.mock('../../hooks/queries/useUserByMemberQuery', () => ({
@@ -70,6 +76,7 @@ const mockMutation = (overrides: Record<string, unknown> = {}) => {
 describe('MemberAccessAccount', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(useAuthContext).mockReturnValue({ userEmail: 'admin@example.com' } as ReturnType<typeof useAuthContext>)
     vi.mocked(usePermissions).mockReturnValue({
       isAssociationAdmin: () => true,
     } as ReturnType<typeof usePermissions>)
@@ -125,6 +132,15 @@ describe('MemberAccessAccount', () => {
 
     expect(screen.getByRole('switch', { name: 'Puede gestionar el club (pagos, altas y consultas)' })).toBeChecked()
     expect(screen.getByRole('button', { name: 'Quitar acceso' })).toBeInTheDocument()
+  })
+
+  it('does not offer to change your own role or remove your own access', () => {
+    vi.mocked(useAuthContext).mockReturnValue({ userEmail: 'JCarlosArevalo2@gmail.com' } as ReturnType<typeof useAuthContext>)
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" memberClubRole="admin" />)
+
+    expect(screen.queryByRole('button', { name: 'Quitar acceso' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument()
   })
 
   it('offers to give access again when the account was switched off', () => {

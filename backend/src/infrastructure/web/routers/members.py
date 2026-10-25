@@ -377,6 +377,8 @@ async def grant_member_access(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ese correo ya lo usa otra cuenta")
     except UserAlreadyExistsError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este socio ya tiene acceso a la web")
+    except AccessChangeNotAllowedError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes dar acceso a esta cuenta")
 
     return AdminPasswordResetLinkResponseDTO(url=link.url, email=link.email, expires_at=link.expires_at)
 
@@ -398,9 +400,13 @@ async def set_member_club_role(
     _require_access_to_club(ctx, existing_member.club_id)
 
     try:
-        member = await set_role_use_case.execute(member_id, ClubRole(request.club_role))
+        member = await set_role_use_case.execute(
+            member_id, ClubRole(request.club_role), changed_by_member_id=ctx.member_id
+        )
     except LastClubAdminError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=LAST_CLUB_ADMIN)
+    except AccessChangeNotAllowedError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes cambiar tu propio rol")
 
     return MemberMapper.to_response_dto(member)
 

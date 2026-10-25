@@ -759,7 +759,7 @@ def get_grant_member_access_use_case() -> GrantMemberAccessUseCase:
 @lru_cache()
 def get_set_member_club_role_use_case() -> SetMemberClubRoleUseCase:
     """Get set member club role use case."""
-    return SetMemberClubRoleUseCase(member_repository=get_member_repository())
+    return SetMemberClubRoleUseCase(member_repository=get_member_repository(), user_repository=get_user_repository())
 
 
 @lru_cache()

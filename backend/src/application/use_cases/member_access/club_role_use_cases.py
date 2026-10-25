@@ -16,28 +16,42 @@ async def _load_member(member_repository: MemberRepositoryPort, member_id: str) 
     return member
 
 
-async def _refuse_removing_the_last_admin(member_repository: MemberRepositoryPort, member: Member) -> None:
+async def _refuse_removing_the_last_admin(
+    member_repository: MemberRepositoryPort, user_repository: UserRepositoryPort, member: Member
+) -> None:
+    """Keep at least one other admin who can actually sign in.
+
+    An admin without an active account does not count: the club would be
+    left with nobody able to manage it.
+    """
     if not member.is_club_admin:
         return
+    # ponytail: loads the whole club; a count query if clubs grow past a few hundred members
     club = await member_repository.find_by_club_id(member.club_id)
-    other_admins = [m for m in club if m.is_club_admin and m.id != member.id]
-    if not other_admins:
-        raise LastClubAdminError("The club needs at least one admin")
+    for other in club:
+        if other.is_club_admin and other.id != member.id:
+            account = await user_repository.find_by_member_id(other.id)
+            if account and account.is_active:
+                return
+    raise LastClubAdminError("The club needs at least one admin who can sign in")
 
 
 class SetMemberClubRoleUseCase:
     """Make a member a club admin, or take the role away while another admin remains."""
 
-    def __init__(self, member_repository: MemberRepositoryPort):
+    def __init__(self, member_repository: MemberRepositoryPort, user_repository: UserRepositoryPort):
         self.member_repository = member_repository
+        self.user_repository = user_repository
 
-    async def execute(self, member_id: str, club_role: ClubRole) -> Member:
+    async def execute(self, member_id: str, club_role: ClubRole, changed_by_member_id: str | None) -> Member:
         member = await _load_member(self.member_repository, member_id)
+        if member_id == changed_by_member_id:
+            raise AccessChangeNotAllowedError("You cannot change your own role")
 
         if club_role == ClubRole.ADMIN:
             member.promote_to_admin()
         else:
-            await _refuse_removing_the_last_admin(self.member_repository, member)
+            await _refuse_removing_the_last_admin(self.member_repository, self.user_repository, member)
             member.demote_to_member()
 
         return await self.member_repository.update(member)
@@ -70,7 +84,7 @@ class RevokeMemberAccessUseCase:
         if member_id == revoked_by_member_id:
             raise AccessChangeNotAllowedError("You cannot remove your own access")
 
-        await _refuse_removing_the_last_admin(self.member_repository, member)
+        await _refuse_removing_the_last_admin(self.member_repository, self.user_repository, member)
 
         await self.token_repository.invalidate_user_tokens(user.id)
         user.deactivate()

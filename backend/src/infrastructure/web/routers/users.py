@@ -38,6 +38,7 @@ from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
     require_club_admin_ctx,
+    require_member_access,
     require_super_admin,
 )
 from src.infrastructure.web.mappers import UserMapper
@@ -172,33 +173,29 @@ async def get_users(
 NO_ACCESS_TO_ACCOUNT = "No tienes acceso a esta cuenta"
 
 
-async def _require_member_in_callers_club(ctx: AuthContext, member_id, member_repository) -> None:
-    """Allow a super admin, or a club admin when the member belongs to their club."""
-    if ctx.is_super_admin:
-        return
-    require_club_admin_ctx(ctx)
-    member = await member_repository.find_by_id(member_id) if member_id else None
-    require_club_access(ctx, member.club_id if member else None, NO_ACCESS_TO_ACCOUNT)
-
-
-async def _require_account_in_callers_club(ctx: AuthContext, user, member_repository) -> None:
-    """Allow a super admin, or a club admin on an account of their club that is not the super admin's."""
-    if ctx.is_super_admin:
-        return
-    require_club_admin_ctx(ctx)
-    if user.global_role == GlobalRole.SUPER_ADMIN:
+def _refuse_the_super_admin_account(ctx: AuthContext, user) -> None:
+    if not ctx.is_super_admin and user.global_role == GlobalRole.SUPER_ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NO_ACCESS_TO_ACCOUNT)
-    await _require_member_in_callers_club(ctx, user.member_id, member_repository)
 
 
-async def _load_account_in_callers_club(ctx: AuthContext, user_id: str, user_repository, member_repository):
+async def _require_account_in_callers_club(ctx: AuthContext, user_id: str, user_repository, member_repository):
+    """Allow a super admin, or a club admin on an account of their own club.
+
+    A club admin may manage their own login and their members', never the
+    super admin's nor another club admin's: issuing a link or changing the
+    email of a peer would hand them that peer's account.
+    """
     require_club_admin_ctx(ctx)
     if ctx.is_super_admin:
         return
     user = await user_repository.find_by_id(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
-    await _require_account_in_callers_club(ctx, user, member_repository)
+    _refuse_the_super_admin_account(ctx, user)
+    member = await member_repository.find_by_id(user.member_id) if user.member_id else None
+    require_club_access(ctx, member.club_id if member else None, NO_ACCESS_TO_ACCOUNT)
+    if member.is_club_admin and user.id != ctx.user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No puedes gestionar la cuenta de otro responsable")
 
 
 @router.get(
@@ -219,8 +216,7 @@ async def get_user_by_member(
     else in the product. Support needs to see it to explain why the
     self-service reset never reaches the club.
     """
-    require_club_admin_ctx(ctx)
-    await _require_member_in_callers_club(ctx, member_id, member_repository)
+    await require_member_access(ctx, member_id, member_repository, NO_ACCESS_TO_ACCOUNT)
 
     try:
         user = await use_case.execute(member_id)
@@ -230,7 +226,7 @@ async def get_user_by_member(
             detail=f"No user account linked to member {member_id}"
         )
 
-    await _require_account_in_callers_club(ctx, user, member_repository)
+    _refuse_the_super_admin_account(ctx, user)
     return UserMapper.to_response(user)
 
 
@@ -301,7 +297,7 @@ async def update_user_email(
     Clubs whose account holds an address they never read cannot recover their
     password on their own. Fixing it here is what stops the ticket recurring.
     """
-    await _load_account_in_callers_club(ctx, user_id, user_repository, member_repository)
+    await _require_account_in_callers_club(ctx, user_id, user_repository, member_repository)
 
     try:
         user = await use_case.execute(user_id, request.email)
@@ -339,7 +335,7 @@ async def generate_password_reset_link(
     Clubs whose login email is unreachable cannot use the self-service flow,
     so the link is handed to a super admin for delivery by another channel.
     """
-    await _load_account_in_callers_club(ctx, user_id, user_repository, member_repository)
+    await _require_account_in_callers_club(ctx, user_id, user_repository, member_repository)
 
     try:
         result = await use_case.execute(user_id, issued_by=ctx.user.id)

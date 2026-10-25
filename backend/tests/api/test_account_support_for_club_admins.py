@@ -31,6 +31,7 @@ MEMBERS = {
     "member-own": Member(id="member-own", first_name="Ana", last_name="Ejemplo", club_id=OWN_CLUB),
     "member-foreign": Member(id="member-foreign", first_name="Eva", last_name="Ejemplo", club_id=OTHER_CLUB),
     "member-federation": Member(id="member-federation", first_name="Fede", last_name="Ejemplo", club_id=OWN_CLUB),
+    "member-peer": Member(id="member-peer", first_name="Pepa", last_name="Ejemplo", club_id=OWN_CLUB, club_role=ClubRole.ADMIN),
 }
 ACCOUNTS = {
     "user-own": User(id="user-own", email="ana@example.com", username="ana", hashed_password="h", member_id="member-own"),
@@ -40,6 +41,7 @@ ACCOUNTS = {
         member_id="member-federation", global_role=GlobalRole.SUPER_ADMIN,
     ),
     "user-unlinked": User(id="user-unlinked", email="nobody@example.com", username="nobody", hashed_password="h"),
+    "user-peer": User(id="user-peer", email="pepa@example.com", username="pepa", hashed_password="h", member_id="member-peer"),
 }
 LINK = AdminPasswordResetLinkResult(url="https://admin.example.com/r?token=t", email="ana@example.com", expires_at=datetime(2026, 10, 26))
 
@@ -115,6 +117,13 @@ class TestClubAdminAccountSupport:
         codes = every_request(client_as(club_admin()), "member-federation", "user-federation")
 
         assert codes == {"read": 403, "correct email": 403, "issue link": 403}
+        use_cases.update_email.execute.assert_not_awaited()
+        use_cases.link.execute.assert_not_awaited()
+
+    def test_a_club_admin_reads_but_cannot_take_over_another_admins_account(self, client_as, use_cases):
+        codes = every_request(client_as(club_admin()), "member-peer", "user-peer")
+
+        assert codes == {"read": 200, "correct email": 403, "issue link": 403}
         use_cases.update_email.execute.assert_not_awaited()
         use_cases.link.execute.assert_not_awaited()
 

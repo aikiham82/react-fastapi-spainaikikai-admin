@@ -86,7 +86,7 @@ class TestClubRoleAndRevoke:
 
         assert make_admin(client).status_code == status.HTTP_200_OK
         assert revoke(client).status_code == status.HTTP_204_NO_CONTENT
-        use_cases.set_role.execute.assert_awaited_once_with("member-1", ClubRole.ADMIN)
+        use_cases.set_role.execute.assert_awaited_once_with("member-1", ClubRole.ADMIN, changed_by_member_id="member-caller")
         use_cases.revoke.execute.assert_awaited_once_with("member-1", revoked_by_member_id="member-caller")
 
     def test_the_super_admin_does_it_in_any_club(self, client_as):
