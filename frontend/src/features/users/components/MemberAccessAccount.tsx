@@ -30,10 +30,10 @@ const formatExpiry = (isoDate: string): string => {
 };
 
 export const MemberAccessAccount = ({ memberId, memberEmail }: MemberAccessAccountProps) => {
-  const { isAssociationAdmin } = usePermissions();
-  const isSuperAdmin = isAssociationAdmin();
+  const { isAssociationAdmin, isClubAdmin } = usePermissions();
+  const managesAccounts = isAssociationAdmin() || isClubAdmin();
 
-  const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, isSuperAdmin);
+  const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, managesAccounts);
   const {
     mutate: generateLink,
     isPending: isGenerating,
@@ -44,7 +44,7 @@ export const MemberAccessAccount = ({ memberId, memberEmail }: MemberAccessAccou
 
   const [editedEmail, setEditedEmail] = useState<string | null>(null);
 
-  if (!isSuperAdmin) return null;
+  if (!managesAccounts) return null;
 
   const isEditing = editedEmail !== null;
 
@@ -129,7 +129,7 @@ export const MemberAccessAccount = ({ memberId, memberEmail }: MemberAccessAccou
             <div className="space-y-1">
               <p className="text-sm font-medium">{account.email}</p>
               <p className="text-xs text-muted-foreground">
-                Es el correo con el que este club inicia sesión. Puede ser distinto del correo del socio.
+                Es el correo con el que esta cuenta inicia sesión. Puede ser distinto del correo del socio.
               </p>
             </div>
           )}

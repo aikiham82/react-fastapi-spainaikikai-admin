@@ -57,11 +57,11 @@ A club admin or the super admin opens a member without an account, types or conf
 
 ## Phase 2: Club admins use the account panel for their own club
 
-- [ ] Write failing router tests: a club admin can read the account of a member of their club, correct its email and issue a link; gets 403 for another club's member; gets 403 on the super admin's account.
-- [ ] Relax the three routes from `require_super_admin` to "super admin, or club admin of the linked member's club, never on a super admin account".
-- [ ] Frontend: show `MemberAccessAccount` to club admins; update its tests.
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Write failing router tests: a club admin can read the account of a member of their club, correct its email and issue a link; gets 403 for another club's member; gets 403 on the super admin's account.
+- [x] Relax the three routes from `require_super_admin` to "super admin, or club admin of the linked member's club, never on a super admin account".
+- [x] Frontend: show `MemberAccessAccount` to club admins; update its tests.
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Phase 3: Change who manages the club and remove access
 
@@ -79,6 +79,6 @@ A club admin or the super admin opens a member without an account, types or conf
 
 ## Next step
 
-Phase 2.
+Phase 3.
 
-Plan powered by [Codely](https://codely.com) 🐢 🔑
+Plan powered by [Codely](https://codely.com) 🐢 🔑 🏯

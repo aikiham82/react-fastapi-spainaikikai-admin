@@ -88,9 +88,22 @@ describe('MemberAccessAccount', () => {
     expect(screen.getByText('jcarlosarevalo2@gmail.com')).toBeInTheDocument()
   })
 
-  it('renders nothing for a club admin', () => {
+  it('shows the account to a club admin too', () => {
     vi.mocked(usePermissions).mockReturnValue({
       isAssociationAdmin: () => false,
+      isClubAdmin: () => true,
+    } as ReturnType<typeof usePermissions>)
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" />)
+
+    expect(screen.getByText('jcarlosarevalo2@gmail.com')).toBeInTheDocument()
+    expect(useUserByMemberQuery).toHaveBeenCalledWith('member123', true)
+  })
+
+  it('renders nothing for someone who does not manage the club', () => {
+    vi.mocked(usePermissions).mockReturnValue({
+      isAssociationAdmin: () => false,
+      isClubAdmin: () => false,
     } as ReturnType<typeof usePermissions>)
 
     const { container } = renderWithProviders(<MemberAccessAccount memberId="member123" />)

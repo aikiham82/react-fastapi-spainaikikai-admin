@@ -30,8 +30,16 @@ from src.infrastructure.web.dependencies import (
     get_generate_admin_password_reset_link_use_case,
     get_user_by_member_id_use_case,
     get_update_user_email_use_case,
+    get_user_repository,
+    get_member_repository,
 )
-from src.infrastructure.web.authorization import AuthContext, require_super_admin
+from src.domain.entities.user import GlobalRole
+from src.infrastructure.web.authorization import (
+    AuthContext,
+    require_club_access,
+    require_club_admin_ctx,
+    require_super_admin,
+)
 from src.infrastructure.web.mappers import UserMapper
 from src.infrastructure.web.security import (
     verify_password,
@@ -161,6 +169,38 @@ async def get_users(
     return UserMapper.to_response_list(users)
 
 
+NO_ACCESS_TO_ACCOUNT = "No tienes acceso a esta cuenta"
+
+
+async def _require_member_in_callers_club(ctx: AuthContext, member_id, member_repository) -> None:
+    """Allow a super admin, or a club admin when the member belongs to their club."""
+    if ctx.is_super_admin:
+        return
+    require_club_admin_ctx(ctx)
+    member = await member_repository.find_by_id(member_id) if member_id else None
+    require_club_access(ctx, member.club_id if member else None, NO_ACCESS_TO_ACCOUNT)
+
+
+async def _require_account_in_callers_club(ctx: AuthContext, user, member_repository) -> None:
+    """Allow a super admin, or a club admin on an account of their club that is not the super admin's."""
+    if ctx.is_super_admin:
+        return
+    require_club_admin_ctx(ctx)
+    if user.global_role == GlobalRole.SUPER_ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NO_ACCESS_TO_ACCOUNT)
+    await _require_member_in_callers_club(ctx, user.member_id, member_repository)
+
+
+async def _load_account_in_callers_club(ctx: AuthContext, user_id: str, user_repository, member_repository):
+    require_club_admin_ctx(ctx)
+    if ctx.is_super_admin:
+        return
+    user = await user_repository.find_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
+    await _require_account_in_callers_club(ctx, user, member_repository)
+
+
 @router.get(
     "/users/by-member/{member_id}",
     response_model=UserResponse,
@@ -170,15 +210,17 @@ async def get_users(
 async def get_user_by_member(
     member_id: str,
     use_case: GetUserByMemberIdUseCase = Depends(get_user_by_member_id_use_case),
-    ctx: AuthContext = Depends(get_auth_context)
+    ctx: AuthContext = Depends(get_auth_context),
+    member_repository = Depends(get_member_repository),
 ):
-    """Get the login account linked to a member (super admin only).
+    """Get the login account linked to a member (super admin, or its club's admin).
 
     The login email lives only on the account, so it is invisible anywhere
     else in the product. Support needs to see it to explain why the
     self-service reset never reaches the club.
     """
-    require_super_admin(ctx)
+    require_club_admin_ctx(ctx)
+    await _require_member_in_callers_club(ctx, member_id, member_repository)
 
     try:
         user = await use_case.execute(member_id)
@@ -188,6 +230,7 @@ async def get_user_by_member(
             detail=f"No user account linked to member {member_id}"
         )
 
+    await _require_account_in_callers_club(ctx, user, member_repository)
     return UserMapper.to_response(user)
 
 
@@ -249,14 +292,16 @@ async def update_user_email(
     user_id: str,
     request: UpdateUserEmailDTO,
     use_case: UpdateUserEmailUseCase = Depends(get_update_user_email_use_case),
-    ctx: AuthContext = Depends(get_auth_context)
+    ctx: AuthContext = Depends(get_auth_context),
+    user_repository = Depends(get_user_repository),
+    member_repository = Depends(get_member_repository),
 ):
-    """Correct the login email of an account (super admin only).
+    """Correct the login email of an account (super admin, or its club's admin).
 
     Clubs whose account holds an address they never read cannot recover their
     password on their own. Fixing it here is what stops the ticket recurring.
     """
-    require_super_admin(ctx)
+    await _load_account_in_callers_club(ctx, user_id, user_repository, member_repository)
 
     try:
         user = await use_case.execute(user_id, request.email)
@@ -285,14 +330,16 @@ async def generate_password_reset_link(
     use_case: GenerateAdminPasswordResetLinkUseCase = Depends(
         get_generate_admin_password_reset_link_use_case
     ),
-    ctx: AuthContext = Depends(get_auth_context)
+    ctx: AuthContext = Depends(get_auth_context),
+    user_repository = Depends(get_user_repository),
+    member_repository = Depends(get_member_repository),
 ) -> AdminPasswordResetLinkResponseDTO:
-    """Issue a password reset link for an account (super admin only).
+    """Issue a password reset link for an account (super admin, or its club's admin).
 
     Clubs whose login email is unreachable cannot use the self-service flow,
     so the link is handed to a super admin for delivery by another channel.
     """
-    require_super_admin(ctx)
+    await _load_account_in_callers_club(ctx, user_id, user_repository, member_repository)
 
     try:
         result = await use_case.execute(user_id, issued_by=ctx.user.id)
