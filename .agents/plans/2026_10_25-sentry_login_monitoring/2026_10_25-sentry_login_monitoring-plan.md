@@ -38,10 +38,10 @@ This change does not depend on club data.
 
 ## Phase 2: The web reports failed API calls
 
-- [ ] Write failing tests: the API client reports network errors and 5xx answers to Sentry with method and path (no query string), and never 4xx.
-- [ ] Implement it in the axios response interceptor.
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Write failing tests: the API client reports network errors and 5xx answers to Sentry with method and path (no query string), and never 4xx.
+- [x] Implement it in the axios response interceptor.
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Phase 3: Alerts
 
@@ -50,6 +50,6 @@ This change does not depend on club data.
 
 ## Next step
 
-Phase 2.
+Phase 3.
 
-Plan powered by [Codely](https://codely.com) 🐢 📋
+Plan powered by [Codely](https://codely.com) 🐢 📋 📡

@@ -14,6 +14,25 @@ export const redact = <T>(value: T): T => {
   return value;
 };
 
+interface ApiFailure {
+  method?: string;
+  url?: string;
+  status?: number;
+}
+
+// A 4xx is the API answering; only a lost request or a 5xx means the user hit a failure.
+export const reportApiFailure = ({ method = 'get', url = '', status }: ApiFailure): void => {
+  if (status !== undefined && status < 500) return;
+
+  const verb = method.toUpperCase();
+  const path = url.split('?')[0];
+  const outcome = status === undefined ? 'network error' : String(status);
+  Sentry.captureException(new Error(`API ${verb} ${path} failed: ${outcome}`), {
+    tags: { api_method: verb, api_path: path, api_status: outcome },
+    fingerprint: ['api-failure', verb, path, outcome],
+  });
+};
+
 export const initSentry = (dsn: string | undefined, environment?: string): boolean => {
   if (!dsn) return false;
 
