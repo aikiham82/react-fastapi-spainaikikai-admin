@@ -41,6 +41,7 @@ from src.infrastructure.web.authorization import (
     require_member_access,
     require_super_admin,
 )
+from src.infrastructure.web.audit import audit
 from src.infrastructure.web.mappers import UserMapper
 from src.infrastructure.web.security import (
     verify_password,
@@ -100,10 +101,21 @@ async def register(
         )
 
 
+def _login_failure_reason(candidates, active_candidates) -> str:
+    if not candidates:
+        return "unknown_account"
+    if active_candidates:
+        return "incorrect"
+    if any(c.is_active for c in candidates):
+        return "not_set_up"
+    return "inactive"
+
+
 @router.post("/auth/login", response_model=Token)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    authenticate_user_use_case: AuthenticateUserUseCase = Depends(get_authenticate_user_use_case)
+    authenticate_user_use_case: AuthenticateUserUseCase = Depends(get_authenticate_user_use_case),
+    member_repository = Depends(get_member_repository),
 ):
     """Login user and return JWT token.
 
@@ -127,11 +139,20 @@ async def login(
     )
 
     if not user:
+        audit("auth.login.failed", level="warning", reason=_login_failure_reason(candidates, active_candidates))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    member = await member_repository.find_by_id(user.member_id) if user.member_id else None
+    if user.global_role == GlobalRole.SUPER_ADMIN:
+        audit("auth.login.succeeded", user_id=user.id, club_id=None, club_role="super_admin")
+    elif member and member.club_id:
+        audit("auth.login.succeeded", user_id=user.id, club_id=member.club_id, club_role=member.club_role.value)
+    else:
+        audit("auth.login.succeeded_without_club", level="warning", user_id=user.id)
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

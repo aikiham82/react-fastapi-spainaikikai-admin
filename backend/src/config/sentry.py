@@ -2,6 +2,7 @@ import os
 import re
 
 import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 EMAIL_PATTERN = re.compile(r"(?<![\w.+-])[\w.+-]+(?:@|%40)[\w-]+(?:\.[\w-]+)+")
 
@@ -24,6 +25,10 @@ def before_breadcrumb(crumb, hint):
     return _redact_emails(crumb)
 
 
+def before_send_log(log, hint):
+    return _redact_emails(log)
+
+
 def configure_sentry() -> bool:
     dsn = os.getenv("SENTRY_DSN")
     if not dsn:
@@ -37,5 +42,8 @@ def configure_sentry() -> bool:
         before_send=before_send,
         before_send_transaction=before_send,
         before_breadcrumb=before_breadcrumb,
+        enable_logs=True,
+        before_send_log=before_send_log,
+        integrations=[LoggingIntegration(sentry_logs_level=None)],
     )
     return True

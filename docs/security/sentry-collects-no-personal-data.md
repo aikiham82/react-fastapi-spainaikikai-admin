@@ -8,6 +8,7 @@ Error reports leave the project with no member data. The backend sets `send_defa
 
 - `@sentry/react` v11 replaced `sendDefaultPii` with `dataCollection`, and **leaving it unset now collects user info, cookies, headers, bodies and query strings**. Upgrading the SDK without setting it silently ships member data to a third party.
 - The password reset link carries its token in the URL (`/reset-password?token=…`). A breadcrumb or a page URL would hand a working link to anyone who reads the issue.
+- Audit events (`backend/src/infrastructure/web/audit.py`) go out as Sentry Logs with ids and reasons only. Sentry's own default scrubber then replaces any attribute **value** containing words like `password`, `auth`, `token` or `secret` with `[Filtered]`: on 2026-10-25 `reason=wrong_password` arrived filtered and could not be counted. Reasons use neutral words (`incorrect`, `expired`) and the event name travels as the message, which is not scrubbed.
 
 ## 👀 Examples
 

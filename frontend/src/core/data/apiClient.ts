@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { appStorage } from './appStorage'
+import { reportApiFailure } from '../monitoring/sentry'
 
 
 export const getToken = () => {
@@ -102,6 +103,13 @@ export const apiClient = {
 function handleError(error: AxiosError<ErrorResponse>): ApiError {
   const { message, response, request } = error
 
+
+  reportApiFailure({
+    method: error.config?.method,
+    url: error.config?.url,
+    status: response?.status,
+    cancelled: axios.isCancel(error),
+  })
 
   const isLoginAttempt = error.config?.url?.includes('/auth/login')
 
