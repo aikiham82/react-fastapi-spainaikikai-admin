@@ -45,7 +45,7 @@ export const ClubPaymentsPage = () => {
       {selectedYear < latestYear && selectedYear === today.getFullYear() && (
         <Alert>
           <Info className="h-4 w-4" />
-          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3 pl-0!">
             <span>
               Desde octubre los pagos se registran en {latestYear}, también los seguros de la temporada {seasonLabel(latestYear)}.
             </span>
