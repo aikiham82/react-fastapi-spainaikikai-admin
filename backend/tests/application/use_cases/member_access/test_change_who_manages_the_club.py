@@ -97,6 +97,15 @@ class TestSetMemberClubRole:
         with pytest.raises(MemberNotFoundError):
             await SetMemberClubRoleUseCase(members, accounts()).execute("missing", ClubRole.ADMIN, None)
 
+    async def test_never_touches_the_super_admins_member(self):
+        member = a_member()
+        members = member_repository(member, [member])
+        users = MagicMock(find_by_member_id=AsyncMock(return_value=an_account(global_role=GlobalRole.SUPER_ADMIN)))
+
+        with pytest.raises(AccessChangeNotAllowedError):
+            await SetMemberClubRoleUseCase(members, users).execute("member-1", ClubRole.ADMIN, "member-9")
+        members.update.assert_not_awaited()
+
 
 @pytest.mark.unit
 @pytest.mark.asyncio

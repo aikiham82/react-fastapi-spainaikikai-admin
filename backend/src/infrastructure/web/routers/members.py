@@ -409,7 +409,7 @@ async def set_member_club_role(
     except LastClubAdminError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=LAST_CLUB_ADMIN)
     except AccessChangeNotAllowedError:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes cambiar tu propio rol")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes cambiar el rol de este socio")
 
     return MemberMapper.to_response_dto(member)
 

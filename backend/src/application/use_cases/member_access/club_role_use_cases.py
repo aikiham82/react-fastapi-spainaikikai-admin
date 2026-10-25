@@ -47,6 +47,9 @@ class SetMemberClubRoleUseCase:
         member = await _load_member(self.member_repository, member_id)
         if member_id == changed_by_member_id:
             raise AccessChangeNotAllowedError("You cannot change your own role")
+        account = await self.user_repository.find_by_member_id(member_id)
+        if account and account.global_role == GlobalRole.SUPER_ADMIN:
+            raise AccessChangeNotAllowedError("The super admin's member cannot be changed here")
 
         if club_role == ClubRole.ADMIN:
             member.promote_to_admin()
