@@ -54,6 +54,7 @@ class MemberUpdate(BaseModel):
     """DTO for updating a member."""
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    dni: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None

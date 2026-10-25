@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T21:15:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-10-25T21:30:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Super admin edits everything
@@ -78,13 +78,13 @@ The federation's super admin can change any licence, insurance, member payment a
 
 ### Phase 4: a member's DNI is saved on edit
 
-- [ ] `MemberUpdate.dni`; a DNI another member already has answers 409, per `unique-optional-fields.md`.
-- [ ] Tests `backend/tests/api/test_members_update_dni.py`: `test_editing_a_member_saves_the_dni`, `test_a_dni_of_another_member_is_refused`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MemberUpdate.dni`; a DNI another member already has answers 409, per `unique-optional-fields.md`.
+- [x] Tests `backend/tests/api/test_members_update_dni.py`: `test_editing_a_member_saves_the_dni`, `test_a_dni_of_another_member_is_refused`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 4.
+All phases are implemented; next is review, QA and merge.
 
-Payments within reach of the member, DNI next 💶 → 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Everything editable, nothing silently dropped 🪪 🛡️ 💶 🆔 → 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
