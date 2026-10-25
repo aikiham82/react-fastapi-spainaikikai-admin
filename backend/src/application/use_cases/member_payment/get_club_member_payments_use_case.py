@@ -1,13 +1,11 @@
 """Get all MemberPayments for a club in a given year."""
 
 from dataclasses import dataclass
-from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 from src.domain.entities.member_payment import MemberPayment
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
-from src.application.use_cases.payment.completed_member_payments import find_member_payments_shown_for_year
 
 
 @dataclass
@@ -40,7 +38,7 @@ class GetClubMemberPaymentsUseCase:
         self.member_repository = member_repository
 
     async def execute(
-        self, club_id: str, payment_year: int, today: Optional[datetime] = None
+        self, club_id: str, payment_year: int
     ) -> List[MemberPaymentWithMember]:
         members = await self.member_repository.find_by_club_id(club_id)
         if not members:
@@ -49,8 +47,9 @@ class GetClubMemberPaymentsUseCase:
         if not member_ids:
             return []
         name_by_id = {m.id: m.get_full_name() for m in members if m.id}
-        payments = await find_member_payments_shown_for_year(
-            self.member_payment_repository, member_ids, payment_year, today or datetime.utcnow()
+        payments = await self.member_payment_repository.find_by_member_ids_year(
+            member_ids=member_ids,
+            payment_year=payment_year,
         )
         return [
             MemberPaymentWithMember(

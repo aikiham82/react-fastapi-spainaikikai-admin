@@ -8,7 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { defaultPaymentYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
+import { Info } from 'lucide-react';
 
 export const ClubPaymentsPage = () => {
   const { showingDetail, selectedYear, setSelectedYear } = useClubPaymentsContext();
@@ -38,6 +41,20 @@ export const ClubPaymentsPage = () => {
           </SelectContent>
         </Select>
       </div>
+
+      {selectedYear < latestYear && selectedYear === today.getFullYear() && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>
+              Los seguros de la temporada {seasonLabel(latestYear)}, pagados desde octubre, están en {latestYear}.
+            </span>
+            <Button size="sm" variant="outline" onClick={() => setSelectedYear(latestYear)}>
+              Ver {latestYear}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {showingDetail ? <ClubPaymentDetail /> : <AllClubsSummaryTable />}
     </div>

@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T18:40:00Z"
+last_implementation_at: "2026-10-25T19:10:00Z"
 has_completed_all_phases: "true"
 ---
 
@@ -51,7 +51,7 @@ Dates that change the year: 30 September (calendar year), 1 October (N+1), 31 De
 - [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
 - [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
-### Phase 2: the current year shows the insurance in force
+### Phase 2: the current year shows the insurance in force (superseded by Phase 3)
 
 Review found that opening on N+1 marks licences still in force as unpaid and empties the grade groups, because both cycles were read from one year. Decided with the user on 2026-10-25: the screen opens on the calendar year again; for the current calendar year, licences and club fee come from that year and insurances from the season in force today; any other year reads everything from that year. The selector still offers up to `defaultPaymentYear`.
 
@@ -65,6 +65,17 @@ Review found that opening on N+1 marks licences still in force as unpaid and emp
   - `test_the_all_clubs_summary_counts_the_insurance_in_force`
   - `test_the_member_payment_list_shows_the_insurance_in_force`
 - [x] Frontend test `opens on the calendar year and offers the next one from October`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+
+### Phase 3: literal years, labelled seasons
+
+Review of Phase 2 found that mixing seasons into a year hid the season that just ended from every view, counted one insurance in two years and made a manual insurance registered from the default view look unpaid. Decided with the user on 2026-10-25: years stay literal (year N shows everything of payment year N, as before), the backend change of Phase 2 is reverted, and the screen explains the season instead.
+
+- [x] Backend back to `main`; Phase 2 tests removed.
+- [x] `ClubPaymentsPage` keeps the selector up to `defaultPaymentYear` and, from October to December on the calendar year, shows "Los seguros de la temporada {season}, pagados desde octubre, están en {year}." with a "Ver {year}" button.
+- [x] `ClubPaymentDetail` subtitle: "Año N · Seguros de la temporada N-1-N".
+- [x] Tests: `points to next year for the insurances paid from October`, `does not point to next year until September`, `names the insurance season the year shows`.
 - [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
 - [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 

@@ -1,7 +1,6 @@
 """Tests for GetClubMemberPaymentsUseCase."""
 
 import pytest
-from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 from src.application.use_cases.member_payment.get_club_member_payments_use_case import (
@@ -28,9 +27,6 @@ def _make_member_payment(mp_id: str, member_id: str) -> MemberPayment:
         amount=50.0,
         status=MemberPaymentStatus.COMPLETED,
     )
-
-
-JUNE = datetime(2026, 6, 1)
 
 
 @pytest.fixture
@@ -79,10 +75,11 @@ class TestGetClubMemberPaymentsUseCase:
         ]
         mock_member_payment_repo.find_by_member_ids_year = AsyncMock(return_value=expected_payments)
 
-        result = await use_case.execute(club_id="club1", payment_year=2026, today=JUNE)
+        result = await use_case.execute(club_id="club1", payment_year=2026)
 
         mock_member_payment_repo.find_by_member_ids_year.assert_called_once_with(
-            ["m1", "m2"], 2026, status=None
+            member_ids=["m1", "m2"],
+            payment_year=2026,
         )
         assert [item.payment for item in result] == expected_payments
         # Each payment is enriched with the resolved member name
@@ -100,10 +97,11 @@ class TestGetClubMemberPaymentsUseCase:
         expected_payments = [_make_member_payment("mp1", "m1")]
         mock_member_payment_repo.find_by_member_ids_year = AsyncMock(return_value=expected_payments)
 
-        result = await use_case.execute(club_id="club1", payment_year=2026, today=JUNE)
+        result = await use_case.execute(club_id="club1", payment_year=2026)
 
         mock_member_payment_repo.find_by_member_ids_year.assert_called_once_with(
-            ["m1"], 2026, status=None
+            member_ids=["m1"],
+            payment_year=2026,
         )
         assert [item.payment for item in result] == expected_payments
         assert [item.member_name for item in result] == ["Name m1"]

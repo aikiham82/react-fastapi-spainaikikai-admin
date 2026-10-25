@@ -58,4 +58,22 @@ describe('ClubPaymentsPage year', () => {
     expect(screen.getByRole('combobox')).toHaveTextContent('2026')
     expect(await offeredYears()).toEqual(['2026', '2025', '2024', '2023', '2022'])
   })
+
+  it('points to next year for the insurances paid from October', async () => {
+    renderOn('2026-10-25T10:00:00')
+
+    expect(screen.getByText(/seguros de la temporada 2026-27/i)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ver 2027' }))
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('2027')
+    expect(requestedYear()).toBe(2027)
+    expect(screen.queryByText(/seguros de la temporada 2026-27/i)).not.toBeInTheDocument()
+  })
+
+  it('does not point to next year until September', () => {
+    renderOn('2026-09-30T10:00:00')
+
+    expect(screen.queryByRole('button', { name: /^Ver 20/ })).not.toBeInTheDocument()
+  })
 })
