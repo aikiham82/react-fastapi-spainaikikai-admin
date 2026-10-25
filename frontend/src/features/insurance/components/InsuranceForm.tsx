@@ -170,7 +170,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
                 value={formData.insurance_type}
                 onValueChange={(value: InsuranceType) => handleChange('insurance_type', value)}
               >
-                <SelectTrigger id="insurance_type" className={errors.insurance_type ? 'border-red-500' : ''}>
+                <SelectTrigger id="insurance_type" className={`w-full ${errors.insurance_type ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Selecciona el tipo" />
                 </SelectTrigger>
                 <SelectContent>
