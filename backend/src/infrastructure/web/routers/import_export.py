@@ -287,7 +287,9 @@ def _build_excel(title: str, column_registry: list, data_rows: list, columns: Op
 
     for row_idx, item in enumerate(data_rows, 2):
         for col_idx, (_, _, extractor) in enumerate(registry, 1):
-            ws.cell(row=row_idx, column=col_idx, value=extractor(item))
+            cell = ws.cell(row=row_idx, column=col_idx, value=extractor(item))
+            if cell.data_type == "f":
+                cell.data_type = "s"
 
     for col in ws.columns:
         max_length = 0

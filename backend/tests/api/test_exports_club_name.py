@@ -34,8 +34,12 @@ INSURANCE = Insurance(id="insurance-ana", member_id=MEMBER.id, insurance_type=In
 
 
 @pytest.fixture
-def client() -> TestClient:
-    club_repository = SimpleNamespace(find_all=AsyncMock(return_value=[Club(id=OWN_CLUB, name=CLUB_NAME, email="dojo@example.com")]))
+def club_repository():
+    return SimpleNamespace(find_all=AsyncMock(return_value=[Club(id=OWN_CLUB, name=CLUB_NAME, email="dojo@example.com")]))
+
+
+@pytest.fixture
+def client(club_repository) -> TestClient:
     member_repository = SimpleNamespace(find_by_id=AsyncMock(return_value=MEMBER))
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
@@ -66,3 +70,14 @@ def test_licences_export_writes_the_club_name(client):
 
 def test_insurances_export_writes_the_club_name(client):
     assert club_cell(client, "insurances") == CLUB_NAME
+
+
+def test_a_club_name_that_looks_like_a_formula_is_exported_as_text(client, club_repository):
+    formula = '=HYPERLINK("https://example.com","x")'
+    club_repository.find_all.return_value = [Club(id=OWN_CLUB, name=formula, email="dojo@example.com")]
+
+    sheet = openpyxl.load_workbook(BytesIO(client.get("/api/v1/import-export/members/export").content)).active
+    headers = [cell.value for cell in sheet[1]]
+    cell = sheet.cell(row=2, column=headers.index("Club") + 1)
+
+    assert (cell.value, cell.data_type) == (formula, "s")
