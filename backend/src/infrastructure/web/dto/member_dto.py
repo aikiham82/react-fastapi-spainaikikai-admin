@@ -1,6 +1,6 @@
 """Member DTOs for request/response validation."""
 
-from pydantic import AfterValidator, BaseModel, field_validator
+from pydantic import AfterValidator, BaseModel, Field, field_validator
 from typing import Annotated, List, Optional
 from datetime import datetime, timedelta
 
@@ -55,7 +55,7 @@ class MemberUpdate(BaseModel):
     """DTO for updating a member."""
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    dni: Optional[str] = None
+    dni: Optional[str] = Field(default=None, max_length=20)
     email: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None

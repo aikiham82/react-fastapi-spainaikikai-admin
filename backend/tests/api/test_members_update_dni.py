@@ -54,6 +54,12 @@ def test_keeping_the_own_dni_is_accepted(client, repository):
     assert response.status_code == status.HTTP_200_OK
 
 
+def test_a_dni_longer_than_twenty_characters_is_rejected(client, repository):
+    response = client.put(f"/api/v1/members/{ANA.id}", json={"dni": "X" * 21})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
 def test_a_dni_of_another_member_is_refused(client, repository):
     response = client.put(f"/api/v1/members/{ANA.id}", json={"dni": LUIS.dni})
 
