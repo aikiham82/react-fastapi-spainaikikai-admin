@@ -4,12 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/core/hooks/usePermissions';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useUserByMemberQuery } from '../hooks/queries/useUserByMemberQuery';
 import { useGeneratePasswordResetLinkMutation } from '../hooks/mutations/useGeneratePasswordResetLinkMutation';
 import { useUpdateUserEmailMutation } from '../hooks/mutations/useUpdateUserEmailMutation';
+import type { ClubRole } from '@/features/auth/data/auth.schema';
+import { GrantMemberAccessForm } from './GrantMemberAccessForm';
+import { AccountManagerControls } from './AccountManagerControls';
 
 interface MemberAccessAccountProps {
   memberId: string;
+  memberEmail?: string;
+  memberName?: string;
+  memberClubRole?: ClubRole;
 }
 
 const formatExpiry = (isoDate: string): string => {
@@ -27,11 +34,17 @@ const formatExpiry = (isoDate: string): string => {
   });
 };
 
-export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
-  const { isAssociationAdmin } = usePermissions();
-  const isSuperAdmin = isAssociationAdmin();
+export const MemberAccessAccount = ({
+  memberId,
+  memberEmail,
+  memberName = '',
+  memberClubRole,
+}: MemberAccessAccountProps) => {
+  const { isAssociationAdmin, isClubAdmin } = usePermissions();
+  const { userEmail } = useAuthContext();
+  const managesAccounts = isAssociationAdmin() || isClubAdmin();
 
-  const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, isSuperAdmin);
+  const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, managesAccounts);
   const {
     mutate: generateLink,
     isPending: isGenerating,
@@ -42,9 +55,12 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
 
   const [editedEmail, setEditedEmail] = useState<string | null>(null);
 
-  if (!isSuperAdmin) return null;
+  if (!managesAccounts) return null;
 
   const isEditing = editedEmail !== null;
+  const isOwnAccount = !!account && account.email.toLowerCase() === userEmail?.toLowerCase();
+  // A club admin may not issue a link for, or redirect the login of, a peer manager: either would hand them that account.
+  const canManageLogin = isAssociationAdmin() || isOwnAccount || memberClubRole !== 'admin';
 
   const saveEmail = () => {
     if (!account || !editedEmail?.trim()) return;
@@ -79,9 +95,7 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
 
   const expiry = link ? formatExpiry(link.expires_at) : '';
 
-  const errorMessage = (error as { status?: number } | null)?.status === 404
-    ? 'Este socio no tiene cuenta de acceso'
-    : 'No se pudo consultar la cuenta de acceso';
+  const hasNoAccount = (error as { status?: number } | null)?.status === 404;
 
   return (
     <section
@@ -98,13 +112,19 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
         </p>
       )}
 
-      {isError && (
+      {isError && hasNoAccount && <GrantMemberAccessForm memberId={memberId} memberEmail={memberEmail} />}
+
+      {isError && !hasNoAccount && (
         <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-          {errorMessage}
+          No se pudo consultar la cuenta de acceso
         </p>
       )}
 
-      {account && (
+      {account && !account.is_active && (
+        <GrantMemberAccessForm memberId={memberId} memberEmail={account.email} />
+      )}
+
+      {account?.is_active && (
         <div className="space-y-3">
           {isEditing ? (
             <div className="space-y-2">
@@ -125,9 +145,9 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
             </div>
           ) : (
             <div className="space-y-1">
-              <p className="text-sm font-medium">{account.email}</p>
+              <p className="text-sm font-medium break-all">{account.email}</p>
               <p className="text-xs text-muted-foreground">
-                Es el correo con el que este club inicia sesión. Puede ser distinto del correo del socio.
+                Es el correo con el que esta cuenta inicia sesión. Puede ser distinto del correo del socio.
               </p>
             </div>
           )}
@@ -141,7 +161,7 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                 Descartar
               </Button>
             </div>
-          ) : (
+          ) : canManageLogin ? (
             <div className="space-y-2">
               <div className="grid gap-2 sm:flex sm:flex-wrap">
                 {link && (
@@ -153,6 +173,7 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                 <Button
                   type="button"
                   variant={link ? 'ghost' : 'default'}
+                  className="h-auto min-h-9 whitespace-normal"
                   disabled={isGenerating}
                   onClick={() => generateLink(account.id)}
                 >
@@ -160,13 +181,13 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                     ? 'Generando...'
                     : link
                       ? 'Generar un enlace nuevo'
-                      : 'Generar enlace para cambiar la contraseña'}
+                      : 'Generar enlace de contraseña'}
                 </Button>
 
                 <Button
                   type="button"
                   variant="outline"
-                  className="sm:ml-auto"
+                  className="h-auto min-h-9 whitespace-normal"
                   onClick={() => setEditedEmail(account.email)}
                 >
                   Corregir correo de acceso
@@ -179,6 +200,10 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                 </p>
               )}
             </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Es otro responsable del club: su contraseña la recupera él mismo desde "¿Olvidaste tu contraseña?".
+            </p>
           )}
 
           {link && !isEditing && !isGenerating && (
@@ -189,7 +214,7 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                 onFocus={(e) => e.target.select()}
                 className="font-mono text-xs"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground break-all">
                 {expiry
                   ? `Enlace para ${link.email}. Caduca el ${expiry}.`
                   : `Enlace para ${link.email}.`}
@@ -198,6 +223,15 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
                 Al generar uno nuevo, el anterior deja de funcionar.
               </p>
             </div>
+          )}
+
+          {!isEditing && !isOwnAccount && (
+            <AccountManagerControls
+              key={memberClubRole}
+              memberId={memberId}
+              memberName={memberName}
+              clubRole={memberClubRole}
+            />
           )}
         </div>
       )}

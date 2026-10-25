@@ -1,4 +1,7 @@
-"""Tests for the super admin account support endpoints."""
+"""Tests for the account support endpoints as the super admin uses them.
+
+Club admin scoping lives in tests/api/test_account_support_for_club_admins.py.
+"""
 
 import pytest
 from datetime import datetime
@@ -93,18 +96,6 @@ class TestGenerateAdminPasswordResetLinkEndpoint:
         assert response.json()["email"] == "club@example.com"
         mock_use_case.execute.assert_awaited_once_with("user123", issued_by="admin1")
 
-    def test_club_admin_is_forbidden(self, test_app, mock_use_case):
-        """Test that a club admin cannot issue links, not even for their own account."""
-        # Arrange
-        test_app.dependency_overrides[get_auth_context] = club_admin_context
-        test_app.dependency_overrides[get_generate_admin_password_reset_link_use_case] = lambda: mock_use_case
-
-        # Act
-        response = TestClient(test_app).post("/api/v1/users/user1/password-reset-link")
-
-        # Assert
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        mock_use_case.execute.assert_not_awaited()
 
     def test_unknown_user_returns_404(self, test_app, mock_use_case):
         """Test that an unknown account id is reported as not found."""
@@ -153,18 +144,6 @@ class TestGetUserByMemberEndpoint:
         assert response.json()["email"] == "club@example.com"
         mock_by_member_use_case.execute.assert_awaited_once_with("member123")
 
-    def test_club_admin_is_forbidden(self, test_app, mock_by_member_use_case):
-        """Test that a club admin cannot read login emails."""
-        # Arrange
-        test_app.dependency_overrides[get_auth_context] = club_admin_context
-        test_app.dependency_overrides[get_user_by_member_id_use_case] = lambda: mock_by_member_use_case
-
-        # Act
-        response = TestClient(test_app).get("/api/v1/users/by-member/member1")
-
-        # Assert
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        mock_by_member_use_case.execute.assert_not_awaited()
 
     def test_account_with_an_unusable_email_is_still_readable(self, test_app, mock_by_member_use_case):
         """Test that the accounts most in need of support do not break the response."""
@@ -275,21 +254,6 @@ class TestUpdateUserEmailEndpoint:
         assert response.json()["email"] == "leon.aikikai@gmail.com"
         mock_update_email_use_case.execute.assert_awaited_once_with("user123", "leon.aikikai@gmail.com")
 
-    def test_club_admin_is_forbidden(self, test_app, mock_update_email_use_case):
-        """Test that a club admin cannot change any login email."""
-        # Arrange
-        test_app.dependency_overrides[get_auth_context] = club_admin_context
-        test_app.dependency_overrides[get_update_user_email_use_case] = lambda: mock_update_email_use_case
-
-        # Act
-        response = TestClient(test_app).patch(
-            "/api/v1/users/user1/email",
-            json={"email": "other@example.com"}
-        )
-
-        # Assert
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        mock_update_email_use_case.execute.assert_not_awaited()
 
     def test_email_of_another_account_returns_409(self, test_app, mock_update_email_use_case):
         """Test that reusing another account's address is reported as a conflict."""

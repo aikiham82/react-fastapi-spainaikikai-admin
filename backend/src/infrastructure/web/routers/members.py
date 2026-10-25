@@ -7,14 +7,25 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 
 from src.domain.entities.license import License
 from src.domain.entities.insurance import Insurance
+from src.domain.entities.member import ClubRole
+from src.domain.exceptions.member import LastClubAdminError
+from src.domain.exceptions.user import (
+    AccessChangeNotAllowedError,
+    EmailAlreadyInUseError,
+    UserAlreadyExistsError,
+    UserNotFoundError,
+)
 from src.infrastructure.web.dto.member_dto import (
     MemberCreate,
     MemberUpdate,
     MemberStatusChange,
     MemberResponse,
+    GrantMemberAccessDTO,
+    SetClubRoleDTO,
     LicenseSummary,
     InsuranceSummary,
 )
+from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
 from src.infrastructure.web.mappers_member import MemberMapper
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
@@ -25,6 +36,9 @@ from src.infrastructure.web.dependencies import (
     get_delete_member_use_case,
     get_change_member_status_use_case,
     get_auth_context,
+    get_grant_member_access_use_case,
+    get_revoke_member_access_use_case,
+    get_set_member_club_role_use_case,
     get_license_repository,
     get_insurance_repository,
     get_club_repository,
@@ -41,6 +55,13 @@ router = APIRouter(prefix="/members", tags=["members"])
 def _require_access_to_club(ctx: AuthContext, club_id: Optional[str]) -> None:
     """Allow a super admin, or a club admin when the club is their own."""
     require_club_access(ctx, club_id, "No tienes acceso a este miembro")
+
+
+async def _load_member_in_callers_club(ctx: AuthContext, member_id: str, get_member_use_case_instance):
+    require_club_admin_ctx(ctx)
+    member = await get_member_use_case_instance.execute(member_id)
+    _require_access_to_club(ctx, member.club_id)
+    return member
 
 
 def _pick_primary_license(licenses: List[License]) -> Optional[License]:
@@ -332,4 +353,84 @@ async def delete_member(
     _require_access_to_club(ctx, existing_member.club_id)
 
     await get_delete_use_case.execute(member_id)
+    return None
+
+
+@router.post(
+    "/{member_id}/account",
+    response_model=AdminPasswordResetLinkResponseDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+async def grant_member_access(
+    member_id: str,
+    request: GrantMemberAccessDTO,
+    get_member_use_case_instance = Depends(get_member_use_case),
+    grant_use_case = Depends(get_grant_member_access_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Give a member of the caller's club their own login to the admin web."""
+    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+
+    try:
+        link = await grant_use_case.execute(
+            member_id=member_id,
+            email=request.email,
+            make_club_admin=request.club_admin,
+            issued_by=ctx.user.id,
+        )
+    except EmailAlreadyInUseError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ese correo ya lo usa otra cuenta")
+    except UserAlreadyExistsError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este socio ya tiene acceso a la web")
+    except AccessChangeNotAllowedError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes dar acceso a esta cuenta")
+
+    return AdminPasswordResetLinkResponseDTO(url=link.url, email=link.email, expires_at=link.expires_at)
+
+
+LAST_CLUB_ADMIN = "El club tiene que tener al menos un responsable"
+
+
+@router.patch("/{member_id}/club-role", response_model=MemberResponse)
+async def set_member_club_role(
+    member_id: str,
+    request: SetClubRoleDTO,
+    get_member_use_case_instance = Depends(get_member_use_case),
+    set_role_use_case = Depends(get_set_member_club_role_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Make a member of the caller's club a club admin, or take the role away."""
+    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+
+    try:
+        member = await set_role_use_case.execute(
+            member_id, ClubRole(request.club_role), changed_by_member_id=ctx.member_id
+        )
+    except LastClubAdminError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=LAST_CLUB_ADMIN)
+    except AccessChangeNotAllowedError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes cambiar el rol de este socio")
+
+    return MemberMapper.to_response_dto(member)
+
+
+@router.delete("/{member_id}/account", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_member_access(
+    member_id: str,
+    get_member_use_case_instance = Depends(get_member_use_case),
+    revoke_use_case = Depends(get_revoke_member_access_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Switch off the account a member of the caller's club signs in with."""
+    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+
+    try:
+        await revoke_use_case.execute(member_id, revoked_by_member_id=ctx.member_id)
+    except LastClubAdminError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=LAST_CLUB_ADMIN)
+    except AccessChangeNotAllowedError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes quitar este acceso")
+    except UserNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este socio no tiene acceso a la web")
+
     return None
