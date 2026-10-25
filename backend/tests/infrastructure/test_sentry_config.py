@@ -3,7 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
-from src.config.sentry import before_breadcrumb, before_send, configure_sentry
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+from src.config.sentry import before_breadcrumb, before_send, before_send_log, configure_sentry
 
 
 @pytest.mark.unit
@@ -25,15 +27,39 @@ def test_inits_sentry_without_pii_when_dsn_is_set(monkeypatch):
     with patch("src.config.sentry.sentry_sdk.init") as init:
         assert configure_sentry() is True
 
-    init.assert_called_once_with(
-        dsn="https://key@example.com/1",
-        environment="production",
-        traces_sample_rate=0.2,
-        send_default_pii=False,
-        before_send=before_send,
-        before_send_transaction=before_send,
-        before_breadcrumb=before_breadcrumb,
-    )
+    options = init.call_args.kwargs
+    assert options["dsn"] == "https://key@example.com/1"
+    assert options["environment"] == "production"
+    assert options["traces_sample_rate"] == 0.2
+    assert options["send_default_pii"] is False
+    assert options["before_send"] is before_send
+    assert options["before_send_transaction"] is before_send
+    assert options["before_breadcrumb"] is before_breadcrumb
+
+
+@pytest.mark.unit
+def test_sends_only_the_logs_written_on_purpose(monkeypatch):
+    """Audit events go out as Sentry logs; the generic logging forwarder stays off to spare the quota."""
+    monkeypatch.setenv("SENTRY_DSN", "https://key@example.com/1")
+
+    with patch("src.config.sentry.sentry_sdk.init") as init:
+        configure_sentry()
+
+    options = init.call_args.kwargs
+    assert options["enable_logs"] is True
+    assert options["before_send_log"] is before_send_log
+    [logging] = [i for i in options["integrations"] if isinstance(i, LoggingIntegration)]
+    assert logging._sentry_logs_handler is None
+
+
+@pytest.mark.unit
+def test_redacts_emails_from_logs():
+    log = {"body": "Login failed for ana@example.com", "attributes": {"identifier": "ana@example.com", "reason": "wrong_password"}}
+
+    assert before_send_log(log, {}) == {
+        "body": "Login failed for [email]",
+        "attributes": {"identifier": "[email]", "reason": "wrong_password"},
+    }
 
 
 @pytest.mark.unit

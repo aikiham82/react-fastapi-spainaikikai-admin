@@ -26,6 +26,7 @@ from src.infrastructure.web.dto.member_dto import (
     InsuranceSummary,
 )
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
+from src.infrastructure.web.audit import audit
 from src.infrastructure.web.mappers_member import MemberMapper
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
@@ -369,7 +370,7 @@ async def grant_member_access(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Give a member of the caller's club their own login to the admin web."""
-    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+    member = await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
 
     try:
         link = await grant_use_case.execute(
@@ -385,6 +386,7 @@ async def grant_member_access(
     except AccessChangeNotAllowedError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes dar acceso a esta cuenta")
 
+    audit("access.granted", member_id=member_id, club_id=member.club_id, club_admin=request.club_admin, by=ctx.user.id)
     return AdminPasswordResetLinkResponseDTO(url=link.url, email=link.email, expires_at=link.expires_at)
 
 
@@ -400,7 +402,7 @@ async def set_member_club_role(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Make a member of the caller's club a club admin, or take the role away."""
-    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+    existing = await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
 
     try:
         member = await set_role_use_case.execute(
@@ -411,6 +413,7 @@ async def set_member_club_role(
     except AccessChangeNotAllowedError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes cambiar el rol de este socio")
 
+    audit("access.role_changed", member_id=member_id, club_id=existing.club_id, club_role=request.club_role, by=ctx.user.id)
     return MemberMapper.to_response_dto(member)
 
 
@@ -422,7 +425,7 @@ async def revoke_member_access(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Switch off the account a member of the caller's club signs in with."""
-    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+    member = await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
 
     try:
         await revoke_use_case.execute(member_id, revoked_by_member_id=ctx.member_id)
@@ -433,4 +436,5 @@ async def revoke_member_access(
     except UserNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este socio no tiene acceso a la web")
 
+    audit("access.revoked", member_id=member_id, club_id=member.club_id, by=ctx.user.id)
     return None

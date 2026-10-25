@@ -25,6 +25,7 @@ from src.domain.exceptions.password_reset import (
     PasswordResetTokenUsedError
 )
 from src.domain.exceptions.user import UserNotFoundError
+from src.infrastructure.web.audit import audit
 from src.infrastructure.web.security import get_password_hash
 
 router = APIRouter(prefix="/auth/password-reset", tags=["Password Reset"])
@@ -46,6 +47,7 @@ async def request_password_reset(
     If the email exists and the user is active, a reset email will be sent.
     """
     result = await use_case.execute(request.identifier)
+    audit("auth.password_reset.requested")
     return PasswordResetRequestResponseDTO(
         success=result.success,
         message=result.message
@@ -75,16 +77,19 @@ async def validate_reset_token(
             message=result["message"]
         )
     except PasswordResetTokenNotFoundError:
+        audit("auth.password_reset.token_rejected", level="warning", step="validate", reason="not_found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Token de restablecimiento no encontrado o invalido"
         )
     except PasswordResetTokenExpiredError:
+        audit("auth.password_reset.token_rejected", level="warning", step="validate", reason="expired")
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="El token de restablecimiento ha expirado"
         )
     except PasswordResetTokenUsedError:
+        audit("auth.password_reset.token_rejected", level="warning", step="validate", reason="used")
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="El token de restablecimiento ya ha sido utilizado"
@@ -109,21 +114,25 @@ async def reset_password(
         # Hash the new password before passing to the use case
         hashed_password = get_password_hash(request.new_password)
         result = await use_case.execute(request.token, hashed_password)
+        audit("auth.password_reset.completed")
         return ResetPasswordResponseDTO(
             success=result.success,
             message=result.message
         )
     except PasswordResetTokenNotFoundError:
+        audit("auth.password_reset.token_rejected", level="warning", step="reset", reason="not_found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Token de restablecimiento no encontrado o invalido"
         )
     except PasswordResetTokenExpiredError:
+        audit("auth.password_reset.token_rejected", level="warning", step="reset", reason="expired")
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="El token de restablecimiento ha expirado"
         )
     except PasswordResetTokenUsedError:
+        audit("auth.password_reset.token_rejected", level="warning", step="reset", reason="used")
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="El token de restablecimiento ya ha sido utilizado"
