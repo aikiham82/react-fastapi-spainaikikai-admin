@@ -15,6 +15,10 @@ from src.domain.exceptions.license import LicenseAlreadyExistsError
 from src.application.ports.license_repository import LicenseRepositoryPort
 
 
+def _grade_of_license_type(license_type: str) -> TechnicalGrade:
+    return TechnicalGrade.DAN if license_type == LicenseType.DAN.value else TechnicalGrade.KYU
+
+
 class CreateLicenseUseCase:
     """Use case for creating a new license."""
 
@@ -27,7 +31,7 @@ class CreateLicenseUseCase:
         member_id: str,
         grade: str,
         association_id: Optional[str] = None,
-        license_type: str = "kyu",
+        license_type: Optional[str] = None,
         issue_date: Optional[datetime] = None,
         expiration_date: Optional[datetime] = None,
         technical_grade: Optional[str] = None,
@@ -48,12 +52,12 @@ class CreateLicenseUseCase:
             license_number=license_number,
             member_id=member_id,
             association_id=association_id,
-            license_type=LicenseType(technical_grade or license_type),
+            license_type=LicenseType(license_type or technical_grade or LicenseType.KYU),
             grade=grade,
             status=LicenseStatus.ACTIVE,
             issue_date=issue_date,
             expiration_date=expiration_date,
-            technical_grade=TechnicalGrade(technical_grade or TechnicalGrade.KYU),
+            technical_grade=TechnicalGrade(technical_grade or _grade_of_license_type(license_type)),
             instructor_category=InstructorCategory(instructor_category or InstructorCategory.NONE),
             age_category=AgeCategory(age_category or AgeCategory.ADULTO),
         )
