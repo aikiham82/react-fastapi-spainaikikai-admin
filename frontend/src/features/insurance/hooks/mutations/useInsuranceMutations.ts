@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { insuranceService } from '../../data/services/insurance.service';
 import type { UpdateInsuranceRequest } from '../../data/schemas/insurance.schema';
 import { toast } from 'sonner';
+import { updateToast } from '@/core/utils/updateToast';
 
 export const useCreateInsuranceMutation = () => {
   const queryClient = useQueryClient();
@@ -24,8 +25,12 @@ export const useUpdateInsuranceMutation = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateInsuranceRequest }) =>
       insuranceService.updateInsurance(id, data),
-    onSuccess: () => {
-      toast.success('Seguro actualizado exitosamente');
+    onSuccess: (_insurance, { data }) => {
+      toast.success(updateToast(data, {
+        updated: 'Seguro actualizado exitosamente',
+        annulled: 'Seguro anulado',
+        reactivated: 'Seguro reactivado',
+      }));
       queryClient.invalidateQueries({ queryKey: ['insurance'] });
     },
     onError: () => {

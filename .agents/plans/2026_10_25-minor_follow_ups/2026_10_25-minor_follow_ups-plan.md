@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-25T22:20:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Minor follow-ups of the club reports
@@ -36,11 +46,11 @@ Licence lines: licencia_kyu, licencia_kyu_infantil, licencia_dan, titulo_fukushi
 
 ### Phase 1: list counts and annul toasts
 
-- [ ] Licencias, Miembros and Seguros show "N licencias / miembros / seguros" instead of the pager when every row is loaded.
-- [ ] Annulling shows "Licencia anulada" / "Licencia reactivada" and "Seguro anulado" / "Seguro reactivado".
-- [ ] Tests: `shows the licence count instead of a pager when every row is loaded` (and members, insurances); `toasts an annulment and a reactivation` (licences, insurances).
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Licencias, Miembros and Seguros show "N licencias / miembros / seguros" instead of the pager when every row is loaded.
+- [x] Annulling shows "Licencia anulada" / "Licencia reactivada" and "Seguro anulado" / "Seguro reactivado".
+- [x] Tests (shared ListPager and updateToast, used by the three lists and both mutations): `shows the count instead of a pager when every row is loaded`, `pages when the rows come in pages`, `shows nothing for an empty list`; `toasts an annulment and a reactivation`, `toasts a plain edit as an update`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Spanish duplicate message and dashboard licences per club
 
@@ -66,6 +76,6 @@ Licence lines: licencia_kyu, licencia_kyu_infantil, licencia_dan, titulo_fukushi
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Small things, done properly by 🧹 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Pager counts, toasts say what happened 🧹 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

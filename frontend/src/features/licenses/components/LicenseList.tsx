@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ListPager } from '@/core/components/ListPager';
 import { useLicenseContext } from '../hooks/useLicenseContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { useMemberContext } from '../../members/hooks/useMemberContext';
@@ -62,8 +63,6 @@ export const LicenseList = () => {
     return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
   };
 
-  const totalPages = Math.ceil(total / limit);
-  const currentPage = Math.floor(offset / limit) + 1;
 
   if (isLoading) {
     return (
@@ -362,34 +361,7 @@ export const LicenseList = () => {
       </>
       )}
 
-      {total > limit && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-sm text-gray-600">
-            Mostrando {offset + 1}-{Math.min(offset + limit, total)} de {total} licencias
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPagination(Math.max(0, offset - limit), limit)}
-              disabled={currentPage === 1}
-            >
-              Anterior
-            </Button>
-            <span className="text-sm text-gray-600">
-              Página {currentPage} de {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPagination(offset + limit, limit)}
-              disabled={currentPage === totalPages}
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      )}
+      <ListPager total={total} limit={limit} offset={offset} noun="licencias" onPage={(next) => setPagination(next, limit)} />
 
       <LicenseForm
         open={isFormOpen}
