@@ -63,7 +63,7 @@ class UpdateMemberPaymentUseCase:
                 mp.member_id, target_year, target_type
             ):
                 raise BusinessRuleViolationError(
-                    f"Este miembro ya tiene {PAYMENT_TYPE_LABELS[target_type.value]} en {target_year}"
+                    f"Este miembro ya tiene {PAYMENT_TYPE_LABELS.get(target_type.value, target_type.value)} en {target_year}"
                 )
         previous_year = mp.payment_year
         moved_year = target_year != previous_year
