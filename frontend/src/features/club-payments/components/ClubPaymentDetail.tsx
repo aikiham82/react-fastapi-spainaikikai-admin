@@ -8,6 +8,7 @@ import { ArrowLeft, Search, Users, IdCard, Shield, Wallet, Check, X, Building2, 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { seasonLabel } from '@/core/utils/defaultPaymentYear';
 import {
   Select,
   SelectContent,
@@ -100,7 +101,9 @@ export const ClubPaymentDetail = () => {
       {/* Club name */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900">{clubDetail.club_name}</h3>
-        <p className="text-sm text-gray-600">Ano {clubDetail.payment_year}</p>
+        <p className="text-sm text-gray-600">
+          Año {clubDetail.payment_year} · Seguros de la temporada {seasonLabel(clubDetail.payment_year)}
+        </p>
       </div>
 
       {/* Admin actions bar */}

@@ -116,6 +116,13 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
     }))
   })
 
+  it('names the insurance season the year shows', () => {
+    mockAsClubAdmin()
+    renderWithProviders(<ClubPaymentDetail />)
+
+    expect(screen.getByText('Año 2024 · Seguros de la temporada 2023-24')).toBeInTheDocument()
+  })
+
   // ─── Case 1: non-admin sees no admin UI ─────────────────────────────────
   describe('when isAssociationAdmin() returns false (club_admin)', () => {
     it('does NOT render the "Registrar pago manual" button', () => {
