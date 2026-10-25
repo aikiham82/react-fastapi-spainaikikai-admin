@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "low"
 
 last_implementation_at: "2026-10-25T21:15:00Z"
-has_completed_all_phases: false
+has_completed_all_phases: true
 ---
 
 # Sentry login monitoring
@@ -45,11 +45,11 @@ This change does not depend on club data.
 
 ## Phase 3: Alerts
 
-- [ ] In Sentry `spain-aikikai`: email `spainaikikai.web@gmail.com` on every new issue in both projects, and when `auth.login.failed` exceeds 20 in an hour.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] In Sentry `spain-aikikai`: email `spainaikikai.web@gmail.com` on every new issue in both projects, and when `auth.login.failed` exceeds 20 in an hour.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Next step
 
-Phase 3.
+All phases done.
 
-Plan powered by [Codely](https://codely.com) 🐢 📋 📡
+Plan powered by [Codely](https://codely.com) 🐢 📋 📡 🔔
