@@ -46,6 +46,8 @@ userRole = global_role === 'super_admin' ? 'super_admin'
 
 A user can be neither a super admin nor a club admin: a plain member (`club_role = member`), or an account with no linked member, which is what public self-registration creates. A check written as `if ctx.is_club_admin: <verify the club>` lets both through unchecked. Write the requirement first (`require_club_admin_ctx`, or the router-level `require_admin_access`) and the club comparison second.
 
+What a club admin may do with the logins of their members is in [`club-admins-manage-member-access.md`](club-admins-manage-member-access.md).
+
 ## 🏆 Benefits
 
 - A club administrator gets their authority from their membership, so moving clubs moves their rights with them.

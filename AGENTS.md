@@ -64,6 +64,7 @@ docs/
 │   └── skills.md
 ├── documentation-guidelines.md
 ├── domain/
+│   ├── club-admins-manage-member-access.md
 │   ├── data-model.md
 │   ├── invoice-creation.md
 │   ├── member-join-date.md
