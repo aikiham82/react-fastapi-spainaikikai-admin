@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentType, MemberPaymentStatus
+from src.domain.exceptions.base import BusinessRuleViolationError
 from src.domain.exceptions.payment import MemberPaymentNotFoundError, InvalidPaymentDataError
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
@@ -30,6 +31,7 @@ class UpdateMemberPaymentUseCase:
         concept: Optional[str] = None,
         amount: Optional[float] = None,
         status: Optional[str] = None,
+        payment_year: Optional[int] = None,
     ) -> MemberPayment:
         mp = await self.member_payment_repository.find_by_id(member_payment_id)
         if not mp:
@@ -51,6 +53,15 @@ class UpdateMemberPaymentUseCase:
                 mp.status = MemberPaymentStatus(status)
             except ValueError:
                 raise InvalidPaymentDataError(f"Estado inválido: {status}")
+
+        if payment_year is not None and payment_year != mp.payment_year:
+            if await self.member_payment_repository.exists_for_member_year_type(
+                mp.member_id, payment_year, mp.payment_type
+            ):
+                raise BusinessRuleViolationError(
+                    f"Este miembro ya tiene {mp.payment_type.value} en {payment_year}"
+                )
+            mp.payment_year = payment_year
 
         mp.updated_at = datetime.utcnow()
         updated_mp = await self.member_payment_repository.update(mp)

@@ -85,7 +85,7 @@ export function ManualPaymentModal({
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { registerManualPayment, isLoading, isSuccess } =
-    useRegisterManualPaymentMutation(clubId, paymentYear)
+    useRegisterManualPaymentMutation()
 
   // Reset form when modal opens
   useEffect(() => {

@@ -67,6 +67,7 @@ export const memberPaymentUpdateSchema = z.object({
   concept: z.string().optional(),
   amount: z.number().min(0, 'El importe no puede ser negativo').optional(),
   status: z.string().optional(),
+  payment_year: z.number().int().min(2000, 'Año no válido').max(2100, 'Año no válido').optional(),
 });
 export type MemberPaymentUpdateFormData = z.infer<typeof memberPaymentUpdateSchema>;
 

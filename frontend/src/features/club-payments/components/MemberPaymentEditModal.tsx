@@ -29,8 +29,6 @@ interface MemberPaymentEditModalProps {
   isOpen: boolean
   onClose: () => void
   memberPayment: MemberPayment
-  clubId: string
-  paymentYear: number
 }
 
 interface FormState {
@@ -38,35 +36,32 @@ interface FormState {
   concept: string
   amount: string
   status: string
+  payment_year: string
 }
+
+const formStateOf = (memberPayment: MemberPayment): FormState => ({
+  payment_type: memberPayment.payment_type,
+  concept: memberPayment.concept,
+  amount: String(memberPayment.amount),
+  status: memberPayment.status,
+  payment_year: String(memberPayment.payment_year),
+})
 
 export function MemberPaymentEditModal({
   isOpen,
   onClose,
   memberPayment,
-  clubId,
-  paymentYear,
 }: MemberPaymentEditModalProps) {
-  const [formData, setFormData] = useState<FormState>({
-    payment_type: memberPayment.payment_type,
-    concept: memberPayment.concept,
-    amount: String(memberPayment.amount),
-    status: memberPayment.status,
-  })
+  const [formData, setFormData] = useState<FormState>(() => formStateOf(memberPayment))
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { updateMemberPayment, isLoading, isSuccess } =
-    useUpdateMemberPaymentMutation(clubId, paymentYear)
+    useUpdateMemberPaymentMutation()
 
   // Reset form when the target memberPayment changes or modal opens
   useEffect(() => {
     if (isOpen) {
-      setFormData({
-        payment_type: memberPayment.payment_type,
-        concept: memberPayment.concept,
-        amount: String(memberPayment.amount),
-        status: memberPayment.status,
-      })
+      setFormData(formStateOf(memberPayment))
       setErrors({})
     }
   }, [isOpen, memberPayment])
@@ -82,12 +77,14 @@ export function MemberPaymentEditModal({
     e.preventDefault()
 
     const parsedAmount = Number(formData.amount)
+    const parsedYear = Number(formData.payment_year)
 
     const payload = {
       payment_type: formData.payment_type || undefined,
       concept: formData.concept || undefined,
       amount: isNaN(parsedAmount) ? undefined : parsedAmount,
       status: formData.status || undefined,
+      payment_year: isNaN(parsedYear) ? undefined : parsedYear,
     }
 
     const result = memberPaymentUpdateSchema.safeParse(payload)
@@ -163,6 +160,22 @@ export function MemberPaymentEditModal({
             />
             {errors.concept && (
               <p className="text-sm text-destructive">{errors.concept}</p>
+            )}
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="payment_year">Año</Label>
+            <Input
+              id="payment_year"
+              type="number"
+              inputMode="numeric"
+              value={formData.payment_year}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, payment_year: e.target.value }))
+              }
+            />
+            {errors.payment_year && (
+              <p className="text-sm text-destructive">{errors.payment_year}</p>
             )}
           </div>
 

@@ -53,10 +53,6 @@ const mockToast = toast as unknown as {
 const CLUB_ID = 'club-abc';
 const YEAR = 2026;
 
-// Expected invalidation keys
-const CLUB_DETAIL_KEY = ['club-payments', 'club-detail', CLUB_ID, YEAR];
-const ALL_CLUBS_SUMMARY_KEY = ['club-payments', 'all-clubs-summary', YEAR];
-const CLUB_MEMBER_PAYMENTS_KEY = ['club-payments', 'club-member-payments', CLUB_ID, YEAR];
 
 // ─── Mock data ───────────────────────────────────────────────────────
 const mockPayment = {
@@ -113,7 +109,7 @@ describe('useRegisterManualPaymentMutation', () => {
     it('returns { registerManualPayment, isLoading, error, isSuccess }', () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(
-        () => useRegisterManualPaymentMutation(CLUB_ID, YEAR),
+        () => useRegisterManualPaymentMutation(),
         { wrapper }
       );
 
@@ -128,7 +124,7 @@ describe('useRegisterManualPaymentMutation', () => {
     it('initializes with isLoading=false, error=null, isSuccess=false', () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(
-        () => useRegisterManualPaymentMutation(CLUB_ID, YEAR),
+        () => useRegisterManualPaymentMutation(),
         { wrapper }
       );
 
@@ -144,7 +140,7 @@ describe('useRegisterManualPaymentMutation', () => {
       mockService.registerManualPayment.mockResolvedValue(mockPayment);
 
       const { result } = renderHook(
-        () => useRegisterManualPaymentMutation(CLUB_ID, YEAR),
+        () => useRegisterManualPaymentMutation(),
         { wrapper }
       );
 
@@ -172,7 +168,7 @@ describe('useRegisterManualPaymentMutation', () => {
       mockService.registerManualPayment.mockResolvedValue(mockPayment);
 
       const { result } = renderHook(
-        () => useRegisterManualPaymentMutation(CLUB_ID, YEAR),
+        () => useRegisterManualPaymentMutation(),
         { wrapper }
       );
 
@@ -198,7 +194,7 @@ describe('useRegisterManualPaymentMutation', () => {
       mockService.registerManualPayment.mockResolvedValue(mockPayment);
 
       const { result } = renderHook(
-        () => useRegisterManualPaymentMutation(CLUB_ID, YEAR),
+        () => useRegisterManualPaymentMutation(),
         { wrapper }
       );
 
@@ -215,9 +211,8 @@ describe('useRegisterManualPaymentMutation', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['club-payments'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member-payments'] });
     });
   });
 
@@ -227,7 +222,7 @@ describe('useRegisterManualPaymentMutation', () => {
       mockService.registerManualPayment.mockRejectedValue(apiErrorWithDetail);
 
       const { result } = renderHook(
-        () => useRegisterManualPaymentMutation(CLUB_ID, YEAR),
+        () => useRegisterManualPaymentMutation(),
         { wrapper }
       );
 
@@ -252,7 +247,7 @@ describe('useRegisterManualPaymentMutation', () => {
       mockService.registerManualPayment.mockRejectedValue(apiErrorWithoutDetail);
 
       const { result } = renderHook(
-        () => useRegisterManualPaymentMutation(CLUB_ID, YEAR),
+        () => useRegisterManualPaymentMutation(),
         { wrapper }
       );
 
@@ -284,7 +279,7 @@ describe('useUpdatePaymentMutation', () => {
     it('returns { updatePayment, isLoading, error, isSuccess }', () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(
-        () => useUpdatePaymentMutation(CLUB_ID, YEAR),
+        () => useUpdatePaymentMutation(),
         { wrapper }
       );
 
@@ -303,7 +298,7 @@ describe('useUpdatePaymentMutation', () => {
       mockService.updatePayment.mockResolvedValue(mockPayment);
 
       const { result } = renderHook(
-        () => useUpdatePaymentMutation(CLUB_ID, YEAR),
+        () => useUpdatePaymentMutation(),
         { wrapper }
       );
 
@@ -323,7 +318,7 @@ describe('useUpdatePaymentMutation', () => {
       mockService.updatePayment.mockResolvedValue(mockPayment);
 
       const { result } = renderHook(
-        () => useUpdatePaymentMutation(CLUB_ID, YEAR),
+        () => useUpdatePaymentMutation(),
         { wrapper }
       );
 
@@ -342,7 +337,7 @@ describe('useUpdatePaymentMutation', () => {
       mockService.updatePayment.mockResolvedValue(mockPayment);
 
       const { result } = renderHook(
-        () => useUpdatePaymentMutation(CLUB_ID, YEAR),
+        () => useUpdatePaymentMutation(),
         { wrapper }
       );
 
@@ -352,9 +347,8 @@ describe('useUpdatePaymentMutation', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['club-payments'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member-payments'] });
     });
   });
 
@@ -364,7 +358,7 @@ describe('useUpdatePaymentMutation', () => {
       mockService.updatePayment.mockRejectedValue(apiErrorWithDetail);
 
       const { result } = renderHook(
-        () => useUpdatePaymentMutation(CLUB_ID, YEAR),
+        () => useUpdatePaymentMutation(),
         { wrapper }
       );
 
@@ -382,7 +376,7 @@ describe('useUpdatePaymentMutation', () => {
       mockService.updatePayment.mockRejectedValue(apiErrorWithoutDetail);
 
       const { result } = renderHook(
-        () => useUpdatePaymentMutation(CLUB_ID, YEAR),
+        () => useUpdatePaymentMutation(),
         { wrapper }
       );
 
@@ -407,7 +401,7 @@ describe('useDeletePaymentMutation', () => {
     it('returns { deletePayment, isLoading, error, isSuccess }', () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(
-        () => useDeletePaymentMutation(CLUB_ID, YEAR),
+        () => useDeletePaymentMutation(),
         { wrapper }
       );
 
@@ -426,7 +420,7 @@ describe('useDeletePaymentMutation', () => {
       mockService.deletePayment.mockResolvedValue(undefined);
 
       const { result } = renderHook(
-        () => useDeletePaymentMutation(CLUB_ID, YEAR),
+        () => useDeletePaymentMutation(),
         { wrapper }
       );
 
@@ -444,7 +438,7 @@ describe('useDeletePaymentMutation', () => {
       mockService.deletePayment.mockResolvedValue(undefined);
 
       const { result } = renderHook(
-        () => useDeletePaymentMutation(CLUB_ID, YEAR),
+        () => useDeletePaymentMutation(),
         { wrapper }
       );
 
@@ -463,7 +457,7 @@ describe('useDeletePaymentMutation', () => {
       mockService.deletePayment.mockResolvedValue(undefined);
 
       const { result } = renderHook(
-        () => useDeletePaymentMutation(CLUB_ID, YEAR),
+        () => useDeletePaymentMutation(),
         { wrapper }
       );
 
@@ -482,7 +476,7 @@ describe('useDeletePaymentMutation', () => {
       mockService.deletePayment.mockResolvedValue(undefined);
 
       const { result } = renderHook(
-        () => useDeletePaymentMutation(CLUB_ID, YEAR),
+        () => useDeletePaymentMutation(),
         { wrapper }
       );
 
@@ -492,9 +486,8 @@ describe('useDeletePaymentMutation', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['club-payments'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member-payments'] });
     });
   });
 
@@ -504,7 +497,7 @@ describe('useDeletePaymentMutation', () => {
       mockService.deletePayment.mockRejectedValue(apiErrorWithDetail);
 
       const { result } = renderHook(
-        () => useDeletePaymentMutation(CLUB_ID, YEAR),
+        () => useDeletePaymentMutation(),
         { wrapper }
       );
 
@@ -522,7 +515,7 @@ describe('useDeletePaymentMutation', () => {
       mockService.deletePayment.mockRejectedValue(apiErrorWithoutDetail);
 
       const { result } = renderHook(
-        () => useDeletePaymentMutation(CLUB_ID, YEAR),
+        () => useDeletePaymentMutation(),
         { wrapper }
       );
 
@@ -547,7 +540,7 @@ describe('useUpdateMemberPaymentMutation', () => {
     it('returns { updateMemberPayment, isLoading, error, isSuccess }', () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(
-        () => useUpdateMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useUpdateMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -566,7 +559,7 @@ describe('useUpdateMemberPaymentMutation', () => {
       mockService.updateMemberPayment.mockResolvedValue(mockMemberPayment);
 
       const { result } = renderHook(
-        () => useUpdateMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useUpdateMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -586,7 +579,7 @@ describe('useUpdateMemberPaymentMutation', () => {
       mockService.updateMemberPayment.mockResolvedValue(mockMemberPayment);
 
       const { result } = renderHook(
-        () => useUpdateMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useUpdateMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -605,7 +598,7 @@ describe('useUpdateMemberPaymentMutation', () => {
       mockService.updateMemberPayment.mockResolvedValue(mockMemberPayment);
 
       const { result } = renderHook(
-        () => useUpdateMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useUpdateMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -615,9 +608,8 @@ describe('useUpdateMemberPaymentMutation', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['club-payments'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member-payments'] });
     });
   });
 
@@ -627,7 +619,7 @@ describe('useUpdateMemberPaymentMutation', () => {
       mockService.updateMemberPayment.mockRejectedValue(apiErrorWithDetail);
 
       const { result } = renderHook(
-        () => useUpdateMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useUpdateMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -645,7 +637,7 @@ describe('useUpdateMemberPaymentMutation', () => {
       mockService.updateMemberPayment.mockRejectedValue(apiErrorWithoutDetail);
 
       const { result } = renderHook(
-        () => useUpdateMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useUpdateMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -670,7 +662,7 @@ describe('useDeleteMemberPaymentMutation', () => {
     it('returns { deleteMemberPayment, isLoading, error, isSuccess }', () => {
       const { wrapper } = createWrapper();
       const { result } = renderHook(
-        () => useDeleteMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useDeleteMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -689,7 +681,7 @@ describe('useDeleteMemberPaymentMutation', () => {
       mockService.deleteMemberPayment.mockResolvedValue(undefined);
 
       const { result } = renderHook(
-        () => useDeleteMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useDeleteMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -708,7 +700,7 @@ describe('useDeleteMemberPaymentMutation', () => {
       mockService.deleteMemberPayment.mockResolvedValue(undefined);
 
       const { result } = renderHook(
-        () => useDeleteMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useDeleteMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -727,7 +719,7 @@ describe('useDeleteMemberPaymentMutation', () => {
       mockService.deleteMemberPayment.mockResolvedValue(undefined);
 
       const { result } = renderHook(
-        () => useDeleteMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useDeleteMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -737,9 +729,8 @@ describe('useDeleteMemberPaymentMutation', () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_DETAIL_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ALL_CLUBS_SUMMARY_KEY });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: CLUB_MEMBER_PAYMENTS_KEY });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['club-payments'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member-payments'] });
     });
   });
 
@@ -749,7 +740,7 @@ describe('useDeleteMemberPaymentMutation', () => {
       mockService.deleteMemberPayment.mockRejectedValue(apiErrorWithDetail);
 
       const { result } = renderHook(
-        () => useDeleteMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useDeleteMemberPaymentMutation(),
         { wrapper }
       );
 
@@ -767,7 +758,7 @@ describe('useDeleteMemberPaymentMutation', () => {
       mockService.deleteMemberPayment.mockRejectedValue(apiErrorWithoutDetail);
 
       const { result } = renderHook(
-        () => useDeleteMemberPaymentMutation(CLUB_ID, YEAR),
+        () => useDeleteMemberPaymentMutation(),
         { wrapper }
       );
 

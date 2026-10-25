@@ -154,3 +154,4 @@ class MemberPaymentUpdateRequest(BaseModel):
     concept: Optional[str] = None
     amount: Optional[float] = None
     status: Optional[str] = None
+    payment_year: Optional[int] = None

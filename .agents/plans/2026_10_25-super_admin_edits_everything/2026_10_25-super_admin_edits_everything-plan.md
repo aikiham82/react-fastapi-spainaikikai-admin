@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T20:30:00Z"
+last_implementation_at: "2026-10-25T21:15:00Z"
 has_completed_all_phases: "false"
 ---
 
@@ -68,13 +68,13 @@ The federation's super admin can change any licence, insurance, member payment a
 
 ### Phase 3: a member's payments are edited from the member
 
-- [ ] `MemberPaymentUpdate` and `UpdateMemberPaymentUseCase` accept `payment_year`; moving to a year where the member already has that type completed answers 409.
-- [ ] "Ver pagos" dialog: for super admin, each payment line has "Editar" and "Eliminar" (reusing `MemberPaymentEditModal`, now with "Año"), and "Añadir pago" opens the manual payment modal with that member preselected.
-- [ ] "Transacciones": buttons with text and a card layout on phones.
-- [ ] Tests `backend/tests/api/test_member_payments_admin_endpoints.py`: `test_a_member_payment_moves_to_another_year`, `test_moving_a_member_payment_onto_a_paid_year_is_refused`.
-- [ ] Tests `frontend/src/features/members/components/__tests__/MemberPaymentStatus.admin.test.tsx`: `a super admin edits a payment line from the member`, `a club admin sees the payments read only`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MemberPaymentUpdate` and `UpdateMemberPaymentUseCase` accept `payment_year`; moving to a year where the member already has that type completed answers 409.
+- [x] "Ver pagos" dialog: for super admin, each payment line has "Editar" and "Eliminar" (reusing `MemberPaymentEditModal`, now with "Año"), and "Añadir pago" opens the manual payment modal with that member preselected.
+- [x] "Transacciones": buttons with text and a card layout on phones.
+- [x] Tests `backend/tests/api/test_member_payment_year_edit.py` (real use case; the admin endpoints suite mocks use cases): `test_a_member_payment_moves_to_another_year`, `test_moving_a_member_payment_onto_a_paid_year_is_refused`.
+- [x] Tests `frontend/src/features/club-payments/components/__tests__/MemberPaymentLines.test.tsx`: `a super admin edits a payment line from the member`, `a club admin sees the payments read only`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 4: a member's DNI is saved on edit
 
@@ -85,6 +85,6 @@ The federation's super admin can change any licence, insurance, member payment a
 
 ## Next step
 
-Implement Phase 3.
+Implement Phase 4.
 
-Licences and insurances tamed, payments next 🪪 🛡️ → 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Payments within reach of the member, DNI next 💶 → 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

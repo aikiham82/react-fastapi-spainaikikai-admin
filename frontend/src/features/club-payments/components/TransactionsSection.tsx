@@ -46,6 +46,31 @@ const getStatusVariant = (
   return 'destructive'
 }
 
+interface LineActionsProps {
+  onEdit: () => void
+  onDelete: () => void
+}
+
+function LineActions({ onEdit, onDelete }: LineActionsProps) {
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <Button variant="outline" size="sm" onClick={onEdit}>
+        <Pencil className="h-4 w-4 mr-1" />
+        Editar
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-destructive hover:text-destructive"
+        onClick={onDelete}
+      >
+        <Trash2 className="h-4 w-4 mr-1" />
+        Eliminar
+      </Button>
+    </div>
+  )
+}
+
 interface TransactionsSectionProps {
   clubId: string
   paymentYear: number
@@ -57,10 +82,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
 
   const { data: memberPayments, isLoading } = useClubMemberPaymentsQuery(clubId, paymentYear)
 
-  const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation(
-    clubId,
-    paymentYear
-  )
+  const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation()
 
   const handleConfirmDelete = () => {
     if (deletingItem) {
@@ -92,7 +114,25 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
   // ─── Data table ─────────────────────────────────────────────────────────
   return (
     <>
-      <div className="rounded-md border">
+      <ul className="space-y-2 md:hidden">
+        {memberPayments.map((mp) => (
+          <li key={mp.id} className="rounded-md border p-3 space-y-2">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
+                <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
+              </div>
+              <div className="text-right space-y-1">
+                <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
+                <Badge variant={getStatusVariant(mp.status)}>{getStatusLabel(mp.status)}</Badge>
+              </div>
+            </div>
+            <LineActions onEdit={() => setEditingItem(mp)} onDelete={() => setDeletingItem(mp)} />
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -121,25 +161,10 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Editar"
-                      onClick={() => setEditingItem(mp)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Eliminar"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => setDeletingItem(mp)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <LineActions
+                    onEdit={() => setEditingItem(mp)}
+                    onDelete={() => setDeletingItem(mp)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -153,8 +178,6 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
           isOpen={!!editingItem}
           onClose={() => setEditingItem(null)}
           memberPayment={editingItem}
-          clubId={clubId}
-          paymentYear={paymentYear}
         />
       )}
 

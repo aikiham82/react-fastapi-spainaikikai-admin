@@ -32,6 +32,7 @@ import { useClubContext } from '@/features/clubs/hooks/useClubContext';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
+import { MemberPaymentLines } from '@/features/club-payments/components/MemberPaymentLines';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, MemberAccessBadge, MemberStatusBadge } from './MemberBadges';
 import { Switch } from '@/components/ui/switch';
@@ -499,14 +500,22 @@ export const MemberList = () => {
 
       {/* Payment Status Dialog */}
       <Dialog open={!!selectedMemberForPayments} onOpenChange={(open) => !open && setSelectedMemberForPayments(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Estado de Pagos - {selectedMemberForPayments?.first_name} {selectedMemberForPayments?.last_name}
             </DialogTitle>
           </DialogHeader>
           {selectedMemberForPayments && (
-            <MemberPaymentStatus memberId={selectedMemberForPayments.id} />
+            <>
+              <MemberPaymentStatus memberId={selectedMemberForPayments.id} />
+              <MemberPaymentLines
+                memberId={selectedMemberForPayments.id}
+                memberName={`${selectedMemberForPayments.first_name} ${selectedMemberForPayments.last_name}`.trim()}
+                clubId={selectedMemberForPayments.club_id ?? ''}
+                clubName={selectedMemberForPayments.club_name ?? ''}
+              />
+            </>
           )}
         </DialogContent>
       </Dialog>

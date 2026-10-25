@@ -310,6 +310,7 @@ async def update_member_payment(
             concept=request.concept,
             amount=request.amount,
             status=request.status,
+            payment_year=request.payment_year,
         )
     except MemberPaymentNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
