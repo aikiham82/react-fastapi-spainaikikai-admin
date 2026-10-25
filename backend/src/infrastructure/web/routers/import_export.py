@@ -58,6 +58,21 @@ def _parse_date(value) -> Optional[datetime]:
     return None
 
 
+def _cell_text(value) -> str:
+    """Text of an Excel cell, so a number cell is stored like the text it stands for."""
+    if value is None:
+        return ''
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    return str(value).strip()
+
+
+def _postal_code_text(value) -> str:
+    """Postal code as text, with the leading zeros a number cell dropped."""
+    text = _cell_text(value)
+    return text.zfill(5) if text.isdigit() else text
+
+
 @router.post("/members/import", response_model=ImportMembersResponse)
 async def import_members(
     request: ImportMembersRequest,
@@ -79,16 +94,16 @@ async def import_members(
     for idx, row in enumerate(request.members):
         try:
             # Map Excel column names to entity fields
-            first_name = row.get('first_name') or row.get('Nombre') or row.get('nombre') or ''
-            email = row.get('email') or row.get('Email') or row.get('EMAIL') or ''
-            last_name = row.get('last_name') or row.get('Apellidos') or row.get('apellidos') or ''
-            dni = row.get('dni') or row.get('DNI') or row.get('Dni') or ''
-            phone = row.get('phone') or row.get('Teléfono') or row.get('telefono') or ''
-            address = row.get('address') or row.get('Dirección') or row.get('direccion') or ''
-            city = row.get('city') or row.get('Ciudad') or row.get('ciudad') or ''
-            province = row.get('province') or row.get('Provincia') or row.get('provincia') or ''
-            postal_code = row.get('postal_code') or row.get('Código Postal') or row.get('codigo_postal') or ''
-            country = row.get('country') or row.get('País') or row.get('pais') or 'España'
+            first_name = _cell_text(row.get('first_name') or row.get('Nombre') or row.get('nombre'))
+            email = _cell_text(row.get('email') or row.get('Email') or row.get('EMAIL'))
+            last_name = _cell_text(row.get('last_name') or row.get('Apellidos') or row.get('apellidos'))
+            dni = _cell_text(row.get('dni') or row.get('DNI') or row.get('Dni'))
+            phone = _cell_text(row.get('phone') or row.get('Teléfono') or row.get('telefono'))
+            address = _cell_text(row.get('address') or row.get('Dirección') or row.get('direccion'))
+            city = _cell_text(row.get('city') or row.get('Ciudad') or row.get('ciudad'))
+            province = _cell_text(row.get('province') or row.get('Provincia') or row.get('provincia'))
+            postal_code = _postal_code_text(row.get('postal_code') or row.get('Código Postal') or row.get('codigo_postal'))
+            country = _cell_text(row.get('country') or row.get('País') or row.get('pais')) or 'España'
             club_id = row.get('club_id') or row.get('Club ID') or None
             birth_date_str = row.get('birth_date') or row.get('Fecha Nacimiento') or row.get('fecha_nacimiento') or None
 
