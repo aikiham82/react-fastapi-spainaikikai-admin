@@ -500,9 +500,9 @@ export const MemberList = () => {
 
       {/* Payment Status Dialog */}
       <Dialog open={!!selectedMemberForPayments} onOpenChange={(open) => !open && setSelectedMemberForPayments(null)}>
-        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="pr-8">
               Estado de Pagos - {selectedMemberForPayments?.first_name} {selectedMemberForPayments?.last_name}
             </DialogTitle>
           </DialogHeader>

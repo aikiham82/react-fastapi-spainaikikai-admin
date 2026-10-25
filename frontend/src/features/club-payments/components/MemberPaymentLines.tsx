@@ -37,7 +37,7 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h4 className="font-medium">Líneas de pago</h4>
-        <Button size="sm" onClick={() => setIsAdding(true)}>
+        <Button className="h-10 sm:h-8" onClick={() => setIsAdding(true)}>
           <Plus className="h-4 w-4 mr-1" />
           Añadir pago
         </Button>
@@ -54,7 +54,7 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
                   <p className="text-sm font-medium">{line.payment_year} · {getPaymentTypeLabel(line.payment_type)}</p>
                   <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
                 </div>
-                <Badge variant={line.status === 'completed' ? 'default' : 'secondary'}>
+                <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
                   {getStatusLabel(line.status)}
                 </Badge>
               </div>
@@ -77,7 +77,9 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
         }}
         isLoading={isDeleting}
         title="Eliminar línea de pago"
-        description="¿Seguro que quieres eliminar esta línea de pago? Esta acción no se puede deshacer."
+        description={deleting
+          ? `${deleting.payment_year} · ${getPaymentTypeLabel(deleting.payment_type)} · ${formatCurrency(deleting.amount)}. Esta acción no se puede deshacer.`
+          : ''}
       />
 
       <ManualPaymentModal

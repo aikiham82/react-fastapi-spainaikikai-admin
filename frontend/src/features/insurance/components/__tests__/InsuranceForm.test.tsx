@@ -69,6 +69,8 @@ describe('InsuranceForm', () => {
     const { rerender } = renderEditing()
 
     await userEvent.click(screen.getByRole('button', { name: 'Anular seguro' }))
+    expect(updateInsurance).not.toHaveBeenCalled()
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Anular seguro' }))
     expect(updateInsurance).toHaveBeenLastCalledWith('insurance-ana', { annulled: true })
 
     rerender(<InsuranceForm open onOpenChange={vi.fn()} insurance={{ ...INSURANCE, status: 'cancelled' }} memberOptions={MEMBERS} />)

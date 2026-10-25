@@ -47,8 +47,8 @@ describe('LicenseForm', () => {
     await userEvent.click(screen.getByRole('option', { name: 'Ana Example' }))
     await userEvent.type(screen.getByLabelText('Fecha de Emisión *'), '2026-01-15')
     await userEvent.type(screen.getByLabelText('Fecha de Vencimiento *'), '2026-12-31')
-    await choose('Cat. Instructor', 'Shidoin')
-    await choose('Cat. Edad', 'Infantil')
+    await choose('Categoría de instructor', 'Shidoin')
+    await choose('Categoría de edad', 'Infantil')
     await userEvent.click(screen.getByRole('button', { name: 'Crear' }))
 
     expect(createLicense).toHaveBeenCalledWith(
@@ -94,6 +94,8 @@ describe('LicenseForm', () => {
     )
 
     await userEvent.click(screen.getByRole('button', { name: 'Anular licencia' }))
+    expect(updateLicense).not.toHaveBeenCalled()
+    await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Anular licencia' }))
     expect(updateLicense).toHaveBeenLastCalledWith('license-ana', { annulled: true })
 
     rerender(<LicenseForm open onOpenChange={vi.fn()} license={{ ...LICENCE, status: 'revoked' }} memberOptions={MEMBERS} />)

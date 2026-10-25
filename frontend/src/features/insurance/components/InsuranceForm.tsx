@@ -138,7 +138,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Seguro' : 'Crear Seguro'}</DialogTitle>
           <DialogDescription>
@@ -249,7 +249,9 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
             <AnnulmentPanel
               annulled={insurance.status === 'cancelled'}
               annulledText="Anulado: no cuenta como vigente aunque sus fechas lo sean."
-              activeText="Vigente según sus fechas. Anúlalo para darlo de baja ya."
+              activeText="No anulado: vigente o caducado según sus fechas."
+              confirmTitle="¿Anular el seguro?"
+              confirmText="Se guarda al momento y deja de contar como vigente. Lo que hayas cambiado en el formulario sin guardar se pierde."
               annulLabel="Anular seguro"
               reactivateLabel="Reactivar seguro"
               onToggle={setAnnulled}

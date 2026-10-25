@@ -131,7 +131,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Licencia' : 'Crear Licencia'}</DialogTitle>
           <DialogDescription>
@@ -194,7 +194,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
                   setFormData(prev => ({ ...prev, technical_grade: newGrade, dan_grade: currentGrade }));
                 }}
               >
-                <SelectTrigger id="technical_grade">
+                <SelectTrigger id="technical_grade" className="w-full">
                   <SelectValue placeholder="Selecciona tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -210,7 +210,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
                 value={formData.dan_grade.toString()}
                 onValueChange={(value) => handleChange('dan_grade', parseInt(value))}
               >
-                <SelectTrigger id="dan_grade" className={errors.dan_grade ? 'border-red-500' : ''}>
+                <SelectTrigger id="dan_grade" className={`w-full ${errors.dan_grade ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Selecciona el grado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -230,12 +230,12 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="instructor_category">Cat. Instructor</Label>
+              <Label htmlFor="instructor_category">Categoría de instructor</Label>
               <Select
                 value={formData.instructor_category ?? 'none'}
                 onValueChange={(value) => handleChange('instructor_category', value)}
               >
-                <SelectTrigger id="instructor_category">
+                <SelectTrigger id="instructor_category" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -247,12 +247,12 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="age_category">Cat. Edad</Label>
+              <Label htmlFor="age_category">Categoría de edad</Label>
               <Select
                 value={formData.age_category ?? 'adulto'}
                 onValueChange={(value) => handleChange('age_category', value)}
               >
-                <SelectTrigger id="age_category">
+                <SelectTrigger id="age_category" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -267,7 +267,9 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
             <AnnulmentPanel
               annulled={license.status === 'revoked'}
               annulledText="Anulada: no cuenta como vigente aunque sus fechas lo sean."
-              activeText="Vigente según sus fechas. Anúlala para darla de baja ya."
+              activeText="No anulada: vigente o caducada según sus fechas."
+              confirmTitle="¿Anular la licencia?"
+              confirmText="Se guarda al momento y deja de contar como vigente. Lo que hayas cambiado en el formulario sin guardar se pierde."
               annulLabel="Anular licencia"
               reactivateLabel="Reactivar licencia"
               onToggle={setAnnulled}
