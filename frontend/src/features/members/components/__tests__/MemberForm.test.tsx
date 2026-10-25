@@ -59,8 +59,21 @@ describe('MemberForm registration date', () => {
 
     expect(updateMember).toHaveBeenCalledWith(
       'member-1',
-      expect.objectContaining({ registration_date: '2024-09-01' })
+      expect.objectContaining({ registration_date: '2024-09-01' }),
+      expect.any(Function)
     )
+  })
+
+  it('stays open until the edit is saved, so a refused DNI keeps what was typed', async () => {
+    const onOpenChange = vi.fn()
+    renderWithProviders(<MemberForm open onOpenChange={onOpenChange} member={member()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+
+    expect(onOpenChange).not.toHaveBeenCalled()
+    const onSaved = updateMember.mock.calls[0][2]
+    onSaved()
+    expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
   it('defaults the join date to today when creating', () => {
