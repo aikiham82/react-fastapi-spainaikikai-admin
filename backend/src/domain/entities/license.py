@@ -104,6 +104,14 @@ class License:
             return datetime.now() > self.expiration_date
         return False
 
+    def annul(self) -> None:
+        """Withdraw the licence whatever its dates say."""
+        self.status = LicenseStatus.REVOKED
+
+    def follow_dates(self) -> None:
+        """In force until its expiration date, expired after it."""
+        self.status = LicenseStatus.EXPIRED if self.is_expired() else LicenseStatus.ACTIVE
+
     def check_and_update_status(self) -> None:
         """Check and update license status based on expiration date."""
         if self.is_expired() and self.status == LicenseStatus.ACTIVE:

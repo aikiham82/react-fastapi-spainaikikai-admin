@@ -1,15 +1,19 @@
+export type TechnicalGrade = 'dan' | 'kyu';
+export type InstructorCategory = 'none' | 'fukushidoin' | 'shidoin';
+export type AgeCategory = 'infantil' | 'adulto';
+
 export interface License {
   id: string;
   license_number: string;
   member_id: string;
   member_name?: string;
-  club_id: string;
   issue_date: string;
   expiry_date: string;
-  status: 'active' | 'expired' | 'pending';
+  status: 'active' | 'expired' | 'pending' | 'revoked';
   dan_grade: number;
-  technical_grade: 'dan' | 'kyu';
-  instructor_category: 'none' | 'fukushidoin' | 'shidoin';
+  technical_grade: TechnicalGrade;
+  instructor_category: InstructorCategory;
+  age_category: AgeCategory;
   created_at: string;
   updated_at: string;
 }
@@ -19,10 +23,20 @@ export interface CreateLicenseRequest {
   issue_date: string;
   expiry_date: string;
   dan_grade: number;
-  technical_grade?: 'dan' | 'kyu';
+  technical_grade?: TechnicalGrade;
+  instructor_category?: InstructorCategory;
+  age_category?: AgeCategory;
 }
 
-export type UpdateLicenseRequest = Partial<CreateLicenseRequest>
+export interface UpdateLicenseRequest {
+  issue_date?: string;
+  expiration_date?: string;
+  grade?: string;
+  technical_grade?: TechnicalGrade;
+  instructor_category?: InstructorCategory;
+  age_category?: AgeCategory;
+  annulled?: boolean;
+}
 
 export interface LicenseFilters {
   search?: string;

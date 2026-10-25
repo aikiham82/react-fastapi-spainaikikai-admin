@@ -21,6 +21,14 @@ const getGradeDisplay = (license: License): string => {
   return 'Kyu';
 };
 
+
+const LICENSE_STATUS_LABEL: Record<License['status'], string> = {
+  active: 'Activa',
+  expired: 'Expirada',
+  pending: 'Pendiente',
+  revoked: 'Anulada',
+};
+
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
   const { members } = useMemberContext();
@@ -165,8 +173,7 @@ export const LicenseList = () => {
                     license.status === 'expired' ? 'destructive' : 'secondary'
                 }
               >
-                {license.status === 'active' ? 'Activa' :
-                  license.status === 'expired' ? 'Expirada' : 'Pendiente'}
+                {LICENSE_STATUS_LABEL[license.status]}
               </Badge>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
@@ -280,8 +287,7 @@ export const LicenseList = () => {
                           license.status === 'expired' ? 'destructive' : 'secondary'
                       }
                     >
-                      {license.status === 'active' ? 'Activa' :
-                        license.status === 'expired' ? 'Expirada' : 'Pendiente'}
+                      {LICENSE_STATUS_LABEL[license.status]}
                     </Badge>
                   </td>
                   <td className="p-4 text-right">
@@ -328,8 +334,7 @@ export const LicenseList = () => {
                                     license.status === 'expired' ? 'destructive' : 'secondary'
                                 }
                               >
-                                {license.status === 'active' ? 'Activa' :
-                                  license.status === 'expired' ? 'Expirada' : 'Pendiente'}
+                                {LICENSE_STATUS_LABEL[license.status]}
                               </Badge>
                             </div>
                           </div>

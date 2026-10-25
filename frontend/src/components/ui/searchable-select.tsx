@@ -30,6 +30,7 @@ interface SearchableSelectProps {
   emptyMessage?: string;
   disabled?: boolean;
   className?: string;
+  id?: string;
 }
 
 export function SearchableSelect({
@@ -41,6 +42,7 @@ export function SearchableSelect({
   emptyMessage = 'No se encontraron resultados.',
   disabled = false,
   className,
+  id,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
 
@@ -55,6 +57,7 @@ export function SearchableSelect({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           role="combobox"
           aria-expanded={open}

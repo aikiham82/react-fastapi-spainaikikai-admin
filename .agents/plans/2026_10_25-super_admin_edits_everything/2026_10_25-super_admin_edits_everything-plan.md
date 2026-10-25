@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-25T20:00:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Super admin edits everything
@@ -38,13 +48,13 @@ The federation's super admin can change any licence, insurance, member payment a
 
 ### Phase 1: licences are really edited
 
-- [ ] `LicenseUpdate`: `issue_date`, `expiration_date`, `grade`, `technical_grade`/`instructor_category`/`age_category` typed as enums, `annulled: Optional[bool]`.
-- [ ] `UpdateLicenseUseCase.execute(license_id, **fields)`: stores enums, dates and grade; status is `revoked` when annulled, otherwise follows `expiration_date` (active or expired).
-- [ ] `LicenseForm`: "Cat. Instructor" and "Cat. Edad" selects on create and edit; edit sends `grade`, `issue_date`, `expiration_date` and the categories; member not editable on edit; "Anular licencia" / "Reactivar licencia" on edit; list badge "Anulada".
-- [ ] Tests `backend/tests/api/test_licenses_update.py`: `test_a_licence_edit_stores_its_categories`, `test_moving_an_expired_licence_forward_puts_it_in_force`, `test_moving_a_licence_back_expires_it`, `test_an_annulled_licence_stays_annulled_with_future_dates`, `test_a_reactivated_licence_follows_its_dates`, `test_a_club_admin_cannot_edit_a_licence`.
-- [ ] Tests `frontend/src/features/licenses/components/__tests__/LicenseForm.test.tsx`: `creates a licence with its instructor and age categories`, `edits the expiration date and grade`, `annuls and reactivates a licence`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `LicenseUpdate`: `issue_date`, `expiration_date`, `grade`, `technical_grade`/`instructor_category`/`age_category` typed as enums, `annulled: Optional[bool]`.
+- [x] `UpdateLicenseUseCase.execute(license_id, **fields)`: stores enums, dates and grade; status is `revoked` when annulled, otherwise follows `expiration_date` (active or expired).
+- [x] `LicenseForm`: "Cat. Instructor" and "Cat. Edad" selects on create and edit; edit sends `grade`, `issue_date`, `expiration_date` and the categories; member not editable on edit; "Anular licencia" / "Reactivar licencia" on edit; list badge "Anulada".
+- [x] Tests `backend/tests/api/test_licenses_update.py`: `test_a_licence_edit_stores_its_categories`, `test_moving_an_expired_licence_forward_puts_it_in_force`, `test_moving_a_licence_back_expires_it`, `test_an_annulled_licence_stays_annulled_with_future_dates`, `test_a_reactivated_licence_follows_its_dates`, `test_a_club_admin_cannot_edit_a_licence`.
+- [x] Tests `frontend/src/features/licenses/components/__tests__/LicenseForm.test.tsx`: `creates a licence with its instructor and age categories`, `edits the expiration date and grade`, `annuls and reactivates a licence`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: insurances are really edited
 
@@ -75,6 +85,6 @@ The federation's super admin can change any licence, insurance, member payment a
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Plan with a black belt in editing by 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Licences tamed, insurances next 🪪 → 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLicenseContext } from '../hooks/useLicenseContext';
-import type { License, CreateLicenseRequest } from '../data/schemas/license.schema';
+import type { License, CreateLicenseRequest, TechnicalGrade } from '../data/schemas/license.schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,17 +28,24 @@ interface LicenseFormProps {
   memberOptions?: { id: string; name: string }[];
 }
 
+const EMPTY_FORM: CreateLicenseRequest = {
+  member_id: '',
+  issue_date: '',
+  expiry_date: '',
+  dan_grade: 1,
+  technical_grade: 'dan',
+  instructor_category: 'none',
+  age_category: 'adulto',
+};
+
+const gradeLabel = (grade: number, technicalGrade: TechnicalGrade): string =>
+  `${grade}º ${technicalGrade === 'kyu' ? 'Kyu' : 'Dan'}`;
+
 export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }: LicenseFormProps) => {
   const { createLicense, updateLicense } = useLicenseContext();
   const isEditing = !!license;
 
-  const [formData, setFormData] = useState<CreateLicenseRequest>({
-    member_id: '',
-    issue_date: '',
-    expiry_date: '',
-    dan_grade: 1,
-    technical_grade: 'dan',
-  });
+  const [formData, setFormData] = useState<CreateLicenseRequest>(EMPTY_FORM);
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateLicenseRequest, string>>>({});
 
@@ -50,15 +57,11 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
         expiry_date: license.expiry_date?.split('T')[0] || '',
         dan_grade: license.dan_grade || 1,
         technical_grade: license.technical_grade || 'dan',
+        instructor_category: license.instructor_category || 'none',
+        age_category: license.age_category || 'adulto',
       });
     } else {
-      setFormData({
-        member_id: '',
-        issue_date: '',
-        expiry_date: '',
-        dan_grade: 1,
-        technical_grade: 'dan',
-      });
+      setFormData(EMPTY_FORM);
     }
     setErrors({});
   }, [license, open]);
@@ -94,11 +97,24 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
     }
 
     if (isEditing && license) {
-      updateLicense(license.id, formData);
+      updateLicense(license.id, {
+        issue_date: formData.issue_date,
+        expiration_date: formData.expiry_date,
+        grade: gradeLabel(formData.dan_grade, formData.technical_grade ?? 'dan'),
+        technical_grade: formData.technical_grade,
+        instructor_category: formData.instructor_category,
+        age_category: formData.age_category,
+      });
     } else {
       createLicense(formData);
     }
 
+    onOpenChange(false);
+  };
+
+  const setAnnulled = (annulled: boolean) => {
+    if (!license) return;
+    updateLicense(license.id, { annulled });
     onOpenChange(false);
   };
 
@@ -123,12 +139,14 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
           <div className="space-y-2">
             <Label htmlFor="member_id">Miembro *</Label>
             <SearchableSelect
+              id="member_id"
               options={memberOptions.map((m) => ({ value: m.id, label: m.name }))}
               value={formData.member_id}
               onValueChange={(value) => handleChange('member_id', value)}
               placeholder="Selecciona un miembro"
               searchPlaceholder="Buscar miembro..."
               emptyMessage="No se encontraron miembros."
+              disabled={isEditing}
               className={errors.member_id ? 'border-red-500' : ''}
             />
             {errors.member_id && <p className="text-sm text-red-500">{errors.member_id}</p>}
@@ -172,7 +190,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
                   setFormData(prev => ({ ...prev, technical_grade: newGrade, dan_grade: currentGrade }));
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger id="technical_grade">
                   <SelectValue placeholder="Selecciona tipo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -188,7 +206,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
                 value={formData.dan_grade.toString()}
                 onValueChange={(value) => handleChange('dan_grade', parseInt(value))}
               >
-                <SelectTrigger className={errors.dan_grade ? 'border-red-500' : ''}>
+                <SelectTrigger id="dan_grade" className={errors.dan_grade ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Selecciona el grado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -205,6 +223,59 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
               {errors.dan_grade && <p className="text-sm text-red-500">{errors.dan_grade}</p>}
             </div>
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="instructor_category">Cat. Instructor</Label>
+              <Select
+                value={formData.instructor_category ?? 'none'}
+                onValueChange={(value) => handleChange('instructor_category', value)}
+              >
+                <SelectTrigger id="instructor_category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ninguna</SelectItem>
+                  <SelectItem value="fukushidoin">Fukushidoin</SelectItem>
+                  <SelectItem value="shidoin">Shidoin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="age_category">Cat. Edad</Label>
+              <Select
+                value={formData.age_category ?? 'adulto'}
+                onValueChange={(value) => handleChange('age_category', value)}
+              >
+                <SelectTrigger id="age_category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="adulto">Adulto</SelectItem>
+                  <SelectItem value="infantil">Infantil</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {isEditing && license && (
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+              <p className="text-sm text-gray-600">
+                {license.status === 'revoked'
+                  ? 'Anulada: no cuenta como vigente aunque sus fechas lo sean.'
+                  : 'Vigente según sus fechas. Anúlala para darla de baja ya.'}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAnnulled(license.status !== 'revoked')}
+              >
+                {license.status === 'revoked' ? 'Reactivar licencia' : 'Anular licencia'}
+              </Button>
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
