@@ -100,14 +100,20 @@ class UpdateMemberPaymentUseCase:
             PAYMENT_TYPE_TO_INSURANCE_TYPE[t] for t in mp.covered_types if t in PAYMENT_TYPE_TO_INSURANCE_TYPE
         }
         if licence_types:
-            for licence in await self.license_repository.find_by_member_id(mp.member_id):
+            licences = await self.license_repository.find_by_member_id(mp.member_id)
+            covered_years = {
+                (lic.license_type, lic.expiration_date.year)
+                for lic in licences
+                if lic.last_payment_id != mp.payment_id and lic.expiration_date
+            }
+            for licence in licences:
                 generated_for_the_line = (
                     licence.last_payment_id == mp.payment_id
                     and licence.license_type in licence_types
                     and licence.expiration_date is not None
                     and licence.expiration_date.year == previous_year
                 )
-                if generated_for_the_line:
+                if generated_for_the_line and (licence.license_type, mp.payment_year) not in covered_years:
                     licence.update_dates(
                         datetime(mp.payment_year, 1, 1), datetime(mp.payment_year, 12, 31, 23, 59, 59)
                     )

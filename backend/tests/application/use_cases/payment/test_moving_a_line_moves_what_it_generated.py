@@ -137,3 +137,13 @@ async def test_an_insurance_is_not_moved_onto_a_season_already_covered():
     await uc.execute("mp-1", payment_year=2027)
 
     insurances.update.assert_not_called()
+
+
+async def test_a_licence_is_not_moved_onto_a_year_already_covered():
+    already = licence(LicenseType.DAN, payment_id="payment-other")
+    already.issue_date, already.expiration_date = datetime(2027, 1, 1), datetime(2027, 12, 31, 23, 59, 59)
+    uc, licences, _ = use_case(line(MemberPaymentType.LICENCIA_DAN), licences=[licence(LicenseType.DAN), already])
+
+    await uc.execute("mp-1", payment_year=2027)
+
+    licences.update.assert_not_called()
