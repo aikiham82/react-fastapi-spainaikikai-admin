@@ -55,6 +55,7 @@ docs/
 │   ├── backend.md
 │   ├── excel-import-cells-are-text.md
 │   ├── frontend.md
+│   ├── public-images-are-unignored.md
 │   ├── select-all-option.md
 │   └── update-use-cases-take-named-fields.md
 ├── dev-tooling/

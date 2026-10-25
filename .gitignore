@@ -39,4 +39,5 @@ frontend/.omc/
 .ideaPone
 *.png
 !mobile/assets/*.png
+!frontend/public/*.png
 .idea
