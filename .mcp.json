@@ -4,6 +4,10 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp@latest"]
     },
+    "Sentry": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@latest", "https://mcp.sentry.dev/mcp"]
+    },
     "sequentialthinking": {
       "command": "docker",
       "args": ["run", "--rm", "-i", "mcp/sequentialthinking"]
