@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-25T22:40:00Z"
+has_completed_all_phases: false
 ---
 
 # Sentry on the new account
@@ -21,21 +31,21 @@ This change does not depend on club data.
 
 ## Phase 1: Backend reports to the new organization
 
-- [ ] Create project `spainaikikai-backend` (Python/FastAPI) in `spain-aikikai` and take its DSN.
+- [x] Create project `spainaikikai-backend` (Python/FastAPI) in `spain-aikikai` and take its DSN.
 - [ ] Set `SENTRY_DSN` and `ENVIRONMENT=production` on the backend application in Dokploy (with the user's go-ahead), redeploy, and confirm a test event arrives.
 - [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
 - [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Phase 2: The admin web reports its errors
 
-- [ ] Create project `spainaikikai-frontend` (React) and take its DSN.
-- [ ] Write failing tests for `initSentry()` in `frontend/src/core/monitoring/sentry.ts`: does nothing without `VITE_SENTRY_DSN`; initialises errors only (no tracing, no replay) with it; redacts emails from events and breadcrumbs.
-- [ ] Implement it with `@sentry/react`, call it from `main.tsx`, and pass `VITE_SENTRY_DSN` as a Docker build argument.
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Create project `spainaikikai-frontend` (React) and take its DSN.
+- [x] Write failing tests for `initSentry()` in `frontend/src/core/monitoring/sentry.ts`: does nothing without `VITE_SENTRY_DSN`; initialises errors only (no tracing, no replay) with it; redacts emails from events and breadcrumbs.
+- [x] Implement it with `@sentry/react`, call it from `main.tsx`, and pass `VITE_SENTRY_DSN` as a Docker build argument.
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Next step
 
-Phase 1.
+Set the backend `SENTRY_DSN` and the frontend `VITE_SENTRY_DSN` build argument in Dokploy, then redeploy (needs the user's go-ahead).
 
-Plan powered by [Codely](https://codely.com) 🐢
+Plan powered by [Codely](https://codely.com) 🐢 🔭
