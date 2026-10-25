@@ -1,4 +1,5 @@
 import { LoginForm } from "@/features/auth/components/LoginForm"
+import { InstallAppButton } from "@/features/auth/components/InstallAppButton"
 import { Shield, Users, Calendar, Award } from "lucide-react"
 
 export default function LoginPage() {
@@ -101,6 +102,7 @@ export default function LoginPage() {
         <div className="flex-1 flex items-center justify-center px-6 py-0 sm:px-8 sm:py-8">
           <div className="w-full max-w-md">
             <LoginForm />
+            <InstallAppButton />
           </div>
         </div>
 
