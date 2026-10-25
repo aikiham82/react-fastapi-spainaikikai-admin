@@ -2,29 +2,51 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
     },
     "Sentry": {
       "command": "npx",
-      "args": ["-y", "mcp-remote@latest", "https://mcp.sentry.dev/mcp"]
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.sentry.dev/mcp"
+      ]
     },
     "sequentialthinking": {
       "command": "docker",
-      "args": ["run", "--rm", "-i", "mcp/sequentialthinking"]
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "mcp/sequentialthinking"
+      ]
     },
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     },
     "concurrent-browser": {
       "command": "npx",
-      "args": ["concurrent-browser-mcp", "--max-instances", "20"]
+      "args": [
+        "concurrent-browser-mcp",
+        "--max-instances",
+        "20"
+      ]
     },
     "shadcn": {
       "description": "",
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "shadcn@canary", "mcp"],
+      "args": [
+        "-y",
+        "shadcn@canary",
+        "mcp"
+      ],
       "env": {
         "REGISTRY_URL": "https://alpine-registry.vercel.app/r/registry.json"
       }
@@ -32,11 +54,16 @@
     "shadcn-components": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@jpisnice/shadcn-ui-mcp-server"]
+      "args": [
+        "@jpisnice/shadcn-ui-mcp-server"
+      ]
     },
     "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest"]
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
     },
     "MongoDB-local": {
       "command": "docker",
@@ -44,27 +71,18 @@
         "run",
         "--rm",
         "-i",
-        "--network", "host",
+        "--network",
+        "host",
         "-e",
         "MDB_MCP_CONNECTION_STRING=mongodb://spainaikikai_user:spainaikikai_password@localhost:27017/spainaikikai?authSource=spainaikikai",
         "mongodb/mongodb-mcp-server:latest"
       ]
     },
-    "MongoDB-production": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "--network", "host",
-        "-e",
-        "MDB_MCP_CONNECTION_STRING=mongodb://spainaikikai_user:U4itYb383FuRkrm4HH4P@localhost:27018/spainaikikai?authSource=spainaikikai",
-        "mongodb/mongodb-mcp-server:latest"
-      ]
-    },
     "MariaDB": {
       "command": "npx",
-      "args": ["mariadb-mcp-server"],
+      "args": [
+        "mariadb-mcp-server"
+      ],
       "env": {
         "MARIADB_HOST": "localhost",
         "MARIADB_PORT": "3306",
@@ -79,14 +97,6 @@
       },
       "disabled": false,
       "autoApprove": []
-    },
-    "Dokploy-mcp": {
-      "command": "npx",
-      "args": ["-y", "@ahdev/dokploy-mcp"],
-      "env": {
-        "DOKPLOY_URL": "https://dokploy.softem.es/api",
-        "DOKPLOY_API_KEY": "sammyjByFuOUpdhsSfGbFRGDhrlAlyIQDSlKEZxfdWmAKKPNnjiLzZQBBRjftHvZrRoLj"
-      }
     }
   }
 }
