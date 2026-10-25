@@ -44,7 +44,7 @@ export function InstallAppButton() {
   }
 
   return (
-    <div className="mt-6 text-center">
+    <div className="my-6 text-center">
       <Button type="button" variant="outline" className="w-full" onClick={install}>
         <Smartphone className="w-4 h-4 mr-2" />
         Instalar en el móvil
