@@ -26,6 +26,10 @@ A **separate** cycle running from 1 October to 30 September.
 - The authoritative coverage list is the sheet **"Seguro de accidentes APP"**.
 - A club can hold valid insurance while never having renewed the annual licence.
 
+### A title includes the RC insurance
+
+A completed `titulo_shidoin` or `titulo_fukushidoin` line of year N covers the RC insurance of season N (`MemberPayment.covered_types`), wherever paid status is derived: summaries, member status, unpaid lists, prefill and the duplicate check when a payment starts. Since the form proposes N+1 from October, a title and its RC land in the same year. Moving a title line to another year also moves the RC insurance it generated, unless that season is already covered by another one.
+
 ### Paid status comes from payments, never from entities
 
 `license_paid` and `insurance_paid` derive **only** from completed `MemberPayment` records for the year (`is_license_payment` / `is_insurance_payment`). The federation `License` entity is used **only** for `grade_group` classification.
