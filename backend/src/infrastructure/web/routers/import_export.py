@@ -58,7 +58,7 @@ def _parse_date(value) -> Optional[datetime]:
     return None
 
 
-SPAIN_NAMES = {'', 'españa', 'espana', 'spain'}
+SPAIN_NAMES = {'españa', 'espana', 'spain'}
 
 
 def _cell_text(value) -> str:
@@ -85,8 +85,8 @@ async def _club_names_by_id(club_repo) -> dict:
 
 async def _club_ids_by_name(club_repo) -> dict:
     club_ids = {}
-    for club_id, name in (await _club_names_by_id(club_repo)).items():
-        club_ids.setdefault(_club_name_key(name), []).append(club_id)
+    for club in await club_repo.find_all():
+        club_ids.setdefault(_club_name_key(club.name), []).append(club.id)
     return club_ids
 
 
@@ -103,7 +103,7 @@ async def import_members(
     if not ctx.is_super_admin:
         require_club_access(ctx, ctx.club_id)
 
-    club_ids_by_name = None
+    club_ids_by_name = await _club_ids_by_name(club_repo) if ctx.is_super_admin else {}
 
     imported = 0
     updated = 0
@@ -129,8 +129,6 @@ async def import_members(
             club_id = _cell_text(row.get('club_id') or row.get('Club ID')) or None
             club_name = _cell_text(row.get('Club'))
             if ctx.is_super_admin and not club_id and club_name:
-                if club_ids_by_name is None:
-                    club_ids_by_name = await _club_ids_by_name(club_repo)
                 matching_club_ids = club_ids_by_name.get(_club_name_key(club_name), [])
                 if len(matching_club_ids) != 1:
                     reason = "Club no encontrado:" if not matching_club_ids else "Hay varios clubes llamados"
