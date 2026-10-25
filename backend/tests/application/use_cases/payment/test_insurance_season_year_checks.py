@@ -133,3 +133,18 @@ async def test_paid_insurances_are_marked_by_the_current_season_year():
     result = await use_case.execute("club-1", 2026)
 
     assert result.paid_assignments[0].payment_types == ["kyu", "seguro_rc"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_title_blocks_charging_its_rc_again():
+    use_case = _initiate_use_case({2027: [_paid("member-1", MemberPaymentType.TITULO_SHIDOIN, 2027)]})
+
+    with pytest.raises(ValueError, match="ya tienen pagos completados"):
+        await use_case.execute(
+            payer_name="Example Club",
+            club_id="club-1",
+            payment_year=2027,
+            seguro_rc_count=1,
+            member_assignments=[MemberAssignment("member-1", "Ana Example", ["seguro_rc"])],
+        )

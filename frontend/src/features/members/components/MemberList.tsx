@@ -105,7 +105,6 @@ export const MemberList = () => {
     setFilters({ ...filters, club_id: undefined, offset: 0 });
   };
 
-
   if (isLoading && members.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">

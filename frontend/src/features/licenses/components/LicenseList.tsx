@@ -22,7 +22,6 @@ const getGradeDisplay = (license: License): string => {
   return 'Kyu';
 };
 
-
 const LICENSE_STATUS_LABEL: Record<License['status'], string> = {
   active: 'Activa',
   expired: 'Expirada',
@@ -62,7 +61,6 @@ export const LicenseList = () => {
     const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
   };
-
 
   if (isLoading) {
     return (

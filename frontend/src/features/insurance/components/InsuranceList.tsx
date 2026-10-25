@@ -65,7 +65,6 @@ export const InsuranceList = () => {
     return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
   };
 
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">

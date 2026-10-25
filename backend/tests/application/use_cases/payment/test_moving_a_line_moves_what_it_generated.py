@@ -114,3 +114,26 @@ async def test_editing_the_amount_leaves_the_licence_alone():
     await uc.execute("mp-1", amount=25)
 
     licences.find_by_member_id.assert_not_called()
+
+
+async def test_a_renewed_licence_that_lasts_longer_is_not_shortened():
+    renewed = licence(LicenseType.DAN)
+    renewed.issue_date, renewed.expiration_date = datetime(2023, 1, 1), datetime(2028, 12, 31, 23, 59, 59)
+    uc, licences, _ = use_case(line(MemberPaymentType.LICENCIA_DAN), licences=[renewed])
+
+    await uc.execute("mp-1", payment_year=2025)
+
+    licences.update.assert_not_called()
+
+
+async def test_an_insurance_is_not_moved_onto_a_season_already_covered():
+    start, end = insurance_season(2027)
+    already = insurance(InsuranceType.CIVIL_LIABILITY)
+    already.id, already.payment_id, already.start_date, already.end_date = "insurance-other", "payment-other", start, end
+    uc, _, insurances = use_case(
+        line(MemberPaymentType.TITULO_SHIDOIN), insurances=[insurance(InsuranceType.CIVIL_LIABILITY), already]
+    )
+
+    await uc.execute("mp-1", payment_year=2027)
+
+    insurances.update.assert_not_called()
