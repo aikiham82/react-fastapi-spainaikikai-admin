@@ -10,16 +10,19 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as Haptics from "expo-haptics";
+import * as Linking from "expo-linking";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { useLoginMutation } from "@/features/auth/hooks/mutations/useLoginMutation";
 import { colors, fonts, spacing } from "@/core/theme";
+import { FORGOT_PASSWORD_URL } from "@/core/web-urls";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [linkError, setLinkError] = useState<string>();
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
@@ -91,6 +94,14 @@ export default function LoginScreen() {
     );
   }
 
+  async function openForgotPassword() {
+    try {
+      await Linking.openURL(FORGOT_PASSWORD_URL);
+    } catch {
+      setLinkError("No se ha podido abrir el navegador. Entra en admin.spainaikikai.org/forgot-password");
+    }
+  }
+
   const apiError =
     loginMutation.isError
       ? loginMutation.error?.message?.includes("401") ||
@@ -141,7 +152,7 @@ export default function LoginScreen() {
               error={errors.password}
             />
 
-            {apiError && <Text style={styles.apiError}>{apiError}</Text>}
+            {(apiError ?? linkError) && <Text style={styles.apiError}>{apiError ?? linkError}</Text>}
 
             <Button
               title="Acceder"
@@ -150,9 +161,13 @@ export default function LoginScreen() {
               style={styles.button}
             />
 
-            <TouchableOpacity style={styles.forgotLink}>
+            <TouchableOpacity
+              style={styles.forgotLink}
+              accessibilityRole="link"
+              onPress={openForgotPassword}
+            >
               <Text style={styles.forgotText}>
-                Has olvidado tu contrasena?
+                ¿Has olvidado tu contraseña?
               </Text>
             </TouchableOpacity>
           </Animated.View>
