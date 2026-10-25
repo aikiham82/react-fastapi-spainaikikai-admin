@@ -23,6 +23,7 @@ import {
 import { formatGrade, isLicenseActive, getExpiryDate } from "@/features/license/license.schema";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
+import { AdminWebNotice } from "@/features/auth/components/AdminWebNotice";
 import { colors, fonts, spacing, radius } from "@/core/theme";
 
 export default function LicenseScreen() {
@@ -96,6 +97,7 @@ export default function LicenseScreen() {
             ),
           }}
         />
+        <AdminWebNotice style={styles.noticeOutsideScroll} />
         <EmptyState
           title="Sin miembro asociado"
           message="Tu cuenta no tiene un miembro asociado. Contacta con tu club."
@@ -131,6 +133,7 @@ export default function LicenseScreen() {
             ),
           }}
         />
+        <AdminWebNotice style={styles.noticeOutsideScroll} />
         <EmptyState
           title="Sin licencia vigente"
           message="No tienes licencia vigente. Contacta con tu club."
@@ -171,6 +174,8 @@ export default function LicenseScreen() {
           />
         }
       >
+        <AdminWebNotice />
+
         {/* License Image Card */}
         <View style={styles.imageCard}>
           {imageLoading ? (
@@ -267,6 +272,10 @@ const styles = StyleSheet.create({
   scroll: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
+  },
+  noticeOutsideScroll: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
   },
   loadingContainer: {
     flex: 1,
