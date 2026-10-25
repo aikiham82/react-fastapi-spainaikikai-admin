@@ -47,7 +47,7 @@ export const ClubPaymentsPage = () => {
           <Info className="h-4 w-4" />
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
-              Los seguros de la temporada {seasonLabel(latestYear)}, pagados desde octubre, están en {latestYear}.
+              Desde octubre los pagos se registran en {latestYear}, también los seguros de la temporada {seasonLabel(latestYear)}.
             </span>
             <Button size="sm" variant="outline" onClick={() => setSelectedYear(latestYear)}>
               Ver {latestYear}
