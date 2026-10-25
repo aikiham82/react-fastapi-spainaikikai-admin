@@ -669,11 +669,12 @@ async def import_licenses(
             await create_license_use_case.execute(
                 license_number=license_number,
                 member_id=member.id,
-                club_id=member.club_id or '',
                 grade=grade,
-                license_type=technical_grade.lower(),
                 issue_date=issue_date,
-                expiration_date=expiration_date
+                expiration_date=expiration_date,
+                technical_grade=technical_grade.lower(),
+                instructor_category=instructor_category.lower(),
+                age_category=age_category.lower(),
             )
             imported += 1
 

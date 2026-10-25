@@ -309,17 +309,17 @@ async def create_license(
     """Create a new license (Super Admin only)."""
     require_super_admin(ctx)
 
-    effective_club_id = license_data.club_id
-
     license = await get_create_use_case.execute(
         license_number=license_data.license_number or _generate_license_number(),
         member_id=license_data.member_id,
-        club_id=effective_club_id,
         association_id=license_data.association_id,
         license_type=license_data.license_type,
         grade=_get_grade_string(license_data),
         issue_date=license_data.issue_date,
-        expiration_date=_get_expiration_date(license_data)
+        expiration_date=_get_expiration_date(license_data),
+        technical_grade=license_data.technical_grade,
+        instructor_category=license_data.instructor_category,
+        age_category=license_data.age_category,
     )
     return LicenseMapper.to_response_dto(license)
 

@@ -30,6 +30,10 @@ A timezone-aware datetime written into a collection of naive ones compares incor
 
 A `licenses` document may exist with `last_payment_id = null`, because licences are bulk-imported from the federation. Paid status comes from `member_payments` only. See [`payment-cycles.md`](payment-cycles.md).
 
+### A licence has no club
+
+`License` has no `club_id`: its club is the club of its member. Filter licences by club through the club's member ids, as `MongoDBLicenseRepository.find_by_club_id` does, never with `{"club_id": ...}` on `licenses`. On 2026-10-25 creating a licence and importing licences still passed `club_id` and answered 500, and the dashboard licence widgets still filter `licenses` by `club_id`, so a club admin sees zero (pending).
+
 ## 🏆 Benefits
 
 - Naming the database explicitly avoids connecting to an empty one and concluding the data is gone.
