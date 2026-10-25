@@ -13,7 +13,10 @@
         "-y",
         "mcp-remote@latest",
         "https://mcp.sentry.dev/mcp"
-      ]
+      ],
+      "env": {
+        "MCP_REMOTE_CONFIG_DIR": "${HOME}/.mcp-auth/spainaikikai"
+      }
     },
     "sequentialthinking": {
       "command": "docker",
