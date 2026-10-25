@@ -5,7 +5,7 @@ from typing import Optional, List
 from datetime import datetime
 import re
 
-from src.domain.entities.license import AgeCategory, InstructorCategory, TechnicalGrade
+from src.domain.entities.license import AgeCategory, InstructorCategory, LicenseType, TechnicalGrade
 
 
 class LicenseBase(BaseModel):
@@ -28,7 +28,7 @@ class LicenseCreate(BaseModel):
     member_id: str
     license_number: Optional[str] = None
     association_id: Optional[str] = None
-    license_type: Optional[str] = None
+    license_type: Optional[LicenseType] = None
     grade: Optional[str] = None
     dan_grade: Optional[int] = None
     issue_date: Optional[datetime] = None

@@ -80,6 +80,13 @@ def test_an_unknown_category_is_rejected_with_422(client_as, license_repository)
     license_repository.create.assert_not_called()
 
 
+def test_an_unknown_licence_type_is_rejected_with_422(client_as, license_repository):
+    response = client_as(super_admin()).post("/api/v1/licenses", json={"member_id": MEMBER.id, "license_type": "foo"})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    license_repository.create.assert_not_called()
+
+
 def test_a_club_admin_cannot_create_a_licence(client_as, license_repository):
     response = client_as(club_admin()).post("/api/v1/licenses", json={"member_id": MEMBER.id})
 
