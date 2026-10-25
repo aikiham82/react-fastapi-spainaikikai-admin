@@ -90,7 +90,7 @@ class GetUnpaidMembersUseCase:
         # Find members who have paid
         paid_member_ids: Set[str] = set()
         for payment in payments:
-            if payment_type_enum is None or payment.payment_type == payment_type_enum:
+            if payment_type_enum is None or payment_type_enum in payment.covered_types:
                 paid_member_ids.add(payment.member_id)
 
         # Get unpaid member IDs

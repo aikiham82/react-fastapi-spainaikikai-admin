@@ -49,6 +49,7 @@ PAYMENT_TYPE_LABELS = {
 }
 
 INSURANCE_PAYMENT_TYPES = frozenset({MemberPaymentType.SEGURO_ACCIDENTES, MemberPaymentType.SEGURO_RC})
+TITLE_PAYMENT_TYPES = frozenset({MemberPaymentType.TITULO_FUKUSHIDOIN, MemberPaymentType.TITULO_SHIDOIN})
 
 
 @dataclass
@@ -105,6 +106,17 @@ class MemberPayment:
     def is_completed(self) -> bool:
         """Check if payment is completed."""
         return self.status == MemberPaymentStatus.COMPLETED
+
+    @property
+    def covered_types(self) -> frozenset:
+        """What this line pays for: a shidoin or fukushidoin title also includes the RC insurance."""
+        if self.payment_type in TITLE_PAYMENT_TYPES:
+            return frozenset({self.payment_type, MemberPaymentType.SEGURO_RC})
+        return frozenset({self.payment_type})
+
+    @property
+    def covers_insurance(self) -> bool:
+        return bool(self.covered_types & INSURANCE_PAYMENT_TYPES)
 
     @property
     def is_license_payment(self) -> bool:

@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T22:40:00Z"
+last_implementation_at: "2026-10-25T23:00:00Z"
 has_completed_all_phases: "false"
 ---
 
@@ -62,10 +62,10 @@ Licence lines: licencia_kyu, licencia_kyu_infantil, licencia_dan, titulo_fukushi
 
 ### Phase 3: a title counts as RC paid
 
-- [ ] One domain rule: a completed `titulo_*` line covers `seguro_rc` for its member and year; used by the four summaries and by prefill.
-- [ ] Tests: `test_a_title_registered_by_hand_counts_as_rc_paid` (club summary, member status, unpaid RC); `test_a_title_with_its_redsys_rc_line_is_counted_once`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] One domain rule: a completed `titulo_*` line covers `seguro_rc` for its member and year; used by the four summaries and by prefill.
+- [x] Tests `test_title_covers_rc.py`: `test_a_title_counts_as_insurance_paid_in_the_club_summary` (by hand and through Redsys), `test_a_title_registered_by_hand_counts_as_rc_paid_in_the_member_status`, `test_a_title_registered_by_hand_is_not_unpaid_rc`, `test_a_title_with_its_redsys_rc_line_is_counted_once`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 4: moving a line's year moves what it generated
 
@@ -76,6 +76,6 @@ Licence lines: licencia_kyu, licencia_kyu_infantil, licencia_dan, titulo_fukushi
 
 ## Next step
 
-Implement Phase 3.
+Implement Phase 4.
 
-Spanish on the outside, clubs counted right 🇪🇸 🧹 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+A title now carries its RC everywhere 🥋 🛡️ → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

@@ -151,7 +151,7 @@ class GetClubPaymentSummaryUseCase:
             if payment.is_license_payment:
                 member_payments[payment.member_id]["license_paid"] = True
 
-            if payment.is_insurance_payment:
+            if payment.covers_insurance:
                 member_payments[payment.member_id]["insurance_paid"] = True
 
             if payment.payment_type == MemberPaymentType.CUOTA_CLUB:

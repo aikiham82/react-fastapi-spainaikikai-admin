@@ -74,9 +74,11 @@ class GetMemberPaymentStatusUseCase:
 
         # Build payment status map
         paid_types = {}
+        covered_types = set()
         for payment in payments:
             if payment.is_completed:
                 paid_types[payment.payment_type.value] = payment
+                covered_types |= payment.covered_types
 
         # Check all payment types
         payment_statuses = []
@@ -103,10 +105,11 @@ class GetMemberPaymentStatusUseCase:
 
         for ptype in all_types:
             payment = paid_types.get(ptype.value)
-            is_paid = payment is not None
+            is_paid = ptype in covered_types
 
-            if is_paid:
+            if payment is not None:
                 total_paid += payment.amount
+            if is_paid:
                 if ptype in license_types:
                     has_license = True
                 if ptype == MemberPaymentType.SEGURO_ACCIDENTES:
