@@ -24,7 +24,10 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "org.spainaikikai.app",
-      "versionCode": 10
+      "versionCode": 10,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "plugins": [
       "expo-router",
@@ -37,6 +40,9 @@
         "projectId": "9fdd590c-4afe-4212-a07c-a90b7c9fc2b0"
       }
     },
-    "owner": "softem"
+    "owner": "softem",
+    "updates": {
+      "url": "https://u.expo.dev/9fdd590c-4afe-4212-a07c-a90b7c9fc2b0"
+    }
   }
 }
