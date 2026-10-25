@@ -66,7 +66,6 @@ class MemberUpdate(BaseModel):
     birth_date: Optional[datetime] = None
     club_id: Optional[str] = None
     status: Optional[str] = None
-    club_role: Optional[str] = None
     registration_date: Optional[RegistrationDate] = None
 
     @field_validator('email', mode='before')
