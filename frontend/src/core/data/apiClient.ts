@@ -104,7 +104,12 @@ function handleError(error: AxiosError<ErrorResponse>): ApiError {
   const { message, response, request } = error
 
 
-  reportApiFailure({ method: error.config?.method, url: error.config?.url, status: response?.status })
+  reportApiFailure({
+    method: error.config?.method,
+    url: error.config?.url,
+    status: response?.status,
+    cancelled: axios.isCancel(error),
+  })
 
   const isLoginAttempt = error.config?.url?.includes('/auth/login')
 

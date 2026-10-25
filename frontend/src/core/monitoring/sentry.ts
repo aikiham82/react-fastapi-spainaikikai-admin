@@ -1,11 +1,16 @@
 import * as Sentry from '@sentry/react';
 
 const EMAIL = /(?<![\w.+-])[\w.+-]+(?:@|%40)[\w-]+(?:\.[\w-]+)+/g;
-const RESET_TOKEN = /([?&]token=)[^&#\s"]+/g;
+const QUERY_TOKEN = /([?&]token=)[^&#\s"]+/g;
+const PATH_TOKEN = /(\/password-reset\/validate\/)[^/?#\s"]+/g;
+const OPAQUE_SEGMENT = /^(?=.*\d)[\w-]{16,}$|^\d+$/;
 
 export const redact = <T>(value: T): T => {
   if (typeof value === 'string') {
-    return value.replace(EMAIL, '[email]').replace(RESET_TOKEN, '$1[token]') as T;
+    return value
+      .replace(EMAIL, '[email]')
+      .replace(QUERY_TOKEN, '$1[token]')
+      .replace(PATH_TOKEN, '$1[token]') as T;
   }
   if (Array.isArray(value)) return value.map(redact) as T;
   if (value && typeof value === 'object') {
@@ -14,22 +19,30 @@ export const redact = <T>(value: T): T => {
   return value;
 };
 
+const routeOf = (url: string): string =>
+  url
+    .split('?')[0]
+    .split('/')
+    .map((segment) => (OPAQUE_SEGMENT.test(segment) ? ':id' : segment))
+    .join('/');
+
 interface ApiFailure {
   method?: string;
   url?: string;
   status?: number;
+  cancelled?: boolean;
 }
 
-// A 4xx is the API answering; only a lost request or a 5xx means the user hit a failure.
-export const reportApiFailure = ({ method = 'get', url = '', status }: ApiFailure): void => {
-  if (status !== undefined && status < 500) return;
+export const reportApiFailure = ({ method = 'get', url = '', status, cancelled = false }: ApiFailure): void => {
+  const isServerFailure = status === undefined || status >= 500;
+  if (cancelled || !isServerFailure) return;
 
   const verb = method.toUpperCase();
-  const path = url.split('?')[0];
+  const route = routeOf(url);
   const outcome = status === undefined ? 'network error' : String(status);
-  Sentry.captureException(new Error(`API ${verb} ${path} failed: ${outcome}`), {
-    tags: { api_method: verb, api_path: path, api_status: outcome },
-    fingerprint: ['api-failure', verb, path, outcome],
+  Sentry.captureException(new Error(`API ${verb} ${route} failed: ${outcome}`), {
+    tags: { api_method: verb, api_path: route, api_status: outcome },
+    fingerprint: ['api-failure', verb, route, outcome],
   });
 };
 
@@ -39,7 +52,6 @@ export const initSentry = (dsn: string | undefined, environment?: string): boole
   Sentry.init({
     dsn,
     environment,
-    // SDK v11 collects personal data unless told otherwise; club members' data must not leave.
     dataCollection: {
       userInfo: false,
       cookies: false,

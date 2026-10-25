@@ -44,7 +44,6 @@ def configure_sentry() -> bool:
         before_breadcrumb=before_breadcrumb,
         enable_logs=True,
         before_send_log=before_send_log,
-        # Only the audit events sent on purpose become Sentry logs; forwarding every log line would spend the quota.
         integrations=[LoggingIntegration(sentry_logs_level=None)],
     )
     return True

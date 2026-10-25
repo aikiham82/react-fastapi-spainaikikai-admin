@@ -30,6 +30,14 @@ from src.infrastructure.web.security import get_password_hash
 
 pytestmark = [pytest.mark.api]
 
+SCRUBBED_WORDS = ("password", "passwd", "secret", "auth", "token", "credential", "session", "bearer")
+
+
+def assert_scrub_safe(event, level="info", **attributes):
+    """Sentry turns any attribute value containing these words into [Filtered]."""
+    for value in attributes.values():
+        assert not any(word in str(value).lower() for word in SCRUBBED_WORDS), value
+
 PASSWORD = "Correcta123!"
 HASH = get_password_hash(PASSWORD)
 MEMBER = Member(id="member-1", first_name="Ana", last_name="Ejemplo", club_id="club-1", club_role=ClubRole.ADMIN)
@@ -62,24 +70,31 @@ def log_in(client, password=PASSWORD):
 class TestLoginAudit:
 
     def test_a_successful_sign_in_records_the_account_and_its_club(self):
-        with patch.object(users, "audit") as audit:
+        with patch.object(users, "audit", side_effect=assert_scrub_safe) as audit:
             assert log_in(login_client([account()])).status_code == 200
 
         audit.assert_called_once_with("auth.login.succeeded", user_id="user-1", club_id="club-1", club_role="admin")
 
     def test_a_sign_in_with_no_club_is_a_warning(self):
-        with patch.object(users, "audit") as audit:
+        with patch.object(users, "audit", side_effect=assert_scrub_safe) as audit:
             assert log_in(login_client([account(member_id="deleted")], member=None)).status_code == 200
 
         audit.assert_called_once_with("auth.login.succeeded_without_club", level="warning", user_id="user-1")
 
+    def test_a_super_admin_is_recorded_as_such_even_when_linked_to_a_member(self):
+        with patch.object(users, "audit", side_effect=assert_scrub_safe) as audit:
+            assert log_in(login_client([account(global_role=GlobalRole.SUPER_ADMIN)])).status_code == 200
+
+        audit.assert_called_once_with("auth.login.succeeded", user_id="user-1", club_id=None, club_role="super_admin")
+
     @pytest.mark.parametrize("candidates, password, reason", [
         ([], PASSWORD, "unknown_account"),
         ([account(is_active=False)], PASSWORD, "inactive"),
+        ([account(hashed_password=None)], PASSWORD, "not_set_up"),
         ([account()], "mala", "incorrect"),
     ])
     def test_a_failed_sign_in_records_why_without_the_identifier(self, candidates, password, reason):
-        with patch.object(users, "audit") as audit:
+        with patch.object(users, "audit", side_effect=assert_scrub_safe) as audit:
             assert log_in(login_client(candidates), password).status_code == 401
 
         audit.assert_called_once_with("auth.login.failed", level="warning", reason=reason)
@@ -91,7 +106,7 @@ class TestPasswordResetAudit:
         use_case = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(success=True, message="ok")))
         client = app_with({get_request_password_reset_use_case: lambda: use_case})
 
-        with patch.object(password_reset, "audit") as audit:
+        with patch.object(password_reset, "audit", side_effect=assert_scrub_safe) as audit:
             client.post("/api/v1/auth/password-reset/request", json={"identifier": "ana@example.com"})
 
         audit.assert_called_once_with("auth.password_reset.requested")
@@ -104,7 +119,7 @@ class TestPasswordResetAudit:
         use_case = SimpleNamespace(execute=AsyncMock(side_effect=error))
         client = app_with({get_validate_reset_token_use_case: lambda: use_case, get_reset_password_use_case: lambda: use_case})
 
-        with patch.object(password_reset, "audit") as audit:
+        with patch.object(password_reset, "audit", side_effect=assert_scrub_safe) as audit:
             client.get("/api/v1/auth/password-reset/validate/abc")
             client.post("/api/v1/auth/password-reset/reset", json={"token": "abc", "new_password": "Nueva1234!"})
 
@@ -116,7 +131,7 @@ class TestPasswordResetAudit:
         use_case = SimpleNamespace(execute=AsyncMock(return_value=SimpleNamespace(success=True, message="ok")))
         client = app_with({get_reset_password_use_case: lambda: use_case})
 
-        with patch.object(password_reset, "audit") as audit:
+        with patch.object(password_reset, "audit", side_effect=assert_scrub_safe) as audit:
             client.post("/api/v1/auth/password-reset/reset", json={"token": "abc", "new_password": "Nueva1234!"})
 
         audit.assert_called_once_with("auth.password_reset.completed")
@@ -137,7 +152,7 @@ class TestAccessAudit:
         })
 
     def test_every_access_change_is_recorded(self, client):
-        with patch.object(members, "audit") as audit:
+        with patch.object(members, "audit", side_effect=assert_scrub_safe) as audit:
             client.post("/api/v1/members/member-1/account", json={"email": "x@example.com", "club_admin": True})
             client.patch("/api/v1/members/member-1/club-role", json={"club_role": "member"})
             client.delete("/api/v1/members/member-1/account")

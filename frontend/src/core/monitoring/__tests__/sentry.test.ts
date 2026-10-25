@@ -48,6 +48,23 @@ describe('reportApiFailure', () => {
     })
   })
 
+  it('never sends ids or reset tokens that travel in the path', () => {
+    reportApiFailure({ method: 'get', url: '/api/v1/auth/password-reset/validate/Zq3xY_8k2LmN0pQrStUvWxYz123456', status: 502 })
+    reportApiFailure({ method: 'get', url: '/api/v1/members/6985f6014dca105b754e6d35/payments', status: 500 })
+
+    const messages = vi.mocked(Sentry.captureException).mock.calls.map(([error]) => (error as Error).message)
+    expect(messages).toEqual([
+      'API GET /api/v1/auth/password-reset/validate/:id failed: 502',
+      'API GET /api/v1/members/:id/payments failed: 500',
+    ])
+  })
+
+  it('leaves out requests the app cancelled itself', () => {
+    reportApiFailure({ method: 'get', url: '/api/v1/members', status: undefined, cancelled: true })
+
+    expect(Sentry.captureException).not.toHaveBeenCalled()
+  })
+
   it('leaves client errors alone, they are answers not failures', () => {
     for (const status of [400, 401, 403, 404, 409, 422]) {
       reportApiFailure({ method: 'get', url: '/api/v1/members', status })
@@ -69,6 +86,12 @@ describe('redact', () => {
       message: 'No se pudo dar acceso a [email]',
       request: { url: 'https://admin.example.com/reset-password?token=[token]' },
       breadcrumbs: [{ data: { url: '/api/v1/users?email=[email]' } }],
+    })
+  })
+
+  it('hides a reset token that travels in the path of a breadcrumb', () => {
+    expect(redact({ url: 'https://api.example.com/api/v1/auth/password-reset/validate/Zq3xY_8k2LmN0pQr' })).toEqual({
+      url: 'https://api.example.com/api/v1/auth/password-reset/validate/[token]',
     })
   })
 
