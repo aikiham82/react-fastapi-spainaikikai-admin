@@ -26,6 +26,7 @@ from src.config.settings import get_invoice_settings
 from src.domain.entities.insurance import insurance_season_year
 from src.domain.entities.member_payment import (
     INSURANCE_PAYMENT_TYPES,
+    TITLE_PAYMENT_TYPES,
     MemberPayment,
     MemberPaymentStatus,
     MemberPaymentType,
@@ -494,10 +495,7 @@ class ProcessRedsysWebhookUseCase:
         return member_payments
 
     # Instructor payment types that implicitly include RC insurance
-    INSTRUCTOR_TYPES_WITH_RC = {
-        MemberPaymentType.TITULO_FUKUSHIDOIN,
-        MemberPaymentType.TITULO_SHIDOIN,
-    }
+    INSTRUCTOR_TYPES_WITH_RC = TITLE_PAYMENT_TYPES
 
     async def _generate_licenses_and_insurance(
         self,

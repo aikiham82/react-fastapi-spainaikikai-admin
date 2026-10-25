@@ -100,7 +100,7 @@ class GetAllClubsPaymentSummaryUseCase:
             for payment in payments:
                 if payment.is_license_payment:
                     license_members.add(payment.member_id)
-                if payment.is_insurance_payment:
+                if payment.covers_insurance:
                     insurance_members.add(payment.member_id)
                 if payment.payment_type == MemberPaymentType.CUOTA_CLUB:
                     has_club_fee = True

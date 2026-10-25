@@ -129,15 +129,10 @@ class PrefillAnnualPaymentUseCase:
                 MemberPaymentType.SEGURO_RC: "seguro_rc",
             }
             for mp in existing_mp:
-                item_type = mp_type_to_item.get(mp.payment_type)
-                if item_type:
-                    paid_set.add((mp.member_id, item_type))
-                # Fukushidoin/Shidoin include RC insurance implicitly
-                if mp.payment_type in (
-                    MemberPaymentType.TITULO_FUKUSHIDOIN,
-                    MemberPaymentType.TITULO_SHIDOIN,
-                ):
-                    paid_set.add((mp.member_id, "seguro_rc"))
+                for covered_type in mp.covered_types:
+                    item_type = mp_type_to_item.get(covered_type)
+                    if item_type:
+                        paid_set.add((mp.member_id, item_type))
 
         # 6. Classify members and build counts + assignments (excluding already paid)
         counts = {

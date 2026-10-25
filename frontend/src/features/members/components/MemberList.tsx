@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { ListPager } from '@/core/components/ListPager';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
@@ -103,9 +104,6 @@ export const MemberList = () => {
     setClubFilter('');
     setFilters({ ...filters, club_id: undefined, offset: 0 });
   };
-
-  const totalPages = Math.ceil(total / limit);
-  const currentPage = Math.floor(offset / limit) + 1;
 
   if (isLoading && members.length === 0) {
     return (
@@ -463,34 +461,7 @@ export const MemberList = () => {
         </div>
       </div>
 
-      {total > limit && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-sm text-gray-600">
-            Mostrando {offset + 1}-{Math.min(offset + limit, total)} de {total} miembros
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPagination(Math.max(0, offset - limit), limit)}
-              disabled={currentPage === 1}
-            >
-              Anterior
-            </Button>
-            <span className="text-sm text-gray-600">
-              Página {currentPage} de {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPagination(offset + limit, limit)}
-              disabled={currentPage === totalPages}
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      )}
+      <ListPager total={total} limit={limit} offset={offset} noun="miembros" onPage={(next) => setPagination(next, limit)} />
 
       <MemberForm
         open={isFormOpen}

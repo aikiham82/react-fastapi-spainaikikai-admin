@@ -184,9 +184,10 @@ class InitiateAnnualPaymentUseCase:
             mp_type_to_item = {v: k for k, v in ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.items()}
             already_paid: set = set()
             for mp in existing_mp:
-                item_type = mp_type_to_item.get(mp.payment_type)
-                if item_type:
-                    already_paid.add((mp.member_id, item_type))
+                for covered_type in mp.covered_types:
+                    item_type = mp_type_to_item.get(covered_type)
+                    if item_type:
+                        already_paid.add((mp.member_id, item_type))
 
             # Check for conflicts
             conflicts = []
