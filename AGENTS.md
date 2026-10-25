@@ -81,7 +81,8 @@ docs/
 ├── security/
 │   ├── auth-endpoints.md
 │   ├── pdf-text-is-escaped.md
-│   └── security-guidelines.md
+│   ├── security-guidelines.md
+│   └── sentry-collects-no-personal-data.md
 ├── testing/
 │   ├── fixtures-are-real-entities.md
 │   ├── no-production-data.md
