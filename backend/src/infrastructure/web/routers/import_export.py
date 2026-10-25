@@ -73,17 +73,28 @@ def _postal_code_text(value) -> str:
     return text.zfill(5) if text.isdigit() else text
 
 
+def _club_name_key(name: str) -> str:
+    return ' '.join(name.split()).lower()
+
+
+async def _club_names_by_id(club_repo) -> dict:
+    return {club.id: club.name for club in await club_repo.find_all()}
+
+
 @router.post("/members/import", response_model=ImportMembersResponse)
 async def import_members(
     request: ImportMembersRequest,
     create_member_use_case=Depends(get_create_member_use_case),
     update_member_use_case=Depends(get_update_member_use_case),
     member_repo=Depends(get_member_repository),
+    club_repo=Depends(get_club_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Import members from Excel data. Supports 'create' and 'upsert' modes."""
     if not ctx.is_super_admin:
         require_club_access(ctx, ctx.club_id)
+
+    club_ids_by_name = None
 
     imported = 0
     updated = 0
@@ -105,6 +116,17 @@ async def import_members(
             postal_code = _postal_code_text(row.get('postal_code') or row.get('Código Postal') or row.get('codigo_postal'))
             country = _cell_text(row.get('country') or row.get('País') or row.get('pais')) or 'España'
             club_id = row.get('club_id') or row.get('Club ID') or None
+            club_name = _cell_text(row.get('Club'))
+            if not club_id and club_name:
+                if club_ids_by_name is None:
+                    club_ids_by_name = {
+                        _club_name_key(name): club_id for club_id, name in (await _club_names_by_id(club_repo)).items()
+                    }
+                club_id = club_ids_by_name.get(_club_name_key(club_name))
+                if not club_id:
+                    errors.append(f"Fila {idx + 1}: Club no encontrado: {club_name}")
+                    failed += 1
+                    continue
             birth_date_str = row.get('birth_date') or row.get('Fecha Nacimiento') or row.get('fecha_nacimiento') or None
 
             if not ctx.is_super_admin:
@@ -277,24 +299,25 @@ def _build_excel(title: str, column_registry: list, data_rows: list, columns: Op
 
 # --- Column registries ---
 
-MEMBERS_COLUMN_REGISTRY = [
-    ("id", "ID", lambda m: m.id),
-    ("first_name", "Nombre", lambda m: m.first_name),
-    ("last_name_1", "1er Apellido", lambda m: _split_last_name(m.last_name)[0]),
-    ("last_name_2", "2do Apellido", lambda m: _split_last_name(m.last_name)[1]),
-    ("dni", "DNI", lambda m: '' if not m.dni or m.dni == 'null' else m.dni),
-    ("email", "Email", lambda m: m.email),
-    ("phone", "Teléfono", lambda m: m.phone or ''),
-    ("birth_date", "Fecha Nacimiento", lambda m: m.birth_date.strftime('%d/%m/%Y') if m.birth_date else ''),
-    ("address", "Dirección", lambda m: m.address or ''),
-    ("city", "Ciudad", lambda m: m.city or ''),
-    ("province", "Provincia", lambda m: m.province or ''),
-    ("postal_code", "Código Postal", lambda m: m.postal_code or ''),
-    ("country", "País", lambda m: m.country or ''),
-    ("club_id", "Club ID", lambda m: m.club_id or ''),
-    ("status", "Estado", lambda m: m.status.value if m.status else ''),
-    ("created_at", "Fecha Creación", lambda m: m.created_at.strftime('%d/%m/%Y %H:%M') if m.created_at else ''),
-]
+def _members_columns(club_names: dict) -> list:
+    return [
+        ("id", "ID", lambda m: m.id),
+        ("first_name", "Nombre", lambda m: m.first_name),
+        ("last_name_1", "1er Apellido", lambda m: _split_last_name(m.last_name)[0]),
+        ("last_name_2", "2do Apellido", lambda m: _split_last_name(m.last_name)[1]),
+        ("dni", "DNI", lambda m: '' if not m.dni or m.dni == 'null' else m.dni),
+        ("email", "Email", lambda m: m.email),
+        ("phone", "Teléfono", lambda m: m.phone or ''),
+        ("birth_date", "Fecha Nacimiento", lambda m: m.birth_date.strftime('%d/%m/%Y') if m.birth_date else ''),
+        ("address", "Dirección", lambda m: m.address or ''),
+        ("city", "Ciudad", lambda m: m.city or ''),
+        ("province", "Provincia", lambda m: m.province or ''),
+        ("postal_code", "Código Postal", lambda m: m.postal_code or ''),
+        ("country", "País", lambda m: m.country or ''),
+        ("club_id", "Club", lambda m: club_names.get(m.club_id, '')),
+        ("status", "Estado", lambda m: m.status.value if m.status else ''),
+        ("created_at", "Fecha Creación", lambda m: m.created_at.strftime('%d/%m/%Y %H:%M') if m.created_at else ''),
+    ]
 
 
 @router.get("/members/export")
@@ -302,6 +325,7 @@ async def export_members(
     club_id: Optional[str] = Query(None),
     columns: Optional[str] = Query(None, description="Comma-separated column keys to include"),
     get_all_use_case=Depends(get_all_members_use_case),
+    club_repo=Depends(get_club_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Export members to Excel file. No limit — exports all matching members."""
@@ -313,7 +337,7 @@ async def export_members(
     else:
         members = await get_all_use_case.execute(0, None)
 
-    output = _build_excel("Miembros", MEMBERS_COLUMN_REGISTRY, members, columns)
+    output = _build_excel("Miembros", _members_columns(await _club_names_by_id(club_repo)), members, columns)
     filename = f"miembros_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     return StreamingResponse(
@@ -332,6 +356,7 @@ async def export_licenses(
     columns: Optional[str] = Query(None, description="Comma-separated column keys to include"),
     get_all_use_case=Depends(get_all_licenses_use_case),
     member_repo=Depends(get_member_repository),
+    club_repo=Depends(get_club_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Export licenses to Excel file. No limit — exports all. Super admin only."""
@@ -370,6 +395,7 @@ async def export_licenses(
         member = await member_repo.find_by_id(mid)
         if member:
             member_map[mid] = member
+    club_names = await _club_names_by_id(club_repo)
 
     def _make_lic_row(lic):
         member = member_map.get(lic.member_id)
@@ -380,7 +406,7 @@ async def export_licenses(
             'last_name_1': _split_last_name(member.last_name if member else '')[0],
             'last_name_2': _split_last_name(member.last_name if member else '')[1],
             'dni': '' if member_dni == 'null' else member_dni,
-            'club': member.club_id if member else '',
+            'club': club_names.get(member.club_id, '') if member else '',
             'technical_grade': lic.technical_grade.value if lic.technical_grade else '',
             'instructor_category': lic.instructor_category.value if lic.instructor_category else '',
             'age_category': lic.age_category.value if lic.age_category else '',
@@ -426,6 +452,7 @@ async def export_insurances(
     columns: Optional[str] = Query(None, description="Comma-separated column keys to include"),
     get_all_use_case=Depends(get_all_insurances_use_case),
     member_repo=Depends(get_member_repository),
+    club_repo=Depends(get_club_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Export insurances to Excel file. No limit — exports all. Super admin only."""
@@ -457,6 +484,7 @@ async def export_insurances(
         member = await member_repo.find_by_id(mid)
         if member:
             member_map[mid] = member
+    club_names = await _club_names_by_id(club_repo)
 
     def _make_ins_row(ins):
         member = member_map.get(ins.member_id)
@@ -468,7 +496,7 @@ async def export_insurances(
             'last_name_2': _split_last_name(member.last_name if member else '')[1],
             'dni': '' if member_dni == 'null' else member_dni,
             'birth_date': member.birth_date.strftime('%d/%m/%Y') if member and member.birth_date else '',
-            'club': member.club_id if member else '',
+            'club': club_names.get(member.club_id, '') if member else '',
             'insurance_type': ins.insurance_type.value if ins.insurance_type else '',
             'insurance_company': ins.insurance_company or '',
             'coverage_amount': str(ins.coverage_amount) if ins.coverage_amount else '',

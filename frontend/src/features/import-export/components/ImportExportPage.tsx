@@ -36,7 +36,7 @@ const MEMBER_COLUMNS: ColumnOption[] = [
   { key: 'province', label: 'Provincia' },
   { key: 'postal_code', label: 'Código Postal' },
   { key: 'country', label: 'País' },
-  { key: 'club_id', label: 'Club ID' },
+  { key: 'club_id', label: 'Club' },
   { key: 'status', label: 'Estado' },
   { key: 'created_at', label: 'Fecha Creación' },
 ];

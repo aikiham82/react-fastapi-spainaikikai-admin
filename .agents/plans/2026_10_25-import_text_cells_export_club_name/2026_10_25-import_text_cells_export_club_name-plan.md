@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T12:30:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-10-25T13:00:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Import text cells and export the club name
@@ -63,19 +63,19 @@ Normalise every text field read from an import row: an integral number becomes i
 
 Members, licences and insurances exports write the club name under "Club". The member import accepts a "Club" column holding a club name and resolves it to its id, keeps accepting "Club ID", and rejects a row naming an unknown club with "Club no encontrado".
 
-- [ ] Tests:
+- [x] Tests:
   - `test_members_export_writes_the_club_name`
   - `test_licences_export_writes_the_club_name`
   - `test_insurances_export_writes_the_club_name`
   - `test_a_row_naming_a_club_lands_in_that_club`
   - `test_a_row_naming_an_unknown_club_is_rejected`
-- [ ] Inject the club repository in the three exports and the import, map id to name.
-- [ ] Frontend column selector label "Club ID" becomes "Club".
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Inject the club repository in the three exports and the import, map id to name.
+- [x] Frontend column selector label "Club ID" becomes "Club".
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2.
+All phases are implemented; next is review, QA and merge.
 
-Numbers turned into words by 🔢 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Numbers turned into words and ids into names by 🔢 → 🏯 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

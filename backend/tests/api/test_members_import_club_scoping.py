@@ -7,8 +7,10 @@ import pytest
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
+from src.domain.entities.club import Club
 from src.infrastructure.web.dependencies import (
     get_auth_context,
+    get_club_repository,
     get_create_member_use_case,
     get_member_repository,
     get_update_member_use_case,
@@ -20,6 +22,7 @@ pytestmark = [pytest.mark.api, pytest.mark.auth]
 
 ROW = {"first_name": "Ana", "email": "ana@example.com", "dni": "00000000T"}
 ROW_ERROR = "No puedes importar miembros en otro club"
+OTHER_CLUB_NAME = "Dojo Example"
 
 
 @pytest.fixture
@@ -41,6 +44,9 @@ def client_as(use_cases):
         app.dependency_overrides = {
             get_auth_context: lambda: ctx,
             get_member_repository: lambda: member_repository,
+            get_club_repository: lambda: SimpleNamespace(
+                find_all=AsyncMock(return_value=[Club(id=OTHER_CLUB, name=OTHER_CLUB_NAME, email="dojo@example.com")])
+            ),
             get_create_member_use_case: lambda: use_cases.create,
             get_update_member_use_case: lambda: use_cases.update,
         }
@@ -99,3 +105,19 @@ def test_a_super_admin_imports_into_the_club_named_in_the_row(client_as, use_cas
 
     assert response.json()["imported"] == 1
     assert use_cases.create.execute.call_args.kwargs["club_id"] == OTHER_CLUB
+
+
+def test_a_row_naming_a_club_lands_in_that_club(client_as, use_cases):
+    response = import_rows(client_as(super_admin()), [{**ROW, "Club": " dojo example "}])
+
+    assert response.json()["imported"] == 1
+    assert use_cases.create.execute.call_args.kwargs["club_id"] == OTHER_CLUB
+
+
+def test_a_row_naming_an_unknown_club_is_rejected(client_as, use_cases):
+    response = import_rows(client_as(super_admin()), [{**ROW, "Club": "Dojo Inexistente"}])
+
+    body = response.json()
+    assert (body["imported"], body["failed"]) == (0, 1)
+    assert body["errors"] == ["Fila 1: Club no encontrado: Dojo Inexistente"]
+    use_cases.create.execute.assert_not_called()

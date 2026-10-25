@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from src.infrastructure.web.dependencies import (
     get_auth_context,
+    get_club_repository,
     get_create_member_use_case,
     get_member_repository,
     get_update_member_use_case,
@@ -39,6 +40,7 @@ def client_with(use_cases):
         app.dependency_overrides = {
             get_auth_context: lambda: club_admin(),
             get_member_repository: lambda: member_repository,
+            get_club_repository: lambda: SimpleNamespace(find_all=AsyncMock(return_value=[])),
             get_create_member_use_case: lambda: use_cases.create,
             get_update_member_use_case: lambda: use_cases.update,
         }
