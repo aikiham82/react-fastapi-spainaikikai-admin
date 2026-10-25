@@ -88,11 +88,6 @@ class MemberMapper:
                 entity.deactivate()
             elif dto.status == "suspended":
                 entity.suspend()
-        if dto.club_role is not None:
-            if dto.club_role == "admin":
-                entity.promote_to_admin()
-            elif dto.club_role == "member":
-                entity.demote_to_member()
         return entity
 
     @staticmethod
