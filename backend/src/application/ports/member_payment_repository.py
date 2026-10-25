@@ -85,18 +85,6 @@ class MemberPaymentRepositoryPort(ABC):
         """Delete a member payment record."""
         pass
 
-    @abstractmethod
-    async def get_summary_by_member_ids(
-        self,
-        member_ids: List[str],
-        payment_year: int
-    ) -> dict:
-        """
-        Get payment summary for a list of members in a specific year.
-
-        Returns dict with counts and totals per payment type.
-        """
-        pass
 
     @abstractmethod
     async def exists_for_member_year_type(

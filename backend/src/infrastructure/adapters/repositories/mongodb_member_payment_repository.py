@@ -194,58 +194,6 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
         except Exception:
             return False
 
-    async def get_summary_by_member_ids(
-        self,
-        member_ids: List[str],
-        payment_year: int
-    ) -> dict:
-        """Get payment summary for a list of members in a specific year."""
-        if not member_ids:
-            return {
-                "payment_year": payment_year,
-                "by_type": {},
-                "total_payments": 0,
-                "total_amount": 0.0
-            }
-
-        pipeline = [
-            {
-                "$match": {
-                    "member_id": {"$in": member_ids},
-                    "payment_year": payment_year,
-                    "status": MemberPaymentStatus.COMPLETED.value
-                }
-            },
-            {
-                "$group": {
-                    "_id": "$payment_type",
-                    "count": {"$sum": 1},
-                    "total_amount": {"$sum": "$amount"}
-                }
-            }
-        ]
-
-        cursor = self.collection.aggregate(pipeline)
-        results = await cursor.to_list(length=None)
-
-        summary = {
-            "payment_year": payment_year,
-            "by_type": {},
-            "total_payments": 0,
-            "total_amount": 0.0
-        }
-
-        for result in results:
-            payment_type = result["_id"]
-            summary["by_type"][payment_type] = {
-                "count": result["count"],
-                "amount": result["total_amount"]
-            }
-            summary["total_payments"] += result["count"]
-            summary["total_amount"] += result["total_amount"]
-
-        return summary
-
     async def exists_for_member_year_type(
         self,
         member_id: str,

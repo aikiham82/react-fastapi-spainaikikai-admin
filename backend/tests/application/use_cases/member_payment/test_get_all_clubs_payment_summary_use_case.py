@@ -22,7 +22,6 @@ async def test_counts_only_members_who_had_joined_by_the_year():
         Member(id="m2", first_name="Ben", registration_date=datetime(2026, 3, 1)),
     ]))
     member_payment_repo = MagicMock(
-        get_summary_by_member_ids=AsyncMock(return_value={"total_amount": 0.0}),
         find_by_member_ids_year=AsyncMock(return_value=[]),
     )
 

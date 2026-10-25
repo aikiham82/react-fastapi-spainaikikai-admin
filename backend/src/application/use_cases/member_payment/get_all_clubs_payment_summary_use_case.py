@@ -8,6 +8,7 @@ from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymen
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.use_cases.payment.completed_member_payments import find_member_payments_shown_for_year
 
 
 @dataclass
@@ -46,10 +47,12 @@ class GetAllClubsPaymentSummaryUseCase:
 
     async def execute(
         self,
-        payment_year: Optional[int] = None
+        payment_year: Optional[int] = None,
+        today: Optional[datetime] = None,
     ) -> AllClubsPaymentSummaryResult:
+        today = today or datetime.utcnow()
         if payment_year is None:
-            payment_year = datetime.now().year
+            payment_year = today.year
 
         clubs = await self.club_repository.find_all()
 
@@ -79,15 +82,8 @@ class GetAllClubsPaymentSummaryUseCase:
                 grand_total_members += total_members
                 continue
 
-            summary = await self.member_payment_repository.get_summary_by_member_ids(
-                member_ids=member_ids,
-                payment_year=payment_year
-            )
-
-            payments = await self.member_payment_repository.find_by_member_ids_year(
-                member_ids=member_ids,
-                payment_year=payment_year,
-                status=MemberPaymentStatus.COMPLETED
+            payments = await find_member_payments_shown_for_year(
+                self.member_payment_repository, member_ids, payment_year, today, MemberPaymentStatus.COMPLETED
             )
             paid_member_ids = {p.member_id for p in payments}
             total_members = sum(
@@ -105,7 +101,7 @@ class GetAllClubsPaymentSummaryUseCase:
                 if payment.payment_type == MemberPaymentType.CUOTA_CLUB:
                     has_club_fee = True
 
-            total_collected = summary.get("total_amount", 0.0)
+            total_collected = sum(payment.amount for payment in payments)
 
             club_summaries.append(ClubSummaryItem(
                 club_id=club.id,

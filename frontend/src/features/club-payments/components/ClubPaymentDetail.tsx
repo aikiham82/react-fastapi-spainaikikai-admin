@@ -100,7 +100,7 @@ export const ClubPaymentDetail = () => {
       {/* Club name */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900">{clubDetail.club_name}</h3>
-        <p className="text-sm text-gray-600">Ano {clubDetail.payment_year}</p>
+        <p className="text-sm text-gray-600">Año {clubDetail.payment_year}</p>
       </div>
 
       {/* Admin actions bar */}

@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T17:50:00Z"
+last_implementation_at: "2026-10-25T18:40:00Z"
 has_completed_all_phases: "true"
 ---
 
@@ -51,8 +51,25 @@ Dates that change the year: 30 September (calendar year), 1 October (N+1), 31 De
 - [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
 - [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
+### Phase 2: the current year shows the insurance in force
+
+Review found that opening on N+1 marks licences still in force as unpaid and empties the grade groups, because both cycles were read from one year. Decided with the user on 2026-10-25: the screen opens on the calendar year again; for the current calendar year, licences and club fee come from that year and insurances from the season in force today; any other year reads everything from that year. The selector still offers up to `defaultPaymentYear`.
+
+- [x] `find_member_payments_shown_for_year(repository, member_ids, payment_year, today, status=None)` in `completed_member_payments.py`.
+- [x] `GetClubPaymentSummaryUseCase`, `GetAllClubsPaymentSummaryUseCase` and `GetClubMemberPaymentsUseCase` use it; `total_collected` and `by_payment_type` are summed from the same payments.
+- [x] Frontend: `ClubPaymentsProvider` opens on the calendar year again; `ClubPaymentsPage` lists from `defaultPaymentYear` down to the calendar year minus four; subtitle spells "Año".
+- [x] Test suite `backend/tests/application/use_cases/member_payment/test_club_payment_summary_season.py`:
+  - `test_the_current_year_shows_the_insurance_in_force_from_october`
+  - `test_the_current_year_shows_its_own_insurance_until_september`
+  - `test_a_past_year_shows_its_own_insurance`
+  - `test_the_all_clubs_summary_counts_the_insurance_in_force`
+  - `test_the_member_payment_list_shows_the_insurance_in_force`
+- [x] Frontend test `opens on the calendar year and offers the next one from October`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+
 ## Next step
 
 All phases are implemented; next is review, QA and merge.
 
-Calendar turned to next season by 📅 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Two cycles, one screen, each on its own clock 📅 🛡️ → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

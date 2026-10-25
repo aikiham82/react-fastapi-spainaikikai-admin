@@ -39,21 +39,23 @@ describe('ClubPaymentsPage year', () => {
     vi.useRealTimers()
   })
 
-  it('opens on the next year from October and still offers the current one', async () => {
-    renderOn('2026-10-01T10:00:00')
-
-    expect(screen.getByRole('combobox')).toHaveTextContent('2027')
-    expect(requestedYear()).toBe(2027)
-
+  const offeredYears = async () => {
     await userEvent.click(screen.getByRole('combobox'))
-    const options = within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent)
-    expect(options).toEqual(['2027', '2026', '2025', '2024', '2023'])
-  })
+    return within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent)
+  }
 
-  it('opens on the calendar year until September', () => {
-    renderOn('2026-09-30T10:00:00')
+  it('opens on the calendar year and offers the next one from October', async () => {
+    renderOn('2026-10-01T10:00:00')
 
     expect(screen.getByRole('combobox')).toHaveTextContent('2026')
     expect(requestedYear()).toBe(2026)
+    expect(await offeredYears()).toEqual(['2027', '2026', '2025', '2024', '2023', '2022'])
+  })
+
+  it('offers the calendar year and the four before until September', async () => {
+    renderOn('2026-09-30T10:00:00')
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('2026')
+    expect(await offeredYears()).toEqual(['2026', '2025', '2024', '2023', '2022'])
   })
 })

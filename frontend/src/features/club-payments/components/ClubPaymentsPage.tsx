@@ -13,8 +13,10 @@ import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear';
 export const ClubPaymentsPage = () => {
   const { showingDetail, selectedYear, setSelectedYear } = useClubPaymentsContext();
 
-  const latestYear = defaultPaymentYear(new Date());
-  const years = Array.from({ length: 5 }, (_, i) => latestYear - i);
+  const today = new Date();
+  const latestYear = defaultPaymentYear(today);
+  const oldestYear = today.getFullYear() - 4;
+  const years = Array.from({ length: latestYear - oldestYear + 1 }, (_, i) => latestYear - i);
 
   return (
     <div className="space-y-6">

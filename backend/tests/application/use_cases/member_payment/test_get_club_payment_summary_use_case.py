@@ -32,10 +32,6 @@ def mock_repos():
 
     member_repo.find_by_club_id = AsyncMock(return_value=[member1, member2])
 
-    member_payment_repo.get_summary_by_member_ids = AsyncMock(return_value={
-        "total_amount": 100.0,
-        "by_type": {}
-    })
     member_payment_repo.find_by_member_ids_year = AsyncMock(return_value=[])
 
     license_repo.find_by_member_ids = AsyncMock(return_value=[])

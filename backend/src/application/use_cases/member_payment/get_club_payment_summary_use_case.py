@@ -10,6 +10,7 @@ from src.application.ports.member_payment_repository import MemberPaymentReposit
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
+from src.application.use_cases.payment.completed_member_payments import find_member_payments_shown_for_year
 
 GRADE_GROUP_ORDER = {"shidoin": 0, "fukushidoin": 1, "dan": 2, "kyu": 3, "unknown": 4}
 
@@ -66,7 +67,8 @@ class GetClubPaymentSummaryUseCase:
     async def execute(
         self,
         club_id: str,
-        payment_year: Optional[int] = None
+        payment_year: Optional[int] = None,
+        today: Optional[datetime] = None,
     ) -> ClubPaymentSummaryResult:
         """
         Get payment summary for a club for the specified year.
@@ -74,12 +76,14 @@ class GetClubPaymentSummaryUseCase:
         Args:
             club_id: The club ID to get summary for.
             payment_year: The year to check. Defaults to current year.
+            today: The day the summary is read on; the current year shows the insurance in force on it.
 
         Returns:
             ClubPaymentSummaryResult with summary data.
         """
+        today = today or datetime.utcnow()
         if payment_year is None:
-            payment_year = datetime.now().year
+            payment_year = today.year
 
         # Get club info
         club = await self.club_repository.find_by_id(club_id)
@@ -91,17 +95,8 @@ class GetClubPaymentSummaryUseCase:
         members = [m for m in all_members if m.is_active]
         member_ids = [m.id for m in members if m.id]
 
-        # Get aggregated summary using member IDs
-        summary = await self.member_payment_repository.get_summary_by_member_ids(
-            member_ids=member_ids,
-            payment_year=payment_year
-        )
-
-        # Get all payments for detailed member-level summary
-        payments = await self.member_payment_repository.find_by_member_ids_year(
-            member_ids=member_ids,
-            payment_year=payment_year,
-            status=MemberPaymentStatus.COMPLETED
+        payments = await find_member_payments_shown_for_year(
+            self.member_payment_repository, member_ids, payment_year, today, MemberPaymentStatus.COMPLETED
         )
         paid_member_ids = {p.member_id for p in payments}
         members = [m for m in members if m.joined_by(payment_year) or m.id in paid_member_ids]
@@ -191,13 +186,16 @@ class GetClubPaymentSummaryUseCase:
         )
 
         # Build payment type summaries
-        by_payment_type = []
-        for ptype, data in summary.get("by_type", {}).items():
-            by_payment_type.append(PaymentTypeSummary(
+        by_type: Dict[str, PaymentTypeSummary] = {}
+        for payment in payments:
+            ptype = payment.payment_type.value
+            current = by_type.get(ptype, PaymentTypeSummary(payment_type=ptype, paid_count=0, total_amount=0.0))
+            by_type[ptype] = PaymentTypeSummary(
                 payment_type=ptype,
-                paid_count=data["count"],
-                total_amount=data["amount"]
-            ))
+                paid_count=current.paid_count + 1,
+                total_amount=current.total_amount + payment.amount,
+            )
+        by_payment_type = list(by_type.values())
 
         return ClubPaymentSummaryResult(
             club_id=club_id,
@@ -206,7 +204,7 @@ class GetClubPaymentSummaryUseCase:
             total_members=total_members,
             members_with_license=members_with_license,
             members_with_insurance=members_with_insurance,
-            total_collected=summary.get("total_amount", 0.0),
+            total_collected=sum(payment.amount for payment in payments),
             has_club_fee=has_club_fee,
             by_payment_type=by_payment_type,
             members=member_summaries

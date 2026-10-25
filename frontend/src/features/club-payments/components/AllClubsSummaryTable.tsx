@@ -73,7 +73,7 @@ export const AllClubsSummaryTable = () => {
           <p className="text-2xl font-bold text-green-600">{formatCurrency(allClubsSummary?.grand_total_collected ?? 0)}</p>
         </div>
         <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-600">Ano</p>
+          <p className="text-sm text-gray-600">Año</p>
           <p className="text-2xl font-bold text-gray-900">{allClubsSummary?.payment_year}</p>
         </div>
       </div>
