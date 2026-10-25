@@ -31,7 +31,14 @@ def use_cases():
 
 
 @pytest.fixture
-def client_as(use_cases):
+def club_repository():
+    return SimpleNamespace(
+        find_all=AsyncMock(return_value=[Club(id=OTHER_CLUB, name=OTHER_CLUB_NAME, email="dojo@example.com")])
+    )
+
+
+@pytest.fixture
+def client_as(use_cases, club_repository):
     def build(ctx, existing_club=None) -> TestClient:
         existing = SimpleNamespace(id="member-existing", club_id=existing_club) if existing_club else None
         member_repository = SimpleNamespace(
@@ -44,9 +51,7 @@ def client_as(use_cases):
         app.dependency_overrides = {
             get_auth_context: lambda: ctx,
             get_member_repository: lambda: member_repository,
-            get_club_repository: lambda: SimpleNamespace(
-                find_all=AsyncMock(return_value=[Club(id=OTHER_CLUB, name=OTHER_CLUB_NAME, email="dojo@example.com")])
-            ),
+            get_club_repository: lambda: club_repository,
             get_create_member_use_case: lambda: use_cases.create,
             get_update_member_use_case: lambda: use_cases.update,
         }
@@ -120,4 +125,23 @@ def test_a_row_naming_an_unknown_club_is_rejected(client_as, use_cases):
     body = response.json()
     assert (body["imported"], body["failed"]) == (0, 1)
     assert body["errors"] == ["Fila 1: Club no encontrado: Dojo Inexistente"]
+    use_cases.create.execute.assert_not_called()
+
+
+def test_a_club_admins_club_column_is_ignored(client_as, use_cases):
+    response = import_rows(client_as(club_admin()), [{**ROW, "Club": "Nombre Antiguo"}])
+
+    assert response.json()["imported"] == 1
+    assert use_cases.create.execute.call_args.kwargs["club_id"] == OWN_CLUB
+
+
+def test_a_row_naming_a_club_two_clubs_share_is_rejected(client_as, use_cases, club_repository):
+    club_repository.find_all.return_value = [
+        Club(id=OTHER_CLUB, name=OTHER_CLUB_NAME, email="dojo@example.com"),
+        Club(id=OWN_CLUB, name=OTHER_CLUB_NAME.upper(), email="otro@example.com"),
+    ]
+
+    response = import_rows(client_as(super_admin()), [{**ROW, "Club": OTHER_CLUB_NAME}])
+
+    assert response.json()["errors"] == [f"Fila 1: Hay varios clubes llamados {OTHER_CLUB_NAME}"]
     use_cases.create.execute.assert_not_called()

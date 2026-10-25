@@ -69,6 +69,12 @@ def test_a_four_digit_postal_code_gets_its_leading_zero_back(client_with, use_ca
     assert created_with(use_cases)["postal_code"] == "08001"
 
 
+def test_a_foreign_four_digit_postal_code_is_kept_as_is(client_with, use_cases):
+    import_row(client_with(), {"postal_code": 4000, "País": "Portugal"})
+
+    assert created_with(use_cases)["postal_code"] == "4000"
+
+
 def test_numeric_phone_and_dni_are_stored_as_text(client_with, use_cases):
     import_row(client_with(), {"phone": 600123456.0, "dni": 12345678})
 

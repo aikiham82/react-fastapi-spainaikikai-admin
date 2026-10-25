@@ -58,8 +58,10 @@ def _parse_date(value) -> Optional[datetime]:
     return None
 
 
+SPAIN_NAMES = {'', 'españa', 'espana', 'spain'}
+
+
 def _cell_text(value) -> str:
-    """Text of an Excel cell, so a number cell is stored like the text it stands for."""
     if value is None:
         return ''
     if isinstance(value, float) and value.is_integer():
@@ -67,10 +69,10 @@ def _cell_text(value) -> str:
     return str(value).strip()
 
 
-def _postal_code_text(value) -> str:
-    """Postal code as text, with the leading zeros a number cell dropped."""
+def _postal_code_text(value, country: str) -> str:
     text = _cell_text(value)
-    return text.zfill(5) if text.isdigit() else text
+    is_spanish_code_without_leading_zero = len(text) == 4 and text.isdigit() and country.lower() in SPAIN_NAMES
+    return text.zfill(5) if is_spanish_code_without_leading_zero else text
 
 
 def _club_name_key(name: str) -> str:
@@ -79,6 +81,13 @@ def _club_name_key(name: str) -> str:
 
 async def _club_names_by_id(club_repo) -> dict:
     return {club.id: club.name for club in await club_repo.find_all()}
+
+
+async def _club_ids_by_name(club_repo) -> dict:
+    club_ids = {}
+    for club_id, name in (await _club_names_by_id(club_repo)).items():
+        club_ids.setdefault(_club_name_key(name), []).append(club_id)
+    return club_ids
 
 
 @router.post("/members/import", response_model=ImportMembersResponse)
@@ -113,20 +122,22 @@ async def import_members(
             address = _cell_text(row.get('address') or row.get('Dirección') or row.get('direccion'))
             city = _cell_text(row.get('city') or row.get('Ciudad') or row.get('ciudad'))
             province = _cell_text(row.get('province') or row.get('Provincia') or row.get('provincia'))
-            postal_code = _postal_code_text(row.get('postal_code') or row.get('Código Postal') or row.get('codigo_postal'))
             country = _cell_text(row.get('country') or row.get('País') or row.get('pais')) or 'España'
-            club_id = row.get('club_id') or row.get('Club ID') or None
+            postal_code = _postal_code_text(
+                row.get('postal_code') or row.get('Código Postal') or row.get('codigo_postal'), country
+            )
+            club_id = _cell_text(row.get('club_id') or row.get('Club ID')) or None
             club_name = _cell_text(row.get('Club'))
-            if not club_id and club_name:
+            if ctx.is_super_admin and not club_id and club_name:
                 if club_ids_by_name is None:
-                    club_ids_by_name = {
-                        _club_name_key(name): club_id for club_id, name in (await _club_names_by_id(club_repo)).items()
-                    }
-                club_id = club_ids_by_name.get(_club_name_key(club_name))
-                if not club_id:
-                    errors.append(f"Fila {idx + 1}: Club no encontrado: {club_name}")
+                    club_ids_by_name = await _club_ids_by_name(club_repo)
+                matching_club_ids = club_ids_by_name.get(_club_name_key(club_name), [])
+                if len(matching_club_ids) != 1:
+                    reason = "Club no encontrado:" if not matching_club_ids else "Hay varios clubes llamados"
+                    errors.append(f"Fila {idx + 1}: {reason} {club_name}")
                     failed += 1
                     continue
+                club_id = matching_club_ids[0]
             birth_date_str = row.get('birth_date') or row.get('Fecha Nacimiento') or row.get('fecha_nacimiento') or None
 
             if not ctx.is_super_admin:
