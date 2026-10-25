@@ -1,0 +1,81 @@
+"""Give a member their own login to the admin web."""
+
+import logging
+import secrets
+from typing import Callable
+
+from src.domain.entities.password_reset_token import PasswordResetToken
+from src.domain.entities.user import User
+from src.domain.exceptions.member import MemberNotFoundError
+from src.domain.exceptions.user import EmailAlreadyInUseError, UserAlreadyExistsError
+from src.application.ports.email_service import EmailServicePort
+from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
+from src.application.ports.repositories import UserRepositoryPort
+from src.application.use_cases.password_reset import AdminPasswordResetLinkResult
+
+logger = logging.getLogger(__name__)
+
+
+class GrantMemberAccessUseCase:
+    """Create the account a member signs in with and hand them a link to set its password.
+
+    The account starts with a random password nobody knows, so the only way
+    in is the link. The link is returned as well as mailed: the club can send
+    it another way when the address bounces.
+    """
+
+    def __init__(
+        self,
+        member_repository: MemberRepositoryPort,
+        user_repository: UserRepositoryPort,
+        token_repository: PasswordResetTokenRepositoryPort,
+        email_service: EmailServicePort,
+        hash_password: Callable[[str], str],
+        frontend_base_url: str,
+    ):
+        self.member_repository = member_repository
+        self.user_repository = user_repository
+        self.token_repository = token_repository
+        self.email_service = email_service
+        self.hash_password = hash_password
+        self.frontend_base_url = frontend_base_url.rstrip('/')
+
+    async def execute(
+        self, member_id: str, email: str, make_club_admin: bool, issued_by: str = ""
+    ) -> AdminPasswordResetLinkResult:
+        member = await self.member_repository.find_by_id(member_id)
+        if not member:
+            raise MemberNotFoundError(member_id)
+
+        if await self.user_repository.find_by_member_id(member_id):
+            raise UserAlreadyExistsError("This member already has an account")
+
+        email = email.lower().strip()
+        if await self.user_repository.find_by_email(email):
+            raise EmailAlreadyInUseError(email)
+
+        user = await self.user_repository.create(User(
+            email=email,
+            username=email,
+            hashed_password=self.hash_password(secrets.token_urlsafe(32)),
+            member_id=member_id,
+        ))
+
+        if make_club_admin:
+            member.promote_to_admin()
+            await self.member_repository.update(member)
+
+        token = await self.token_repository.create(PasswordResetToken(user_id=user.id, email=user.email))
+        url = f"{self.frontend_base_url}/reset-password?token={token.token}"
+        logger.info(f"User {issued_by or 'unknown'} gave web access to member {member_id}")
+        member_name = member.get_full_name()
+
+        try:
+            await self.email_service.send_account_invitation_email(
+                to_email=user.email, member_name=member_name, url=url
+            )
+        except Exception:
+            logger.exception(f"Could not mail the access link for member {member_id}")
+
+        return AdminPasswordResetLinkResult(url=url, email=user.email, expires_at=token.expires_at)

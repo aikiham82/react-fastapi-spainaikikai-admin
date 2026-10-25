@@ -7,9 +7,11 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { useUserByMemberQuery } from '../hooks/queries/useUserByMemberQuery';
 import { useGeneratePasswordResetLinkMutation } from '../hooks/mutations/useGeneratePasswordResetLinkMutation';
 import { useUpdateUserEmailMutation } from '../hooks/mutations/useUpdateUserEmailMutation';
+import { GrantMemberAccessForm } from './GrantMemberAccessForm';
 
 interface MemberAccessAccountProps {
   memberId: string;
+  memberEmail?: string;
 }
 
 const formatExpiry = (isoDate: string): string => {
@@ -27,7 +29,7 @@ const formatExpiry = (isoDate: string): string => {
   });
 };
 
-export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
+export const MemberAccessAccount = ({ memberId, memberEmail }: MemberAccessAccountProps) => {
   const { isAssociationAdmin } = usePermissions();
   const isSuperAdmin = isAssociationAdmin();
 
@@ -79,9 +81,7 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
 
   const expiry = link ? formatExpiry(link.expires_at) : '';
 
-  const errorMessage = (error as { status?: number } | null)?.status === 404
-    ? 'Este socio no tiene cuenta de acceso'
-    : 'No se pudo consultar la cuenta de acceso';
+  const hasNoAccount = (error as { status?: number } | null)?.status === 404;
 
   return (
     <section
@@ -98,9 +98,11 @@ export const MemberAccessAccount = ({ memberId }: MemberAccessAccountProps) => {
         </p>
       )}
 
-      {isError && (
+      {isError && hasNoAccount && <GrantMemberAccessForm memberId={memberId} memberEmail={memberEmail} />}
+
+      {isError && !hasNoAccount && (
         <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-          {errorMessage}
+          No se pudo consultar la cuenta de acceso
         </p>
       )}
 

@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-25T21:15:00Z"
+has_completed_all_phases: false
 ---
 
 # Club admin manages member access
@@ -36,14 +46,14 @@ Limits: the caller's own member; a member of another club; the super admin's acc
 
 A club admin or the super admin opens a member without an account, types or confirms an email, optionally ticks "Puede gestionar el club", and the member receives an email to set their password. The link can also be copied.
 
-- [ ] Write failing tests for `GrantMemberAccessUseCase` (`backend/tests/application/use_cases/user/test_grant_member_access_use_case.py`): creates a user linked to the member with the email lowercased as email and username; promotes the member when asked and only then; issues a 24 h token and emails it; refuses a member that already has an account; refuses an email used by another account; refuses an unknown member.
-- [ ] Implement `GrantMemberAccessUseCase.execute(member_id, email, make_club_admin, issued_by) -> AdminPasswordResetLink` with an unusable random password, and `EmailServicePort.send_account_invitation_email(to_email, member_name, url) -> bool` plus the adapter.
-- [ ] Write failing router tests (`backend/tests/api/test_member_account_router.py`): super admin grants for any club; club admin grants for their club; club admin gets 403 for another club; 409 for both conflicts; a plain member gets 403.
-- [ ] Add `POST /api/v1/members/{member_id}/account` with `GrantMemberAccessDTO { email: EmailStr, club_admin: bool = false }`, answering `201 AdminPasswordResetLinkResponseDTO`.
-- [ ] Frontend: in `MemberAccessAccount`, when the member has no account, render the grant form for super admins and club admins; Zod schema, service, `useGrantMemberAccessMutation`; tests for the prefilled email, the 409 message and the success state.
-- [ ] Spanish copy: button "Dar acceso a la web", checkbox "Puede gestionar el club (pagos, altas y consultas)", success "Le hemos enviado un correo a {email} para que ponga su contraseña", email subject "Tu acceso a Spain Aikikai Admin".
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Write failing tests for `GrantMemberAccessUseCase` (`backend/tests/application/use_cases/user/test_grant_member_access_use_case.py`): creates a user linked to the member with the email lowercased as email and username; promotes the member when asked and only then; issues a 24 h token and emails it; refuses a member that already has an account; refuses an email used by another account; refuses an unknown member.
+- [x] Implement `GrantMemberAccessUseCase.execute(member_id, email, make_club_admin, issued_by) -> AdminPasswordResetLink` with an unusable random password, and `EmailServicePort.send_account_invitation_email(to_email, member_name, url) -> bool` plus the adapter.
+- [x] Write failing router tests (`backend/tests/api/test_member_account_router.py`): super admin grants for any club; club admin grants for their club; club admin gets 403 for another club; 409 for both conflicts; a plain member gets 403.
+- [x] Add `POST /api/v1/members/{member_id}/account` with `GrantMemberAccessDTO { email: EmailStr, club_admin: bool = false }`, answering `201 AdminPasswordResetLinkResponseDTO`.
+- [x] Frontend: in `MemberAccessAccount`, when the member has no account, render the grant form for super admins and club admins; Zod schema, service, `useGrantMemberAccessMutation`; tests for the prefilled email, the 409 message and the success state.
+- [x] Spanish copy: button "Dar acceso a la web", checkbox "Puede gestionar el club (pagos, altas y consultas)", success "Le hemos enviado un correo a {email} para que ponga su contraseña", email subject "Tu acceso a Spain Aikikai Admin".
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Phase 2: Club admins use the account panel for their own club
 
@@ -69,6 +79,6 @@ A club admin or the super admin opens a member without an account, types or conf
 
 ## Next step
 
-Phase 1.
+Phase 2.
 
-Plan powered by [Codely](https://codely.com) 🐢
+Plan powered by [Codely](https://codely.com) 🐢 🔑

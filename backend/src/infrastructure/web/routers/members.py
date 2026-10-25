@@ -7,14 +7,17 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 
 from src.domain.entities.license import License
 from src.domain.entities.insurance import Insurance
+from src.domain.exceptions.user import EmailAlreadyInUseError, UserAlreadyExistsError
 from src.infrastructure.web.dto.member_dto import (
     MemberCreate,
     MemberUpdate,
     MemberStatusChange,
     MemberResponse,
+    GrantMemberAccessDTO,
     LicenseSummary,
     InsuranceSummary,
 )
+from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
 from src.infrastructure.web.mappers_member import MemberMapper
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
@@ -25,6 +28,7 @@ from src.infrastructure.web.dependencies import (
     get_delete_member_use_case,
     get_change_member_status_use_case,
     get_auth_context,
+    get_grant_member_access_use_case,
     get_license_repository,
     get_insurance_repository,
     get_club_repository,
@@ -333,3 +337,35 @@ async def delete_member(
 
     await get_delete_use_case.execute(member_id)
     return None
+
+
+@router.post(
+    "/{member_id}/account",
+    response_model=AdminPasswordResetLinkResponseDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+async def grant_member_access(
+    member_id: str,
+    request: GrantMemberAccessDTO,
+    get_member_use_case_instance = Depends(get_member_use_case),
+    grant_use_case = Depends(get_grant_member_access_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Give a member of the caller's club their own login to the admin web."""
+    require_club_admin_ctx(ctx)
+    existing_member = await get_member_use_case_instance.execute(member_id)
+    _require_access_to_club(ctx, existing_member.club_id)
+
+    try:
+        link = await grant_use_case.execute(
+            member_id=member_id,
+            email=request.email,
+            make_club_admin=request.club_admin,
+            issued_by=ctx.user.id,
+        )
+    except EmailAlreadyInUseError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ese correo ya lo usa otra cuenta")
+    except UserAlreadyExistsError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este socio ya tiene acceso a la web")
+
+    return AdminPasswordResetLinkResponseDTO(url=link.url, email=link.email, expires_at=link.expires_at)

@@ -19,7 +19,7 @@ from src.infrastructure.adapters.services.redsys_service import RedsysService
 from src.infrastructure.adapters.services.email_service import EmailService
 from src.infrastructure.adapters.services.pdf_service import PDFService
 from src.infrastructure.adapters.services.license_image_service import LicenseImageService
-from src.infrastructure.web.security import decode_access_token
+from src.infrastructure.web.security import decode_access_token, get_password_hash
 from src.infrastructure.web.dto.user_dto import TokenData
 from src.domain.entities.user import User
 from src.domain.exceptions.user import UserNotFoundError
@@ -103,6 +103,7 @@ from src.application.use_cases.invoice import (
     DownloadInvoicePDFUseCase,
     RegenerateInvoicePDFUseCase
 )
+from src.application.use_cases.member_access import GrantMemberAccessUseCase
 from src.application.use_cases.password_reset import (
     RequestPasswordResetUseCase,
     ResetPasswordUseCase,
@@ -735,6 +736,19 @@ def get_generate_admin_password_reset_link_use_case() -> GenerateAdminPasswordRe
         user_repository=get_user_repository(),
         token_repository=get_password_reset_token_repository(),
         frontend_base_url=app_settings.frontend_base_url
+    )
+
+
+@lru_cache()
+def get_grant_member_access_use_case() -> GrantMemberAccessUseCase:
+    """Get grant member access use case."""
+    return GrantMemberAccessUseCase(
+        member_repository=get_member_repository(),
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository(),
+        email_service=get_email_service(),
+        hash_password=get_password_hash,
+        frontend_base_url=get_app_settings().frontend_base_url
     )
 
 

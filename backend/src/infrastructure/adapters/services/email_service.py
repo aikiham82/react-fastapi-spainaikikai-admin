@@ -8,6 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from typing import Optional
 from jinja2 import Environment, BaseLoader
+from markupsafe import escape
 
 from src.application.ports.email_service import (
     EmailServicePort,
@@ -206,6 +207,47 @@ PASSWORD_RESET_TEMPLATE = """
         <div class="footer">
             <p>Este es un correo automatico, por favor no responda a este mensaje.</p>
             <p>Si no solicitaste restablecer tu contrasena, ignora este correo.</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+ACCOUNT_INVITATION_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9fafb; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        .btn { display: inline-block; padding: 14px 28px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+        .link-fallback { word-break: break-all; font-size: 12px; color: #666; margin-top: 15px; padding: 10px; background: #f3f4f6; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Tu acceso a Spain Aikikai Admin</h1>
+        </div>
+        <div class="content">
+            <p>Hola <strong>{{ member_name }}</strong>,</p>
+            <p>Tu club te ha dado acceso a la web de gestion de Spain Aikikai. Entraras con tu correo <strong>{{ login_email }}</strong>.</p>
+            <p>Pulsa el boton para poner tu contrasena:</p>
+            <p style="text-align: center;">
+                <a href="{{ url }}" class="btn">Poner mi contrasena</a>
+            </p>
+            <p>El enlace caduca en 24 horas. Si caduca, pide en la pantalla de entrada "¿Olvidaste tu contrasena?".</p>
+            <div class="link-fallback">
+                <p>Si el boton no funciona, copia y pega este enlace en tu navegador:</p>
+                <p>{{ url }}</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automatico, por favor no responda a este mensaje.</p>
         </div>
     </div>
 </body>
@@ -455,6 +497,35 @@ class EmailService(EmailServicePort):
                 f"Para entrar puedes usar tu correo {to_email} o tu nombre de usuario {user_name}.\n\n"
                 f"Haz clic en el siguiente enlace para restablecer tu contrasena:\n{reset_url}\n\n"
                 "Este enlace expirara en 24 horas."
+            )
+        )
+
+        return await self.send_email(message)
+
+    async def send_account_invitation_email(
+        self,
+        to_email: str,
+        member_name: str,
+        url: str
+    ) -> bool:
+        """Send a member the link to set the password of their new account."""
+        html_body = self._render_template(
+            ACCOUNT_INVITATION_TEMPLATE,
+            member_name=escape(member_name),
+            login_email=escape(to_email),
+            url=url
+        )
+
+        message = EmailMessage(
+            to=[to_email],
+            subject="Tu acceso a Spain Aikikai Admin",
+            body_html=html_body,
+            body_text=(
+                f"Hola {member_name},\n\n"
+                f"Tu club te ha dado acceso a la web de gestion de Spain Aikikai. "
+                f"Entraras con tu correo {to_email}.\n\n"
+                f"Pon tu contrasena con este enlace:\n{url}\n\n"
+                "El enlace caduca en 24 horas."
             )
         )
 

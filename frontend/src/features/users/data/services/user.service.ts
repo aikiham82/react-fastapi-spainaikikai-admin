@@ -28,9 +28,22 @@ export const updateUserEmail = async (userId: string, email: string): Promise<Us
   return userAccountSchema.parse(response);
 };
 
+export const grantMemberAccess = async (
+  memberId: string,
+  email: string,
+  clubAdmin: boolean
+): Promise<PasswordResetLink> => {
+  const response = await apiClient.post<unknown>(`/api/v1/members/${memberId}/account`, {
+    email,
+    club_admin: clubAdmin,
+  });
+  return passwordResetLinkSchema.parse(response);
+};
+
 export const userService = {
   getUserAccounts,
   getUserByMember,
   generatePasswordResetLink,
   updateUserEmail,
+  grantMemberAccess,
 };

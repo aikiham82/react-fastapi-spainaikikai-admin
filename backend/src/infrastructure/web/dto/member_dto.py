@@ -1,6 +1,6 @@
 """Member DTOs for request/response validation."""
 
-from pydantic import AfterValidator, BaseModel, Field, field_validator
+from pydantic import AfterValidator, BaseModel, EmailStr, Field, field_validator
 from typing import Annotated, List, Optional
 from datetime import datetime, timedelta
 
@@ -125,3 +125,9 @@ class MemberResponse(MemberBase):
 
     class Config:
         from_attributes = True
+
+
+class GrantMemberAccessDTO(BaseModel):
+    """Email the member will sign in with, and whether they manage the club."""
+    email: EmailStr
+    club_admin: bool = False

@@ -98,12 +98,13 @@ describe('MemberAccessAccount', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('tells the admin when the member has no account', () => {
+  it('offers to give access when the member has no account', () => {
     mockQuery({ data: undefined, isError: true, error: { status: 404 } })
 
-    renderWithProviders(<MemberAccessAccount memberId="member123" />)
+    renderWithProviders(<MemberAccessAccount memberId="member123" memberEmail="ana@example.com" />)
 
-    expect(screen.getByText('Este socio no tiene cuenta de acceso')).toBeInTheDocument()
+    expect(screen.getByText('Este socio todavía no puede entrar en la web.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
 
   it('does not claim the member has no account when the lookup fails', () => {
@@ -112,7 +113,7 @@ describe('MemberAccessAccount', () => {
     renderWithProviders(<MemberAccessAccount memberId="member123" />)
 
     expect(screen.getByText('No se pudo consultar la cuenta de acceso')).toBeInTheDocument()
-    expect(screen.queryByText('Este socio no tiene cuenta de acceso')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Dar acceso a la web' })).not.toBeInTheDocument()
   })
 
   it('generates the link for the account', async () => {

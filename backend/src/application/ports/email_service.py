@@ -104,3 +104,13 @@ class EmailServicePort(ABC):
             bool: True if email was sent successfully.
         """
         pass
+
+    @abstractmethod
+    async def send_account_invitation_email(
+        self,
+        to_email: str,
+        member_name: str,
+        url: str
+    ) -> bool:
+        """Send a member the link to set the password of their new account."""
+        pass

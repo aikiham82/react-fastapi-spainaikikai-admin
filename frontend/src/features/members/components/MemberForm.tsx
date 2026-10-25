@@ -309,7 +309,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
 
           {isEditing && member?.id && (
             <div className="border-t pt-4">
-              <MemberAccessAccount memberId={member.id} />
+              <MemberAccessAccount memberId={member.id} memberEmail={member.email ?? undefined} />
             </div>
           )}
 
