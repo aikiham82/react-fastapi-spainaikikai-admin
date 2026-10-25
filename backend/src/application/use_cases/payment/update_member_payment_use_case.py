@@ -30,8 +30,8 @@ class UpdateMemberPaymentUseCase:
         self,
         member_payment_repository: MemberPaymentRepositoryPort,
         payment_repository: PaymentRepositoryPort,
-        license_repository: Optional[LicenseRepositoryPort] = None,
-        insurance_repository: Optional[InsuranceRepositoryPort] = None,
+        license_repository: LicenseRepositoryPort,
+        insurance_repository: InsuranceRepositoryPort,
     ):
         self.member_payment_repository = member_payment_repository
         self.payment_repository = payment_repository
@@ -99,7 +99,7 @@ class UpdateMemberPaymentUseCase:
         insurance_types = {
             PAYMENT_TYPE_TO_INSURANCE_TYPE[t] for t in mp.covered_types if t in PAYMENT_TYPE_TO_INSURANCE_TYPE
         }
-        if licence_types and self.license_repository:
+        if licence_types:
             for licence in await self.license_repository.find_by_member_id(mp.member_id):
                 generated_for_the_line = (
                     licence.last_payment_id == mp.payment_id
@@ -112,7 +112,7 @@ class UpdateMemberPaymentUseCase:
                         datetime(mp.payment_year, 1, 1), datetime(mp.payment_year, 12, 31, 23, 59, 59)
                     )
                     await self.license_repository.update(licence)
-        if insurance_types and self.insurance_repository:
+        if insurance_types:
             insurances = await self.insurance_repository.find_by_member_id(mp.member_id)
             target_start, target_end = insurance_season(mp.payment_year)
             covered = {(i.insurance_type, i.end_date) for i in insurances if i.payment_id != mp.payment_id}

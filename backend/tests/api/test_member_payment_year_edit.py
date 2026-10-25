@@ -42,7 +42,9 @@ def client(repositories) -> TestClient:
     app = create_app()
     app.dependency_overrides = {
         get_auth_context: lambda: super_admin(),
-        get_update_member_payment_use_case: lambda: UpdateMemberPaymentUseCase(member_payments, payments),
+        get_update_member_payment_use_case: lambda: UpdateMemberPaymentUseCase(
+            member_payments, payments, AsyncMock(), AsyncMock()
+        ),
     }
     return TestClient(app)
 

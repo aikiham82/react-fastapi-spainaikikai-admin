@@ -75,6 +75,8 @@ def use_case(mock_repos):
     return UpdateMemberPaymentUseCase(
         member_payment_repository=mock_repos["mp_repo"],
         payment_repository=mock_repos["payment_repo"],
+        license_repository=AsyncMock(),
+        insurance_repository=AsyncMock(),
     )
 
 
