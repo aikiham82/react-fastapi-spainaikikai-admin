@@ -8,12 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear';
 
 export const ClubPaymentsPage = () => {
   const { showingDetail, selectedYear, setSelectedYear } = useClubPaymentsContext();
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const latestYear = defaultPaymentYear(new Date());
+  const years = Array.from({ length: 5 }, (_, i) => latestYear - i);
 
   return (
     <div className="space-y-6">

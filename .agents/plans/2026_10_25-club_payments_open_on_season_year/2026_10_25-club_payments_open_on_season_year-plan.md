@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-25T17:50:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Club payments open on the season year
@@ -33,16 +43,16 @@ Dates that change the year: 30 September (calendar year), 1 October (N+1), 31 De
 
 ### Phase 1: open on the season year
 
-- [ ] `ClubPaymentsProvider` starts `selectedYear` at `defaultPaymentYear(new Date())`.
-- [ ] `ClubPaymentsPage` lists five years counting down from `defaultPaymentYear(new Date())`.
-- [ ] Test suite `frontend/src/features/club-payments/components/__tests__/ClubPaymentsPage.test.tsx`:
+- [x] `ClubPaymentsProvider` starts `selectedYear` at `defaultPaymentYear(new Date())`.
+- [x] `ClubPaymentsPage` lists five years counting down from `defaultPaymentYear(new Date())`.
+- [x] Test suite `frontend/src/features/club-payments/components/__tests__/ClubPaymentsPage.test.tsx`:
   - `opens on the next year from October and still offers the current one`
   - `opens on the calendar year until September`
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases are implemented; next is review, QA and merge.
 
-Plan powered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Calendar turned to next season by 📅 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

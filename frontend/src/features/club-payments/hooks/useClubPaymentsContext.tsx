@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
+import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear';
 import { useAllClubsPaymentSummaryQuery, useClubPaymentDetailQuery } from './queries/useClubPaymentsQueries';
 import type { AllClubsPaymentSummaryResponse } from '../data/schemas/club-payments.schema';
 import type { ClubPaymentSummaryResponse } from '@/features/member-payments/data/schemas/member-payment.schema';
@@ -27,7 +28,7 @@ export const ClubPaymentsProvider: React.FC<{ children: ReactNode }> = ({ childr
   const { userRole, clubId: userClubId } = useAuthContext();
   const isSuperAdmin = userRole === 'super_admin';
 
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(() => defaultPaymentYear(new Date()));
   const [selectedClubId, setSelectedClubId] = useState<string | null>(
     isSuperAdmin ? null : userClubId
   );
