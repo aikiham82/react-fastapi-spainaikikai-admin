@@ -15,6 +15,7 @@ from src.domain.entities.member import Member
 from src.infrastructure.web.dependencies import (
     get_all_insurances_use_case,
     get_auth_context,
+    get_club_repository,
     get_member_repository,
 )
 from src.infrastructure.web.routers.import_export import router
@@ -59,6 +60,7 @@ def client_as(get_all):
             get_auth_context: lambda: ctx,
             get_all_insurances_use_case: lambda: get_all,
             get_member_repository: lambda: member_repository,
+            get_club_repository: lambda: SimpleNamespace(find_all=AsyncMock(return_value=[])),
         }
         return TestClient(app)
 
