@@ -106,6 +106,17 @@ class Insurance:
         if self.is_expired() and self.status == InsuranceStatus.ACTIVE:
             self.status = InsuranceStatus.EXPIRED
 
+    def update_identity(self, insurance_company: Optional[str], policy_number: Optional[str]) -> None:
+        """Rename the insurer or the policy; neither can be left blank."""
+        if insurance_company is not None:
+            if not insurance_company.strip():
+                raise ValueError("Insurance company cannot be empty")
+            self.insurance_company = insurance_company.strip()
+        if policy_number is not None:
+            if not policy_number.strip():
+                raise ValueError("Policy number cannot be empty")
+            self.policy_number = policy_number.strip()
+
     def update_dates(self, start_date: datetime, end_date: datetime) -> None:
         """Update insurance dates."""
         if start_date > end_date:

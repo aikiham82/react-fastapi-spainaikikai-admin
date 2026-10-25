@@ -1,15 +1,13 @@
 import { useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { usePermissions } from '@/core/hooks/usePermissions'
 import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear'
 import { useMemberPaymentHistoryQuery } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries'
-import {
-  MEMBER_PAYMENT_STATUS,
-  MEMBER_PAYMENT_TYPES,
-  type MemberPayment,
-} from '@/features/member-payments/data/schemas/member-payment.schema'
+import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
+import { formatCurrency, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
+import { LineActions } from './LineActions'
 import { useDeleteMemberPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
 import { MemberPaymentEditModal } from './MemberPaymentEditModal'
 import { ManualPaymentModal } from './ManualPaymentModal'
@@ -21,15 +19,6 @@ interface MemberPaymentLinesProps {
   clubId: string
   clubName: string
 }
-
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
-
-const typeLabel = (paymentType: string) =>
-  MEMBER_PAYMENT_TYPES[paymentType as keyof typeof MEMBER_PAYMENT_TYPES] ?? paymentType
-
-const statusLabel = (status: string) =>
-  MEMBER_PAYMENT_STATUS[status as keyof typeof MEMBER_PAYMENT_STATUS] ?? status
 
 export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: MemberPaymentLinesProps) {
   const { isAssociationAdmin } = usePermissions()
@@ -62,28 +51,14 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
             <li key={line.id} className="rounded-md border p-3 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">{line.payment_year} · {typeLabel(line.payment_type)}</p>
+                  <p className="text-sm font-medium">{line.payment_year} · {getPaymentTypeLabel(line.payment_type)}</p>
                   <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
                 </div>
                 <Badge variant={line.status === 'completed' ? 'default' : 'secondary'}>
-                  {statusLabel(line.status)}
+                  {getStatusLabel(line.status)}
                 </Badge>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditing(line)}>
-                  <Pencil className="h-4 w-4 mr-1" />
-                  Editar
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setDeleting(line)}
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Eliminar
-                </Button>
-              </div>
+              <LineActions onEdit={() => setEditing(line)} onDelete={() => setDeleting(line)} />
             </li>
           ))}
         </ul>

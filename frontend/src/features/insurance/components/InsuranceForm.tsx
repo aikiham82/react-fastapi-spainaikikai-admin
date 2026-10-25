@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { AnnulmentPanel } from '@/core/components/AnnulmentPanel';
 import {
   Dialog,
   DialogContent,
@@ -245,21 +246,14 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
           </div>
 
           {isEditing && insurance && isAssociationAdmin() && (
-            <div className="flex items-center justify-between gap-3 rounded-md border p-3">
-              <p className="text-sm text-gray-600">
-                {insurance.status === 'cancelled'
-                  ? 'Anulado: no cuenta como vigente aunque sus fechas lo sean.'
-                  : 'Vigente según sus fechas. Anúlalo para darlo de baja ya.'}
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setAnnulled(insurance.status !== 'cancelled')}
-              >
-                {insurance.status === 'cancelled' ? 'Reactivar seguro' : 'Anular seguro'}
-              </Button>
-            </div>
+            <AnnulmentPanel
+              annulled={insurance.status === 'cancelled'}
+              annulledText="Anulado: no cuenta como vigente aunque sus fechas lo sean."
+              activeText="Vigente según sus fechas. Anúlalo para darlo de baja ya."
+              annulLabel="Anular seguro"
+              reactivateLabel="Reactivar seguro"
+              onToggle={setAnnulled}
+            />
           )}
 
           <DialogFooter>

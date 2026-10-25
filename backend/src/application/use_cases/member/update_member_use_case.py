@@ -19,7 +19,7 @@ class UpdateMemberUseCase:
 
         if kwargs.get("dni") is not None:
             kwargs["dni"] = kwargs["dni"].strip()
-            if kwargs["dni"]:
+            if kwargs["dni"] and kwargs["dni"] != member.dni:
                 holder = await self.member_repository.find_by_dni(kwargs["dni"])
                 if holder and holder.id != member.id:
                     raise MemberAlreadyExistsError("Ya existe un miembro con ese DNI")

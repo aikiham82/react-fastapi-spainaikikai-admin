@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { AnnulmentPanel } from '@/core/components/AnnulmentPanel';
 import {
   Dialog,
   DialogContent,
@@ -263,21 +264,14 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
           </div>
 
           {isEditing && license && (
-            <div className="flex items-center justify-between gap-3 rounded-md border p-3">
-              <p className="text-sm text-gray-600">
-                {license.status === 'revoked'
-                  ? 'Anulada: no cuenta como vigente aunque sus fechas lo sean.'
-                  : 'Vigente según sus fechas. Anúlala para darla de baja ya.'}
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setAnnulled(license.status !== 'revoked')}
-              >
-                {license.status === 'revoked' ? 'Reactivar licencia' : 'Anular licencia'}
-              </Button>
-            </div>
+            <AnnulmentPanel
+              annulled={license.status === 'revoked'}
+              annulledText="Anulada: no cuenta como vigente aunque sus fechas lo sean."
+              activeText="Vigente según sus fechas. Anúlala para darla de baja ya."
+              annulLabel="Anular licencia"
+              reactivateLabel="Reactivar licencia"
+              onToggle={setAnnulled}
+            />
           )}
 
           <DialogFooter>

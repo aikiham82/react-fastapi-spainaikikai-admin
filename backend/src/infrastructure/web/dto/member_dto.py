@@ -2,14 +2,15 @@
 
 from pydantic import AfterValidator, BaseModel, field_validator
 from typing import Annotated, List, Optional
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+
+from src.infrastructure.web.dto.naive_datetime import as_naive_utc
 
 
 def naive_past_registration_date(value: datetime) -> datetime:
     if not 1900 <= value.year <= 9998:
         raise ValueError("Fecha de alta no válida")
-    if value.tzinfo is not None:
-        value = value.astimezone(timezone.utc).replace(tzinfo=None)
+    value = as_naive_utc(value)
     # ponytail: allows one day past UTC so Spain's today passes after its midnight
     if value.date() > (datetime.utcnow() + timedelta(days=1)).date():
         raise ValueError("La fecha de alta no puede ser futura")

@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -16,10 +14,8 @@ import { useDeleteMemberPaymentMutation } from '../hooks/mutations/usePaymentAdm
 import { MemberPaymentEditModal } from './MemberPaymentEditModal'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
-import {
-  MEMBER_PAYMENT_TYPES,
-  MEMBER_PAYMENT_STATUS,
-} from '@/features/member-payments/data/schemas/member-payment.schema'
+import { formatCurrency, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
+import { LineActions } from './LineActions'
 
 // NOTE ON REDSYS HANDLING:
 // MemberPayment does NOT have a payment_method field — that field belongs to the
@@ -29,46 +25,12 @@ import {
 // If in the future the backend exposes payment_method per line, this component
 // should add requiresForce=true logic for Redsys COMPLETED rows.
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
-
-const getPaymentTypeLabel = (paymentType: string): string =>
-  MEMBER_PAYMENT_TYPES[paymentType as keyof typeof MEMBER_PAYMENT_TYPES] ?? paymentType
-
-const getStatusLabel = (status: string): string =>
-  MEMBER_PAYMENT_STATUS[status as keyof typeof MEMBER_PAYMENT_STATUS] ?? status
-
 const getStatusVariant = (
   status: string
 ): 'default' | 'destructive' | 'secondary' | 'outline' => {
   if (status === 'completed') return 'default'
   if (status === 'refunded') return 'secondary'
   return 'destructive'
-}
-
-interface LineActionsProps {
-  onEdit: () => void
-  onDelete: () => void
-}
-
-function LineActions({ onEdit, onDelete }: LineActionsProps) {
-  return (
-    <div className="flex items-center justify-center gap-2">
-      <Button variant="outline" size="sm" onClick={onEdit}>
-        <Pencil className="h-4 w-4 mr-1" />
-        Editar
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        className="text-destructive hover:text-destructive"
-        onClick={onDelete}
-      >
-        <Trash2 className="h-4 w-4 mr-1" />
-        Eliminar
-      </Button>
-    </div>
-  )
 }
 
 interface TransactionsSectionProps {

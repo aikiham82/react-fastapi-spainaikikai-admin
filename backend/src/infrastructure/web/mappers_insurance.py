@@ -3,7 +3,6 @@
 from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
 from src.infrastructure.web.dto.insurance_dto import (
     InsuranceCreate,
-    InsuranceUpdate,
     InsuranceResponse
 )
 
@@ -42,22 +41,6 @@ class InsuranceMapper:
             payment_id=entity.payment_id,
             documents=entity.documents
         )
-
-    @staticmethod
-    def update_entity_from_dto(entity: Insurance, dto: InsuranceUpdate) -> Insurance:
-        """Update entity fields from Update DTO."""
-        if dto.start_date is not None and dto.end_date is not None:
-            entity.update_dates(dto.start_date, dto.end_date)
-        if dto.coverage_amount is not None:
-            entity.update_coverage(dto.coverage_amount)
-        if dto.status is not None:
-            if dto.status == "active":
-                entity.activate()
-            elif dto.status == "cancelled":
-                entity.cancel()
-            elif dto.status == "expired":
-                entity.expire()
-        return entity
 
     @staticmethod
     def to_response_list(entities: list[Insurance]) -> list[InsuranceResponse]:

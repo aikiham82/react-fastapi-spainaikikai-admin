@@ -104,6 +104,16 @@ class License:
             return datetime.now() > self.expiration_date
         return False
 
+    def update_dates(self, issue_date: Optional[datetime], expiration_date: Optional[datetime]) -> None:
+        """Move its dates; validity follows them unless the licence is annulled."""
+        issue = issue_date or self.issue_date
+        expiration = expiration_date or self.expiration_date
+        if issue and expiration and issue > expiration:
+            raise ValueError("La fecha de emisión debe ser anterior a la de vencimiento")
+        self.issue_date, self.expiration_date = issue, expiration
+        if expiration_date is not None and self.status != LicenseStatus.REVOKED:
+            self.follow_dates()
+
     def annul(self) -> None:
         """Withdraw the licence whatever its dates say."""
         self.status = LicenseStatus.REVOKED

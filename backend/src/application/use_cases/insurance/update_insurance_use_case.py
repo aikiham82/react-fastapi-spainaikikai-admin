@@ -3,16 +3,10 @@
 from datetime import datetime
 from typing import Optional
 
-from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
+from src.domain.entities.insurance import Insurance, InsuranceType
 from src.domain.exceptions.base import ValidationError
 from src.domain.exceptions.insurance import InsuranceNotFoundError
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
-
-
-def _required(value: str, field: str) -> str:
-    if not value.strip():
-        raise ValidationError(f"{field} no puede estar vacío")
-    return value.strip()
 
 
 class UpdateInsuranceUseCase:
@@ -39,11 +33,8 @@ class UpdateInsuranceUseCase:
 
         if insurance_type is not None:
             insurance.insurance_type = InsuranceType(insurance_type)
-        if insurance_company is not None:
-            insurance.insurance_company = _required(insurance_company, "La compañía")
-        if policy_number is not None:
-            insurance.policy_number = _required(policy_number, "El número de póliza")
         try:
+            insurance.update_identity(insurance_company, policy_number)
             new_start = start_date or insurance.start_date
             new_end = end_date or insurance.end_date
             if new_start and new_end:
@@ -58,6 +49,6 @@ class UpdateInsuranceUseCase:
         if annulled:
             insurance.cancel()
         elif annulled is False:
-            insurance.status = InsuranceStatus.ACTIVE
+            insurance.activate()
 
         return await self.insurance_repository.update(insurance)
