@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-25T16:45:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Create a licence without club_id and with its categories
@@ -36,21 +46,21 @@ The licence import still reads `dni` and `license_number` cells raw (numbers are
 
 ### Phase 1: create a licence with its categories
 
-- [ ] `CreateLicenseUseCase.execute`: drop `club_id`; add optional `technical_grade`, `instructor_category`, `age_category` (defaults kyu / none / adulto); `license_type` follows `technical_grade` when given.
-- [ ] `POST /api/v1/licenses` stops reading `club_id` and passes the three categories.
-- [ ] The licence import stops passing `club_id` and passes the three categories it already validates.
-- [ ] Test suite `backend/tests/application/use_cases/license/test_create_license_use_case.py`:
+- [x] `CreateLicenseUseCase.execute`: drop `club_id`; add optional `technical_grade`, `instructor_category`, `age_category` (defaults kyu / none / adulto); `license_type` follows `technical_grade` when given.
+- [x] `POST /api/v1/licenses` stops reading `club_id` and passes the three categories.
+- [x] The licence import stops passing `club_id` and passes the three categories it already validates.
+- [x] Test suite `backend/tests/application/use_cases/license/test_create_license_use_case.py`:
   - `test_a_licence_is_created_with_its_categories`
   - `test_a_licence_without_categories_defaults_to_kyu_adult`
-- [ ] Test suite `backend/tests/api/test_licenses_create.py`:
+- [x] Test suite `backend/tests/api/test_licenses_create.py`:
   - `test_a_super_admin_creates_a_licence_with_its_categories`
   - `test_a_club_admin_cannot_create_a_licence`
   - `test_a_licence_import_row_stores_its_categories`
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases are implemented; next is review, QA and merge.
 
-Licences back on the mat thanks to 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Licences back on the mat, belts in the right colour 🥋 ← 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
