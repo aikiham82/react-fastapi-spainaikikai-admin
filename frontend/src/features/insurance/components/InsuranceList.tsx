@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
-import type { Insurance } from '../data/schemas/insurance.schema';
+import type { Insurance, InsuranceType } from '../data/schemas/insurance.schema';
 import { Shield, Plus, Search, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ const INSURANCE_TYPE_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   active: 'Activa',
   expired: 'Expirada',
+  cancelled: 'Anulada',
 };
 
 export const InsuranceList = () => {
@@ -48,7 +49,7 @@ export const InsuranceList = () => {
 
   const handleFilterInsuranceType = (value: string) => {
     setInsuranceTypeFilter(value);
-    setFilters({ ...filters, insurance_type: value === 'all' ? undefined : (value as 'accident' | 'rc'), offset: 0 });
+    setFilters({ ...filters, insurance_type: value === 'all' ? undefined : (value as InsuranceType), offset: 0 });
   };
 
   const handleFilterStatus = (value: string) => {
@@ -129,7 +130,7 @@ export const InsuranceList = () => {
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="accident">Seguro Accidentes</SelectItem>
-              <SelectItem value="rc">Seguro RC</SelectItem>
+              <SelectItem value="civil_liability">Seguro RC</SelectItem>
             </SelectContent>
           </Select>
 

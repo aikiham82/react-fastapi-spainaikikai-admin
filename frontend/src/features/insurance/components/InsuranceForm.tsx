@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
-import type { Insurance, CreateInsuranceRequest } from '../data/schemas/insurance.schema';
+import type { Insurance, CreateInsuranceRequest, InsuranceType } from '../data/schemas/insurance.schema';
+import { usePermissions } from '@/core/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { AnnulmentPanel } from '@/core/components/AnnulmentPanel';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +32,7 @@ interface InsuranceFormProps {
 
 export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [] }: InsuranceFormProps) => {
   const { createInsurance, updateInsurance } = useInsuranceContext();
+  const { isAssociationAdmin } = usePermissions();
   const isEditing = !!insurance;
 
   const [formData, setFormData] = useState<CreateInsuranceRequest>({
@@ -105,11 +108,24 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
     }
 
     if (isEditing && insurance) {
-      updateInsurance(insurance.id, formData);
+      updateInsurance(insurance.id, {
+        insurance_type: formData.insurance_type,
+        insurance_company: formData.insurance_company,
+        policy_number: formData.policy_number,
+        coverage_amount: formData.coverage_amount,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+      });
     } else {
       createInsurance(formData);
     }
 
+    onOpenChange(false);
+  };
+
+  const setAnnulled = (annulled: boolean) => {
+    if (!insurance) return;
+    updateInsurance(insurance.id, { annulled });
     onOpenChange(false);
   };
 
@@ -122,7 +138,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Seguro' : 'Crear Seguro'}</DialogTitle>
           <DialogDescription>
@@ -134,6 +150,8 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
           <div className="space-y-2">
             <Label htmlFor="member_id">Miembro *</Label>
             <SearchableSelect
+              id="member_id"
+              disabled={isEditing}
               options={memberOptions.map((m) => ({ value: m.id, label: m.name }))}
               value={formData.member_id ?? ''}
               onValueChange={(value) => handleChange('member_id', value)}
@@ -150,14 +168,14 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
               <Label htmlFor="insurance_type">Tipo de Seguro *</Label>
               <Select
                 value={formData.insurance_type}
-                onValueChange={(value: 'accident' | 'rc') => handleChange('insurance_type', value)}
+                onValueChange={(value: InsuranceType) => handleChange('insurance_type', value)}
               >
-                <SelectTrigger className={errors.insurance_type ? 'border-red-500' : ''}>
+                <SelectTrigger id="insurance_type" className={`w-full ${errors.insurance_type ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Selecciona el tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="accident">Seguro de Accidentes</SelectItem>
-                  <SelectItem value="rc">Seguro de Responsabilidad Civil</SelectItem>
+                  <SelectItem value="civil_liability">Seguro de Responsabilidad Civil</SelectItem>
                 </SelectContent>
               </Select>
               {errors.insurance_type && <p className="text-sm text-red-500">{errors.insurance_type}</p>}
@@ -226,6 +244,19 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
               {errors.end_date && <p className="text-sm text-red-500">{errors.end_date}</p>}
             </div>
           </div>
+
+          {isEditing && insurance && isAssociationAdmin() && (
+            <AnnulmentPanel
+              annulled={insurance.status === 'cancelled'}
+              annulledText="Anulado: no cuenta como vigente aunque sus fechas lo sean."
+              activeText="No anulado: vigente o caducado según sus fechas."
+              confirmTitle="¿Anular el seguro?"
+              confirmText="Se guarda al momento y deja de contar como vigente. Lo que hayas cambiado en el formulario sin guardar se pierde."
+              annulLabel="Anular seguro"
+              reactivateLabel="Reactivar seguro"
+              onToggle={setAnnulled}
+            />
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

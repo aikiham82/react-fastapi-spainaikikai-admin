@@ -8,7 +8,6 @@ from src.domain.entities.license import (
 )
 from src.infrastructure.web.dto.license_dto import (
     LicenseCreate,
-    LicenseUpdate,
     LicenseRenewRequest,
     LicenseResponse
 )
@@ -77,24 +76,6 @@ class LicenseMapper:
             age_category=entity.age_category.value,
             last_payment_id=entity.last_payment_id
         )
-
-    @staticmethod
-    def update_entity_from_dto(entity: License, dto: LicenseUpdate) -> License:
-        """Update entity fields from Update DTO."""
-        if dto.grade is not None:
-            entity.update_grade(dto.grade)
-        if dto.expiration_date is not None:
-            entity.renew(dto.expiration_date)
-        # Update category fields
-        technical_grade = TechnicalGrade(dto.technical_grade) if dto.technical_grade else None
-        instructor_category = InstructorCategory(dto.instructor_category) if dto.instructor_category else None
-        age_category = AgeCategory(dto.age_category) if dto.age_category else None
-        entity.update_categories(
-            technical_grade=technical_grade,
-            instructor_category=instructor_category,
-            age_category=age_category
-        )
-        return entity
 
     @staticmethod
     def renew_from_dto(entity: License, dto: LicenseRenewRequest) -> License:

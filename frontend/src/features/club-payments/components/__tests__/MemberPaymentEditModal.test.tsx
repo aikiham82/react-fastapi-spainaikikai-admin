@@ -34,8 +34,6 @@ const defaultProps = {
   isOpen: true,
   onClose: vi.fn(),
   memberPayment: mockMemberPayment,
-  clubId: 'club-001',
-  paymentYear: 2024,
 }
 
 describe('MemberPaymentEditModal', () => {
@@ -140,6 +138,19 @@ describe('MemberPaymentEditModal', () => {
             status: 'pending',
           }),
         })
+      )
+    })
+
+    it('moves the payment line to another year', async () => {
+      renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
+
+      const yearInput = screen.getByLabelText('Año')
+      await user.clear(yearInput)
+      await user.type(yearInput, '2025')
+      await user.click(screen.getByRole('button', { name: /guardar/i }))
+
+      expect(mockUpdateMemberPayment).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ payment_year: 2025 }) })
       )
     })
   })

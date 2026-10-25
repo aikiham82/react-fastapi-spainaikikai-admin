@@ -1,19 +1,23 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { paymentAdminService } from '../../data/services/payment-admin.service';
 import { clubPaymentsKeys } from '../queries/useClubPaymentsQueries';
+import { memberPaymentKeys } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries';
+
+const invalidatePayments = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.all });
+  queryClient.invalidateQueries({ queryKey: memberPaymentKeys.all });
+};
 
 // ─── Register Manual Payment ───────────────────────────────────────────────
-export const useRegisterManualPaymentMutation = (clubId: string, year: number) => {
+export const useRegisterManualPaymentMutation = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: paymentAdminService.registerManualPayment,
     onSuccess: () => {
       toast.success('Pago registrado correctamente');
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
+      invalidatePayments(queryClient);
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al registrar el pago');
@@ -29,7 +33,7 @@ export const useRegisterManualPaymentMutation = (clubId: string, year: number) =
 };
 
 // ─── Update Payment ────────────────────────────────────────────────────────
-export const useUpdatePaymentMutation = (clubId: string, year: number) => {
+export const useUpdatePaymentMutation = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -37,9 +41,7 @@ export const useUpdatePaymentMutation = (clubId: string, year: number) => {
       paymentAdminService.updatePayment(id, data),
     onSuccess: () => {
       toast.success('Pago actualizado correctamente');
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
+      invalidatePayments(queryClient);
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al actualizar el pago');
@@ -55,7 +57,7 @@ export const useUpdatePaymentMutation = (clubId: string, year: number) => {
 };
 
 // ─── Delete Payment ────────────────────────────────────────────────────────
-export const useDeletePaymentMutation = (clubId: string, year: number) => {
+export const useDeletePaymentMutation = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -63,9 +65,7 @@ export const useDeletePaymentMutation = (clubId: string, year: number) => {
       paymentAdminService.deletePayment(id, force),
     onSuccess: () => {
       toast.success('Pago eliminado correctamente');
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
+      invalidatePayments(queryClient);
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al eliminar el pago');
@@ -81,7 +81,7 @@ export const useDeletePaymentMutation = (clubId: string, year: number) => {
 };
 
 // ─── Update MemberPayment line ─────────────────────────────────────────────
-export const useUpdateMemberPaymentMutation = (clubId: string, year: number) => {
+export const useUpdateMemberPaymentMutation = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -89,9 +89,7 @@ export const useUpdateMemberPaymentMutation = (clubId: string, year: number) => 
       paymentAdminService.updateMemberPayment(id, data),
     onSuccess: () => {
       toast.success('Línea de pago actualizada correctamente');
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
+      invalidatePayments(queryClient);
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al actualizar la línea de pago');
@@ -107,16 +105,14 @@ export const useUpdateMemberPaymentMutation = (clubId: string, year: number) => 
 };
 
 // ─── Delete MemberPayment line ─────────────────────────────────────────────
-export const useDeleteMemberPaymentMutation = (clubId: string, year: number) => {
+export const useDeleteMemberPaymentMutation = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (id: string) => paymentAdminService.deleteMemberPayment(id),
     onSuccess: () => {
       toast.success('Línea de pago eliminada correctamente');
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubDetail(clubId, year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.allClubsSummary(year) });
-      queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.clubMemberPayments(clubId, year) });
+      invalidatePayments(queryClient);
     },
     onError: (error: { detail?: string; message?: string }) => {
       toast.error(error.detail || 'Error al eliminar la línea de pago');

@@ -114,7 +114,7 @@ describe('TransactionsSection — gap coverage', () => {
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
       // getStatusLabel returns raw status when not in MEMBER_PAYMENT_STATUS map
-      expect(screen.getByText('unknown_xyz')).toBeInTheDocument()
+      expect(screen.getAllByText('unknown_xyz')[0]).toBeInTheDocument()
     })
   })
 
@@ -132,7 +132,7 @@ describe('TransactionsSection — gap coverage', () => {
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
       // getPaymentTypeLabel returns raw type when not in MEMBER_PAYMENT_TYPES map
-      expect(screen.getByText('custom_type_xyz')).toBeInTheDocument()
+      expect(screen.getAllByText('custom_type_xyz')[0]).toBeInTheDocument()
     })
   })
 })

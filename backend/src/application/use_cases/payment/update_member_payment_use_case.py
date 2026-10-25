@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentType, MemberPaymentStatus
+from src.domain.exceptions.base import BusinessRuleViolationError
 from src.domain.exceptions.payment import MemberPaymentNotFoundError, InvalidPaymentDataError
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
@@ -30,16 +31,28 @@ class UpdateMemberPaymentUseCase:
         concept: Optional[str] = None,
         amount: Optional[float] = None,
         status: Optional[str] = None,
+        payment_year: Optional[int] = None,
     ) -> MemberPayment:
         mp = await self.member_payment_repository.find_by_id(member_payment_id)
         if not mp:
             raise MemberPaymentNotFoundError(member_payment_id)
 
+        target_type = mp.payment_type
         if payment_type is not None:
             try:
-                mp.payment_type = MemberPaymentType(payment_type)
+                target_type = MemberPaymentType(payment_type)
             except ValueError:
                 raise InvalidPaymentDataError(f"Tipo de pago inválido: {payment_type}")
+        target_year = payment_year if payment_year is not None else mp.payment_year
+        if (target_type, target_year) != (mp.payment_type, mp.payment_year):
+            if await self.member_payment_repository.exists_for_member_year_type(
+                mp.member_id, target_year, target_type
+            ):
+                raise BusinessRuleViolationError(
+                    f"Este miembro ya tiene {target_type.value} en {target_year}"
+                )
+        mp.payment_type = target_type
+        mp.payment_year = target_year
         if concept is not None:
             mp.concept = concept
         if amount is not None:

@@ -122,14 +122,13 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
       return;
     }
 
+    const close = () => onOpenChange(false);
     if (isEditing && member) {
       const { registration_date, ...rest } = formData;
-      updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData);
+      updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData, close);
     } else {
-      createMember(formData);
+      createMember(formData, close);
     }
-
-    onOpenChange(false);
   };
 
   const handleChange = (field: keyof CreateMemberRequest, value: string) => {

@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -16,10 +14,8 @@ import { useDeleteMemberPaymentMutation } from '../hooks/mutations/usePaymentAdm
 import { MemberPaymentEditModal } from './MemberPaymentEditModal'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
-import {
-  MEMBER_PAYMENT_TYPES,
-  MEMBER_PAYMENT_STATUS,
-} from '@/features/member-payments/data/schemas/member-payment.schema'
+import { formatCurrency, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
+import { LineActions } from './LineActions'
 
 // NOTE ON REDSYS HANDLING:
 // MemberPayment does NOT have a payment_method field — that field belongs to the
@@ -28,15 +24,6 @@ import {
 // for all rows. The backend enforces any business rules around Redsys payments.
 // If in the future the backend exposes payment_method per line, this component
 // should add requiresForce=true logic for Redsys COMPLETED rows.
-
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
-
-const getPaymentTypeLabel = (paymentType: string): string =>
-  MEMBER_PAYMENT_TYPES[paymentType as keyof typeof MEMBER_PAYMENT_TYPES] ?? paymentType
-
-const getStatusLabel = (status: string): string =>
-  MEMBER_PAYMENT_STATUS[status as keyof typeof MEMBER_PAYMENT_STATUS] ?? status
 
 const getStatusVariant = (
   status: string
@@ -57,10 +44,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
 
   const { data: memberPayments, isLoading } = useClubMemberPaymentsQuery(clubId, paymentYear)
 
-  const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation(
-    clubId,
-    paymentYear
-  )
+  const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation()
 
   const handleConfirmDelete = () => {
     if (deletingItem) {
@@ -92,7 +76,25 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
   // ─── Data table ─────────────────────────────────────────────────────────
   return (
     <>
-      <div className="rounded-md border">
+      <ul className="space-y-2 md:hidden">
+        {memberPayments.map((mp) => (
+          <li key={mp.id} className="rounded-md border p-3 space-y-2">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
+                <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
+              </div>
+              <div className="text-right space-y-1">
+                <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
+                <Badge variant={getStatusVariant(mp.status)}>{getStatusLabel(mp.status)}</Badge>
+              </div>
+            </div>
+            <LineActions onEdit={() => setEditingItem(mp)} onDelete={() => setDeletingItem(mp)} />
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -121,25 +123,10 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Editar"
-                      onClick={() => setEditingItem(mp)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Eliminar"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => setDeletingItem(mp)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <LineActions
+                    onEdit={() => setEditingItem(mp)}
+                    onDelete={() => setDeletingItem(mp)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -153,8 +140,6 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
           isOpen={!!editingItem}
           onClose={() => setEditingItem(null)}
           memberPayment={editingItem}
-          clubId={clubId}
-          paymentYear={paymentYear}
         />
       )}
 

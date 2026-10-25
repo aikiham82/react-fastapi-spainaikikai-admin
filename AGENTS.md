@@ -55,7 +55,8 @@ docs/
 │   ├── backend.md
 │   ├── excel-import-cells-are-text.md
 │   ├── frontend.md
-│   └── select-all-option.md
+│   ├── select-all-option.md
+│   └── update-use-cases-take-named-fields.md
 ├── dev-tooling/
 │   ├── development-commands.md
 │   ├── github-account.md
@@ -67,7 +68,8 @@ docs/
 │   ├── member-join-date.md
 │   ├── payment-cycles.md
 │   ├── roles-and-permissions.md
-│   └── unique-optional-fields.md
+│   ├── unique-optional-fields.md
+│   └── validity-follows-dates.md
 ├── git/
 │   ├── commit-messages.md
 │   └── integrating-a-finished-branch.md

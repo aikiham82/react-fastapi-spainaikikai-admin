@@ -1,16 +1,18 @@
+export type InsuranceType = 'accident' | 'civil_liability';
+
 export interface Insurance {
   id: string;
   member_id?: string;
   club_id?: string;
   member_name?: string;
-  insurance_type: 'accident' | 'rc';
+  insurance_type: InsuranceType;
   policy_number: string;
   insurance_company: string;
   coverage_amount?: number;
   payment_id?: string;
   start_date: string;
   end_date: string;
-  status: 'active' | 'expired';
+  status: 'active' | 'expired' | 'pending' | 'cancelled';
   documents?: string;
   created_at: string;
   updated_at: string;
@@ -19,7 +21,7 @@ export interface Insurance {
 export interface CreateInsuranceRequest {
   member_id?: string;
   club_id?: string;
-  insurance_type: 'accident' | 'rc';
+  insurance_type: InsuranceType;
   policy_number: string;
   insurance_company: string;
   coverage_amount?: number;
@@ -28,11 +30,19 @@ export interface CreateInsuranceRequest {
   end_date: string;
 }
 
-export type UpdateInsuranceRequest = Partial<CreateInsuranceRequest>
+export interface UpdateInsuranceRequest {
+  insurance_type?: InsuranceType;
+  policy_number?: string;
+  insurance_company?: string;
+  coverage_amount?: number;
+  start_date?: string;
+  end_date?: string;
+  annulled?: boolean;
+}
 
 export interface InsuranceFilters {
   member_id?: string;
-  insurance_type?: 'accident' | 'rc';
+  insurance_type?: InsuranceType;
   status?: 'active' | 'expired';
   date_from?: string;
   date_to?: string;

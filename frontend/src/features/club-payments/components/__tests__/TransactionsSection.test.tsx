@@ -118,7 +118,7 @@ describe('TransactionsSection', () => {
 
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
-      expect(screen.getByText('Roco Prieto Jurado')).toBeInTheDocument()
+      expect(screen.getAllByText('Roco Prieto Jurado')[0]).toBeInTheDocument()
       expect(screen.queryByText('mem-001')).not.toBeInTheDocument()
     })
 
@@ -137,7 +137,7 @@ describe('TransactionsSection', () => {
 
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
-      expect(screen.getByText('mem-001')).toBeInTheDocument()
+      expect(screen.getAllByText('mem-001')[0]).toBeInTheDocument()
     })
   })
 
@@ -157,7 +157,7 @@ describe('TransactionsSection', () => {
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
       // Click the edit button (aria-label contains "editar" or the pencil button)
-      const editBtn = screen.getByRole('button', { name: /editar/i })
+      const editBtn = screen.getAllByRole('button', { name: /editar/i })[0]
       await user.click(editBtn)
 
       // MemberPaymentEditModal renders with its dialog title
@@ -183,7 +183,7 @@ describe('TransactionsSection', () => {
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
       // Click the delete button
-      const deleteBtn = screen.getByRole('button', { name: /eliminar/i })
+      const deleteBtn = screen.getAllByRole('button', { name: /eliminar/i })[0]
       await user.click(deleteBtn)
 
       // ConfirmDeleteDialog (AlertDialog) renders
@@ -226,7 +226,7 @@ describe('TransactionsSection', () => {
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
       // 1. Open the ConfirmDeleteDialog
-      const deleteBtn = screen.getByRole('button', { name: /eliminar/i })
+      const deleteBtn = screen.getAllByRole('button', { name: /eliminar/i })[0]
       await user.click(deleteBtn)
 
       await waitFor(() => {

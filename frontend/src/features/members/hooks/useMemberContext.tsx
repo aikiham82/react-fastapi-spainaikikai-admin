@@ -13,8 +13,8 @@ interface MemberContextType {
   total: number;
   offset: number;
   limit: number;
-  createMember: (data: CreateMemberRequest) => void;
-  updateMember: (id: string, data: UpdateMemberRequest) => void;
+  createMember: (data: CreateMemberRequest, onSaved?: () => void) => void;
+  updateMember: (id: string, data: UpdateMemberRequest, onSaved?: () => void) => void;
   deleteMember: (id: string) => void;
   changeMemberStatus: (id: string, status: 'active' | 'inactive') => void;
   selectMember: (member: Member | null) => void;
@@ -33,12 +33,12 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const deleteMutation = useDeleteMemberMutation();
   const changeStatusMutation = useChangeMemberStatusMutation();
 
-  const handleCreateMember = useCallback((data: CreateMemberRequest) => {
-    createMutation.mutate(data);
+  const handleCreateMember = useCallback((data: CreateMemberRequest, onSaved?: () => void) => {
+    createMutation.mutate(data, { onSuccess: onSaved });
   }, [createMutation]);
 
-  const handleUpdateMember = useCallback((id: string, data: UpdateMemberRequest) => {
-    updateMutation.mutate({ id, data });
+  const handleUpdateMember = useCallback((id: string, data: UpdateMemberRequest, onSaved?: () => void) => {
+    updateMutation.mutate({ id, data }, { onSuccess: onSaved });
   }, [updateMutation]);
 
   const handleDeleteMember = useCallback((id: string) => {
