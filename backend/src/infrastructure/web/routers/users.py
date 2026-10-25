@@ -193,7 +193,9 @@ async def _require_account_in_callers_club(ctx: AuthContext, user_id: str, user_
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
     _refuse_the_super_admin_account(ctx, user)
     member = await member_repository.find_by_id(user.member_id) if user.member_id else None
-    require_club_access(ctx, member.club_id if member else None, NO_ACCESS_TO_ACCOUNT)
+    if member is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NO_ACCESS_TO_ACCOUNT)
+    require_club_access(ctx, member.club_id, NO_ACCESS_TO_ACCOUNT)
     if member.is_club_admin and user.id != ctx.user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No puedes gestionar la cuenta de otro responsable")
 

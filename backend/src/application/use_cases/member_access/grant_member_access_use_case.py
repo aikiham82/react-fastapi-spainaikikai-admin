@@ -76,6 +76,7 @@ class GrantMemberAccessUseCase:
             member.promote_to_admin()
             await self.member_repository.update(member)
 
+        await self.token_repository.invalidate_user_tokens(user.id)
         token = await self.token_repository.create(PasswordResetToken(user_id=user.id, email=user.email))
         url = f"{self.frontend_base_url}/reset-password?token={token.token}"
         logger.info(f"User {issued_by or 'unknown'} gave web access to member {member_id}")

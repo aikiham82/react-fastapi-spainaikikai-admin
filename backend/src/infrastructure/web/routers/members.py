@@ -57,6 +57,13 @@ def _require_access_to_club(ctx: AuthContext, club_id: Optional[str]) -> None:
     require_club_access(ctx, club_id, "No tienes acceso a este miembro")
 
 
+async def _load_member_in_callers_club(ctx: AuthContext, member_id: str, get_member_use_case_instance):
+    require_club_admin_ctx(ctx)
+    member = await get_member_use_case_instance.execute(member_id)
+    _require_access_to_club(ctx, member.club_id)
+    return member
+
+
 def _pick_primary_license(licenses: List[License]) -> Optional[License]:
     """Select the most relevant license: prefer active with latest expiry, fallback to most recent."""
     if not licenses:
@@ -362,9 +369,7 @@ async def grant_member_access(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Give a member of the caller's club their own login to the admin web."""
-    require_club_admin_ctx(ctx)
-    existing_member = await get_member_use_case_instance.execute(member_id)
-    _require_access_to_club(ctx, existing_member.club_id)
+    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
 
     try:
         link = await grant_use_case.execute(
@@ -395,9 +400,7 @@ async def set_member_club_role(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Make a member of the caller's club a club admin, or take the role away."""
-    require_club_admin_ctx(ctx)
-    existing_member = await get_member_use_case_instance.execute(member_id)
-    _require_access_to_club(ctx, existing_member.club_id)
+    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
 
     try:
         member = await set_role_use_case.execute(
@@ -419,9 +422,7 @@ async def revoke_member_access(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Switch off the account a member of the caller's club signs in with."""
-    require_club_admin_ctx(ctx)
-    existing_member = await get_member_use_case_instance.execute(member_id)
-    _require_access_to_club(ctx, existing_member.club_id)
+    await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
 
     try:
         await revoke_use_case.execute(member_id, revoked_by_member_id=ctx.member_id)
