@@ -25,7 +25,8 @@ from src.infrastructure.web.dependencies import (
 from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
-    require_club_admin_ctx
+    require_club_admin_ctx,
+    require_super_admin,
 )
 from src.infrastructure.database import get_database
 
@@ -181,8 +182,10 @@ async def update_insurance(
     get_insurance_use_case_instance = Depends(get_insurance_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Update insurance."""
+    """Update insurance. Only a super admin annuls or reactivates one."""
     require_club_admin_ctx(ctx)
+    if insurance_data.annulled is not None:
+        require_super_admin(ctx)
     existing_insurance = await get_insurance_use_case_instance.execute(insurance_id)
     await _require_access_to_member(ctx, existing_insurance.member_id)
 

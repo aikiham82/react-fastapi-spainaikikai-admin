@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T20:00:00Z"
+last_implementation_at: "2026-10-25T20:30:00Z"
 has_completed_all_phases: "false"
 ---
 
@@ -58,13 +58,13 @@ The federation's super admin can change any licence, insurance, member payment a
 
 ### Phase 2: insurances are really edited
 
-- [ ] `InsuranceUpdate`: `insurance_type`, `insurance_company`, `policy_number`, `start_date`, `end_date`, `coverage_amount`, `annulled: Optional[bool]` (annulling is super admin only, 403 otherwise).
-- [ ] `UpdateInsuranceUseCase`: stores them with the entity's date checks; status `cancelled` when annulled, otherwise `active` (effective status follows `end_date`).
-- [ ] `InsuranceForm`: what it shows is what it saves; "Anular seguro" / "Reactivar seguro" for super admin; list badge "Anulado".
-- [ ] Tests `backend/tests/api/test_insurances_update.py`: `test_an_insurance_edit_stores_type_company_and_policy`, `test_moving_an_expired_insurance_forward_puts_it_in_force`, `test_an_annulled_insurance_stays_annulled_with_future_dates`, `test_a_reactivated_insurance_follows_its_dates`, `test_a_club_admin_cannot_annul_an_insurance`.
-- [ ] Tests `frontend/src/features/insurance/components/__tests__/InsuranceForm.test.tsx`: `edits type company and policy`, `annuls and reactivates an insurance`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `InsuranceUpdate`: `insurance_type`, `insurance_company`, `policy_number`, `start_date`, `end_date`, `coverage_amount`, `annulled: Optional[bool]` (annulling is super admin only, 403 otherwise).
+- [x] `UpdateInsuranceUseCase`: stores them with the entity's date checks; status `cancelled` when annulled, otherwise `active` (effective status follows `end_date`).
+- [x] `InsuranceForm`: what it shows is what it saves; "Anular seguro" / "Reactivar seguro" for super admin; list badge "Anulado".
+- [x] Tests `backend/tests/api/test_insurances_update.py`: `test_an_insurance_edit_stores_type_company_and_policy`, `test_moving_an_expired_insurance_forward_puts_it_in_force`, `test_an_annulled_insurance_stays_annulled_with_future_dates`, `test_a_reactivated_insurance_follows_its_dates`, `test_a_club_admin_cannot_annul_an_insurance`.
+- [x] Tests `frontend/src/features/insurance/components/__tests__/InsuranceForm.test.tsx`: `edits type company and policy`, `annuls and reactivates an insurance`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: a member's payments are edited from the member
 
@@ -85,6 +85,6 @@ The federation's super admin can change any licence, insurance, member payment a
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
-Licences tamed, insurances next 🪪 → 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Licences and insurances tamed, payments next 🪪 🛡️ → 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

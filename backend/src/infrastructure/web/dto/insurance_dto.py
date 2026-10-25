@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+from src.domain.entities.insurance import InsuranceType
+
 
 class InsuranceBase(BaseModel):
     """Base Insurance DTO.
@@ -26,10 +28,13 @@ class InsuranceCreate(InsuranceBase):
 
 class InsuranceUpdate(BaseModel):
     """DTO for updating an insurance."""
+    insurance_type: Optional[InsuranceType] = None
+    insurance_company: Optional[str] = None
+    policy_number: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     coverage_amount: Optional[float] = None
-    status: Optional[str] = None
+    annulled: Optional[bool] = None
 
 
 class InsuranceResponse(InsuranceBase):
