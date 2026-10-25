@@ -7,11 +7,15 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { useUserByMemberQuery } from '../hooks/queries/useUserByMemberQuery';
 import { useGeneratePasswordResetLinkMutation } from '../hooks/mutations/useGeneratePasswordResetLinkMutation';
 import { useUpdateUserEmailMutation } from '../hooks/mutations/useUpdateUserEmailMutation';
+import type { ClubRole } from '@/features/auth/data/auth.schema';
 import { GrantMemberAccessForm } from './GrantMemberAccessForm';
+import { AccountManagerControls } from './AccountManagerControls';
 
 interface MemberAccessAccountProps {
   memberId: string;
   memberEmail?: string;
+  memberName?: string;
+  memberClubRole?: ClubRole;
 }
 
 const formatExpiry = (isoDate: string): string => {
@@ -29,7 +33,12 @@ const formatExpiry = (isoDate: string): string => {
   });
 };
 
-export const MemberAccessAccount = ({ memberId, memberEmail }: MemberAccessAccountProps) => {
+export const MemberAccessAccount = ({
+  memberId,
+  memberEmail,
+  memberName = '',
+  memberClubRole,
+}: MemberAccessAccountProps) => {
   const { isAssociationAdmin, isClubAdmin } = usePermissions();
   const managesAccounts = isAssociationAdmin() || isClubAdmin();
 
@@ -106,7 +115,11 @@ export const MemberAccessAccount = ({ memberId, memberEmail }: MemberAccessAccou
         </p>
       )}
 
-      {account && (
+      {account && !account.is_active && (
+        <GrantMemberAccessForm memberId={memberId} memberEmail={account.email} />
+      )}
+
+      {account?.is_active && (
         <div className="space-y-3">
           {isEditing ? (
             <div className="space-y-2">
@@ -200,6 +213,10 @@ export const MemberAccessAccount = ({ memberId, memberEmail }: MemberAccessAccou
                 Al generar uno nuevo, el anterior deja de funcionar.
               </p>
             </div>
+          )}
+
+          {!isEditing && (
+            <AccountManagerControls memberId={memberId} memberName={memberName} clubRole={memberClubRole} />
           )}
         </div>
       )}

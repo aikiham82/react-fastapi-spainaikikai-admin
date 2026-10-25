@@ -1,7 +1,7 @@
 """Member DTOs for request/response validation."""
 
 from pydantic import AfterValidator, BaseModel, EmailStr, Field, field_validator
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Literal, Optional
 from datetime import datetime, timedelta
 
 from src.infrastructure.web.dto.naive_datetime import as_naive_utc
@@ -131,3 +131,8 @@ class GrantMemberAccessDTO(BaseModel):
     """Email the member will sign in with, and whether they manage the club."""
     email: EmailStr
     club_admin: bool = False
+
+
+class SetClubRoleDTO(BaseModel):
+    """Whether the member manages the club."""
+    club_role: Literal["admin", "member"]

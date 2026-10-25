@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "low"
 
 last_implementation_at: "2026-10-25T21:15:00Z"
-has_completed_all_phases: false
+has_completed_all_phases: true
 ---
 
 # Club admin manages member access
@@ -65,13 +65,13 @@ A club admin or the super admin opens a member without an account, types or conf
 
 ## Phase 3: Change who manages the club and remove access
 
-- [ ] Write failing tests for `SetMemberClubRoleUseCase.execute(member_id, club_role)`: promotes and demotes; refuses to demote the club's last admin.
-- [ ] Write failing tests for `RevokeMemberAccessUseCase.execute(member_id, revoked_by_member_id)`: deactivates the linked user, invalidates its tokens and demotes the member; refuses the caller's own member; refuses a super admin account. `GrantMemberAccessUseCase` reactivates an inactive linked account instead of answering 409.
-- [ ] Add `PATCH /api/v1/members/{member_id}/club-role` (`{ club_role: "admin" | "member" }`) and `DELETE /api/v1/members/{member_id}/account`, with the same guards as phase 1, and their router tests.
-- [ ] Frontend: in the account panel, a "Puede gestionar el club" switch and a "Quitar acceso" button with confirmation; tests.
-- [ ] Spanish copy: "Quitar acceso", "¿Quitar el acceso a {nombre}? No podrá entrar en la web.", "El club tiene que tener al menos un responsable".
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Write failing tests for `SetMemberClubRoleUseCase.execute(member_id, club_role)`: promotes and demotes; refuses to demote the club's last admin.
+- [x] Write failing tests for `RevokeMemberAccessUseCase.execute(member_id, revoked_by_member_id)`: deactivates the linked user, invalidates its tokens and demotes the member; refuses the caller's own member; refuses a super admin account. `GrantMemberAccessUseCase` reactivates an inactive linked account instead of answering 409.
+- [x] Add `PATCH /api/v1/members/{member_id}/club-role` (`{ club_role: "admin" | "member" }`) and `DELETE /api/v1/members/{member_id}/account`, with the same guards as phase 1, and their router tests.
+- [x] Frontend: in the account panel, a "Puede gestionar el club" switch and a "Quitar acceso" button with confirmation; tests.
+- [x] Spanish copy: "Quitar acceso", "¿Quitar el acceso a {nombre}? No podrá entrar en la web.", "El club tiene que tener al menos un responsable".
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Out of scope
 
@@ -79,6 +79,6 @@ A club admin or the super admin opens a member without an account, types or conf
 
 ## Next step
 
-Phase 3.
+All phases done.
 
-Plan powered by [Codely](https://codely.com) 🐢 🔑 🏯
+Plan powered by [Codely](https://codely.com) 🐢 🔑 🏯 🥋

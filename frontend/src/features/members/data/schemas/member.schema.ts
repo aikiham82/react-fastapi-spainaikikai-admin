@@ -31,6 +31,7 @@ export interface Member {
   license_status: 'active' | 'expired' | 'pending';
   club_id: string;
   club_name?: string;
+  club_role?: 'admin' | 'member';
   registration_date?: string | null;
   created_at: string;
   updated_at: string;

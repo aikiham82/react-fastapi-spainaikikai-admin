@@ -48,19 +48,27 @@ class GrantMemberAccessUseCase:
         if not member:
             raise MemberNotFoundError(member_id)
 
-        if await self.user_repository.find_by_member_id(member_id):
+        linked = await self.user_repository.find_by_member_id(member_id)
+        if linked and linked.is_active:
             raise UserAlreadyExistsError("This member already has an account")
 
         email = email.lower().strip()
-        if await self.user_repository.find_by_email(email):
+        holder = await self.user_repository.find_by_email(email)
+        if holder and (not linked or holder.id != linked.id):
             raise EmailAlreadyInUseError(email)
 
-        user = await self.user_repository.create(User(
-            email=email,
-            username=email,
-            hashed_password=self.hash_password(secrets.token_urlsafe(32)),
-            member_id=member_id,
-        ))
+        if linked:
+            linked.update_email(email)
+            linked.update_password(self.hash_password(secrets.token_urlsafe(32)))
+            linked.activate()
+            user = await self.user_repository.update(linked)
+        else:
+            user = await self.user_repository.create(User(
+                email=email,
+                username=email,
+                hashed_password=self.hash_password(secrets.token_urlsafe(32)),
+                member_id=member_id,
+            ))
 
         if make_club_admin:
             member.promote_to_admin()

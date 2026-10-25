@@ -120,6 +120,22 @@ describe('MemberAccessAccount', () => {
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
 
+  it('lets the admin change who manages the club and remove the access', () => {
+    renderWithProviders(<MemberAccessAccount memberId="member123" memberName="Ana Ejemplo" memberClubRole="admin" />)
+
+    expect(screen.getByRole('switch', { name: 'Puede gestionar el club (pagos, altas y consultas)' })).toBeChecked()
+    expect(screen.getByRole('button', { name: 'Quitar acceso' })).toBeInTheDocument()
+  })
+
+  it('offers to give access again when the account was switched off', () => {
+    mockQuery({ data: { ...account, is_active: false } })
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" />)
+
+    expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('jcarlosarevalo2@gmail.com')
+    expect(screen.queryByRole('button', { name: 'Quitar acceso' })).not.toBeInTheDocument()
+  })
+
   it('does not claim the member has no account when the lookup fails', () => {
     mockQuery({ data: undefined, isError: true, error: { status: 500 } })
 

@@ -33,3 +33,8 @@ class MemberHasActiveLicensesError(BusinessRuleViolationError):
 class InvalidClubForMemberError(BusinessRuleViolationError):
     """Raised when the specified club is invalid for the member."""
     pass
+
+
+class LastClubAdminError(BusinessRuleViolationError):
+    """Raised when a change would leave a club with nobody to manage it."""
+    pass

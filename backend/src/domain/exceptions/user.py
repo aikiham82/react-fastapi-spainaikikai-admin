@@ -37,3 +37,7 @@ class SuperAdminAlreadyExistsError(BusinessRuleViolationError):
 
     def __init__(self):
         super().__init__("Only one super admin is allowed in the system")
+
+class AccessChangeNotAllowedError(BusinessRuleViolationError):
+    """Raised when an account's access cannot be removed by this caller."""
+    pass

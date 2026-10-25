@@ -5,6 +5,7 @@ import {
   type PasswordResetLink,
   type UserAccount,
 } from '../schemas/user.schema';
+import type { ClubRole } from '@/features/auth/data/auth.schema';
 
 const BASE_URL = '/api/v1/users';
 
@@ -40,10 +41,20 @@ export const grantMemberAccess = async (
   return passwordResetLinkSchema.parse(response);
 };
 
+export const setMemberClubRole = async (memberId: string, clubRole: ClubRole): Promise<void> => {
+  await apiClient.patch<unknown>(`/api/v1/members/${memberId}/club-role`, { club_role: clubRole });
+};
+
+export const revokeMemberAccess = async (memberId: string): Promise<void> => {
+  await apiClient.delete<unknown>(`/api/v1/members/${memberId}/account`);
+};
+
 export const userService = {
   getUserAccounts,
   getUserByMember,
   generatePasswordResetLink,
   updateUserEmail,
   grantMemberAccess,
+  setMemberClubRole,
+  revokeMemberAccess,
 };

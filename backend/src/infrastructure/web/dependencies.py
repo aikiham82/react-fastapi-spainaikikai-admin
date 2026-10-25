@@ -103,7 +103,11 @@ from src.application.use_cases.invoice import (
     DownloadInvoicePDFUseCase,
     RegenerateInvoicePDFUseCase
 )
-from src.application.use_cases.member_access import GrantMemberAccessUseCase
+from src.application.use_cases.member_access import (
+    GrantMemberAccessUseCase,
+    RevokeMemberAccessUseCase,
+    SetMemberClubRoleUseCase,
+)
 from src.application.use_cases.password_reset import (
     RequestPasswordResetUseCase,
     ResetPasswordUseCase,
@@ -749,6 +753,22 @@ def get_grant_member_access_use_case() -> GrantMemberAccessUseCase:
         email_service=get_email_service(),
         hash_password=get_password_hash,
         frontend_base_url=get_app_settings().frontend_base_url
+    )
+
+
+@lru_cache()
+def get_set_member_club_role_use_case() -> SetMemberClubRoleUseCase:
+    """Get set member club role use case."""
+    return SetMemberClubRoleUseCase(member_repository=get_member_repository())
+
+
+@lru_cache()
+def get_revoke_member_access_use_case() -> RevokeMemberAccessUseCase:
+    """Get revoke member access use case."""
+    return RevokeMemberAccessUseCase(
+        member_repository=get_member_repository(),
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository(),
     )
 
 
