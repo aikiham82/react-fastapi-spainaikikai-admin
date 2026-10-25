@@ -670,7 +670,6 @@ async def import_licenses(
                 license_number=license_number,
                 member_id=member.id,
                 grade=grade,
-                license_type=technical_grade.lower(),
                 issue_date=issue_date,
                 expiration_date=expiration_date,
                 technical_grade=technical_grade.lower(),
