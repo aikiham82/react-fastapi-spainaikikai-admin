@@ -75,6 +75,19 @@ describe('LicenseForm', () => {
     })
   })
 
+  it('keeps a grade it cannot read when only the expiration changes', async () => {
+    renderWithProviders(
+      <LicenseForm open onOpenChange={vi.fn()} license={{ ...LICENCE, dan_grade: 0 }} memberOptions={MEMBERS} />,
+    )
+
+    const expiry = screen.getByLabelText('Fecha de Vencimiento *')
+    await userEvent.clear(expiry)
+    await userEvent.type(expiry, '2027-12-31')
+    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+
+    expect(updateLicense).toHaveBeenCalledWith('license-ana', expect.not.objectContaining({ grade: expect.anything() }))
+  })
+
   it('annuls and reactivates a licence', async () => {
     const { rerender } = renderWithProviders(
       <LicenseForm open onOpenChange={vi.fn()} license={LICENCE} memberOptions={MEMBERS} />,

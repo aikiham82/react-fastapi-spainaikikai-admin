@@ -6,6 +6,7 @@ from datetime import datetime
 import re
 
 from src.domain.entities.license import AgeCategory, InstructorCategory, LicenseType, TechnicalGrade
+from src.infrastructure.web.dto.naive_datetime import NaiveDatetime
 
 
 class LicenseBase(BaseModel):
@@ -43,8 +44,8 @@ class LicenseCreate(BaseModel):
 class LicenseUpdate(BaseModel):
     """DTO for updating a license."""
     grade: Optional[str] = None
-    issue_date: Optional[datetime] = None
-    expiration_date: Optional[datetime] = None
+    issue_date: Optional[NaiveDatetime] = None
+    expiration_date: Optional[NaiveDatetime] = None
     # Category fields (English names)
     technical_grade: Optional[TechnicalGrade] = None
     instructor_category: Optional[InstructorCategory] = None

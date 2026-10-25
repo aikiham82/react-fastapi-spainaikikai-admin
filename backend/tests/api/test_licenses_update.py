@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from unittest.mock import AsyncMock
 
 import pytest
-from fastapi import FastAPI, status
+from fastapi import status
 from fastapi.testclient import TestClient
 
 from src.application.use_cases.license.update_license_use_case import UpdateLicenseUseCase
@@ -17,7 +17,7 @@ from src.domain.entities.license import (
     TechnicalGrade,
 )
 from src.infrastructure.web.dependencies import get_auth_context, get_update_license_use_case
-from src.infrastructure.web.routers.licenses import router
+from src.app import create_app
 from tests.api.callers import club_admin, super_admin
 
 pytestmark = [pytest.mark.api]
@@ -45,8 +45,7 @@ def client_as(stored):
         repository = AsyncMock()
         repository.find_by_id.side_effect = lambda _id: stored["licence"]
         repository.update.side_effect = lambda lic: stored.update(licence=lic) or lic
-        app = FastAPI()
-        app.include_router(router, prefix="/api/v1")
+        app = create_app()
         app.dependency_overrides = {
             get_auth_context: lambda: ctx,
             get_update_license_use_case: lambda: UpdateLicenseUseCase(repository),
@@ -125,3 +124,30 @@ async def test_the_licence_import_still_marks_a_licence_renewed(stored):
     )
 
     assert (updated.is_renewed, updated.technical_grade) == (True, TechnicalGrade.DAN)
+
+
+def test_a_timezone_aware_expiration_is_stored_naive(client_as, stored):
+    response = edit(client_as, {"expiration_date": "2027-12-31T22:59:59+00:00"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert stored["licence"].expiration_date == datetime(2027, 12, 31, 22, 59, 59)
+
+
+def test_an_empty_grade_is_rejected(client_as, stored):
+    response = edit(client_as, {"grade": " "})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_an_issue_date_after_the_expiration_is_rejected(client_as, stored):
+    response = edit(client_as, {"issue_date": "2027-06-01T00:00:00", "expiration_date": "2027-01-01T00:00:00"})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_editing_a_pending_licence_category_keeps_it_pending(client_as, stored):
+    stored["licence"] = licence(status=LicenseStatus.PENDING)
+
+    edit(client_as, {"age_category": "infantil"})
+
+    assert stored["licence"].status == LicenseStatus.PENDING

@@ -37,11 +37,22 @@ class UpdateMemberPaymentUseCase:
         if not mp:
             raise MemberPaymentNotFoundError(member_payment_id)
 
+        target_type = mp.payment_type
         if payment_type is not None:
             try:
-                mp.payment_type = MemberPaymentType(payment_type)
+                target_type = MemberPaymentType(payment_type)
             except ValueError:
                 raise InvalidPaymentDataError(f"Tipo de pago inválido: {payment_type}")
+        target_year = payment_year if payment_year is not None else mp.payment_year
+        if (target_type, target_year) != (mp.payment_type, mp.payment_year):
+            if await self.member_payment_repository.exists_for_member_year_type(
+                mp.member_id, target_year, target_type
+            ):
+                raise BusinessRuleViolationError(
+                    f"Este miembro ya tiene {target_type.value} en {target_year}"
+                )
+        mp.payment_type = target_type
+        mp.payment_year = target_year
         if concept is not None:
             mp.concept = concept
         if amount is not None:
@@ -53,15 +64,6 @@ class UpdateMemberPaymentUseCase:
                 mp.status = MemberPaymentStatus(status)
             except ValueError:
                 raise InvalidPaymentDataError(f"Estado inválido: {status}")
-
-        if payment_year is not None and payment_year != mp.payment_year:
-            if await self.member_payment_repository.exists_for_member_year_type(
-                mp.member_id, payment_year, mp.payment_type
-            ):
-                raise BusinessRuleViolationError(
-                    f"Este miembro ya tiene {mp.payment_type.value} en {payment_year}"
-                )
-            mp.payment_year = payment_year
 
         mp.updated_at = datetime.utcnow()
         updated_mp = await self.member_payment_repository.update(mp)

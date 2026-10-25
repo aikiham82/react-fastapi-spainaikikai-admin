@@ -37,7 +37,7 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
   const [deleting, setDeleting] = useState<MemberPayment | null>(null)
   const [isAdding, setIsAdding] = useState(false)
 
-  const { data } = useMemberPaymentHistoryQuery(memberId)
+  const { data } = useMemberPaymentHistoryQuery(memberId, 0, isAssociationAdmin())
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation()
 
   if (!isAssociationAdmin()) return null

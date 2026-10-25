@@ -147,6 +147,7 @@ class TestUpdateMemberPaymentUseCase:
         mock_repos["mp_repo"].find_by_id = AsyncMock(return_value=original)
         mock_repos["mp_repo"].update = AsyncMock(return_value=updated)
         mock_repos["mp_repo"].find_by_payment_id = AsyncMock(return_value=[updated])
+        mock_repos["mp_repo"].exists_for_member_year_type = AsyncMock(return_value=False)
         parent = _make_parent_payment("pay1")
         mock_repos["payment_repo"].find_by_id = AsyncMock(return_value=parent)
         mock_repos["payment_repo"].update = AsyncMock(return_value=parent)

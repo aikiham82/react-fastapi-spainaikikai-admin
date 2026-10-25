@@ -5,6 +5,7 @@ from typing import Optional
 from datetime import datetime
 
 from src.domain.entities.insurance import InsuranceType
+from src.infrastructure.web.dto.naive_datetime import NaiveDatetime
 
 
 class InsuranceBase(BaseModel):
@@ -31,8 +32,8 @@ class InsuranceUpdate(BaseModel):
     insurance_type: Optional[InsuranceType] = None
     insurance_company: Optional[str] = None
     policy_number: Optional[str] = None
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    start_date: Optional[NaiveDatetime] = None
+    end_date: Optional[NaiveDatetime] = None
     coverage_amount: Optional[float] = None
     annulled: Optional[bool] = None
 

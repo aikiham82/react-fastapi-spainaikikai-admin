@@ -113,3 +113,27 @@ def test_an_end_before_the_start_is_rejected(client_as, stored):
     response = edit(client_as, {"start_date": SEASON_2026_27[1].isoformat(), "end_date": SEASON_2026_27[0].isoformat()})
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+@pytest.mark.parametrize("field", ["policy_number", "insurance_company"])
+def test_an_empty_policy_or_company_is_rejected(client_as, stored, field):
+    response = edit(client_as, {field: "  "})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert getattr(stored["insurance"], field) != "  "
+
+
+def test_an_end_date_alone_is_stored_on_an_insurance_without_start(client_as, stored):
+    stored["insurance"] = insurance(start_date=None)
+
+    response = edit(client_as, {"end_date": SEASON_2026_27[1].isoformat()})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert stored["insurance"].end_date == SEASON_2026_27[1]
+
+
+def test_a_timezone_aware_end_date_is_stored_naive(client_as, stored):
+    response = edit(client_as, {"end_date": "2027-09-30T21:59:59+00:00"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert stored["insurance"].end_date == datetime(2027, 9, 30, 21, 59, 59)

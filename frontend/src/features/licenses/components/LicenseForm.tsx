@@ -97,10 +97,13 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
     }
 
     if (isEditing && license) {
+      const gradeChanged =
+        formData.dan_grade !== (license.dan_grade || 1) ||
+        formData.technical_grade !== (license.technical_grade || 'dan');
       updateLicense(license.id, {
         issue_date: formData.issue_date,
         expiration_date: formData.expiry_date,
-        grade: gradeLabel(formData.dan_grade, formData.technical_grade ?? 'dan'),
+        ...(gradeChanged && { grade: gradeLabel(formData.dan_grade, formData.technical_grade ?? 'dan') }),
         technical_grade: formData.technical_grade,
         instructor_category: formData.instructor_category,
         age_category: formData.age_category,

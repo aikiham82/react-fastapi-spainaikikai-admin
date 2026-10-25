@@ -10,6 +10,7 @@ from src.domain.entities.license import (
     LicenseStatus,
     TechnicalGrade,
 )
+from src.domain.exceptions.base import ValidationError
 from src.domain.exceptions.license import LicenseNotFoundError
 from src.application.ports.license_repository import LicenseRepositoryPort
 
@@ -38,7 +39,10 @@ class UpdateLicenseUseCase:
             raise LicenseNotFoundError(license_id)
 
         if grade is not None:
-            license.update_grade(grade)
+            try:
+                license.update_grade(grade)
+            except ValueError as error:
+                raise ValidationError(str(error)) from error
         if issue_date is not None:
             license.issue_date = issue_date
         if expiration_date is not None:
@@ -51,10 +55,12 @@ class UpdateLicenseUseCase:
             license.age_category = AgeCategory(age_category)
         if is_renewed is not None:
             license.is_renewed = is_renewed
+        if license.issue_date and license.expiration_date and license.issue_date > license.expiration_date:
+            raise ValidationError("La fecha de emisión debe ser anterior a la de vencimiento")
 
         if annulled:
             license.annul()
-        elif annulled is False or license.status != LicenseStatus.REVOKED:
+        elif annulled is False or (expiration_date is not None and license.status != LicenseStatus.REVOKED):
             license.follow_dates()
 
         return await self.license_repository.update(license)

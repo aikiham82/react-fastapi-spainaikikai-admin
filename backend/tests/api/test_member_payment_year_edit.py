@@ -69,3 +69,13 @@ def test_moving_a_member_payment_onto_a_paid_year_is_refused(client, repositorie
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()["detail"] == "Este miembro ya tiene seguro_accidentes en 2027"
     assert stored["line"].payment_year == 2026
+
+
+def test_changing_the_type_to_one_already_paid_that_year_is_refused(client, repositories):
+    stored, member_payments, _ = repositories
+    member_payments.exists_for_member_year_type.return_value = True
+
+    response = client.put("/api/v1/member-payments/mp-ana", json={"payment_type": "seguro_rc"})
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert stored["line"].payment_type == MemberPaymentType.SEGURO_ACCIDENTES

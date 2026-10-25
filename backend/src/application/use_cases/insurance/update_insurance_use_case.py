@@ -9,6 +9,12 @@ from src.domain.exceptions.insurance import InsuranceNotFoundError
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 
 
+def _required(value: str, field: str) -> str:
+    if not value.strip():
+        raise ValidationError(f"{field} no puede estar vacío")
+    return value.strip()
+
+
 class UpdateInsuranceUseCase:
     """Use case for updating an insurance."""
 
@@ -34,12 +40,16 @@ class UpdateInsuranceUseCase:
         if insurance_type is not None:
             insurance.insurance_type = InsuranceType(insurance_type)
         if insurance_company is not None:
-            insurance.insurance_company = insurance_company
+            insurance.insurance_company = _required(insurance_company, "La compañía")
         if policy_number is not None:
-            insurance.policy_number = policy_number
+            insurance.policy_number = _required(policy_number, "El número de póliza")
         try:
-            if start_date is not None or end_date is not None:
-                insurance.update_dates(start_date or insurance.start_date, end_date or insurance.end_date)
+            new_start = start_date or insurance.start_date
+            new_end = end_date or insurance.end_date
+            if new_start and new_end:
+                insurance.update_dates(new_start, new_end)
+            else:
+                insurance.start_date, insurance.end_date = new_start, new_end
             if coverage_amount is not None:
                 insurance.update_coverage(coverage_amount)
         except ValueError as error:
