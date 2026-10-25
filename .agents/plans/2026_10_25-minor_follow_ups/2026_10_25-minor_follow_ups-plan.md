@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-25T22:20:00Z"
+last_implementation_at: "2026-10-25T22:40:00Z"
 has_completed_all_phases: "false"
 ---
 
@@ -54,11 +54,11 @@ Licence lines: licencia_kyu, licencia_kyu_infantil, licencia_dan, titulo_fukushi
 
 ### Phase 2: Spanish duplicate message and dashboard licences per club
 
-- [ ] `PAYMENT_TYPE_LABELS` moves to `domain/entities/member_payment.py`; the 409 reads "Este miembro ya tiene Seguro de Accidentes en 2027".
-- [ ] Dashboard licence widgets filter by the club's member ids.
-- [ ] Tests: `test_the_duplicate_message_names_the_payment_type_in_spanish`; `test_a_club_admin_dashboard_counts_its_club_licences`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `PAYMENT_TYPE_LABELS` moves to `domain/entities/member_payment.py`; the 409 reads "Este miembro ya tiene Seguro de Accidentes en 2027".
+- [x] Dashboard licence widgets filter by the club's member ids.
+- [x] Tests: the duplicate message assertion in `test_member_payment_year_edit.py` now expects the Spanish label; `test_a_club_admin_dashboard_counts_its_club_licences`, `test_expired_licences_are_counted_by_their_date` (expired licences were counted by a stored status that production never sets).
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: a title counts as RC paid
 
@@ -76,6 +76,6 @@ Licence lines: licencia_kyu, licencia_kyu_infantil, licencia_dan, titulo_fukushi
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
-Pager counts, toasts say what happened 🧹 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Spanish on the outside, clubs counted right 🇪🇸 🧹 → 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

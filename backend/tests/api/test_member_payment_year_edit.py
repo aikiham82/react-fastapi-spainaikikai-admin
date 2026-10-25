@@ -67,7 +67,7 @@ def test_moving_a_member_payment_onto_a_paid_year_is_refused(client, repositorie
     response = client.put("/api/v1/member-payments/mp-ana", json={"payment_year": 2027})
 
     assert response.status_code == status.HTTP_409_CONFLICT
-    assert response.json()["detail"] == "Este miembro ya tiene seguro_accidentes en 2027"
+    assert response.json()["detail"] == "Este miembro ya tiene Seguro Accidentes en 2027"
     assert stored["line"].payment_year == 2026
 
 

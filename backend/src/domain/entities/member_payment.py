@@ -37,6 +37,17 @@ ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE = {
     "club_fee": MemberPaymentType.CUOTA_CLUB,
 }
 
+PAYMENT_TYPE_LABELS = {
+    "licencia_kyu": "Licencia KYU",
+    "licencia_kyu_infantil": "Licencia KYU Infantil",
+    "licencia_dan": "Licencia DAN",
+    "titulo_fukushidoin": "Título Fukushidoin",
+    "titulo_shidoin": "Título Shidoin",
+    "seguro_accidentes": "Seguro Accidentes",
+    "seguro_rc": "Seguro RC",
+    "cuota_club": "Cuota Club",
+}
+
 INSURANCE_PAYMENT_TYPES = frozenset({MemberPaymentType.SEGURO_ACCIDENTES, MemberPaymentType.SEGURO_RC})
 
 

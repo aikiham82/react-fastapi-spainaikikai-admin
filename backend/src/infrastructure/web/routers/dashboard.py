@@ -63,6 +63,12 @@ class DashboardData(BaseModel):
     recent_activity: List[RecentActivity]
 
 
+async def _club_license_filter(db, club_id: str) -> dict:
+    """A licence has no club: it belongs to the club of its member."""
+    member_ids = [str(member["_id"]) async for member in db["members"].find({"club_id": club_id}, {"_id": 1})]
+    return {"member_id": {"$in": member_ids}}
+
+
 @router.get("/stats", response_model=DashboardData)
 async def get_dashboard_stats(
     ctx: AuthContext = Depends(get_auth_context)
@@ -74,7 +80,7 @@ async def get_dashboard_stats(
     # Club-scoped filtering
     club_id = get_club_filter_ctx(ctx)
     member_filter = {"club_id": club_id} if club_id else {}
-    license_filter = {"club_id": club_id} if club_id else {}
+    license_filter = await _club_license_filter(db, club_id) if club_id else {}
     payment_filter = {"club_id": club_id} if club_id else {}
 
     # Get counts
@@ -117,7 +123,8 @@ async def get_dashboard_stats(
     # Expired licenses
     expired_licenses_count = await db["licenses"].count_documents({
         **license_filter,
-        "status": "expired"
+        "expiration_date": {"$lt": now},
+        "status": {"$ne": "revoked"}
     })
 
     stats = DashboardStats(

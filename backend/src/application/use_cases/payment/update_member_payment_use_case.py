@@ -3,7 +3,12 @@
 from datetime import datetime
 from typing import Optional
 
-from src.domain.entities.member_payment import MemberPayment, MemberPaymentType, MemberPaymentStatus
+from src.domain.entities.member_payment import (
+    PAYMENT_TYPE_LABELS,
+    MemberPayment,
+    MemberPaymentStatus,
+    MemberPaymentType,
+)
 from src.domain.exceptions.base import BusinessRuleViolationError
 from src.domain.exceptions.payment import MemberPaymentNotFoundError, InvalidPaymentDataError
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
@@ -49,7 +54,7 @@ class UpdateMemberPaymentUseCase:
                 mp.member_id, target_year, target_type
             ):
                 raise BusinessRuleViolationError(
-                    f"Este miembro ya tiene {target_type.value} en {target_year}"
+                    f"Este miembro ya tiene {PAYMENT_TYPE_LABELS[target_type.value]} en {target_year}"
                 )
         mp.payment_type = target_type
         mp.payment_year = target_year

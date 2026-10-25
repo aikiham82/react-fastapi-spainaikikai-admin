@@ -36,7 +36,12 @@ from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx, require_club_access
 from src.domain.entities.license import LicenseStatus, TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType, InsuranceStatus
-from src.domain.entities.member_payment import MemberPaymentType, MemberPaymentStatus, MemberPayment
+from src.domain.entities.member_payment import (
+    PAYMENT_TYPE_LABELS,
+    MemberPayment,
+    MemberPaymentStatus,
+    MemberPaymentType,
+)
 
 router = APIRouter(prefix="/import-export", tags=["import-export"])
 
@@ -836,18 +841,6 @@ async def import_insurances(
         errors=errors
     )
 
-
-# --- Payment type display labels ---
-PAYMENT_TYPE_LABELS = {
-    "licencia_kyu": "Licencia KYU",
-    "licencia_kyu_infantil": "Licencia KYU Infantil",
-    "licencia_dan": "Licencia DAN",
-    "titulo_fukushidoin": "Título Fukushidoin",
-    "titulo_shidoin": "Título Shidoin",
-    "seguro_accidentes": "Seguro Accidentes",
-    "seguro_rc": "Seguro RC",
-    "cuota_club": "Cuota Club",
-}
 
 PAYMENT_TYPE_FROM_LABEL = {v.lower(): k for k, v in PAYMENT_TYPE_LABELS.items()}
 PAYMENT_TYPE_FROM_LABEL.update({k: k for k in PAYMENT_TYPE_LABELS})
