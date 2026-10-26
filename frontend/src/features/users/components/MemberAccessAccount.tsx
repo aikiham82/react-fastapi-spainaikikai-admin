@@ -11,9 +11,11 @@ import { useUpdateUserEmailMutation } from '../hooks/mutations/useUpdateUserEmai
 import type { ClubRole } from '@/features/auth/data/auth.schema';
 import { GrantMemberAccessForm } from './GrantMemberAccessForm';
 import { AccountManagerControls } from './AccountManagerControls';
+import { TransferClubAccountButton } from './TransferClubAccountButton';
 
 interface MemberAccessAccountProps {
   memberId: string;
+  memberClubId?: string;
   memberEmail?: string;
   memberName?: string;
   memberClubRole?: ClubRole;
@@ -36,6 +38,7 @@ const formatExpiry = (isoDate: string): string => {
 
 export const MemberAccessAccount = ({
   memberId,
+  memberClubId,
   memberEmail,
   memberName = '',
   memberClubRole,
@@ -113,6 +116,10 @@ export const MemberAccessAccount = ({
       )}
 
       {isError && hasNoAccount && <GrantMemberAccessForm memberId={memberId} memberEmail={memberEmail} />}
+
+      {isError && hasNoAccount && isAssociationAdmin() && memberClubId && (
+        <TransferClubAccountButton clubId={memberClubId} memberId={memberId} memberName={memberName} />
+      )}
 
       {isError && !hasNoAccount && (
         <p role="status" aria-live="polite" className="text-sm text-muted-foreground">

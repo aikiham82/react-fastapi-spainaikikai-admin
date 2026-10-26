@@ -127,6 +127,26 @@ describe('MemberAccessAccount', () => {
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
 
+  it('offers a super admin to pass the club account to a member with no account', () => {
+    mockQuery({ data: undefined, isError: true, error: { status: 404 } })
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" memberClubId="club1" memberName="Ana Ejemplo" />)
+
+    expect(screen.getByRole('button', { name: 'Pasar la cuenta del club a esta persona' })).toBeInTheDocument()
+  })
+
+  it('does not offer a club admin to pass the club account', () => {
+    vi.mocked(usePermissions).mockReturnValue({
+      isAssociationAdmin: () => false,
+      isClubAdmin: () => true,
+    } as ReturnType<typeof usePermissions>)
+    mockQuery({ data: undefined, isError: true, error: { status: 404 } })
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" memberClubId="club1" memberName="Ana Ejemplo" />)
+
+    expect(screen.queryByRole('button', { name: 'Pasar la cuenta del club a esta persona' })).not.toBeInTheDocument()
+  })
+
   it('lets the admin change who manages the club and remove the access', () => {
     renderWithProviders(<MemberAccessAccount memberId="member123" memberName="Ana Ejemplo" memberClubRole="admin" />)
 

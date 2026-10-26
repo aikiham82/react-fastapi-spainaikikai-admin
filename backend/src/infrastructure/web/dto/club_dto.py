@@ -46,3 +46,8 @@ class ClubResponse(ClubBase):
 
     class Config:
         from_attributes = True
+
+
+class TransferClubAccountDTO(BaseModel):
+    """DTO for passing the club's shared account onto a member."""
+    member_id: str

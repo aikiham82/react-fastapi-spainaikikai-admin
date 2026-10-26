@@ -107,6 +107,7 @@ from src.application.use_cases.member_access import (
     GrantMemberAccessUseCase,
     RevokeMemberAccessUseCase,
     SetMemberClubRoleUseCase,
+    TransferClubAccountUseCase,
 )
 from src.application.use_cases.password_reset import (
     RequestPasswordResetUseCase,
@@ -756,6 +757,12 @@ def get_grant_member_access_use_case() -> GrantMemberAccessUseCase:
         hash_password=get_password_hash,
         frontend_base_url=get_app_settings().frontend_base_url
     )
+
+
+@lru_cache()
+def get_transfer_club_account_use_case() -> TransferClubAccountUseCase:
+    """Get transfer club account use case."""
+    return TransferClubAccountUseCase(member_repository=get_member_repository(), user_repository=get_user_repository())
 
 
 @lru_cache()

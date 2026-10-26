@@ -16,7 +16,7 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-26T22:10:00Z"
+last_implementation_at: "2026-10-26T22:25:00Z"
 has_completed_all_phases: false
 ---
 
@@ -84,11 +84,11 @@ Public contracts:
 - Admin copy: button "Pasar la cuenta del club a esta persona"; confirmation "La cuenta del club pasará a ser de {nombre}. Seguirá entrando con el mismo correo y contraseña y será administrador del club."; toast "Cuenta del club pasada a {nombre}".
 - Tests: use case unit suite (happy path, member of another club, member with an active account, club without a club account); router suite (super admin 200, club admin 403); vitest for the button visibility and the confirmation call.
 
-- [ ] Write the failing tests.
-- [ ] Implement the use case, its wiring and the endpoint.
-- [ ] Admin: service, mutation and the button with confirmation on the member card, visible only to a super admin when the member's club still has a club account.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Implement the use case, its wiring and the endpoint.
+- [x] Admin: service, mutation and the button with confirmation on the member card, visible only to a super admin when the member has no account of their own (the API answers 404 when the club has no club account left).
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: list of clubs still on a club account, with their shidoin or fukushidoin
 
@@ -108,6 +108,6 @@ Public contracts:
 
 ## ⏭️ Next step
 
-Implement Phase 2: a super admin moves a club account onto a person.
+Implement Phase 3: list of clubs still on a club account, with their shidoin or fukushidoin.
 
-The card app now knows a club from a person: 🏯 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+The card app knows a club from a person, and the key changes hands: 🏯 🔑 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
