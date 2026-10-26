@@ -38,7 +38,7 @@ class CreateMemberUseCase:
     ) -> Member:
         """Execute the use case."""
         if is_club_account_placeholder_name(last_name):
-            raise InvalidMemberDataError("That last name is reserved for club accounts")
+            raise InvalidMemberDataError("Ese apellido está reservado para las cuentas de club")
         # Check if member with same DNI exists (skip for empty DNIs)
         dni = (dni or "").strip()
         if dni:

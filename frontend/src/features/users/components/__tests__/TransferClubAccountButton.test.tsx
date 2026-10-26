@@ -21,13 +21,13 @@ describe('TransferClubAccountButton', () => {
 
   it('asks before passing the club account', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<TransferClubAccountButton clubId="c1" accountId="a1" memberId="m1" memberName="Ana Ejemplo" />)
+    renderWithProviders(<TransferClubAccountButton clubId="c1" accountId="a1" accountEmail="dojo@example.com" memberId="m1" memberName="Ana Ejemplo" />)
 
     await user.click(screen.getByRole('button', { name: 'Pasar la cuenta del club a esta persona' }))
 
     expect(
       screen.getByText(
-        'La cuenta del club pasará a ser de Ana Ejemplo. Seguirá entrando con el mismo correo y contraseña y será administrador del club.'
+        'La cuenta del club (dojo@example.com) pasará a ser de Ana Ejemplo. Seguirá entrando con el mismo correo y contraseña y podrá gestionar el club.'
       )
     ).toBeInTheDocument()
     expect(mockTransfer).not.toHaveBeenCalled()
@@ -35,7 +35,7 @@ describe('TransferClubAccountButton', () => {
 
   it('passes the club account once confirmed', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<TransferClubAccountButton clubId="c1" accountId="a1" memberId="m1" memberName="Ana Ejemplo" />)
+    renderWithProviders(<TransferClubAccountButton clubId="c1" accountId="a1" accountEmail="dojo@example.com" memberId="m1" memberName="Ana Ejemplo" />)
 
     await user.click(screen.getByRole('button', { name: 'Pasar la cuenta del club a esta persona' }))
     await user.click(screen.getByRole('button', { name: 'Sí, pasar la cuenta' }))
@@ -45,7 +45,7 @@ describe('TransferClubAccountButton', () => {
 
   it('names the person on the button when asked to', () => {
     renderWithProviders(
-      <TransferClubAccountButton clubId="c1" accountId="a1" memberId="m1" memberName="Ana Ejemplo" label="Pasar la cuenta a Ana Ejemplo" />
+      <TransferClubAccountButton clubId="c1" accountId="a1" accountEmail="dojo@example.com" memberId="m1" memberName="Ana Ejemplo" label="Pasar la cuenta a Ana Ejemplo" />
     )
 
     expect(screen.getByRole('button', { name: 'Pasar la cuenta a Ana Ejemplo' })).toBeInTheDocument()

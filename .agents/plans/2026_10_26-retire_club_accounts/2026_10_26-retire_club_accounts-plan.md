@@ -81,7 +81,7 @@ Public contracts:
 - Use case: `TransferClubAccountUseCase.execute(club_id: str, member_id: str) -> User` in `application/use_cases/member_access/`.
 - HTTP: `POST /api/v1/clubs/{club_id}/account/transfer`, body `{ "member_id": str }`, response `UserResponse`. Errors: 403 not super admin, 404 the club has no club account, 422 the member is not in that club, 409 the member already has an active account.
 - MongoDB: no new fields. `users.member_id` changes; the member's `club_role` becomes `admin`; the placeholder `status` becomes `inactive`.
-- Admin copy: button "Pasar la cuenta del club a esta persona"; confirmation "La cuenta del club pasará a ser de {nombre}. Seguirá entrando con el mismo correo y contraseña y será administrador del club."; toast "Cuenta del club pasada a {nombre}".
+- Admin copy: button "Pasar la cuenta del club a esta persona"; confirmation "La cuenta del club pasará a ser de {nombre}. Seguirá entrando con el mismo correo y contraseña y podrá gestionar el club."; toast "Cuenta del club pasada a {nombre}".
 - Tests: use case unit suite (happy path, member of another club, member with an active account, club without a club account); router suite (super admin 200, club admin 403); vitest for the button visibility and the confirmation call.
 
 - [x] Write the failing tests.

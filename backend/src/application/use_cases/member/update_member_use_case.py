@@ -17,7 +17,7 @@ class UpdateMemberUseCase:
         if member is None:
             raise MemberNotFoundError(member_id)
         if is_club_account_placeholder_name(kwargs.get("last_name")) and not member.is_club_account_placeholder:
-            raise InvalidMemberDataError("That last name is reserved for club accounts")
+            raise InvalidMemberDataError("Ese apellido está reservado para las cuentas de club")
 
         if kwargs.get("dni") is not None:
             kwargs["dni"] = kwargs["dni"].strip()

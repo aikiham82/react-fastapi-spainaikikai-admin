@@ -35,9 +35,8 @@ export const ClubAccountsSection = () => {
               <li key={account.club_id} className="space-y-2 py-3">
                 <div>
                   <p className="font-medium">{account.club_name}</p>
-                  <p className="text-sm text-muted-foreground break-all">
-                    {account.username} · {account.email}
-                  </p>
+                  <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{account.username}</p>
+                  <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{account.email}</p>
                 </div>
                 {account.candidates.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
@@ -50,6 +49,7 @@ export const ClubAccountsSection = () => {
                         key={candidate.member_id}
                         clubId={account.club_id}
                         accountId={account.account_id}
+                        accountEmail={account.email}
                         memberId={candidate.member_id}
                         memberName={candidate.name}
                         label={`Pasar la cuenta a ${candidate.name} (${TITLE_LABELS[candidate.instructor_category] ?? candidate.instructor_category})`}

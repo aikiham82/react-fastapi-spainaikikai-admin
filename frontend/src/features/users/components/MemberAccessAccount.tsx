@@ -121,12 +121,18 @@ export const MemberAccessAccount = ({
       {isError && hasNoAccount && <GrantMemberAccessForm memberId={memberId} memberEmail={memberEmail} />}
 
       {isError && hasNoAccount && clubAccount && (
-        <TransferClubAccountButton
-          clubId={clubAccount.club_id}
-          accountId={clubAccount.account_id}
-          memberId={memberId}
-          memberName={memberName}
-        />
+        <div className="space-y-2 border-t pt-3">
+          <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+            O pásale la cuenta del club ({clubAccount.email}): seguirá entrando con ese correo y su contraseña.
+          </p>
+          <TransferClubAccountButton
+            clubId={clubAccount.club_id}
+            accountId={clubAccount.account_id}
+            accountEmail={clubAccount.email}
+            memberId={memberId}
+            memberName={memberName}
+          />
+        </div>
       )}
 
       {isError && !hasNoAccount && (

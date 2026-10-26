@@ -24,7 +24,7 @@ vi.mock('@/features/auth/hooks/useAuthContext', () => ({
 }))
 
 vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
-  useClubAccountsQuery: vi.fn((enabled: boolean) => ({ data: enabled ? [{ club_id: 'club1', account_id: 'a1' }] : undefined })),
+  useClubAccountsQuery: vi.fn((enabled: boolean) => ({ data: enabled ? [{ club_id: 'club1', account_id: 'a1', email: 'dojo@example.com' }] : undefined })),
 }))
 
 vi.mock('../../hooks/queries/useUserByMemberQuery', () => ({

@@ -41,7 +41,8 @@ describe('ClubAccountsSection', () => {
 
     expect(screen.getByRole('heading', { name: 'Cuentas de club sin persona' })).toBeInTheDocument()
     expect(screen.getByText('Dojo Ejemplo')).toBeInTheDocument()
-    expect(screen.getByText('DOJO EJEMPLO · dojo@example.com')).toBeInTheDocument()
+    expect(screen.getByText('DOJO EJEMPLO')).toBeInTheDocument()
+    expect(screen.getByText('dojo@example.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Pasar la cuenta a Ana Ejemplo (Shidoin)' })).toBeInTheDocument()
   })
 

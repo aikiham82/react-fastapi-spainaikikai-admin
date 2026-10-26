@@ -30,17 +30,29 @@ export function ClubAccountNotice({ style }: { style?: ViewStyle }) {
       style={style}
       title="Esta es la cuenta del club"
       body="La app es el carné de cada socio. Para gestionar el club entra en Spain Aikikai Admin con esta cuenta."
+      buttonVariant="outline"
     />
   );
 }
 
-function WebNoticeCard({ style, title, body }: { style?: ViewStyle; title: string; body: string }) {
+function WebNoticeCard({
+  style,
+  title,
+  body,
+  buttonVariant = "primary",
+}: {
+  style?: ViewStyle;
+  title: string;
+  body: string;
+  buttonVariant?: "primary" | "outline";
+}) {
   return (
     <View style={[styles.card, style]}>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.body}>{body}</Text>
       <Button
         title="Abrir Spain Aikikai Admin"
+        variant={buttonVariant}
         onPress={() => Linking.openURL(ADMIN_WEB_URL)}
         style={styles.button}
       />

@@ -87,6 +87,7 @@ export default function LoginScreen() {
       { email: email.trim(), password },
       {
         onSuccess: ({ user }) => {
+          if (user.is_club_account) setPassword("");
           Haptics.notificationAsync(
             user.is_club_account
               ? Haptics.NotificationFeedbackType.Warning
