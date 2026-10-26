@@ -14,6 +14,9 @@ const showNewVersionNotice = (): void => {
   toast('Hay una nueva versión disponible', {
     id: 'new-version',
     duration: Infinity,
+    position: 'bottom-center',
+    closeButton: true,
+    classNames: { actionButton: 'h-9! px-3! text-sm!' },
     action: { label: 'Recargar', onClick: () => window.location.reload() },
   })
 }
