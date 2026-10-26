@@ -1,11 +1,9 @@
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-
-const entryScript = (page: Document): string | null =>
-  page.querySelector('script[type="module"][src]')?.getAttribute('src') ?? null
+import { entryScript } from '@/core/utils/entryScript'
 
 const isNewVersionDeployed = async (): Promise<boolean> => {
-  const response = await fetch('/index.html', { cache: 'no-store' })
+  const response = await fetch(`${import.meta.env.BASE_URL}index.html`, { cache: 'no-store' })
   if (!response.ok) return false
   const deployedPage = new DOMParser().parseFromString(await response.text(), 'text/html')
   const deployedEntry = entryScript(deployedPage)
@@ -28,6 +26,10 @@ export const useNewVersionNotice = (): void => {
       if (deployed) showNewVersionNotice()
     }
     document.addEventListener('visibilitychange', checkForNewVersion)
-    return () => document.removeEventListener('visibilitychange', checkForNewVersion)
+    window.addEventListener('focus', checkForNewVersion)
+    return () => {
+      document.removeEventListener('visibilitychange', checkForNewVersion)
+      window.removeEventListener('focus', checkForNewVersion)
+    }
   }, [])
 }

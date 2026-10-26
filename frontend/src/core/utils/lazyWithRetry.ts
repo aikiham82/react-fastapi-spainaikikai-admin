@@ -1,21 +1,18 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
+import { appStorage } from '@/core/data/appStorage'
+import { entryScript } from './entryScript'
 
 type PageModule = { default: ComponentType }
 
-const RELOAD_FLAG = 'chunk_reload'
+const RELOADED_VERSION = 'chunk_reload'
 
 export const importWithRetry = (factory: () => Promise<PageModule>): Promise<PageModule> =>
-  factory().then((page) => {
-    sessionStorage.removeItem(RELOAD_FLAG)
-    return page
-  }, (error: unknown) => {
-    if (!sessionStorage.getItem(RELOAD_FLAG)) {
-      sessionStorage.setItem(RELOAD_FLAG, '1')
-      window.location.reload()
-      return new Promise<PageModule>(() => {})
-    }
-    sessionStorage.removeItem(RELOAD_FLAG)
-    throw error
+  factory().catch((error: unknown) => {
+    const loadedVersion = entryScript(document)
+    if (appStorage().session.get<string>(RELOADED_VERSION) === loadedVersion) throw error
+    appStorage().session.set(RELOADED_VERSION, loadedVersion)
+    window.location.reload()
+    return new Promise<PageModule>(() => {})
   })
 
 export const lazyWithRetry = (factory: () => Promise<PageModule>): LazyExoticComponent<ComponentType> =>

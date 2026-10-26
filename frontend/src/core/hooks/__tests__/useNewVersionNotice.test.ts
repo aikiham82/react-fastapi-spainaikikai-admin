@@ -52,6 +52,16 @@ describe('useNewVersionNotice', () => {
     )
   })
 
+  it('shows the notice when the window regains focus', async () => {
+    stubDeployedEntry('/assets/index-new.js')
+    setVisibility('visible')
+    renderHook(() => useNewVersionNotice())
+
+    window.dispatchEvent(new Event('focus'))
+
+    await waitFor(() => expect(toast).toHaveBeenCalled())
+  })
+
   it('does not show the notice when the deployed entry script is the same', async () => {
     const fetchMock = stubDeployedEntry(LOADED_ENTRY)
     renderHook(() => useNewVersionNotice())
