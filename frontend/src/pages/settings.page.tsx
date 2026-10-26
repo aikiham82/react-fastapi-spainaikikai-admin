@@ -1,144 +1,75 @@
 import { useState } from 'react';
-import { User, Bell, Shield, Palette } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { UpdateOwnEmailDialog } from '@/features/auth/components/UpdateOwnEmailDialog';
+import { useRequestPasswordResetMutation } from '@/features/password-reset/hooks/mutations/useRequestPasswordReset.mutation';
 
 const roleTranslations: Record<string, string> = {
-  'super_admin': 'Administrador',
-  'club_admin': 'Admin de Club',
+  super_admin: 'Administrador de la federación',
+  club_admin: 'Administrador de club',
 };
 
 export const SettingsPage = () => {
-  const [notifications, setNotifications] = useState(true);
-  const [emailAlerts, setEmailAlerts] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const { currentUser, userRole } = useAuthContext();
+  const { currentUser, userEmail, userRole } = useAuthContext();
   const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const { requestResetAsync, isLoading } = useRequestPasswordResetMutation();
+
+  const email = currentUser?.email ?? userEmail ?? null;
+
+  const sendLink = async () => {
+    if (!email) return;
+    try {
+      await requestResetAsync({ identifier: email });
+      setSentTo(email);
+    } catch {
+      toast.error('No se pudo enviar el enlace. Inténtalo de nuevo.');
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <User className="w-5 h-5 text-blue-600" />
-              <CardTitle>Perfil de Usuario</CardTitle>
-            </div>
-            <CardDescription>
-              Gestiona tu información de perfil
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Correo de acceso</Label>
-                <p className="text-sm text-gray-900">{currentUser?.email ?? 'No disponible'}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Rol</Label>
-                <p className="text-sm text-gray-900">{userRole ? (roleTranslations[userRole] || userRole) : 'No disponible'}</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => setIsEditingEmail(true)}>
-              Editar Perfil
-            </Button>
+    <div className="max-w-2xl divide-y divide-border">
+      <section className="space-y-4 pb-8">
+        <h2 className="text-lg font-semibold text-foreground">Mi cuenta</h2>
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <dt className="text-sm text-muted-foreground">Correo de acceso</dt>
+            <dd className="break-all text-foreground">{email ?? 'No disponible'}</dd>
+          </div>
+          <div>
+            <dt className="text-sm text-muted-foreground">Rol</dt>
+            <dd className="text-foreground">
+              {userRole ? (roleTranslations[userRole] ?? userRole) : 'No disponible'}
+            </dd>
+          </div>
+        </dl>
+        <Button variant="outline" onClick={() => setIsEditingEmail(true)}>
+          Cambiar mi correo
+        </Button>
+        {currentUser && (
+          <UpdateOwnEmailDialog
+            open={isEditingEmail}
+            onOpenChange={setIsEditingEmail}
+            currentEmail={currentUser.email}
+          />
+        )}
+      </section>
 
-            {currentUser && (
-              <UpdateOwnEmailDialog
-                open={isEditingEmail}
-                onOpenChange={setIsEditingEmail}
-                currentEmail={currentUser.email}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-yellow-600" />
-              <CardTitle>Notificaciones</CardTitle>
-            </div>
-            <CardDescription>
-              Configura cómo recibir notificaciones
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Notificaciones en la app</Label>
-                <p className="text-sm text-gray-500">Recibe notificaciones dentro de la aplicación</p>
-              </div>
-              <Switch
-                checked={notifications}
-                onCheckedChange={setNotifications}
-              />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Alertas por email</Label>
-                <p className="text-sm text-gray-500">Recibe alertas importantes por email</p>
-              </div>
-              <Switch
-                checked={emailAlerts}
-                onCheckedChange={setEmailAlerts}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Palette className="w-5 h-5 text-purple-600" />
-              <CardTitle>Apariencia</CardTitle>
-            </div>
-            <CardDescription>
-              Personaliza la apariencia de la aplicación
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Modo oscuro</Label>
-                <p className="text-sm text-gray-500">Activa el tema oscuro de la aplicación</p>
-              </div>
-              <Switch
-                checked={darkMode}
-                onCheckedChange={setDarkMode}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-green-600" />
-              <CardTitle>Seguridad</CardTitle>
-            </div>
-            <CardDescription>
-              Gestiona la seguridad de tu cuenta
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button variant="outline" size="sm">
-              Cambiar Contraseña
-            </Button>
-            <Separator />
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Última sesión</Label>
-              <p className="text-sm text-gray-500">Hace unos minutos desde este dispositivo</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <section className="space-y-4 pt-8">
+        <h2 className="text-lg font-semibold text-foreground">Contraseña</h2>
+        <p className="text-sm text-muted-foreground">
+          Te enviaremos un correo con un enlace para que elijas una contraseña nueva.
+        </p>
+        <Button variant="outline" onClick={sendLink} disabled={isLoading || !email}>
+          {isLoading ? 'Enviando...' : 'Enviarme un enlace para cambiarla'}
+        </Button>
+        {sentTo && (
+          <p role="status" className="text-sm text-success">
+            Te hemos enviado un enlace a {sentTo}.
+          </p>
+        )}
+      </section>
     </div>
   );
 };
