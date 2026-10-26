@@ -26,6 +26,7 @@ class ClubAccountCandidate:
 class ClubAccountSummary:
     club_id: str
     club_name: str
+    account_id: str
     username: str
     email: str
     candidates: List[ClubAccountCandidate] = field(default_factory=list)
@@ -65,6 +66,7 @@ class ListClubAccountsUseCase:
             summaries.append(ClubAccountSummary(
                 club_id=placeholder.club_id,
                 club_name=club.name if club else placeholder.first_name,
+                account_id=account.id,
                 username=account.username,
                 email=account.email,
                 candidates=await self._candidates(placeholder.club_id),

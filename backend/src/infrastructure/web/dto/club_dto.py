@@ -50,6 +50,7 @@ class ClubResponse(ClubBase):
 
 class TransferClubAccountDTO(BaseModel):
     """DTO for passing the club's shared account onto a member."""
+    account_id: str
     member_id: str
 
 
@@ -64,6 +65,7 @@ class ClubAccountSummaryResponse(BaseModel):
     """A club still signing in with a shared club account."""
     club_id: str
     club_name: str
+    account_id: str
     username: str
     email: str
     candidates: List[ClubAccountCandidateResponse]

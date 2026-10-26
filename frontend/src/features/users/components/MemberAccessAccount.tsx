@@ -58,7 +58,7 @@ export const MemberAccessAccount = ({
   const { mutate: updateEmail, isPending: isSavingEmail } = useUpdateUserEmailMutation();
   const hasNoAccount = (error as { status?: number } | null)?.status === 404;
   const { data: clubAccounts } = useClubAccountsQuery(isAssociationAdmin() && hasNoAccount && !!memberClubId);
-  const clubStillHasClubAccount = !!clubAccounts?.some((clubAccount) => clubAccount.club_id === memberClubId);
+  const clubAccount = clubAccounts?.find((candidate) => candidate.club_id === memberClubId);
 
   const [editedEmail, setEditedEmail] = useState<string | null>(null);
 
@@ -120,8 +120,13 @@ export const MemberAccessAccount = ({
 
       {isError && hasNoAccount && <GrantMemberAccessForm memberId={memberId} memberEmail={memberEmail} />}
 
-      {isError && hasNoAccount && memberClubId && clubStillHasClubAccount && (
-        <TransferClubAccountButton clubId={memberClubId} memberId={memberId} memberName={memberName} />
+      {isError && hasNoAccount && clubAccount && (
+        <TransferClubAccountButton
+          clubId={clubAccount.club_id}
+          accountId={clubAccount.account_id}
+          memberId={memberId}
+          memberName={memberName}
+        />
       )}
 
       {isError && !hasNoAccount && (

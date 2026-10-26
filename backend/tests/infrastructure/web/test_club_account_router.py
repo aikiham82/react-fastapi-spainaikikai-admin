@@ -35,18 +35,18 @@ def test_a_super_admin_passes_the_club_account_to_a_member():
     account = User(id="club-user", email="dojo@example.com", username="DOJO EJEMPLO", hashed_password="h", member_id="person-1")
     use_case = transfer_returning(account)
 
-    response = client_as(super_admin(), use_case).post(TRANSFER, json={"member_id": "person-1"})
+    response = client_as(super_admin(), use_case).post(TRANSFER, json={"account_id": "club-user", "member_id": "person-1"})
 
     assert response.status_code == 200
     assert response.json()["member_id"] == "person-1"
     assert "hashed_password" not in response.json()
-    use_case.execute.assert_awaited_once_with("club-1", "person-1")
+    use_case.execute.assert_awaited_once_with("club-1", "club-user", "person-1")
 
 
 def test_a_club_admin_is_refused():
     use_case = transfer_returning(None)
 
-    response = client_as(club_admin(club_id="club-1"), use_case).post(TRANSFER, json={"member_id": "person-1"})
+    response = client_as(club_admin(club_id="club-1"), use_case).post(TRANSFER, json={"account_id": "club-user", "member_id": "person-1"})
 
     assert response.status_code == 403
     use_case.execute.assert_not_called()
@@ -58,7 +58,7 @@ def test_a_club_admin_is_refused():
     (UserAlreadyExistsError("x"), 409),
 ])
 def test_each_refusal_has_its_status(error, status_code):
-    response = client_as(super_admin(), transfer_returning(error)).post(TRANSFER, json={"member_id": "person-1"})
+    response = client_as(super_admin(), transfer_returning(error)).post(TRANSFER, json={"account_id": "club-user", "member_id": "person-1"})
 
     assert response.status_code == status_code
 
@@ -81,14 +81,14 @@ def client_listing(ctx, summaries) -> TestClient:
 def test_a_super_admin_lists_the_club_accounts_with_their_instructors():
     from src.application.use_cases.member_access import ClubAccountCandidate, ClubAccountSummary
 
-    summary = ClubAccountSummary("club-1", "Dojo Ejemplo", "DOJO EJEMPLO", "dojo@example.com",
+    summary = ClubAccountSummary("club-1", "Dojo Ejemplo", "club-user", "DOJO EJEMPLO", "dojo@example.com",
                                  [ClubAccountCandidate("person-1", "Ana Ejemplo", "shidoin")])
 
     response = client_listing(super_admin(), [summary]).get(LIST)
 
     assert response.status_code == 200
     assert response.json() == [{
-        "club_id": "club-1", "club_name": "Dojo Ejemplo", "username": "DOJO EJEMPLO", "email": "dojo@example.com",
+        "club_id": "club-1", "club_name": "Dojo Ejemplo", "account_id": "club-user", "username": "DOJO EJEMPLO", "email": "dojo@example.com",
         "candidates": [{"member_id": "person-1", "name": "Ana Ejemplo", "instructor_category": "shidoin"}],
     }]
 

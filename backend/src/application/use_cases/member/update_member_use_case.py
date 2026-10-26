@@ -1,7 +1,7 @@
 """Update Member use case."""
 
-from src.domain.entities.member import Member
-from src.domain.exceptions.member import MemberAlreadyExistsError, MemberNotFoundError
+from src.domain.entities.member import Member, is_club_account_placeholder_name
+from src.domain.exceptions.member import InvalidMemberDataError, MemberAlreadyExistsError, MemberNotFoundError
 from src.application.ports.member_repository import MemberRepositoryPort
 
 
@@ -16,6 +16,8 @@ class UpdateMemberUseCase:
         member = await self.member_repository.find_by_id(member_id)
         if member is None:
             raise MemberNotFoundError(member_id)
+        if is_club_account_placeholder_name(kwargs.get("last_name")) and not member.is_club_account_placeholder:
+            raise InvalidMemberDataError("That last name is reserved for club accounts")
 
         if kwargs.get("dni") is not None:
             kwargs["dni"] = kwargs["dni"].strip()

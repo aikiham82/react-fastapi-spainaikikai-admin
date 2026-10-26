@@ -7,6 +7,7 @@ from src.domain.entities.user import User
 from src.domain.exceptions.member import InactiveMemberError, InvalidClubForMemberError, MemberNotFoundError
 from src.domain.exceptions.user import ClubAccountNotFoundError, UserAlreadyExistsError
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 from src.application.ports.repositories import UserRepositoryPort
 
 
@@ -15,14 +16,22 @@ class TransferClubAccountUseCase:
 
     The account keeps its email, username and password, so whoever signed in
     with it keeps signing in the same way. The placeholder member it hung from
-    is left inactive.
+    is left inactive. The caller names the account it saw, so a member renamed
+    to look like a placeholder cannot make another login move instead; reset
+    links sent to the club inbox stop working.
     """
 
-    def __init__(self, member_repository: MemberRepositoryPort, user_repository: UserRepositoryPort):
+    def __init__(
+        self,
+        member_repository: MemberRepositoryPort,
+        user_repository: UserRepositoryPort,
+        token_repository: PasswordResetTokenRepositoryPort,
+    ):
         self.member_repository = member_repository
         self.user_repository = user_repository
+        self.token_repository = token_repository
 
-    async def execute(self, club_id: str, member_id: str) -> User:
+    async def execute(self, club_id: str, account_id: str, member_id: str) -> User:
         member = await self.member_repository.find_by_id(member_id)
         if not member:
             raise MemberNotFoundError(member_id)
@@ -33,25 +42,23 @@ class TransferClubAccountUseCase:
         if await self.user_repository.find_by_member_id(member_id):
             raise UserAlreadyExistsError("This member already has an account")
 
-        found = await self._club_account(club_id)
-        if not found:
-            raise ClubAccountNotFoundError(club_id)
-        placeholder, account = found
+        placeholder, account = await self._club_account(club_id, account_id)
 
         member.promote_to_admin()
         await self.member_repository.update(member)
+        await self.token_repository.invalidate_user_tokens(account.id)
         account.link_to_member(member_id)
         user = await self.user_repository.update(account)
         placeholder.deactivate()
         await self.member_repository.update(placeholder)
         return user
 
-    async def _club_account(self, club_id: str) -> Optional[Tuple[Member, User]]:
-        for candidate in await self.member_repository.find_by_club_id(club_id):
-            account = await active_club_account(candidate, self.user_repository)
-            if account:
-                return candidate, account
-        return None
+    async def _club_account(self, club_id: str, account_id: str) -> Tuple[Member, User]:
+        account = await self.user_repository.find_by_id(account_id)
+        placeholder = await self.member_repository.find_by_id(account.member_id) if account and account.member_id else None
+        if not (account and account.is_active and placeholder and placeholder.is_club_account_placeholder and placeholder.club_id == club_id):
+            raise ClubAccountNotFoundError(club_id)
+        return placeholder, account
 
 
 async def active_club_account(member: Member, user_repository: UserRepositoryPort) -> Optional[User]:

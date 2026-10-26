@@ -5,6 +5,7 @@ import { errorMessage } from '../../data/errorMessage';
 
 interface TransferClubAccountInput {
   clubId: string;
+  accountId: string;
   memberId: string;
   memberName: string;
 }
@@ -13,7 +14,8 @@ export const useTransferClubAccountMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ clubId, memberId }: TransferClubAccountInput) => transferClubAccount(clubId, memberId),
+    mutationFn: ({ clubId, accountId, memberId }: TransferClubAccountInput) =>
+      transferClubAccount(clubId, accountId, memberId),
     onSuccess: (_, { memberId, memberName }) => {
       queryClient.invalidateQueries({ queryKey: ['user-by-member', memberId] });
       queryClient.invalidateQueries({ queryKey: ['members'] });

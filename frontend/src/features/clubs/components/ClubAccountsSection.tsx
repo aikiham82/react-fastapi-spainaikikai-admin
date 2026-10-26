@@ -49,6 +49,7 @@ export const ClubAccountsSection = () => {
                       <TransferClubAccountButton
                         key={candidate.member_id}
                         clubId={account.club_id}
+                        accountId={account.account_id}
                         memberId={candidate.member_id}
                         memberName={candidate.name}
                         label={`Pasar la cuenta a ${candidate.name} (${TITLE_LABELS[candidate.instructor_category] ?? candidate.instructor_category})`}

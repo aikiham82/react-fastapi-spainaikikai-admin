@@ -134,7 +134,7 @@ async def transfer_club_account(
     """Pass the club's shared account onto one of its members (Super Admin only)."""
     require_super_admin(ctx)
     try:
-        user = await transfer_use_case.execute(club_id, request.member_id)
+        user = await transfer_use_case.execute(club_id, request.account_id, request.member_id)
     except ClubAccountNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este club no tiene cuenta de club")
     except MemberNotFoundError:

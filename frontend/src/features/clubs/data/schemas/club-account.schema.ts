@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const clubAccountSchema = z.object({
   club_id: z.string(),
   club_name: z.string(),
+  account_id: z.string(),
   username: z.string(),
   email: z.string(),
   candidates: z.array(

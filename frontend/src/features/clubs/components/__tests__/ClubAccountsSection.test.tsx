@@ -22,6 +22,7 @@ const withAccounts = (data: unknown) =>
 const dojo = {
   club_id: 'c1',
   club_name: 'Dojo Ejemplo',
+  account_id: 'a1',
   username: 'DOJO EJEMPLO',
   email: 'dojo@example.com',
   candidates: [{ member_id: 'm1', name: 'Ana Ejemplo', instructor_category: 'shidoin' }],

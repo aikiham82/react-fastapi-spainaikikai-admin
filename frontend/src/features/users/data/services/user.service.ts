@@ -49,8 +49,11 @@ export const revokeMemberAccess = async (memberId: string): Promise<void> => {
   await apiClient.delete<unknown>(`/api/v1/members/${memberId}/account`);
 };
 
-export const transferClubAccount = async (clubId: string, memberId: string): Promise<UserAccount> => {
-  const response = await apiClient.post<unknown>(`/api/v1/clubs/${clubId}/account/transfer`, { member_id: memberId });
+export const transferClubAccount = async (clubId: string, accountId: string, memberId: string): Promise<UserAccount> => {
+  const response = await apiClient.post<unknown>(`/api/v1/clubs/${clubId}/account/transfer`, {
+    account_id: accountId,
+    member_id: memberId,
+  });
   return userAccountSchema.parse(response);
 };
 

@@ -763,7 +763,11 @@ def get_grant_member_access_use_case() -> GrantMemberAccessUseCase:
 @lru_cache()
 def get_transfer_club_account_use_case() -> TransferClubAccountUseCase:
     """Get transfer club account use case."""
-    return TransferClubAccountUseCase(member_repository=get_member_repository(), user_repository=get_user_repository())
+    return TransferClubAccountUseCase(
+        member_repository=get_member_repository(),
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository(),
+    )
 
 
 @lru_cache()

@@ -14,6 +14,7 @@ import { useTransferClubAccountMutation } from '../hooks/mutations/useTransferCl
 
 interface TransferClubAccountButtonProps {
   clubId: string;
+  accountId: string;
   memberId: string;
   memberName: string;
   label?: string;
@@ -21,6 +22,7 @@ interface TransferClubAccountButtonProps {
 
 export const TransferClubAccountButton = ({
   clubId,
+  accountId,
   memberId,
   memberName,
   label = 'Pasar la cuenta del club a esta persona',
@@ -44,7 +46,7 @@ export const TransferClubAccountButton = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={() => transfer({ clubId, memberId, memberName })}>
+          <AlertDialogAction onClick={() => transfer({ clubId, accountId, memberId, memberName })}>
             Sí, pasar la cuenta
           </AlertDialogAction>
         </AlertDialogFooter>
