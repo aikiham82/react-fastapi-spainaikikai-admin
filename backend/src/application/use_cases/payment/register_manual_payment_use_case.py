@@ -138,13 +138,14 @@ class RegisterManualPaymentUseCase:
                 mp_type = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get(ptype)
                 if mp_type is None:
                     continue
+                year = line_year(mp_type)
                 already_exists = await self.member_payment_repository.exists_for_member_year_type(
                     member_id=assignment.member_id,
-                    payment_year=line_year(mp_type),
+                    payment_year=year,
                     payment_type=mp_type,
                 )
                 if already_exists:
-                    raise DuplicatePaymentForYearError(assignment.member_id, ptype, line_year(mp_type))
+                    raise DuplicatePaymentForYearError(assignment.member_id, ptype, year)
 
         # Duplicate check for the standalone include_club_fee path (club_fee assigned to
         # member_assignments[0]). Only needed when club_fee is NOT already in payment_types

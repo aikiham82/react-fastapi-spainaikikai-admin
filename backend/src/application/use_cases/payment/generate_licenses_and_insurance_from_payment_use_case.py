@@ -41,14 +41,11 @@ class GenerateLicensesAndInsuranceFromPaymentUseCase:
         license_payments = [mp for mp in member_payments if mp.is_license_payment]
         insurance_payments = [mp for mp in member_payments if mp.is_insurance_payment]
 
+        members_with_rc = {
+            mp.member_id for mp in member_payments if mp.payment_type == MemberPaymentType.SEGURO_RC
+        }
         for ip in member_payments:
-            if ip.payment_type not in TITLE_PAYMENT_TYPES:
-                continue
-            already_has_rc = any(
-                mp.member_id == ip.member_id and mp.payment_type == MemberPaymentType.SEGURO_RC
-                for mp in member_payments
-            )
-            if not already_has_rc:
+            if ip.payment_type in TITLE_PAYMENT_TYPES and ip.member_id not in members_with_rc:
                 insurance_payments.append(MemberPayment(
                     payment_id=ip.payment_id,
                     member_id=ip.member_id,
