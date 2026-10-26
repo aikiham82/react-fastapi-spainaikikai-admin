@@ -11,6 +11,7 @@ import { queryClient } from "./core/data/queryClient";
 import { AppLayout } from "./components/AppLayout";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "sonner";
+import { useNewVersionNotice } from "./core/hooks/useNewVersionNotice";
 
 // Retry dynamic imports with full page reload on chunk load failure (stale deployments)
 function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType }>) {
@@ -58,6 +59,8 @@ const LoadingSpinner = () => (
 );
 
 function App() {
+  useNewVersionNotice();
+
   return (
     <div className="overflow-hidden">
       <QueryClientProvider client={queryClient}>

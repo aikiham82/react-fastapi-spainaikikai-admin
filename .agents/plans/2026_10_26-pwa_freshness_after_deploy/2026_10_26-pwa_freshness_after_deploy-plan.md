@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-26T15:10:00Z"
+has_completed_all_phases: "false"
 ---
 
 # PWA freshness after deploy
@@ -32,18 +42,18 @@ After a deploy, users who keep the admin web open (or installed as a PWA) are of
 
 Show a persistent toast with a reload action when the tab becomes visible and the deployed entry script differs from the loaded one.
 
-- [ ] `nginx.conf`: `location = /index.html` with `Cache-Control: no-cache`.
-- [ ] Create `src/core/hooks/useNewVersionNotice.ts`: on `visibilitychange` to visible, fetch `/index.html` with `cache: "no-store"`, compare its entry script with the loaded one, and show the toast once (`id: "new-version"`, `duration: Infinity`).
-- [ ] Call `useNewVersionNotice()` once in `App.tsx`.
-- [ ] Spanish copy: "Hay una nueva versión disponible", action "Recargar".
-- [ ] Test suite `src/core/hooks/__tests__/useNewVersionNotice.test.ts`:
+- [x] `nginx.conf`: `location = /index.html` with `Cache-Control: no-cache`.
+- [x] Create `src/core/hooks/useNewVersionNotice.ts`: on `visibilitychange` to visible, fetch `/index.html` with `cache: "no-store"`, compare its entry script with the loaded one, and show the toast once (`id: "new-version"`, `duration: Infinity`).
+- [x] Call `useNewVersionNotice()` once in `App.tsx`.
+- [x] Spanish copy: "Hay una nueva versión disponible", action "Recargar".
+- [x] Test suite `src/core/hooks/__tests__/useNewVersionNotice.test.ts`:
   - shows the notice when the deployed entry script differs
   - does not show the notice when it is the same
   - does not show the notice when the fetch fails
   - does not check while the tab is hidden
   - the "Recargar" action reloads the page
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: lazyWithRetry recovers on every deploy
 
@@ -60,6 +70,6 @@ Move `lazyWithRetry` to `src/core/utils/` and clear the reload flag once a chunk
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Fresh code on every deploy, delivered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Fresh code on every deploy, the old tab hears the bell and catches the turtle: 🔔 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
