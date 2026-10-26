@@ -9,10 +9,11 @@ let membersByClub: Record<string, Member[]>
 let pendingMembersClubs: Set<string>
 let prefillByClub: Record<string, PrefillAnnualPaymentResponse>
 let lastMembers: Member[] = []
+let auth: { userRole: string; clubId: string | null } = { userRole: 'super_admin', clubId: null }
 
 vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
-  useAuthContext: () => ({ userRole: 'super_admin', clubId: null }),
+  useAuthContext: () => auth,
 }))
 vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
   useClubsQuery: () => ({ data: [], isLoading: false }),
@@ -98,6 +99,7 @@ const goTo = (label: string) => act(async () => screen.getByText(label).click())
 
 describe('useAnnualPaymentContext club switching', () => {
   beforeEach(() => {
+    auth = { userRole: 'super_admin', clubId: null }
     lastMembers = []
     pendingMembersClubs = new Set()
     membersByClub = {
@@ -134,5 +136,16 @@ describe('useAnnualPaymentContext club switching', () => {
 
     expect(screen.getByTestId('rows').textContent).toBe('a-1')
     expect(screen.getByTestId('ticked').textContent).toBe('a-1')
+  })
+
+  it("uses the club admin's club even when it arrives after the page opened", () => {
+    auth = { userRole: 'club_admin', clubId: null }
+    const { rerender } = renderWithProviders(tree())
+    expect(screen.getByTestId('rows').textContent).toBe('')
+
+    auth = { userRole: 'club_admin', clubId: 'club-a' }
+    rerender(tree())
+
+    expect(screen.getByTestId('rows').textContent).toBe('a-1')
   })
 })

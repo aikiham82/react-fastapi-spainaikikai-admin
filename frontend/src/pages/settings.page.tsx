@@ -21,7 +21,11 @@ export const SettingsPage = () => {
   const sendLink = async () => {
     if (!email) return;
     try {
-      await requestResetAsync({ identifier: email });
+      const result = await requestResetAsync({ identifier: email });
+      if (result?.success === false) {
+        toast.error('No se pudo enviar el enlace. Inténtalo de nuevo.');
+        return;
+      }
       setSentTo(email);
     } catch {
       toast.error('No se pudo enviar el enlace. Inténtalo de nuevo.');

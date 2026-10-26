@@ -16,17 +16,6 @@ const MIN_PASSWORD_LENGTH = 8;
 type Field = "username" | "email" | "password";
 type FieldErrors = Partial<Record<Field, string>>;
 
-// The mutation may surface either the ApiError this app builds or a raw
-// axios error, so narrow both shapes instead of trusting one.
-const readErrorMessage = (error: unknown): string | undefined => {
-  if (typeof error !== "object" || error === null) return undefined;
-  const { response, message } = error as {
-    response?: { data?: { detail?: string } };
-    message?: string;
-  };
-  return response?.data?.detail ?? message;
-};
-
 const validate = (values: Record<Field, string>): FieldErrors => {
   const errors: FieldErrors = {};
   if (values.username.trim().length < 3) {
@@ -41,16 +30,6 @@ const validate = (values: Record<Field, string>): FieldErrors => {
     errors.password = `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`;
   }
   return errors;
-};
-
-const errorForDuplicate = (message: string): { field?: Field; text: string } => {
-  const lower = message.toLowerCase();
-  if (!lower.includes("already exists") && !lower.includes("duplicate")) {
-    return { text: "No se ha podido crear la cuenta. Inténtalo de nuevo." };
-  }
-  if (lower.includes("email")) return { field: "email", text: "Este correo ya tiene una cuenta." };
-  if (lower.includes("username")) return { field: "username", text: "Este nombre de usuario ya existe." };
-  return { text: "Ya existe una cuenta con estos datos." };
 };
 
 export const RegisterForm = () => {
@@ -90,14 +69,7 @@ export const RegisterForm = () => {
           appStorage().local.setString("access_token", response.access_token);
           window.location.href = "/";
         },
-        onError: (err: unknown) => {
-          const { field, text } = errorForDuplicate(readErrorMessage(err) ?? "");
-          if (field) {
-            setErrors((current) => ({ ...current, [field]: text }));
-          } else {
-            setServerError(text);
-          }
-        },
+        onError: () => setServerError("No se ha podido crear la cuenta. Inténtalo de nuevo."),
       }
     );
   };

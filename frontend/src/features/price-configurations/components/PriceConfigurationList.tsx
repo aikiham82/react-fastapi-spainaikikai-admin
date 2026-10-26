@@ -22,6 +22,7 @@ export const PriceConfigurationList = () => {
 
   const canCreate = canAccess({ resource: 'price_configurations', action: 'create' });
   const canDelete = canAccess({ resource: 'price_configurations', action: 'delete' });
+  const canUpdate = canAccess({ resource: 'price_configurations', action: 'update' });
 
   const handleEdit = (config: PriceConfiguration) => {
     setSelectedConfig(config);
@@ -54,9 +55,11 @@ export const PriceConfigurationList = () => {
 
   const actions = (config: PriceConfiguration) => (
     <div className="flex items-center justify-end gap-1">
-      <Button variant="outline" size="sm" onClick={() => handleEdit(config)}>
-        Editar
-      </Button>
+      {canUpdate && (
+        <Button variant="outline" size="sm" onClick={() => handleEdit(config)}>
+          Editar
+        </Button>
+      )}
       {canDelete && (
         <RowActions
           label={`Más acciones para ${getPriceKeyDescription(config.key, config.category)}`}

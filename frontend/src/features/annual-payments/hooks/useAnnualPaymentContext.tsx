@@ -84,6 +84,12 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   const form = useAnnualPaymentForm(initialFormValues, prices);
   const { formData, setField } = form;
 
+  useEffect(() => {
+    if (isClubAdmin && userClubId && formData.club_id !== userClubId) {
+      setField('club_id', userClubId);
+    }
+  }, [isClubAdmin, userClubId, formData.club_id, setField]);
+
   const {
     data: prefillData,
     isLoading: isLoadingPrefill,
