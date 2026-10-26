@@ -8,7 +8,7 @@ implemented_by:
   model:
     name: "Claude Opus"
     version: "5.5"
-last_implementation_at: "2026-10-26T16:30:00Z"
+last_implementation_at: "2026-10-26T17:00:00Z"
 has_completed_all_phases: false
 
 created_by:
@@ -218,19 +218,19 @@ Login, password recovery, registration, unauthorized and payment result pages sh
 
 The home screen tells the user what to do next. Closes `SH-3`, `SH-7`, `SH-8`.
 
-- [ ] `home.page.tsx` returns only `<Dashboard />`: no gradient wrapper and no second `ProtectedRoute`.
-- [ ] `Dashboard`:
+- [x] `home.page.tsx` returns only `<Dashboard />`: no gradient wrapper and no second `ProtectedRoute`.
+- [x] `Dashboard`:
   - Greeting with the club name.
   - "Lo que necesita tu atención" rows (caducadas, caducan pronto, pago pendiente, próximo seminario), each linking to the filtered list.
   - Two large actions, "Añadir miembro" and "Pagar".
   - Remove the stat tiles, the empty activity card and the fake seminar times.
   - Club tiles only for super admin.
-- [ ] Empty state: "Todo al día." when nothing needs attention.
-- [ ] Tests:
+- [x] Empty state: "Todo al día." when nothing needs attention.
+- [x] Tests:
   - `Dashboard`: `lists expired licences as an attention row linking to the filtered list`, `shows Todo al día when nothing is pending`, `hides club totals for club admins`.
-- [ ] Responsive check at all five widths.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check at all five widths.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 4: One list pattern for members, licences, insurance, invoices and clubs
 
@@ -256,6 +256,7 @@ Closes `CM-7` to `CM-31` (except the Settings ones), `LI-4`, `LI-5`, `LI-7`, `LI
   - Create form: no pre-selected club for super admin, hidden club for club admin, "Más datos" collapsed, access block as a secondary section, no auto-selected text.
 - [ ] Licences:
   - Expired and expiring first, with a "Caducan pronto" chip.
+  - Read `?estado=caducadas` and `?estado=caducan-pronto` from the URL (the dashboard links there).
   - Explicit "Editar" action.
   - Club admin sees the hint "Las licencias se crean al registrar el pago".
 - [ ] Insurance:
@@ -386,6 +387,6 @@ Two plain actions. Closes `LI-18`, `LI-19`.
 
 ## ⏭️ Next step
 
-Continue with Phase 3: turn the dashboard into what needs your attention.
+Continue with Phase 4: one list pattern for members, licences, insurance, invoices and clubs.
 
-Ink and paper on every screen, and a calm door to walk in through. 🖌️ 🚪 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Ink and paper, a calm door, and a home that says what to do next. 🖌️ 🚪 🧭 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
