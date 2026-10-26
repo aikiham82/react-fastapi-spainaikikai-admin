@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useMemo, useState, useRef, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useRef, useEffect, type ReactNode } from 'react';
 import { useAnnualPaymentForm, type UseAnnualPaymentFormReturn } from './useAnnualPaymentForm';
 import { useInitiateAnnualPaymentMutation } from './mutations/useInitiateAnnualPayment.mutation';
 import { useAnnualPaymentPricesQuery } from './queries/useAnnualPaymentPricesQuery';
@@ -8,34 +8,42 @@ import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { Club } from '@/features/clubs/data/schemas/club.schema';
-import type { Member } from '@/features/members/data/schemas/member.schema';
-import type { AnnualPaymentPrices, InitiateAnnualPaymentRequest, MemberPaymentAssignment } from '../data/schemas/annual-payment.schema';
+import type { AnnualPaymentItemType, AnnualPaymentPrices, InitiateAnnualPaymentRequest, MemberPaymentAssignment } from '../data/schemas/annual-payment.schema';
+import {
+  buildChecklistRows,
+  deriveCounts,
+  missingPriceConcepts,
+  requiredPriceConcepts,
+  sanitizeAssignments,
+  chooseLicence,
+  tickAllPending,
+  toggleItems,
+  type ChecklistRow,
+  type MemberItem,
+  type LicenceItem,
+} from '../utils/payment-checklist';
 
 interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   clubs: Club[];
   isLoadingClubs: boolean;
-  members: Member[];
+  rows: ChecklistRow[];
+  pendingMemberCount: number;
+  pickedMemberCount: number;
   isLoadingMembers: boolean;
   userClubId: string | null;
   isClubAdmin: boolean;
   isSubmitting: boolean;
   submitError: string | null;
-  assignmentError: string | null;
   submitPayment: () => void;
-  // Prices from API
   prices: AnnualPaymentPrices | null;
   isLoadingPrices: boolean;
   pricesError: string | null;
-  // Prefill
-  prefillSource: 'members' | 'previous_payment' | null;
+  missingPrices: AnnualPaymentItemType[];
   isLoadingPrefill: boolean;
   clubFeeAlreadyPaid: boolean;
-  paidAssignments?: MemberPaymentAssignment[];
-  // Member selection
-  isMemberSelectionOpen: boolean;
-  openMemberSelection: () => void;
-  closeMemberSelection: () => void;
-  setMemberAssignments: (assignments: MemberPaymentAssignment[]) => void;
+  toggleMemberItems: (row: ChecklistRow, items: MemberItem[]) => void;
+  chooseMemberLicence: (row: ChecklistRow, licence: LicenceItem) => void;
+  tickEverythingPending: () => void;
 }
 
 const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>(undefined);
@@ -49,7 +57,6 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   const { data: clubsData, isLoading: isLoadingClubs } = useClubsQuery({});
   const initiatePaymentMutation = useInitiateAnnualPaymentMutation();
 
-  // Fetch prices from API
   const { data: prices, isLoading: isLoadingPrices, error: pricesQueryError } = useAnnualPaymentPricesQuery();
 
   const pricesError = useMemo(() => {
@@ -63,7 +70,6 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   const isClubAdmin = userRole === 'club_admin';
   const userClubId = clubId ?? null;
 
-  // Initialize form with user's club if they are a club admin
   const initialFormValues = useMemo(() => {
     if (isClubAdmin && userClubId) {
       return { club_id: userClubId };
@@ -72,177 +78,114 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   }, [isClubAdmin, userClubId]);
 
   const form = useAnnualPaymentForm(initialFormValues, prices);
+  const { formData, setField } = form;
 
-  // Fetch prefill data when club and year are set
-  const {
-    data: prefillData,
-    isLoading: isLoadingPrefill,
-  } = useAnnualPaymentPrefillQuery(form.formData.club_id, form.formData.payment_year);
+  const { data: prefillData, isLoading: isLoadingPrefill } = useAnnualPaymentPrefillQuery(
+    formData.club_id,
+    formData.payment_year,
+  );
 
-  // Apply prefill data to form (once per club+year combination)
+  const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
+    { club_id: formData.club_id, status: 'active', limit: 0 },
+    { enabled: !!formData.club_id }
+  );
+
+  const rows = useMemo(
+    () => buildChecklistRows(membersData ?? [], prefillData?.paid_assignments),
+    [membersData, prefillData?.paid_assignments],
+  );
+
+  const applyAssignments = useCallback((assignments: MemberPaymentAssignment[]) => {
+    const counts = deriveCounts(assignments);
+    setField('kyu_count', counts.kyu);
+    setField('kyu_infantil_count', counts.kyu_infantil);
+    setField('dan_count', counts.dan);
+    setField('fukushidoin_count', counts.fukushidoin);
+    setField('shidoin_count', counts.shidoin);
+    setField('seguro_accidentes_count', counts.seguro_accidentes);
+    setField('seguro_rc_count', counts.seguro_rc);
+    setField('member_assignments', assignments);
+  }, [setField]);
+
   const prefillAppliedRef = useRef<string>('');
 
   useEffect(() => {
-    if (!prefillData) return;
+    if (!prefillData || isLoadingMembers) return;
 
-    const prefillKey = `${form.formData.club_id}-${form.formData.payment_year}`;
+    const prefillKey = `${formData.club_id}-${formData.payment_year}`;
     if (prefillAppliedRef.current === prefillKey) return;
     prefillAppliedRef.current = prefillKey;
 
     if (prefillData.payer_name) {
-      form.setField('payer_name', prefillData.payer_name);
+      setField('payer_name', prefillData.payer_name);
     }
-    form.setField('include_club_fee', prefillData.include_club_fee);
-    form.setField('kyu_count', prefillData.kyu_count);
-    form.setField('kyu_infantil_count', prefillData.kyu_infantil_count);
-    form.setField('dan_count', prefillData.dan_count);
-    form.setField('fukushidoin_count', prefillData.fukushidoin_count);
-    form.setField('shidoin_count', prefillData.shidoin_count);
-    form.setField('seguro_accidentes_count', prefillData.seguro_accidentes_count);
-    form.setField('seguro_rc_count', prefillData.seguro_rc_count);
-    if (prefillData.member_assignments.length > 0) {
-      form.setField('member_assignments', prefillData.member_assignments);
-    }
-  }, [prefillData, form]);
+    setField('include_club_fee', prefillData.include_club_fee && !prefillData.club_fee_already_paid);
+    applyAssignments(sanitizeAssignments(prefillData.member_assignments, rows));
+  }, [prefillData, isLoadingMembers, rows, formData.club_id, formData.payment_year, setField, applyAssignments]);
 
-  // Fetch members for the selected club
-  const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
-    { club_id: form.formData.club_id, status: 'active', limit: 0 },
-    { enabled: !!form.formData.club_id }
-  );
-
-  // Clear member assignments and reset prefill when club changes
-  const previousClubIdRef = useRef(form.formData.club_id);
+  const previousClubIdRef = useRef(formData.club_id);
   useEffect(() => {
-    if (previousClubIdRef.current !== form.formData.club_id) {
-      if (form.formData.member_assignments.length > 0) {
-        form.setField('member_assignments', []);
+    if (previousClubIdRef.current !== formData.club_id) {
+      if (formData.member_assignments.length > 0) {
+        applyAssignments([]);
       }
       prefillAppliedRef.current = '';
-      previousClubIdRef.current = form.formData.club_id;
+      previousClubIdRef.current = formData.club_id;
     }
-  }, [form.formData.club_id, form.formData.member_assignments.length, form]);
+  }, [formData.club_id, formData.member_assignments.length, applyAssignments]);
 
   const clubs = useMemo(() => {
     if (isClubAdmin && userClubId) {
-      // Filter to only show user's club if they are a club admin
       return (clubsData || []).filter((club) => club.id === userClubId);
     }
     return clubsData || [];
   }, [clubsData, isClubAdmin, userClubId]);
 
-  const members = useMemo(() => membersData || [], [membersData]);
+  const clubFeeAlreadyPaid = prefillData?.club_fee_already_paid ?? false;
 
-  // Member selection modal state
-  const [isMemberSelectionOpen, setIsMemberSelectionOpen] = useState(false);
+  const missingPrices = useMemo(
+    () => (isLoadingPrices || rows.length === 0 && !prefillData ? [] : missingPriceConcepts(prices, requiredPriceConcepts(rows, clubFeeAlreadyPaid))),
+    [isLoadingPrices, prices, rows, prefillData, clubFeeAlreadyPaid],
+  );
 
-  const openMemberSelection = useCallback(() => {
-    setIsMemberSelectionOpen(true);
-  }, []);
+  const pendingMemberCount = useMemo(() => rows.filter((row) => !row.isUpToDate).length, [rows]);
+  const pickedMemberCount = formData.member_assignments.length;
 
-  const closeMemberSelection = useCallback(() => {
-    setIsMemberSelectionOpen(false);
-  }, []);
+  const toggleMemberItems = useCallback((row: ChecklistRow, items: MemberItem[]) => {
+    applyAssignments(toggleItems(formData.member_assignments, row, items));
+  }, [applyAssignments, formData.member_assignments]);
 
-  const setMemberAssignments = useCallback((assignments: MemberPaymentAssignment[]) => {
-    // Count assignments per payment type
-    const counts: Record<string, number> = {
-      kyu: 0,
-      kyu_infantil: 0,
-      dan: 0,
-      fukushidoin: 0,
-      shidoin: 0,
-      seguro_accidentes: 0,
-      seguro_rc: 0,
-    };
-    assignments.forEach((a) => {
-      a.payment_types.forEach((type) => {
-        if (counts[type] !== undefined) {
-          counts[type]++;
-        }
-      });
-    });
+  const chooseMemberLicence = useCallback((row: ChecklistRow, licence: LicenceItem) => {
+    applyAssignments(chooseLicence(formData.member_assignments, row, licence));
+  }, [applyAssignments, formData.member_assignments]);
 
-    // Update quantity fields to match actual assignments
-    form.setField('kyu_count', counts.kyu);
-    form.setField('kyu_infantil_count', counts.kyu_infantil);
-    form.setField('dan_count', counts.dan);
-    form.setField('fukushidoin_count', counts.fukushidoin);
-    form.setField('shidoin_count', counts.shidoin);
-    form.setField('seguro_accidentes_count', counts.seguro_accidentes);
-    form.setField('seguro_rc_count', counts.seguro_rc);
-    form.setField('member_assignments', assignments);
-  }, [form]);
-
-  const [assignmentError, setAssignmentError] = useState<string | null>(null);
+  const tickEverythingPending = useCallback(() => {
+    applyAssignments(tickAllPending(rows));
+    if (!clubFeeAlreadyPaid) setField('include_club_fee', true);
+  }, [applyAssignments, rows, clubFeeAlreadyPaid, setField]);
 
   const submitPayment = useCallback(() => {
     if (!form.validate()) {
       return;
     }
 
-    // Build map of which types have non-zero quantities
-    const activeCounts: Record<string, number> = {
-      kyu: form.formData.kyu_count,
-      kyu_infantil: form.formData.kyu_infantil_count,
-      dan: form.formData.dan_count,
-      fukushidoin: form.formData.fukushidoin_count,
-      shidoin: form.formData.shidoin_count,
-      seguro_accidentes: form.formData.seguro_accidentes_count,
-      seguro_rc: form.formData.seguro_rc_count,
-    };
-
-    // Filter out stale member assignments whose payment_types reference zero-count items
-    const cleanedAssignments = form.formData.member_assignments
-      .map((a) => ({
-        ...a,
-        payment_types: a.payment_types.filter((t) => (activeCounts[t] ?? 0) > 0),
-      }))
-      .filter((a) => a.payment_types.length > 0);
-
-    // Validate assignment counts match quantities
-    const assignmentCounts: Record<string, number> = {
-      kyu: 0, kyu_infantil: 0, dan: 0, fukushidoin: 0,
-      shidoin: 0, seguro_accidentes: 0, seguro_rc: 0,
-    };
-    cleanedAssignments.forEach((a) => {
-      a.payment_types.forEach((t) => {
-        if (assignmentCounts[t] !== undefined) assignmentCounts[t]++;
-      });
-    });
-
-    const mismatches: string[] = [];
-    for (const [type, expected] of Object.entries(activeCounts)) {
-      if (expected > 0 && (assignmentCounts[type] ?? 0) !== expected) {
-        mismatches.push(type);
-      }
-    }
-
-    if (mismatches.length > 0) {
-      setAssignmentError(`Faltan miembros por asignar en: ${mismatches.join(', ')}. Abre el selector de miembros para completar las asignaciones.`);
-      return;
-    }
-    setAssignmentError(null);
-
     const request: InitiateAnnualPaymentRequest = {
-      payer_name: form.formData.payer_name,
-      club_id: form.formData.club_id,
-      payment_year: form.formData.payment_year,
-      include_club_fee: form.formData.include_club_fee,
-      kyu_count: form.formData.kyu_count,
-      kyu_infantil_count: form.formData.kyu_infantil_count,
-      dan_count: form.formData.dan_count,
-      fukushidoin_count: form.formData.fukushidoin_count,
-      shidoin_count: form.formData.shidoin_count,
-      seguro_accidentes_count: form.formData.seguro_accidentes_count,
-      seguro_rc_count: form.formData.seguro_rc_count,
-      member_assignments: cleanedAssignments.length > 0
-        ? cleanedAssignments
-        : undefined,
+      payer_name: formData.payer_name,
+      club_id: formData.club_id,
+      payment_year: formData.payment_year,
+      include_club_fee: formData.include_club_fee,
+      kyu_count: formData.kyu_count,
+      kyu_infantil_count: formData.kyu_infantil_count,
+      dan_count: formData.dan_count,
+      fukushidoin_count: formData.fukushidoin_count,
+      shidoin_count: formData.shidoin_count,
+      seguro_accidentes_count: formData.seguro_accidentes_count,
+      seguro_rc_count: formData.seguro_rc_count,
+      member_assignments: formData.member_assignments.length > 0 ? formData.member_assignments : undefined,
     };
 
     initiatePaymentMutation.mutate(request);
-  }, [form, initiatePaymentMutation]);
+  }, [form, formData, initiatePaymentMutation]);
 
   const submitError = useMemo(() => {
     if (initiatePaymentMutation.error) {
@@ -256,25 +199,24 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     ...form,
     clubs,
     isLoadingClubs,
-    members,
+    rows,
+    pendingMemberCount,
+    pickedMemberCount,
     isLoadingMembers,
     userClubId,
     isClubAdmin,
     isSubmitting: initiatePaymentMutation.isPending,
     submitError,
-    assignmentError,
     submitPayment,
     prices: prices ?? null,
     isLoadingPrices,
     pricesError,
-    prefillSource: prefillData?.source ?? null,
+    missingPrices,
     isLoadingPrefill,
-    clubFeeAlreadyPaid: prefillData?.club_fee_already_paid ?? false,
-    paidAssignments: prefillData?.paid_assignments,
-    isMemberSelectionOpen,
-    openMemberSelection,
-    closeMemberSelection,
-    setMemberAssignments,
+    clubFeeAlreadyPaid,
+    toggleMemberItems,
+    chooseMemberLicence,
+    tickEverythingPending,
   };
 
   return (

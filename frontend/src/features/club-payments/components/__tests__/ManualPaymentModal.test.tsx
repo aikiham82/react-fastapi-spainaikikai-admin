@@ -3,6 +3,10 @@ import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { ManualPaymentModal } from '../ManualPaymentModal'
 
+vi.mock('@/features/annual-payments/hooks/queries/useAnnualPaymentPricesQuery', () => ({
+  useAnnualPaymentPricesQuery: () => ({ data: { club_fee: 50, kyu: 30, seguro_accidentes: 15, seguro_rc: 10 } }),
+}))
+
 // Mock the mutation hook
 const mockRegisterManualPayment = vi.fn()
 
@@ -72,8 +76,25 @@ describe('ManualPaymentModal', () => {
 
       expect(screen.getByRole('dialog')).toBeInTheDocument()
       expect(
-        screen.getByText(/registrar pago manual — Club Aikido Madrid/i)
+        screen.getByText(/registrar pago manual: Club Aikido Madrid/i)
       ).toBeInTheDocument()
+    })
+
+    it('shows the running total and a correct plural for the selected members', async () => {
+      renderWithProviders(<ManualPaymentModal {...defaultProps} />)
+
+      expect(screen.getByText(/Total:/)).toHaveTextContent(/0,00\s€/)
+
+      await user.click(screen.getByTestId('member-checkbox-mem-1'))
+      expect(screen.getByText('1 seleccionado')).toBeInTheDocument()
+
+      await user.click(screen.getByTestId('type-checkbox-mem-1-kyu'))
+      await user.click(screen.getByTestId('type-checkbox-mem-1-seguro_rc'))
+      await user.click(screen.getByLabelText('Incluir cuota de club'))
+      expect(screen.getByText(/Total:/)).toHaveTextContent(/90,00\s€/)
+
+      await user.click(screen.getByTestId('member-checkbox-mem-2'))
+      expect(screen.getByText('2 seleccionados')).toBeInTheDocument()
     })
 
     it('renders the payer_name input', () => {

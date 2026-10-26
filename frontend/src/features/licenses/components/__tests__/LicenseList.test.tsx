@@ -148,7 +148,7 @@ describe('LicenseList', () => {
     renderList()
 
     expect(screen.getByText('Las licencias se crean al registrar el pago de la temporada.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ir a pagar' })).toHaveAttribute('href', '/annual-payments')
+    expect(screen.getByRole('link', { name: 'Ir a pagar' })).toHaveAttribute('href', '/payments')
     expect(screen.queryByRole('button', { name: /Nueva licencia/i })).not.toBeInTheDocument()
   })
 

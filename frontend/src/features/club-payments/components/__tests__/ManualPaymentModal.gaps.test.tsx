@@ -11,6 +11,10 @@ import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { ManualPaymentModal } from '../ManualPaymentModal'
 
+vi.mock('@/features/annual-payments/hooks/queries/useAnnualPaymentPricesQuery', () => ({
+  useAnnualPaymentPricesQuery: () => ({ data: { club_fee: 50, kyu: 30, seguro_accidentes: 15, seguro_rc: 10 } }),
+}))
+
 // Mock the mutation hook
 const mockRegisterManualPayment = vi.fn()
 

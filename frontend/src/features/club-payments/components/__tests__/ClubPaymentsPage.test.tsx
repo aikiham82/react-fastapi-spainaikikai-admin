@@ -39,7 +39,10 @@ describe('ClubPaymentsPage year', () => {
     vi.useRealTimers()
   })
 
+  const openYearPicker = () => userEvent.click(screen.getByRole('button', { name: 'Otro año' }))
+
   const offeredYears = async () => {
+    await openYearPicker()
     await userEvent.click(screen.getByRole('combobox'))
     return within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent)
   }
@@ -47,7 +50,7 @@ describe('ClubPaymentsPage year', () => {
   it('opens on the calendar year and offers the next one from October', async () => {
     renderOn('2026-10-01T10:00:00')
 
-    expect(screen.getByRole('combobox')).toHaveTextContent('2026')
+    expect(screen.getByText('Pagos del año 2026 · seguros 2025-26')).toBeInTheDocument()
     expect(requestedYear()).toBe(2026)
     expect(await offeredYears()).toEqual(['2027', '2026', '2025', '2024', '2023', '2022'])
   })
@@ -55,23 +58,22 @@ describe('ClubPaymentsPage year', () => {
   it('offers the calendar year and the four before until September', async () => {
     renderOn('2026-09-30T10:00:00')
 
-    expect(screen.getByRole('combobox')).toHaveTextContent('2026')
     expect(await offeredYears()).toEqual(['2026', '2025', '2024', '2023', '2022'])
   })
 
-  it('points to next year for the insurances paid from October', async () => {
+  it('points to next year from October, where the autumn payments live', async () => {
     renderOn('2026-10-25T10:00:00')
 
-    expect(screen.getByText(/seguros de la temporada 2026-27/i)).toBeInTheDocument()
+    expect(screen.getByText('Pagos del año 2026 · seguros 2025-26')).toBeInTheDocument()
+    expect(screen.getByText('Los pagos hechos desde octubre cuentan para 2027.')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Ver 2027' }))
 
-    expect(screen.getByRole('combobox')).toHaveTextContent('2027')
     expect(requestedYear()).toBe(2027)
-    expect(screen.queryByText(/seguros de la temporada 2026-27/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Los pagos hechos desde octubre/)).not.toBeInTheDocument()
   })
 
-  it('does not point to next year until September', () => {
+  it('does not point anywhere until October', () => {
     renderOn('2026-09-30T10:00:00')
 
     expect(screen.queryByRole('button', { name: /^Ver 20/ })).not.toBeInTheDocument()

@@ -120,7 +120,7 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
     mockAsClubAdmin()
     renderWithProviders(<ClubPaymentDetail />)
 
-    expect(screen.getByText('Año 2024 · Seguros de la temporada 2023-24')).toBeInTheDocument()
+    expect(screen.getByText('Seguros de la temporada 2023-24')).toBeInTheDocument()
   })
 
   // ─── Case 1: non-admin sees no admin UI ─────────────────────────────────

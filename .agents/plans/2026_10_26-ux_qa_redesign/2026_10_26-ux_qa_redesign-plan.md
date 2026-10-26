@@ -8,8 +8,8 @@ implemented_by:
   model:
     name: "Claude Opus"
     version: "5.5"
-last_implementation_at: "2026-10-26T18:10:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-26T19:30:00Z"
+has_completed_all_phases: true
 
 created_by:
   tool: "Claude Code"
@@ -287,51 +287,51 @@ Closes `CM-7` to `CM-31` (except the Settings ones), `LI-4`, `LI-5`, `LI-7`, `LI
 
 Only controls that work. Closes `CM-1` to `CM-5`, `CM-24`.
 
-- [ ] Settings becomes one column:
+- [x] Settings becomes one column:
   - "Mi cuenta": email plus "Cambiar correo".
   - "Contraseña": "Enviarme un enlace", using the existing reset flow.
   - Remove the fake switches and the fake "Última sesión".
-- [ ] For a club admin, `/clubs` shows "Mi club" with "Editar datos", with no search and no list.
-- [ ] Tests:
+- [x] For a club admin, `/clubs` shows "Mi club" with "Editar datos", with no search and no list.
+- [x] Tests:
   - `SettingsPage`: `sends a password link from Cambiar contraseña`, `does not render notification or theme switches`.
   - `ClubsPage`: `shows Mi club for club admins`.
-- [ ] Responsive check at all five widths.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check at all five widths.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 6: Seminars
 
 Upcoming first, actions that fit, and an oficialidad flow that can fail gracefully. Closes `LI-1`, `LI-2`, `LI-3`, `LI-13`, `LI-15`, `LI-16`.
 
-- [ ] List:
+- [x] List:
   - "Próximos" first, "Pasados" collapsed.
   - Compact rows without the fake image.
   - Edit and delete in a row menu.
   - Nothing clipped at any width.
-- [ ] Oficialidad:
+- [x] Oficialidad:
   - Not offered for `completed` or `cancelled`.
   - Price load failure shows "No se pudo cargar el precio" and "Reintentar".
-- [ ] Form:
+- [x] Form:
   - Venue and city are the only required location fields.
   - Sticky footer.
   - Scroll to the first error.
-- [ ] Detail shows the registered count.
-- [ ] Tests:
+- [x] Detail shows the registered count.
+- [x] Tests:
   - `SeminarList`: `lists upcoming seminars before past ones`, `does not offer oficialidad for finished seminars`.
   - `OficialidadDialog`: `shows a retry action when the price fails to load`.
-- [ ] Responsive check at all five widths.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check at all five widths.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 7: One "Pagos" page with a member-checklist wizard
 
 Paying is choosing members, seeing the total and pressing one button. Closes `PY-1` to `PY-6`, `PY-9` to `PY-18`, `PY-22` to `PY-27`.
 
-- [ ] Route `/payments` with tabs "Pendientes" and "Historial".
+- [x] Route `/payments` with tabs "Pendientes" and "Historial".
   - `/annual-payments` and `/club-payments` redirect to it.
   - The sidebar has a single "Pagos" entry.
   - The Redsys return pages link to `/payments`.
-- [ ] "Pendientes" (member checklist):
+- [x] "Pendientes" (member checklist):
   - One row per member, with "Licencia" and "Seguro" in plain words, pre-ticked with what is missing (existing prefill).
   - The quantities in `InitiateAnnualPaymentRequest` are derived from the ticked members; `member_assignments` is unchanged.
   - Club fee row.
@@ -339,26 +339,26 @@ Paying is choosing members, seeing the total and pressing one button. Closes `PY
   - Before leaving, one sentence: "Pagará con tarjeta en la web del banco. Al terminar recibirá la factura por correo y las licencias se activarán."
   - Year hidden behind "Otro año".
   - Fukushidoin and Shidoin show "Incluye el seguro RC".
-- [ ] Missing prices:
+- [x] Missing prices:
   - The club admin sees "El pago no está disponible todavía. Avise a la Federación."
   - The super admin sees which concept is missing and a link to Precios.
-- [ ] "Historial":
+- [x] "Historial":
   - One line, "3 de 5 miembros al día".
   - One row per member with one status word.
   - Neutral grey for pending, red only for overdue.
   - No year banner or stat tiles.
   - The super admin keeps the clubs table on top.
-- [ ] Manual payment dialog:
+- [x] Manual payment dialog:
   - Running total.
   - No nested scroll.
   - Correct plural.
-- [ ] Prices:
+- [x] Prices:
   - A concept dropdown instead of the free-text key.
   - Existing keys disabled.
   - Spanish labels.
   - Visible "Editar".
   - Neutral "Activo".
-- [ ] Tests:
+- [x] Tests:
   - `PaymentChecklist`, one per grade row of the varieties table:
     - `derives kyu, kyu infantil, dan, fukushidoin and shidoin counts from ticked members`
     - `does not offer RC for fukushidoin or shidoin`
@@ -367,26 +367,26 @@ Paying is choosing members, seeing the total and pressing one button. Closes `PY
   - `PaymentTotalBar`: `shows the running total in euros`.
   - `PaymentsPage`: `redirects /annual-payments and /club-payments to /payments`, `shows the friendly missing-price message to club admins`.
   - `PriceConfigurationForm`: `offers a fixed list of concepts`.
-- [ ] Responsive check at all five widths, both roles.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check at all five widths, both roles.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 8: Import and export
 
 Two plain actions. Closes `LI-18`, `LI-19`.
 
-- [ ] One column with "Descargar Excel" first and "Subir Excel" second.
-- [ ] A data-type selector inside each section instead of tabs; the tab bar is hidden when only one type is available.
-- [ ] Columns behind "Opciones".
-- [ ] Template download link.
-- [ ] Tests:
+- [x] One column with "Descargar Excel" first and "Subir Excel" second.
+- [x] A data-type selector inside each section instead of tabs; the tab bar is hidden when only one type is available.
+- [x] Columns behind "Opciones".
+- [x] Template download link.
+- [x] Tests:
   - `ImportExportPage`: `hides the type selector when only members are available`, `shows the template link`.
-- [ ] Responsive check at all five widths.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check at all five widths.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Continue with Phase 5: Settings with only the controls that work, and Mi club for club admins.
+All phases are complete: run the code review, simplify and the final QA team before merging.
 
-Ink and paper, a calm door, a home that guides, and lists that read the same everywhere. 🖌️ 🚪 🧭 📋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Ink and paper, a calm door, a guiding home, steady lists, and a payment that is one tap away. 🖌️ 🚪 🧭 📋 💳 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

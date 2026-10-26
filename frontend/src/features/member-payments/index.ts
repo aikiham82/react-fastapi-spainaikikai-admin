@@ -11,4 +11,3 @@ export * from './hooks/queries/useMemberPaymentQueries';
 export { PaymentStatusBadge, SimplePaymentStatus } from './components/PaymentStatusBadge';
 export { MemberPaymentStatus } from './components/MemberPaymentStatus';
 export { MemberPaymentHistory } from './components/MemberPaymentHistory';
-export { MemberSelectionTable } from './components/MemberSelectionTable';

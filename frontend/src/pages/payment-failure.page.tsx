@@ -52,7 +52,7 @@ export const PaymentFailurePage = () => {
 
         <div className="flex flex-col gap-3">
           <Button size="lg" className="w-full" asChild>
-            <Link to="/annual-payments">Volver a intentarlo</Link>
+            <Link to="/payments">Volver a intentarlo</Link>
           </Button>
           <Button size="lg" variant="outline" className="w-full" asChild>
             <Link to="/">Ir al inicio</Link>

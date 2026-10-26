@@ -72,7 +72,7 @@ const buildAttention = (data: DashboardData, isSuperAdmin: boolean): AttentionIt
             count: stats.clubs_pending,
             tone: 'neutral',
             title: `${plural(stats.clubs_pending, 'Club sin pagar', 'Clubs sin pagar')} la temporada`,
-            to: '/club-payments',
+            to: '/payments?tab=historial',
             action: 'Ver',
           }
         : {
@@ -81,7 +81,7 @@ const buildAttention = (data: DashboardData, isSuperAdmin: boolean): AttentionIt
             tone: 'neutral',
             title: 'Falta pagar la temporada',
             detail: 'Licencias, seguros y cuota del club',
-            to: '/annual-payments',
+            to: '/payments',
             action: 'Pagar',
           }
     );
@@ -178,7 +178,7 @@ export const Dashboard = () => {
       <div className="grid gap-3 sm:flex">
         {canAccess({ resource: 'payments', action: 'create' }) && (
           <Button size="lg" asChild>
-            <Link to="/annual-payments">Pagar licencias y seguros</Link>
+            <Link to="/payments">Pagar licencias y seguros</Link>
           </Button>
         )}
         {canAccess({ resource: 'members', action: 'create' }) && (

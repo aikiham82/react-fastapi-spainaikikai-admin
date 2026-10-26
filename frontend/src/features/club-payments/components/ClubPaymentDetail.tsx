@@ -4,23 +4,24 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import { ManualPaymentModal } from './ManualPaymentModal';
 import { TransactionsSection } from './TransactionsSection';
-import { ArrowLeft, Search, Users, IdCard, Shield, Wallet, Check, X, Building2, Plus } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { ListToolbar, EmptyState } from '@/components/ui/list-controls';
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
+import { formatCurrency } from '@/core/utils/format';
 import { seasonLabel } from '@/core/utils/defaultPaymentYear';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+interface MemberStatus {
+  tone: StatusTone;
+  label: string;
+}
 
-type StatusFilter = 'all' | 'paid' | 'pending';
+const statusOf = (licensePaid: boolean, insurancePaid: boolean): MemberStatus => {
+  if (licensePaid && insurancePaid) return { tone: 'ok', label: 'Al día' };
+  if (licensePaid) return { tone: 'warn', label: 'Falta seguro' };
+  if (insurancePaid) return { tone: 'warn', label: 'Falta licencia' };
+  return { tone: 'neutral', label: 'Pendiente' };
+};
 
 export const ClubPaymentDetail = () => {
   const {
@@ -36,15 +37,12 @@ export const ClubPaymentDetail = () => {
   const canManagePayments = isAssociationAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [isManualPaymentOpen, setIsManualPaymentOpen] = useState(false);
 
-  // Fetch members only when super_admin and club is known
   const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
     { club_id: clubDetail?.club_id ?? '', status: 'active', limit: 0 },
     { enabled: canManagePayments && !!clubDetail?.club_id }
   );
-  // Adapt Member shape to what ManualPaymentModal expects: { id, name, payment_types? }
   const modalMembers = (membersData ?? []).map((m) => ({
     id: m.id,
     name: `${m.first_name} ${m.last_name}`.trim(),
@@ -53,252 +51,102 @@ export const ClubPaymentDetail = () => {
   if (isLoadingClubDetail) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
       </div>
     );
   }
 
   if (clubDetailError) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Error al cargar los datos del club</p>
-        <p className="text-sm text-gray-600 mt-2">{clubDetailError.message}</p>
+      <div className="py-12">
+        <p className="text-danger">Error al cargar los datos del club</p>
+        <p className="mt-2 text-sm text-muted-foreground">{clubDetailError.message}</p>
       </div>
     );
   }
 
   if (!clubDetail) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">No se encontraron datos de pagos</p>
-      </div>
-    );
+    return <p className="py-12 text-muted-foreground">No se encontraron datos de pagos</p>;
   }
 
   const members = clubDetail.members ?? [];
-  const membersWithPayment = members.filter((m) => m.total_paid > 0).length;
-
-  const filtered = members.filter((m) => {
-    const matchesSearch = m.member_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const hasPaid = m.total_paid > 0;
-    const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'paid' && hasPaid) ||
-      (statusFilter === 'pending' && !hasPaid);
-    return matchesSearch && matchesStatus;
-  });
+  const upToDate = members.filter((m) => m.license_paid && m.insurance_paid).length;
+  const filtered = members.filter((m) => m.member_name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="space-y-6">
-      {/* Back button (Super Admin only) */}
+    <div className="flex flex-col gap-6">
       {isSuperAdmin && (
-        <Button variant="ghost" onClick={goBackToList} className="gap-2 -ml-2">
-          <ArrowLeft className="w-4 h-4" />
+        <Button variant="ghost" onClick={goBackToList} className="-ml-3 self-start gap-2">
+          <ArrowLeft className="size-4" />
           Volver al listado
         </Button>
       )}
 
-      {/* Club name */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">{clubDetail.club_name}</h3>
-        <p className="text-sm text-gray-600">
-          Año {clubDetail.payment_year} · Seguros de la temporada {seasonLabel(clubDetail.payment_year)}
-        </p>
-      </div>
-
-      {/* Admin actions bar */}
-      {canManagePayments && (
-        <div className="flex justify-end">
-          <Button
-            onClick={() => setIsManualPaymentOpen(true)}
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">{clubDetail.club_name}</h2>
+          <p className="text-sm text-muted-foreground">
+            Seguros de la temporada {seasonLabel(clubDetail.payment_year)}
+          </p>
+        </div>
+        {canManagePayments && (
+          <Button onClick={() => setIsManualPaymentOpen(true)} className="gap-2">
+            <Plus className="size-4" />
             Registrar pago manual
           </Button>
-        </div>
-      )}
-
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Wallet className="w-4 h-4 text-green-600" />
-            <p className="text-sm text-gray-600">Total Cobrado</p>
-          </div>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(clubDetail.total_collected)}</p>
-        </div>
-        <div className="bg-white border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Building2 className="w-4 h-4 text-indigo-600" />
-            <p className="text-sm text-gray-600">Cuota Club</p>
-          </div>
-          <p className={`text-2xl font-bold ${clubDetail.has_club_fee ? 'text-green-600' : 'text-red-500'}`}>
-            {clubDetail.has_club_fee ? 'Pagada' : 'Pendiente'}
-          </p>
-        </div>
-        <div className="bg-white border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Users className="w-4 h-4 text-blue-600" />
-            <p className="text-sm text-gray-600">Miembros Pagados</p>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {membersWithPayment}/{clubDetail.total_members}
-          </p>
-        </div>
-        <div className="bg-white border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <IdCard className="w-4 h-4 text-purple-600" />
-            <p className="text-sm text-gray-600">Licencias Activas</p>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{clubDetail.members_with_license}</p>
-        </div>
-        <div className="bg-white border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Shield className="w-4 h-4 text-orange-600" />
-            <p className="text-sm text-gray-600">Seguros Activos</p>
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{clubDetail.members_with_insurance}</p>
-        </div>
+        )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex-1 w-full relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Buscar miembro..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="paid">Pagados</SelectItem>
-            <SelectItem value="pending">Pendientes</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <p className="text-[15px] text-foreground">
+        <span className="font-semibold tabular-nums">
+          {upToDate} de {clubDetail.total_members} miembros al día
+        </span>
+        <span className="text-muted-foreground">
+          {' · '}Cuota del club: {clubDetail.has_club_fee ? 'pagada' : 'pendiente'}
+          {' · '}Cobrado {formatCurrency(clubDetail.total_collected)}
+        </span>
+      </p>
 
-      {/* Mobile cards */}
-      <div className="md:hidden space-y-3">
-        {filtered.map((member) => {
-          const hasPaid = member.total_paid > 0;
-          return (
-            <div key={member.member_id} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-start justify-between">
-                <h3 className="font-medium text-gray-900">{member.member_name}</h3>
-                <Badge variant={hasPaid ? 'default' : 'destructive'}>
-                  {hasPaid ? 'Pagado' : 'Pendiente'}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-600">Licencia:</span>
-                  {member.license_paid ? (
-                    <Check className="w-4 h-4 text-green-600" aria-label="Pagado" />
-                  ) : (
-                    <X className="w-4 h-4 text-red-400" aria-label="Pendiente" />
+      <ListToolbar search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar miembro...' }} />
+
+      {filtered.length === 0 ? (
+        <EmptyState title="No se encontraron miembros con los filtros seleccionados" />
+      ) : (
+        <ul className="border-t border-border">
+          {filtered.map((member) => {
+            const status = statusOf(member.license_paid, member.insurance_paid);
+            return (
+              <li
+                key={member.member_id}
+                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-border py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-semibold text-foreground">{member.member_name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Licencia {member.license_paid ? 'pagada' : 'sin pagar'} · Seguro{' '}
+                    {member.insurance_paid ? 'pagado' : 'sin pagar'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  {member.total_paid > 0 && (
+                    <span className="text-sm tabular-nums text-muted-foreground">{formatCurrency(member.total_paid)}</span>
                   )}
+                  <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-600">Seguro:</span>
-                  {member.insurance_paid ? (
-                    <Check className="w-4 h-4 text-green-600" aria-label="Pagado" />
-                  ) : (
-                    <X className="w-4 h-4 text-red-400" aria-label="Pendiente" />
-                  )}
-                </div>
-              </div>
-              {member.total_paid > 0 && (
-                <div className="flex items-center justify-between text-sm pt-2 border-t">
-                  <span className="text-gray-600">Total pagado:</span>
-                  <span className="font-medium text-gray-900 tabular-nums">
-                    {formatCurrency(member.total_paid)}
-                  </span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Desktop table */}
-      <div className="hidden md:block rounded-md border">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left p-4 font-medium text-gray-900">Miembro</th>
-                <th className="text-center p-4 font-medium text-gray-900">Licencia</th>
-                <th className="text-center p-4 font-medium text-gray-900">Seguro</th>
-                <th className="text-right p-4 font-medium text-gray-900">Total Pagado</th>
-                <th className="text-center p-4 font-medium text-gray-900">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((member) => {
-                const hasPaid = member.total_paid > 0;
-                return (
-                  <tr key={member.member_id} className="border-b hover:bg-gray-50">
-                    <td className="p-4">
-                      <p className="font-medium text-gray-900">{member.member_name}</p>
-                    </td>
-                    <td className="p-4 text-center">
-                      {member.license_paid ? (
-                        <Check className="w-5 h-5 text-green-600 mx-auto" aria-label="Pagado" />
-                      ) : (
-                        <X className="w-5 h-5 text-red-400 mx-auto" aria-label="Pendiente" />
-                      )}
-                    </td>
-                    <td className="p-4 text-center">
-                      {member.insurance_paid ? (
-                        <Check className="w-5 h-5 text-green-600 mx-auto" aria-label="Pagado" />
-                      ) : (
-                        <X className="w-5 h-5 text-red-400 mx-auto" aria-label="Pendiente" />
-                      )}
-                    </td>
-                    <td className="p-4 text-right font-medium text-gray-900 tabular-nums">
-                      {member.total_paid > 0 ? formatCurrency(member.total_paid) : '-'}
-                    </td>
-                    <td className="p-4 text-center">
-                      <Badge variant={hasPaid ? 'default' : 'destructive'}>
-                        {hasPaid ? 'Pagado' : 'Pendiente'}
-                      </Badge>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-600">No se encontraron miembros con los filtros seleccionados</p>
-        </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
 
-      {/* Transactions section — super_admin only */}
-      {canManagePayments && clubDetail && (
-        <div className="mt-8">
-          <h4 className="text-base font-semibold text-gray-900 mb-4">Transacciones</h4>
-          <TransactionsSection
-            clubId={clubDetail.club_id}
-            paymentYear={selectedYear}
-          />
-        </div>
+      {canManagePayments && (
+        <section className="flex flex-col gap-3">
+          <h3 className="text-base font-semibold text-foreground">Transacciones</h3>
+          <TransactionsSection clubId={clubDetail.club_id} paymentYear={selectedYear} />
+        </section>
       )}
 
-      {/* Manual Payment Modal — super_admin only */}
-      {canManagePayments && clubDetail && (
+      {canManagePayments && (
         <ManualPaymentModal
           isOpen={isManualPaymentOpen}
           onClose={() => setIsManualPaymentOpen(false)}

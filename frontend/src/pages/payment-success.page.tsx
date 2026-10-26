@@ -16,7 +16,7 @@ export const PaymentSuccessPage = () => {
 
         <div className="flex flex-col gap-3">
           <Button size="lg" className="w-full" asChild>
-            <Link to="/club-payments">Ver el estado de pagos</Link>
+            <Link to="/payments?tab=historial">Ver el estado de pagos</Link>
           </Button>
           <Button size="lg" variant="outline" className="w-full" asChild>
             <Link to="/">Ir al inicio</Link>

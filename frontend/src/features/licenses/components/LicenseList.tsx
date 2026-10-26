@@ -208,7 +208,7 @@ export const LicenseList = () => {
       {!canCreate && (
         <p className="text-sm text-muted-foreground">
           Las licencias se crean al registrar el pago de la temporada.{' '}
-          <Link to="/annual-payments" className="font-medium text-foreground underline underline-offset-4">
+          <Link to="/payments" className="font-medium text-foreground underline underline-offset-4">
             Ir a pagar
           </Link>
         </p>

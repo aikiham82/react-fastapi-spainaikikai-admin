@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { AnnualPaymentFormData, AnnualPaymentPrices, PaymentTotals } from '../data/schemas/annual-payment.schema';
-import { defaultFormValues, calculateTotals, annualPaymentFormSchema, QUANTITY_LIMITS } from '../data/schemas/annual-payment.schema';
+import { defaultFormValues, calculateTotals, annualPaymentFormSchema } from '../data/schemas/annual-payment.schema';
 
 const ZERO_PRICES: AnnualPaymentPrices = {
   club_fee: 0, kyu: 0, kyu_infantil: 0, dan: 0,
@@ -13,14 +13,6 @@ export interface UseAnnualPaymentFormReturn {
   errors: Record<string, string>;
   isValid: boolean;
   setField: <K extends keyof AnnualPaymentFormData>(field: K, value: AnnualPaymentFormData[K]) => void;
-  incrementField: (field: keyof Pick<AnnualPaymentFormData,
-    'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
-  >) => void;
-  decrementField: (field: keyof Pick<AnnualPaymentFormData,
-    'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
-  >) => void;
   reset: () => void;
   validate: () => boolean;
 }
@@ -36,7 +28,7 @@ export function useAnnualPaymentForm(
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const totals = useMemo(
-    () => calculateTotals(formData, prices ?? ZERO_PRICES),
+    () => calculateTotals(formData, { ...ZERO_PRICES, ...prices }),
     [formData, prices]
   );
 
@@ -51,26 +43,6 @@ export function useAnnualPaymentForm(
       delete newErrors[field];
       return newErrors;
     });
-  }, []);
-
-  const incrementField = useCallback((field: keyof Pick<AnnualPaymentFormData,
-    'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
-  >) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: Math.min(QUANTITY_LIMITS.max_per_item, (prev[field] as number) + 1),
-    }));
-  }, []);
-
-  const decrementField = useCallback((field: keyof Pick<AnnualPaymentFormData,
-    'kyu_count' | 'kyu_infantil_count' | 'dan_count' |
-    'fukushidoin_count' | 'shidoin_count' | 'seguro_accidentes_count' | 'seguro_rc_count'
-  >) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: Math.max(0, (prev[field] as number) - 1),
-    }));
   }, []);
 
   const reset = useCallback(() => {
@@ -104,8 +76,6 @@ export function useAnnualPaymentForm(
     errors,
     isValid,
     setField,
-    incrementField,
-    decrementField,
     reset,
     validate,
   };

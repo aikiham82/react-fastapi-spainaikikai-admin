@@ -9,6 +9,7 @@ import { AuthProvider } from "./features/auth/hooks/useAuthContext";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./core/data/queryClient";
 import { AppLayout } from "./components/AppLayout";
+import { legacyPaymentRoutes } from "./pages/legacy-payment-routes";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "sonner";
 
@@ -48,8 +49,7 @@ const PriceConfigurationsPage = lazyWithRetry(() => import("./pages/price-config
 const InvoicesPage = lazyWithRetry(() => import("./pages/invoices.page").then(m => ({ default: m.InvoicesPage })));
 const PaymentSuccessPage = lazyWithRetry(() => import("./pages/payment-success.page").then(m => ({ default: m.PaymentSuccessPage })));
 const PaymentFailurePage = lazyWithRetry(() => import("./pages/payment-failure.page").then(m => ({ default: m.PaymentFailurePage })));
-const AnnualPaymentsPage = lazyWithRetry(() => import("./pages/annual-payments.page").then(m => ({ default: m.AnnualPaymentsPage })));
-const ClubPaymentsPageRoute = lazyWithRetry(() => import("./pages/club-payments.page").then(m => ({ default: m.ClubPaymentsPageRoute })));
+const PaymentsPage = lazyWithRetry(() => import("./pages/payments.page").then(m => ({ default: m.PaymentsPage })));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-screen">
@@ -78,8 +78,8 @@ function App() {
                   <Route path="/members" element={<MembersPage />} />
                   <Route path="/licenses" element={<LicensesPage />} />
                   <Route path="/invoices" element={<InvoicesPage />} />
-                  <Route path="/annual-payments" element={<AnnualPaymentsPage />} />
-                  <Route path="/club-payments" element={<ClubPaymentsPageRoute />} />
+                  <Route path="/payments" element={<PaymentsPage />} />
+                  {legacyPaymentRoutes}
                   <Route path="/seminars" element={<SeminarsPage />} />
                   <Route path="/insurance" element={<InsurancePage />} />
                   <Route path="/import-export" element={<ImportExportPage />} />

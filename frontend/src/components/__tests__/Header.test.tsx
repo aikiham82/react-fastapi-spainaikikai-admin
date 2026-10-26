@@ -22,6 +22,12 @@ describe('Header', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Licencias' })).toBeInTheDocument()
   })
 
+  it('titles the payments page Pagos', () => {
+    renderHeader('/payments?tab=historial')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Pagos' })).toBeInTheDocument()
+  })
+
   it('shows the section title on nested routes', () => {
     renderHeader('/members/123')
 

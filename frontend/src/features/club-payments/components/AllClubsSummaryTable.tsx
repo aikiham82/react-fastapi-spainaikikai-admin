@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import { useClubPaymentsContext } from '../hooks/useClubPaymentsContext';
-import { Search, Building2, ChevronRight, Check, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+import { ListToolbar, EmptyState } from '@/components/ui/list-controls';
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
+import { formatCurrency } from '@/core/utils/format';
 
 const getPaymentProgress = (paid: number, total: number) => {
   if (total === 0) return 0;
   return Math.round((paid / total) * 100);
 };
 
-const getProgressVariant = (percent: number): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  if (percent >= 80) return 'default';
-  if (percent >= 50) return 'secondary';
-  return 'destructive';
+const progressTone = (percent: number): StatusTone => {
+  if (percent >= 80) return 'ok';
+  if (percent >= 50) return 'warn';
+  return 'neutral';
 };
+
+const th = 'px-3 py-3 text-left text-sm font-medium text-muted-foreground';
+const num = 'tabular-nums';
 
 export const AllClubsSummaryTable = () => {
   const { allClubsSummary, isLoadingAllClubs, allClubsError, selectClub } = useClubPaymentsContext();
@@ -25,201 +25,147 @@ export const AllClubsSummaryTable = () => {
   if (isLoadingAllClubs) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
       </div>
     );
   }
 
   if (allClubsError) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Error al cargar los datos de pagos</p>
-        <p className="text-sm text-gray-600 mt-2">{allClubsError.message}</p>
+      <div className="py-12">
+        <p className="text-danger">Error al cargar los datos de pagos</p>
+        <p className="mt-2 text-sm text-muted-foreground">{allClubsError.message}</p>
       </div>
     );
   }
 
-  const clubs = [...(allClubsSummary?.clubs ?? [])].sort((a, b) =>
-    a.club_name.localeCompare(b.club_name, 'es')
-  );
-  const filtered = clubs.filter((c) =>
-    c.club_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const clubs = [...(allClubsSummary?.clubs ?? [])].sort((a, b) => a.club_name.localeCompare(b.club_name, 'es'));
+  const filtered = clubs.filter((c) => c.club_name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   if (clubs.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay clubs</h3>
-        <p className="text-gray-600">No se encontraron clubs con datos de pagos</p>
-      </div>
-    );
+    return <EmptyState title="No hay clubs" description="No se encontraron clubs con datos de pagos" />;
   }
 
+  const open = (clubId: string) => selectClub(clubId);
+  const onKey = (clubId: string) => (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      open(clubId);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-600">Total Clubs</p>
-          <p className="text-2xl font-bold text-gray-900">{clubs.length}</p>
-        </div>
-        <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-600">Total Miembros</p>
-          <p className="text-2xl font-bold text-gray-900">{allClubsSummary?.grand_total_members ?? 0}</p>
-        </div>
-        <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-600">Total Cobrado</p>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(allClubsSummary?.grand_total_collected ?? 0)}</p>
-        </div>
-        <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm text-gray-600">Año</p>
-          <p className="text-2xl font-bold text-gray-900">{allClubsSummary?.payment_year}</p>
-        </div>
-      </div>
+    <div className="flex flex-col gap-4">
+      <p className="text-[15px] text-foreground">
+        <span className="font-semibold">{clubs.length} clubs</span>
+        <span className="text-muted-foreground">
+          {' · '}
+          {allClubsSummary?.grand_total_members ?? 0} miembros{' · '}
+          Cobrado {formatCurrency(allClubsSummary?.grand_total_collected ?? 0)}
+        </span>
+      </p>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          type="text"
-          placeholder="Buscar club..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      <ListToolbar search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar club...' }} />
 
-      {/* Mobile cards */}
-      <div className="md:hidden space-y-3">
+      {filtered.length === 0 && <EmptyState title="No se encontró ningún club" />}
+
+      <ul className="border-t border-border md:hidden">
         {filtered.map((club) => {
           const progress = getPaymentProgress(club.members_with_license, club.total_members);
           return (
-            <div
-              key={club.club_id}
-              role="button"
-              tabIndex={0}
-              aria-label={`Ver detalle de ${club.club_name}`}
-              className="border rounded-lg p-4 space-y-3 cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => selectClub(club.club_id)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectClub(club.club_id); } }}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">{club.club_name}</h3>
-                  <p className="text-sm text-gray-600">{club.total_members} miembros</p>
+            <li key={club.club_id} className="border-b border-border">
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label={`Ver detalle de ${club.club_name}`}
+                className="flex min-h-11 cursor-pointer flex-col gap-1 py-3"
+                onClick={() => open(club.club_id)}
+                onKeyDown={onKey(club.club_id)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-[15px] font-semibold text-foreground">{club.club_name}</p>
+                  <StatusBadge tone={progressTone(progress)}>{progress}%</StatusBadge>
                 </div>
-                <Badge variant={getProgressVariant(progress)}>
-                  {progress}%
-                </Badge>
+                <p className="text-sm text-muted-foreground">
+                  {club.total_members} miembros · {club.members_with_license} con licencia · {club.members_with_insurance} con seguro
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Cuota {club.has_club_fee ? 'pagada' : 'pendiente'} · Cobrado{' '}
+                  <span className={num}>{formatCurrency(club.total_collected)}</span>
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="text-gray-600">Cuota Club: </span>
-                  <span className={`font-medium ${club.has_club_fee ? 'text-green-600' : 'text-red-500'}`}>
-                    {club.has_club_fee ? 'Pagada' : 'Pendiente'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Licencias: </span>
-                  <span className="font-medium">{club.members_with_license}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Seguros: </span>
-                  <span className="font-medium">{club.members_with_insurance}</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-sm pt-2 border-t">
-                <span className="text-gray-600">Total cobrado:</span>
-                <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(club.total_collected)}</span>
-              </div>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
 
-      {/* Desktop table */}
-      <div className="hidden md:block rounded-md border">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left p-4 font-medium text-gray-900">Club</th>
-                <th className="text-center p-4 font-medium text-gray-900">Cuota Club</th>
-                <th className="text-center p-4 font-medium text-gray-900">Miembros</th>
-                <th className="text-center p-4 font-medium text-gray-900">Con Licencia</th>
-                <th className="text-center p-4 font-medium text-gray-900">Con Seguro</th>
-                <th className="text-right p-4 font-medium text-gray-900">Total Cobrado</th>
-                <th className="text-center p-4 font-medium text-gray-900">Progreso</th>
-                <th className="w-10 p-4"></th>
+      <table className="hidden w-full md:table">
+        <thead>
+          <tr className="border-b border-border">
+            <th className={th}>Club</th>
+            <th className={th}>Cuota del club</th>
+            <th className={`${th} text-right`}>Miembros</th>
+            <th className={`${th} text-right`}>Con licencia</th>
+            <th className={`${th} text-right`}>Con seguro</th>
+            <th className={`${th} text-right`}>Cobrado</th>
+            <th className={th}>Progreso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((club) => {
+            const progress = getPaymentProgress(club.members_with_license, club.total_members);
+            return (
+              <tr
+                key={club.club_id}
+                tabIndex={0}
+                aria-label={`Ver detalle de ${club.club_name}`}
+                className="cursor-pointer border-b border-border hover:bg-muted/60"
+                onClick={() => open(club.club_id)}
+                onKeyDown={onKey(club.club_id)}
+              >
+                <td className="px-3 py-3 text-[15px] font-semibold text-foreground">{club.club_name}</td>
+                <td className="px-3 py-3">
+                  <StatusBadge tone={club.has_club_fee ? 'ok' : 'neutral'}>
+                    {club.has_club_fee ? 'Pagada' : 'Pendiente'}
+                  </StatusBadge>
+                </td>
+                <td className={`px-3 py-3 text-right text-foreground ${num}`}>{club.total_members}</td>
+                <td className={`px-3 py-3 text-right text-foreground ${num}`}>
+                  {club.members_with_license}/{club.total_members}
+                </td>
+                <td className={`px-3 py-3 text-right text-foreground ${num}`}>
+                  {club.members_with_insurance}/{club.total_members}
+                </td>
+                <td className={`px-3 py-3 text-right font-medium text-foreground ${num}`}>
+                  {formatCurrency(club.total_collected)}
+                </td>
+                <td className="px-3 py-3">
+                  <StatusBadge tone={progressTone(progress)}>{progress}%</StatusBadge>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filtered.map((club) => {
-                const progress = getPaymentProgress(club.members_with_license, club.total_members);
-                return (
-                  <tr
-                    key={club.club_id}
-                    tabIndex={0}
-                    aria-label={`Ver detalle de ${club.club_name}`}
-                    className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => selectClub(club.club_id)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectClub(club.club_id); } }}
-                  >
-                    <td className="p-4">
-                      <p className="font-medium text-gray-900">{club.club_name}</p>
-                    </td>
-                    <td className="p-4 text-center">
-                      {club.has_club_fee ? (
-                        <Check className="w-5 h-5 text-green-600 mx-auto" />
-                      ) : (
-                        <X className="w-5 h-5 text-red-400 mx-auto" />
-                      )}
-                    </td>
-                    <td className="p-4 text-center text-gray-700">{club.total_members}</td>
-                    <td className="p-4 text-center text-gray-700">
-                      {club.members_with_license}/{club.total_members}
-                    </td>
-                    <td className="p-4 text-center text-gray-700">
-                      {club.members_with_insurance}/{club.total_members}
-                    </td>
-                    <td className="p-4 text-right font-medium text-gray-900 tabular-nums">
-                      {formatCurrency(club.total_collected)}
-                    </td>
-                    <td className="p-4 text-center">
-                      <Badge variant={getProgressVariant(progress)}>
-                        {progress}%
-                      </Badge>
-                    </td>
-                    <td className="p-4">
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
-                    </td>
-                  </tr>
-                );
-              })}
-              {/* Totals row */}
-              <tr className="bg-gray-100 font-medium">
-                <td className="p-4 text-gray-900">Total</td>
-                <td className="p-4 text-center text-gray-900">
-                  {clubs.filter((c) => c.has_club_fee).length}/{clubs.length}
-                </td>
-                <td className="p-4 text-center text-gray-900">{allClubsSummary?.grand_total_members ?? 0}</td>
-                <td className="p-4 text-center text-gray-900">
-                  {clubs.reduce((sum, c) => sum + c.members_with_license, 0)}
-                </td>
-                <td className="p-4 text-center text-gray-900">
-                  {clubs.reduce((sum, c) => sum + c.members_with_insurance, 0)}
-                </td>
-                <td className="p-4 text-right text-gray-900 tabular-nums">
-                  {formatCurrency(allClubsSummary?.grand_total_collected ?? 0)}
-                </td>
-                <td className="p-4"></td>
-                <td className="p-4"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr className="font-semibold">
+            <td className="px-3 py-3 text-foreground">Total de todos los clubs</td>
+            <td className={`px-3 py-3 text-foreground ${num}`}>
+              {clubs.filter((c) => c.has_club_fee).length}/{clubs.length}
+            </td>
+            <td className={`px-3 py-3 text-right text-foreground ${num}`}>{allClubsSummary?.grand_total_members ?? 0}</td>
+            <td className={`px-3 py-3 text-right text-foreground ${num}`}>
+              {clubs.reduce((sum, c) => sum + c.members_with_license, 0)}
+            </td>
+            <td className={`px-3 py-3 text-right text-foreground ${num}`}>
+              {clubs.reduce((sum, c) => sum + c.members_with_insurance, 0)}
+            </td>
+            <td className={`px-3 py-3 text-right text-foreground ${num}`}>
+              {formatCurrency(allClubsSummary?.grand_total_collected ?? 0)}
+            </td>
+            <td />
+          </tr>
+        </tfoot>
+      </table>
     </div>
   );
 };

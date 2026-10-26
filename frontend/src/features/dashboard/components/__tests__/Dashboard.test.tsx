@@ -65,7 +65,7 @@ describe('Dashboard', () => {
   it('asks a club admin to pay the season when the club has not paid', () => {
     renderWith(dashboardData({ stats: { ...dashboardData().stats, clubs_pending: 1 } }))
 
-    expect(screen.getByRole('link', { name: /falta pagar la temporada/i })).toHaveAttribute('href', '/annual-payments')
+    expect(screen.getByRole('link', { name: /falta pagar la temporada/i })).toHaveAttribute('href', '/payments')
   })
 
   it('shows Todo al día when nothing is pending', () => {

@@ -47,6 +47,21 @@ describe('Sidebar', () => {
     expect(screen.queryByRole('link', { name: 'Precios' })).not.toBeInTheDocument()
   })
 
+  it('has one Pagos entry for both roles instead of Pagar and Estado de pagos', () => {
+    renderSidebar()
+    expect(screen.getByRole('link', { name: 'Pagos' })).toHaveAttribute('href', '/payments')
+    expect(screen.queryByRole('link', { name: 'Pagar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Estado de pagos' })).not.toBeInTheDocument()
+  })
+
+  it('shows Pagos to club admins too', () => {
+    authContext.userRole = 'club_admin'
+    authContext.clubId = 'club-1'
+    renderSidebar()
+
+    expect(screen.getAllByRole('link', { name: 'Pagos' })).toHaveLength(1)
+  })
+
   it('marks the current page', () => {
     renderSidebar()
 
