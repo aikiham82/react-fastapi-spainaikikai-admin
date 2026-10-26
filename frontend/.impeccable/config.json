@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "createdAt": "2026-10-26T15:38:41.964Z",
+        "reason": "user confirmed: chose the 'Tinta, papel y rojo' direction whose option named Geist as the single modern typeface (AskUserQuestion, 2026-10-26)"
+      }
+    ]
+  }
+}

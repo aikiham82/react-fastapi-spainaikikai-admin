@@ -46,9 +46,9 @@ describe('InsuranceForm', () => {
   it('edits type company and policy', async () => {
     renderEditing()
 
-    expect(screen.getByRole('combobox', { name: 'Tipo de Seguro *' })).toHaveTextContent('Seguro de Responsabilidad Civil')
+    expect(screen.getByRole('combobox', { name: 'Tipo de Seguro *' })).toHaveTextContent('Responsabilidad civil (RC)')
     await userEvent.click(screen.getByRole('combobox', { name: 'Tipo de Seguro *' }))
-    await userEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Seguro de Accidentes' }))
+    await userEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Accidentes' }))
     await userEvent.clear(screen.getByLabelText('Compañía de Seguros *'))
     await userEvent.type(screen.getByLabelText('Compañía de Seguros *'), 'Otra Example')
     await userEvent.clear(screen.getByLabelText('Número de Póliza *'))

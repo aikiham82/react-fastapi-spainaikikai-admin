@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { MemberAccessAccount } from '@/features/users/components/MemberAccessAccount';
 import {
   Dialog,
@@ -21,6 +22,9 @@ const localToday = (): string => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
+const normalizeCountry = (country?: string | null): string =>
+  !country || country.trim().toLowerCase() === 'spain' ? 'España' : country;
+
 const joinDateOf = (member: Member): string =>
   (member.registration_date ?? member.created_at ?? '').substring(0, 10);
 
@@ -33,6 +37,8 @@ interface MemberFormProps {
 export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
   const { createMember, updateMember } = useMemberContext();
   const { clubs } = useClubContext();
+  const { userRole, clubId: ownClubId } = useAuthContext();
+  const isSuperAdmin = userRole === 'super_admin';
   const isEditing = !!member;
 
   const [formData, setFormData] = useState<CreateMemberRequest>({
@@ -65,7 +71,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         city: member.city || '',
         province: member.province || '',
         postal_code: member.postal_code || '',
-        country: member.country || 'España',
+        country: normalizeCountry(member.country),
         club_id: member.club_id || '',
         registration_date: joinDateOf(member),
       });
@@ -82,18 +88,21 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         province: '',
         postal_code: '',
         country: 'España',
-        club_id: clubs.length > 0 ? clubs[0].id : '',
+        club_id: isSuperAdmin ? '' : ownClubId ?? '',
         registration_date: localToday(),
       });
     }
     setErrors({});
-  }, [member, open, clubs]);
+  }, [member, open, isSuperAdmin, ownClubId]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof CreateMemberRequest, string>> = {};
 
     if (!formData.first_name.trim()) {
       newErrors.first_name = 'El nombre es obligatorio';
+    }
+    if (isSuperAdmin && !formData.club_id) {
+      newErrors.club_id = 'Selecciona un club';
     }
     if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
@@ -138,177 +147,76 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     }
   };
 
+  const field = (id: keyof CreateMemberRequest, label: string, props: React.ComponentProps<typeof Input> = {}) => (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        value={(formData[id] as string | undefined) ?? ''}
+        onChange={(e) => handleChange(id, e.target.value)}
+        className={errors[id] ? 'border-danger' : ''}
+        aria-invalid={!!errors[id]}
+        {...props}
+      />
+      {errors[id] && <p className="text-sm text-danger">{errors[id]}</p>}
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-[600px]"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          if (!isEditing) document.getElementById('first_name')?.focus();
+        }}
+      >
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Miembro' : 'Crear Miembro'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar miembro' : 'Nuevo miembro'}</DialogTitle>
           <DialogDescription>
-            {isEditing ? 'Actualiza la información del miembro' : 'Completa la información para crear un nuevo miembro'}
+            {isEditing ? 'Actualiza los datos del miembro' : 'Rellena los datos para dar de alta a un miembro'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="min-w-0 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">Nombre *</Label>
-              <Input
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) => handleChange('first_name', e.target.value)}
-                placeholder="Juan"
-                className={errors.first_name ? 'border-red-500' : ''}
-              />
-              {errors.first_name && <p className="text-sm text-red-500">{errors.first_name}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Apellidos</Label>
-              <Input
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) => handleChange('last_name', e.target.value)}
-                placeholder="Pérez García"
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {field('first_name', 'Nombre *')}
+            {field('last_name', 'Apellidos')}
+            {field('email', 'Correo electrónico', { type: 'email', placeholder: 'Ej.: nombre@ejemplo.com' })}
+            {field('phone', 'Teléfono', { type: 'tel', placeholder: 'Ej.: 600 000 000' })}
+            {isSuperAdmin && (
+              <div className="space-y-2">
+                <Label htmlFor="club_id">Club *</Label>
+                <SearchableSelect
+                  id="club_id"
+                  options={clubs.map((club) => ({ value: club.id, label: club.name }))}
+                  value={formData.club_id ?? ''}
+                  onValueChange={(value) => handleChange('club_id', value)}
+                  placeholder="Selecciona un club"
+                  searchPlaceholder="Buscar club..."
+                  emptyMessage="No se encontraron clubs."
+                />
+                {errors.club_id && <p className="text-sm text-danger">{errors.club_id}</p>}
+              </div>
+            )}
+            {field('registration_date', 'Fecha de alta', { type: 'date' })}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email de contacto</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="juan@ejemplo.com"
-                className={errors.email ? 'border-red-500' : ''}
-              />
-              {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+          <details className="border-t border-border pt-3" open={errors.birth_date ? true : undefined}>
+            <summary className="cursor-pointer text-sm font-medium text-foreground">Más datos</summary>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {field('dni', 'DNI o NIE', { placeholder: 'Ej.: 12345678X' })}
+              {field('birth_date', 'Fecha de nacimiento', { type: 'date' })}
+              <div className="sm:col-span-2">{field('address', 'Dirección', { placeholder: 'Ej.: Calle Mayor 1' })}</div>
+              {field('city', 'Ciudad')}
+              {field('province', 'Provincia')}
+              {field('postal_code', 'Código postal', { placeholder: 'Ej.: 30001' })}
+              {field('country', 'País')}
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder="+34 600 000 000"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="dni">DNI/NIE</Label>
-              <Input
-                id="dni"
-                value={formData.dni}
-                onChange={(e) => handleChange('dni', e.target.value)}
-                placeholder="12345678X"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="registration_date">Fecha de Alta</Label>
-              <Input
-                id="registration_date"
-                type="date"
-                value={formData.registration_date ?? ''}
-                onChange={(e) => handleChange('registration_date', e.target.value)}
-                className={errors.registration_date ? 'border-red-500' : ''}
-                aria-invalid={!!errors.registration_date}
-                aria-describedby={errors.registration_date ? 'registration_date-error' : undefined}
-              />
-              {errors.registration_date && (
-                <p id="registration_date-error" className="text-sm text-red-500">{errors.registration_date}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="birth_date">Fecha de Nacimiento</Label>
-              <Input
-                id="birth_date"
-                type="date"
-                value={formData.birth_date}
-                onChange={(e) => handleChange('birth_date', e.target.value)}
-                className={errors.birth_date ? 'border-red-500' : ''}
-              />
-              {errors.birth_date && <p className="text-sm text-red-500">{errors.birth_date}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="club_id">Club</Label>
-              <SearchableSelect
-                options={clubs.map((club) => ({ value: club.id, label: club.name }))}
-                value={formData.club_id ?? ''}
-                onValueChange={(value) => handleChange('club_id', value)}
-                placeholder="Selecciona un club"
-                searchPlaceholder="Buscar club..."
-                emptyMessage="No se encontraron clubs."
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Dirección</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleChange('address', e.target.value)}
-              placeholder="Calle Principal 123"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">Ciudad</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleChange('city', e.target.value)}
-                placeholder="Murcia"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="province">Provincia</Label>
-              <Input
-                id="province"
-                value={formData.province}
-                onChange={(e) => handleChange('province', e.target.value)}
-                placeholder="Murcia"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="postal_code">Código Postal</Label>
-              <Input
-                id="postal_code"
-                value={formData.postal_code}
-                onChange={(e) => handleChange('postal_code', e.target.value)}
-                placeholder="30011"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="country">País</Label>
-              <Input
-                id="country"
-                value={formData.country}
-                onChange={(e) => handleChange('country', e.target.value)}
-                placeholder="España"
-              />
-            </div>
-          </div>
+          </details>
 
           {isEditing && member?.id && (
-            <div className="border-t pt-4">
+            <div className="border-t border-border pt-4">
               <MemberAccessAccount
                 memberId={member.id}
                 memberEmail={member.email ?? undefined}
@@ -323,7 +231,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
               Cancelar
             </Button>
             <Button type="submit">
-              {isEditing ? 'Actualizar' : 'Crear'}
+              {isEditing ? 'Guardar cambios' : 'Crear miembro'}
             </Button>
           </DialogFooter>
         </form>

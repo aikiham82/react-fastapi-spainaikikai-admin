@@ -40,7 +40,7 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
         <p className="text-xs text-muted-foreground">
           Si no le llega, mándale este enlace. Caduca en 24 horas.
         </p>
-        <Button type="button" onClick={copyLink}>
+        <Button type="button" variant="outline" onClick={copyLink}>
           Copiar enlace
         </Button>
       </div>
@@ -77,7 +77,7 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
           Puede gestionar el club (pagos, altas y consultas)
         </Label>
       </div>
-      <Button type="button" disabled={isPending} onClick={giveAccess}>
+      <Button type="button" variant="outline" disabled={isPending} onClick={giveAccess}>
         {isPending ? 'Dando acceso...' : 'Dar acceso a la web'}
       </Button>
     </div>

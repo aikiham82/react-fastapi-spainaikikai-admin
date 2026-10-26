@@ -29,12 +29,15 @@ export const regenerateInvoicePdf = async (id: string): Promise<Invoice> => {
 };
 
 // Helper to download PDF and trigger browser download
+export const invoicePdfFileName = (invoiceNumber: string): string =>
+  `factura_${invoiceNumber.replace('/', '-')}.pdf`;
+
 export const downloadAndSavePdf = async (invoiceId: string, invoiceNumber: string): Promise<void> => {
   const blob = await downloadInvoicePdf(invoiceId);
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `factura_${invoiceNumber.replace('/', '-')}.pdf`;
+  link.download = invoicePdfFileName(invoiceNumber);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

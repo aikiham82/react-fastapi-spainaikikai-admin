@@ -8,7 +8,7 @@ implemented_by:
   model:
     name: "Claude Opus"
     version: "5.5"
-last_implementation_at: "2026-10-26T17:00:00Z"
+last_implementation_at: "2026-10-26T18:10:00Z"
 has_completed_all_phases: false
 
 created_by:
@@ -243,45 +243,45 @@ Every list behaves the same way.
 
 Closes `CM-7` to `CM-31` (except the Settings ones), `LI-4`, `LI-5`, `LI-7`, `LI-8`, `LI-9`, `LI-12`, `LI-14`, `LI-17`, `LI-21`, `LI-22`, `PY-20`, `PY-21`.
 
-- [ ] Shared pieces in `components/ui`:
+- [x] Shared pieces in `components/ui`:
   - `ListToolbar` (search plus filters popover with an active-count badge).
   - `EmptyState` with "Quitar filtros".
   - `ResponsiveDialog` (`max-h-[90dvh]`, sticky footer).
   - A row-actions menu.
-- [ ] Members:
+- [x] Members:
   - One "Seguros" column, the payments action in the row menu, `whitespace-nowrap` club, fits at 1024 and 1440.
   - Labelled filters.
   - On mobile, tappable cards and insurance badges labelled "RC" and "Accidentes".
   - `setFilters(prev => ...)` (stale-closure fix).
   - Create form: no pre-selected club for super admin, hidden club for club admin, "Más datos" collapsed, access block as a secondary section, no auto-selected text.
-- [ ] Licences:
+- [x] Licences:
   - Expired and expiring first, with a "Caducan pronto" chip.
   - Read `?estado=caducadas` and `?estado=caducan-pronto` from the URL (the dashboard links there).
   - Explicit "Editar" action.
   - Club admin sees the hint "Las licencias se crean al registrar el pago".
-- [ ] Insurance:
+- [x] Insurance:
   - Labelled filters.
   - Only member, type and dates required.
   - Actions consistent with the club admin's permissions.
-- [ ] Invoices:
+- [x] Invoices:
   - "Descargar PDF" in the detail footer.
   - Empty fields hidden.
   - Text buttons on mobile.
-- [ ] Clubs:
+- [x] Clubs:
   - Dialog scrolls on mobile.
   - Only name and city required.
   - Country prefilled.
   - Address shown once, plus member count.
   - Delete moved into the edit dialog, with the member count in the confirmation.
-- [ ] Tests:
+- [x] Tests:
   - `MemberList`: `fits filters behind one Filtros button`, `clears search and filters with Quitar filtros`, `labels RC and accident insurance on mobile cards`.
   - `MemberForm`: `does not preselect a club for super admins`, `hides the club field for club admins`.
   - `LicenseList`: `orders expired and expiring licences first`.
   - `ClubForm`: `requires only name and city`.
   - `ResponsiveDialog`: `keeps the footer visible`.
-- [ ] Responsive check of each list and dialog at all five widths, both roles.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check of each list and dialog at all five widths, both roles.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 5: Settings and "Mi club"
 
@@ -387,6 +387,6 @@ Two plain actions. Closes `LI-18`, `LI-19`.
 
 ## ⏭️ Next step
 
-Continue with Phase 4: one list pattern for members, licences, insurance, invoices and clubs.
+Continue with Phase 5: Settings with only the controls that work, and Mi club for club admins.
 
-Ink and paper, a calm door, and a home that says what to do next. 🖌️ 🚪 🧭 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Ink and paper, a calm door, a home that guides, and lists that read the same everywhere. 🖌️ 🚪 🧭 📋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

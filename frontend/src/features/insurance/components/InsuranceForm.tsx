@@ -174,8 +174,8 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
                   <SelectValue placeholder="Selecciona el tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="accident">Seguro de Accidentes</SelectItem>
-                  <SelectItem value="civil_liability">Seguro de Responsabilidad Civil</SelectItem>
+                  <SelectItem value="accident">Accidentes</SelectItem>
+                  <SelectItem value="civil_liability">Responsabilidad civil (RC)</SelectItem>
                 </SelectContent>
               </Select>
               {errors.insurance_type && <p className="text-sm text-red-500">{errors.insurance_type}</p>}

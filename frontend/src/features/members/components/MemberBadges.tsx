@@ -1,16 +1,13 @@
-import { Badge } from '@/components/ui/badge';
-import { KeyRound, Shield, ShieldCheck, ShieldX } from 'lucide-react';
+import { StatusBadge } from '@/components/ui/status-badge';
 import type { LicenseSummary, InsuranceSummary } from '../data/schemas/member.schema';
 import {
   formatGrade,
   formatInstructorCategory,
-  getInstructorBadgeVariant,
-  getLicenseStatusVariant,
+  getLicenseStatusTone,
   getLicenseStatusLabel,
-  getInsuranceStatusVariant,
+  getInsuranceStatusTone,
   getInsuranceStatusLabel,
   getMemberStatusLabel,
-  getMemberStatusVariant,
 } from '../utils/member-badges';
 
 interface MemberStatusBadgeProps {
@@ -20,11 +17,7 @@ interface MemberStatusBadgeProps {
 export function MemberStatusBadge({ status }: MemberStatusBadgeProps) {
   const label = getMemberStatusLabel(status);
   if (!label) return null;
-  return (
-    <Badge variant={getMemberStatusVariant(status)}>
-      {label}
-    </Badge>
-  );
+  return <StatusBadge tone="neutral">{label}</StatusBadge>;
 }
 
 interface MemberAccessBadgeProps {
@@ -35,10 +28,12 @@ export function MemberAccessBadge({ hasAccount }: MemberAccessBadgeProps) {
   if (!hasAccount) return null;
 
   return (
-    <Badge variant="outline" className="gap-1" title="Este socio tiene cuenta para entrar en la aplicación">
-      <KeyRound className="w-3 h-3" />
+    <span
+      className="inline-flex whitespace-nowrap rounded-full border border-border px-2 py-0.5 text-[13px] font-medium text-muted-foreground"
+      title="Este socio tiene cuenta para entrar en la aplicación"
+    >
       Acceso
-    </Badge>
+    </span>
   );
 }
 
@@ -52,38 +47,35 @@ export function GradeBadge({ licenseSummary, compact = false }: GradeBadgeProps)
   const instructor = formatInstructorCategory(licenseSummary?.instructor_category);
 
   return (
-    <div className="flex items-center gap-1 flex-wrap">
-      <Badge variant={licenseSummary?.grade ? 'default' : 'secondary'}>
-        {grade}
-      </Badge>
-      {!compact && instructor && (
-        <Badge variant={getInstructorBadgeVariant(licenseSummary?.instructor_category)}>
-          {instructor}
-        </Badge>
-      )}
-    </div>
+    <span className={licenseSummary?.grade ? 'text-foreground' : 'text-muted-foreground'}>
+      {grade}
+      {!compact && instructor && <span className="text-muted-foreground">{` · ${instructor}`}</span>}
+    </span>
   );
 }
 
 interface LicenseStatusBadgeProps {
   licenseSummary?: LicenseSummary;
+  labelled?: boolean;
 }
 
-export function LicenseStatusBadge({ licenseSummary }: LicenseStatusBadgeProps) {
+export function LicenseStatusBadge({ licenseSummary, labelled = false }: LicenseStatusBadgeProps) {
   const status = licenseSummary?.status;
+  const label = getLicenseStatusLabel(status);
   return (
-    <Badge variant={getLicenseStatusVariant(status)}>
-      {getLicenseStatusLabel(status)}
-    </Badge>
+    <StatusBadge tone={getLicenseStatusTone(status)}>
+      {labelled ? `Licencia: ${label}` : label}
+    </StatusBadge>
   );
 }
 
 interface InsuranceStatusBadgeProps {
   insuranceSummary?: InsuranceSummary;
   type: 'rc' | 'accident';
+  compact?: boolean;
 }
 
-export function InsuranceStatusBadge({ insuranceSummary, type }: InsuranceStatusBadgeProps) {
+export function InsuranceStatusBadge({ insuranceSummary, type, compact = false }: InsuranceStatusBadgeProps) {
   const has = type === 'rc'
     ? insuranceSummary?.has_rc ?? false
     : insuranceSummary?.has_accident ?? false;
@@ -91,15 +83,11 @@ export function InsuranceStatusBadge({ insuranceSummary, type }: InsuranceStatus
     ? insuranceSummary?.rc_status
     : insuranceSummary?.accident_status;
 
-  const variant = getInsuranceStatusVariant(has, status);
-  const label = getInsuranceStatusLabel(has, status);
-
-  const Icon = !has ? Shield : status === 'active' ? ShieldCheck : ShieldX;
+  const prefix = type === 'rc' ? 'RC' : compact ? 'Acc.' : 'Accidentes';
 
   return (
-    <Badge variant={variant}>
-      <Icon className="w-3 h-3" />
-      {label}
-    </Badge>
+    <StatusBadge tone={getInsuranceStatusTone(has, status)}>
+      {`${prefix}: ${getInsuranceStatusLabel(has, status)}`}
+    </StatusBadge>
   );
 }

@@ -17,9 +17,10 @@ interface ClubFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   club?: Club | null;
+  onDelete?: (club: Club) => void;
 }
 
-export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
+export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) => {
   const { createClub, updateClub } = useClubContext();
   const isEditing = !!club;
 
@@ -72,23 +73,8 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
     if (!formData.name.trim()) {
       newErrors.name = 'El nombre es obligatorio';
     }
-    if (!formData.address.trim()) {
-      newErrors.address = 'La dirección es obligatoria';
-    }
     if (!formData.city.trim()) {
       newErrors.city = 'La ciudad es obligatoria';
-    }
-    if (!formData.province.trim()) {
-      newErrors.province = 'La provincia es obligatoria';
-    }
-    if (!formData.postal_code.trim()) {
-      newErrors.postal_code = 'El código postal es obligatorio';
-    }
-    if (!formData.country.trim()) {
-      newErrors.country = 'El país es obligatorio';
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'El teléfono es obligatorio';
     }
     if (!formData.email.trim()) {
       newErrors.email = 'El email es obligatorio';
@@ -141,21 +127,21 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
               placeholder="Nombre del club"
-              className={errors.name ? 'border-red-500' : ''}
+              aria-invalid={!!errors.name}
             />
-            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+            {errors.name && <p className="text-sm text-danger">{errors.name}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Dirección *</Label>
+            <Label htmlFor="address">Dirección</Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => handleChange('address', e.target.value)}
               placeholder="Dirección del club"
-              className={errors.address ? 'border-red-500' : ''}
+              aria-invalid={!!errors.address}
             />
-            {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+            {errors.address && <p className="text-sm text-danger">{errors.address}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -166,61 +152,61 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
                 value={formData.city}
                 onChange={(e) => handleChange('city', e.target.value)}
                 placeholder="Ciudad"
-                className={errors.city ? 'border-red-500' : ''}
+                aria-invalid={!!errors.city}
               />
-              {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
+              {errors.city && <p className="text-sm text-danger">{errors.city}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="province">Provincia *</Label>
+              <Label htmlFor="province">Provincia</Label>
               <Input
                 id="province"
                 value={formData.province}
                 onChange={(e) => handleChange('province', e.target.value)}
                 placeholder="Provincia"
-                className={errors.province ? 'border-red-500' : ''}
+                aria-invalid={!!errors.province}
               />
-              {errors.province && <p className="text-sm text-red-500">{errors.province}</p>}
+              {errors.province && <p className="text-sm text-danger">{errors.province}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="postal_code">Código Postal *</Label>
+              <Label htmlFor="postal_code">Código Postal</Label>
               <Input
                 id="postal_code"
                 value={formData.postal_code}
                 onChange={(e) => handleChange('postal_code', e.target.value)}
                 placeholder="28001"
-                className={errors.postal_code ? 'border-red-500' : ''}
+                aria-invalid={!!errors.postal_code}
               />
-              {errors.postal_code && <p className="text-sm text-red-500">{errors.postal_code}</p>}
+              {errors.postal_code && <p className="text-sm text-danger">{errors.postal_code}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">País *</Label>
+              <Label htmlFor="country">País</Label>
               <Input
                 id="country"
                 value={formData.country}
                 onChange={(e) => handleChange('country', e.target.value)}
                 placeholder="España"
-                className={errors.country ? 'border-red-500' : ''}
+                aria-invalid={!!errors.country}
               />
-              {errors.country && <p className="text-sm text-red-500">{errors.country}</p>}
+              {errors.country && <p className="text-sm text-danger">{errors.country}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono *</Label>
+            <Label htmlFor="phone">Teléfono</Label>
             <Input
               id="phone"
               type="tel"
               value={formData.phone}
               onChange={(e) => handleChange('phone', e.target.value)}
               placeholder="+34 600 000 000"
-              className={errors.phone ? 'border-red-500' : ''}
+              aria-invalid={!!errors.phone}
             />
-            {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+            {errors.phone && <p className="text-sm text-danger">{errors.phone}</p>}
           </div>
 
           <div className="space-y-2">
@@ -231,9 +217,9 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
               placeholder="club@ejemplo.com"
-              className={errors.email ? 'border-red-500' : ''}
+              aria-invalid={!!errors.email}
             />
-            {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+            {errors.email && <p className="text-sm text-danger">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">
@@ -248,6 +234,16 @@ export const ClubForm = ({ open, onOpenChange, club }: ClubFormProps) => {
           </div>
 
           <DialogFooter>
+            {isEditing && club && onDelete ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-danger hover:text-danger sm:mr-auto"
+                onClick={() => onDelete(club)}
+              >
+                Eliminar club
+              </Button>
+            ) : null}
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

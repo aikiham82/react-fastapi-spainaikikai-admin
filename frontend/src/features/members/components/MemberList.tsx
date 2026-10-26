@@ -3,19 +3,10 @@ import { ListPager } from '@/core/components/ListPager';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
-import { Users, Plus, Search, Trash2, CreditCard, Loader2, MoreVertical, UserX, UserCheck, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,11 +17,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubContext } from '@/features/clubs/hooks/useClubContext';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { MemberPaymentLines } from '@/features/club-payments/components/MemberPaymentLines';
@@ -42,17 +34,30 @@ import { useMembersWithAccountQuery } from '@/features/users/hooks/queries/useMe
 import { filterMembersWithAccess } from '../utils/member-access';
 import { cn } from '@/lib/utils';
 
+const DEFAULT_STATUS = 'active';
+
+const fullName = (member: Member) => `${member.first_name} ${member.last_name ?? ''}`.trim();
+
+const LoadingRows = () => (
+  <div role="status" aria-label="Cargando miembros" className="space-y-3">
+    {[1, 2, 3, 4].map((i) => (
+      <Skeleton key={i} className="h-14 w-full" />
+    ))}
+  </div>
+);
+
 export const MemberList = () => {
-  const { members, isLoading, isFetching, error, filters, setFilters, total, limit, offset, deleteMember, changeMemberStatus, setPagination } = useMemberContext();
+  const { members, isLoading, error, setFilters, total, limit, offset, deleteMember, changeMemberStatus, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
   const { userRole } = useAuthContext();
   const { clubs } = useClubContext();
   const isSuperAdmin = userRole === 'super_admin';
+  const canCreate = canAccess({ resource: 'members', action: 'create' });
   const [searchTerm, setSearchTerm] = useState('');
   const [onlyWithAccess, setOnlyWithAccess] = useState(false);
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
-  const [memberStatusFilter, setMemberStatusFilter] = useState<string>('active');
+  const [memberStatusFilter, setMemberStatusFilter] = useState<string>(DEFAULT_STATUS);
   const [clubFilter, setClubFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
@@ -65,19 +70,14 @@ export const MemberList = () => {
     ...clubs.map(c => ({ value: c.id, label: c.name })),
   ], [clubs]);
 
-  const activeClubName = useMemo(() => {
-    if (!filters.club_id) return null;
-    return clubs.find(c => c.id === filters.club_id)?.name ?? null;
-  }, [filters.club_id, clubs]);
-
   useEffect(() => {
-    setFilters({ ...filters, search: debouncedSearch || undefined, offset: 0 });
-  }, [debouncedSearch]);
+    setFilters(prev => ({ ...prev, search: debouncedSearch || undefined, offset: 0 }));
+  }, [debouncedSearch, setFilters]);
 
   useEffect(() => {
     const statusValue = memberStatusFilter === 'all' ? undefined : memberStatusFilter;
-    setFilters({ ...filters, status: statusValue, offset: 0 });
-  }, [memberStatusFilter]);
+    setFilters(prev => ({ ...prev, status: statusValue, offset: 0 }));
+  }, [memberStatusFilter, setFilters]);
 
   const { memberIdsWithAccount } = useMembersWithAccountQuery(isSuperAdmin);
 
@@ -89,376 +89,268 @@ export const MemberList = () => {
     onlyWithAccess
   );
 
-  const handleFilterStatus = (value: string) => {
+  const handleLicenseFilter = (value: string) => {
     setLicenseStatusFilter(value);
-    const statusValue = value === 'all' ? undefined : value as "active" | "expired" | "pending";
-    setFilters({ ...filters, license_status: statusValue, offset: 0 });
+    const statusValue = value === 'all' ? undefined : value as 'active' | 'expired' | 'pending';
+    setFilters(prev => ({ ...prev, license_status: statusValue, offset: 0 }));
   };
 
   const handleClubFilter = (value: string) => {
     setClubFilter(value);
-    setFilters({ ...filters, club_id: value || undefined, offset: 0 });
+    setFilters(prev => ({ ...prev, club_id: value || undefined, offset: 0 }));
   };
 
-  const clearClubFilter = () => {
+  const activeFilters =
+    (memberStatusFilter !== DEFAULT_STATUS ? 1 : 0) +
+    (licenseStatusFilter !== 'all' ? 1 : 0) +
+    (isSuperAdmin && clubFilter ? 1 : 0) +
+    (isSuperAdmin && onlyWithAccess ? 1 : 0);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setMemberStatusFilter(DEFAULT_STATUS);
+    setLicenseStatusFilter('all');
     setClubFilter('');
-    setFilters({ ...filters, club_id: undefined, offset: 0 });
+    setOnlyWithAccess(false);
+    setFilters(prev => ({
+      ...prev,
+      search: undefined,
+      status: DEFAULT_STATUS,
+      license_status: undefined,
+      club_id: undefined,
+      offset: 0,
+    }));
   };
+
+  const openCreate = () => {
+    setSelectedMemberForEdit(null);
+    setIsFormOpen(true);
+  };
+
+  const openEdit = (member: Member) => {
+    setSelectedMemberForEdit(member);
+    setIsFormOpen(true);
+  };
+
+  const rowActions = (member: Member) => [
+    { label: 'Ver pagos', onSelect: () => setSelectedMemberForPayments(member) },
+    member.status === 'active'
+      ? { label: 'Dar de baja', onSelect: () => setMemberToChangeStatus(member) }
+      : { label: 'Reactivar', onSelect: () => setMemberToChangeStatus(member) },
+    ...(canAccess({ resource: 'members', action: 'delete' })
+      ? [{ label: 'Eliminar', onSelect: () => setMemberToDelete(member), destructive: true }]
+      : []),
+  ];
 
   if (isLoading && members.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
+    return <LoadingRows />;
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Error al cargar los miembros</p>
-        <p className="text-sm text-gray-600 mt-2">{error.message}</p>
-      </div>
+      <EmptyState
+        title="No se han podido cargar los miembros"
+        description="Comprueba tu conexión e inténtalo de nuevo en unos segundos."
+      />
     );
   }
 
-  if (members.length === 0 && !searchTerm && !licenseStatusFilter?.replace('all', '') && memberStatusFilter === 'active') {
+  const hasNoMembersAtAll =
+    members.length === 0 && !searchTerm && activeFilters === 0;
+
+  if (hasNoMembersAtAll) {
     return (
-      <div className="text-center py-12">
-        <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <p className="text-gray-600 mb-4">No hay miembros registrados</p>
-        {canAccess({ resource: 'members', action: 'create' }) && (
-          <Button onClick={() => { setSelectedMemberForEdit(null); setIsFormOpen(true); }}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Miembro
-          </Button>
-        )}
-        <MemberForm
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          member={selectedMemberForEdit}
+      <>
+        <EmptyState
+          title="Todavía no hay miembros"
+          description="Cuando añadas el primero aparecerá aquí."
+          action={canCreate && (
+            <Button onClick={openCreate}>
+              <Plus className="size-4" />
+              Nuevo miembro
+            </Button>
+          )}
         />
-      </div>
+        <MemberForm open={isFormOpen} onOpenChange={setIsFormOpen} member={selectedMemberForEdit} />
+      </>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex-1 w-full relative">
-          {isFetching ? (
-            <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
-          ) : (
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          )}
-          <Input
-            type="text"
-            placeholder="Buscar miembros por nombre..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
+  const filtersPanel = (
+    <>
+      <div className="space-y-1.5">
+        <Label htmlFor="member-status-filter">Estado del miembro</Label>
         <Select value={memberStatusFilter} onValueChange={setMemberStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Estado del miembro" />
+          <SelectTrigger id="member-status-filter" className="w-full">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="active">Activos</SelectItem>
-            <SelectItem value="inactive">Inactivos</SelectItem>
+            <SelectItem value="inactive">De baja</SelectItem>
             <SelectItem value="all">Todos</SelectItem>
           </SelectContent>
         </Select>
+      </div>
 
-        <Select value={licenseStatusFilter} onValueChange={handleFilterStatus}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Estado de licencia" />
+      <div className="space-y-1.5">
+        <Label htmlFor="member-license-filter">Licencia</Label>
+        <Select value={licenseStatusFilter} onValueChange={handleLicenseFilter}>
+          <SelectTrigger id="member-license-filter" className="w-full">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="active">Activa</SelectItem>
-            <SelectItem value="expired">Expirada</SelectItem>
+            <SelectItem value="expired">Caducada</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
           </SelectContent>
         </Select>
+      </div>
 
-        {isSuperAdmin && (
+      {isSuperAdmin && (
+        <div className="space-y-1.5">
+          <Label htmlFor="member-club-filter">Club</Label>
           <SearchableSelect
+            id="member-club-filter"
             options={clubOptions}
             value={clubFilter}
             onValueChange={handleClubFilter}
-            placeholder="Filtrar por club"
+            placeholder="Todos los clubs"
             searchPlaceholder="Buscar club..."
             emptyMessage="No se encontraron clubs."
-            className="w-full sm:w-[240px]"
           />
-        )}
-
-        {isSuperAdmin && (
-          <div className="flex items-center gap-2">
-            <Switch
-              id="only-with-access"
-              checked={onlyWithAccess}
-              onCheckedChange={setOnlyWithAccess}
-            />
-            <Label htmlFor="only-with-access" className="cursor-pointer whitespace-nowrap">
-              Solo con acceso
-            </Label>
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          {canAccess({ resource: 'members', action: 'create' }) && (
-            <Button onClick={() => { setSelectedMemberForEdit(null); setIsFormOpen(true); }}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo Miembro
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {isSuperAdmin && activeClubName && (
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="gap-1">
-            Club: {activeClubName}
-            <button
-              type="button"
-              onClick={clearClubFilter}
-              className="ml-1 hover:text-destructive transition-colors"
-              aria-label="Quitar filtro de club"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
         </div>
       )}
+
+      {isSuperAdmin && (
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="only-with-access" className="cursor-pointer">
+            Solo con acceso a la web
+          </Label>
+          <Switch id="only-with-access" checked={onlyWithAccess} onCheckedChange={setOnlyWithAccess} />
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="space-y-5">
+      <ListToolbar
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar miembro' }}
+        filters={filtersPanel}
+        activeFilters={activeFilters}
+        onClearFilters={clearFilters}
+        action={canCreate && (
+          <Button size="lg" onClick={openCreate}>
+            <Plus className="size-4" />
+            Nuevo miembro
+          </Button>
+        )}
+      />
 
       {sortedMembers.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          {filters.club_id ? (
-            <>
-              <p className="text-gray-600 mb-4">No se encontraron miembros en este club</p>
-              <Button variant="outline" onClick={clearClubFilter}>
-                Limpiar filtro
-              </Button>
-            </>
-          ) : (
-            <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
+        <EmptyState
+          title="No hay miembros que coincidan"
+          description="Prueba con otro nombre o quita los filtros."
+          onClear={clearFilters}
+          action={memberStatusFilter === 'active' && (
+            <Button variant="outline" onClick={() => setMemberStatusFilter('all')}>
+              Incluir miembros de baja
+            </Button>
           )}
-        </div>
+        />
       )}
 
-      {/* Mobile cards */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden divide-y divide-border border-y border-border">
         {sortedMembers.map((member) => (
-          <div key={member.id} className={cn("border rounded-lg p-4 space-y-3", member.status === 'inactive' && "opacity-60")}>
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-medium text-gray-900">
-                  <button
-                    type="button"
-                    className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
-                    onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
-                  >
-                    {member.first_name} {member.last_name}
-                  </button>
-                </h3>
-                <p className="text-sm text-gray-600">{member.phone}</p>
-                <p className="text-sm text-gray-600">{member.email}</p>
-              </div>
-              <div className="flex items-center gap-1 flex-wrap">
+          <article
+            key={member.id}
+            data-testid="member-card"
+            className={cn('relative flex items-start gap-2 py-3 pr-1 active:bg-muted/60', member.status === 'inactive' && 'opacity-70')}
+          >
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <button
+                type="button"
+                className="block max-w-full truncate text-left text-base font-semibold text-foreground after:absolute after:inset-0 after:content-['']"
+                onClick={() => openEdit(member)}
+              >
+                {fullName(member)}
+              </button>
+              <p className="truncate text-sm text-muted-foreground">
+                {[isSuperAdmin ? member.club_name : null, member.email].filter(Boolean).join(' · ') || '-'}
+              </p>
+              <p className="text-sm">
+                <GradeBadge licenseSummary={member.license_summary} compact />
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <LicenseStatusBadge licenseSummary={member.license_summary} labelled />
+                <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
+                <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
                 <MemberStatusBadge status={member.status} />
                 {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
-                <LicenseStatusBadge licenseSummary={member.license_summary} />
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              {isSuperAdmin && (
-                <>
-                  {member.club_name ? (
-                    <button
-                      type="button"
-                      className="hover:text-primary hover:underline transition-colors cursor-pointer"
-                      onClick={() => handleClubFilter(member.club_id)}
-                    >
-                      {member.club_name}
-                    </button>
-                  ) : (
-                    <span>-</span>
-                  )}
-                  <span className="text-gray-300">|</span>
-                </>
-              )}
-              <GradeBadge licenseSummary={member.license_summary} compact />
+            <div className="relative z-10 shrink-0">
+              <RowActions label={fullName(member)} actions={rowActions(member)} />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Seguros:</span>
-              <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
-              <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
-            </div>
-            <div className="flex items-center gap-2 pt-2 border-t">
-              <Button variant="ghost" size="icon" onClick={() => setSelectedMemberForPayments(member)} aria-label="Ver pagos">
-                <CreditCard className="w-4 h-4" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Más acciones">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {member.status === 'active' ? (
-                    <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
-                      <UserX className="w-4 h-4 mr-2" />
-                      Dar de baja
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
-                      <UserCheck className="w-4 h-4 mr-2" />
-                      Reactivar
-                    </DropdownMenuItem>
-                  )}
-                  {canAccess({ resource: 'members', action: 'delete' }) && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setMemberToDelete(member)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+          </article>
         ))}
       </div>
 
-      {/* Desktop table */}
-      <div className="hidden md:block rounded-md border">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left p-4 font-medium text-gray-900">Nombre</th>
-                <th className="text-left p-4 font-medium text-gray-900">Email</th>
-                {isSuperAdmin && <th className="text-left p-4 font-medium text-gray-900">Club</th>}
-                <th className="text-left p-4 font-medium text-gray-900">Grado</th>
-                <th className="text-left p-4 font-medium text-gray-900">Seguro RC</th>
-                <th className="text-left p-4 font-medium text-gray-900">Seguro Acc.</th>
-                <th className="text-center p-4 font-medium text-gray-900">Pagos</th>
-                <th className="text-right p-4 font-medium text-gray-900">Acciones</th>
+      <div className="hidden md:block">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-muted-foreground">
+              <th className="px-2.5 py-3 font-medium">Miembro</th>
+              {isSuperAdmin && <th className="px-2.5 py-3 font-medium">Club</th>}
+              <th className="px-2.5 py-3 font-medium">Grado</th>
+              <th className="px-2.5 py-3 font-medium">Seguros</th>
+              <th className="px-2.5 py-3 text-right font-medium">
+                <span className="sr-only">Acciones</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedMembers.map((member) => (
+              <tr key={member.id} className={cn('border-b border-border', member.status === 'inactive' && 'opacity-70')}>
+                <td className="px-2.5 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      className="text-left font-semibold text-foreground hover:underline"
+                      onClick={() => openEdit(member)}
+                    >
+                      {fullName(member)}
+                    </button>
+                    <MemberStatusBadge status={member.status} />
+                    {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
+                  </div>
+                  <p className="max-w-[12rem] truncate text-muted-foreground xl:max-w-[16rem]">
+                    {member.email || member.phone || '-'}
+                  </p>
+                </td>
+                {isSuperAdmin && (
+                  <td className="max-w-[10rem] px-2.5 py-3 text-muted-foreground xl:max-w-none xl:whitespace-nowrap">{member.club_name || '-'}</td>
+                )}
+                <td className="px-2.5 py-3">
+                  <div className="flex flex-col items-start gap-1">
+                    <GradeBadge licenseSummary={member.license_summary} />
+                    <LicenseStatusBadge licenseSummary={member.license_summary} />
+                  </div>
+                </td>
+                <td className="px-2.5 py-3">
+                  <div className="flex flex-col items-start gap-1">
+                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" compact />
+                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" compact />
+                  </div>
+                </td>
+                <td className="px-2.5 py-3 text-right">
+                  <RowActions label={fullName(member)} actions={rowActions(member)} />
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {sortedMembers.map((member) => (
-                <tr key={member.id} className={cn("border-b hover:bg-gray-50", member.status === 'inactive' && "opacity-60")}>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <button
-                          type="button"
-                          className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
-                          onClick={() => { setSelectedMemberForEdit(member); setIsFormOpen(true); }}
-                        >
-                          {member.first_name} {member.last_name}
-                        </button>
-                        <p className="text-sm text-gray-600">{member.phone}</p>
-                      </div>
-                      <MemberStatusBadge status={member.status} />
-                      {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
-                    </div>
-                  </td>
-                  <td className="p-4 text-gray-600">{member.email}</td>
-                  {isSuperAdmin && (
-                    <td className="p-4 text-gray-600">
-                      {member.club_name ? (
-                        <button
-                          type="button"
-                          className="hover:text-primary hover:underline transition-colors cursor-pointer"
-                          onClick={() => handleClubFilter(member.club_id)}
-                        >
-                          {member.club_name}
-                        </button>
-                      ) : '-'}
-                    </td>
-                  )}
-                  <td className="p-4">
-                    <div className="flex items-center gap-1 flex-wrap">
-                      <GradeBadge licenseSummary={member.license_summary} />
-                      <LicenseStatusBadge licenseSummary={member.license_summary} />
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
-                  </td>
-                  <td className="p-4">
-                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setSelectedMemberForPayments(member)}
-                          >
-                            <CreditCard className="w-4 h-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Ver estado de pagos</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" aria-label="Más acciones">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {member.status === 'active' ? (
-                            <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
-                              <UserX className="w-4 h-4 mr-2" />
-                              Dar de baja
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => setMemberToChangeStatus(member)}>
-                              <UserCheck className="w-4 h-4 mr-2" />
-                              Reactivar
-                            </DropdownMenuItem>
-                          )}
-                          {canAccess({ resource: 'members', action: 'delete' }) && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => setMemberToDelete(member)}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Eliminar
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <ListPager total={total} limit={limit} offset={offset} noun="miembros" onPage={(next) => setPagination(next, limit)} />
@@ -469,12 +361,11 @@ export const MemberList = () => {
         member={selectedMemberForEdit}
       />
 
-      {/* Payment Status Dialog */}
       <Dialog open={!!selectedMemberForPayments} onOpenChange={(open) => !open && setSelectedMemberForPayments(null)}>
-        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl max-h-[90dvh] overflow-y-auto">
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="pr-8">
-              Estado de Pagos - {selectedMemberForPayments?.first_name} {selectedMemberForPayments?.last_name}
+              Pagos de {selectedMemberForPayments ? fullName(selectedMemberForPayments) : ''}
             </DialogTitle>
           </DialogHeader>
           {selectedMemberForPayments && (
@@ -482,7 +373,7 @@ export const MemberList = () => {
               <MemberPaymentStatus memberId={selectedMemberForPayments.id} />
               <MemberPaymentLines
                 memberId={selectedMemberForPayments.id}
-                memberName={`${selectedMemberForPayments.first_name} ${selectedMemberForPayments.last_name}`.trim()}
+                memberName={fullName(selectedMemberForPayments)}
                 clubId={selectedMemberForPayments.club_id ?? ''}
                 clubName={selectedMemberForPayments.club_name ?? ''}
               />
@@ -503,7 +394,6 @@ export const MemberList = () => {
         }}
       />
 
-      {/* Status Change Confirmation Dialog */}
       <AlertDialog open={!!memberToChangeStatus} onOpenChange={(open) => !open && setMemberToChangeStatus(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

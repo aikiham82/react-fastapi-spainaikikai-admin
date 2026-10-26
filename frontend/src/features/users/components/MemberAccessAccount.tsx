@@ -100,10 +100,10 @@ export const MemberAccessAccount = ({
   return (
     <section
       aria-labelledby="access-account-heading"
-      className="space-y-3 rounded-lg border bg-muted/50 p-4"
+      className="space-y-3"
     >
       <h3 id="access-account-heading" className="text-sm font-medium">
-        Cuenta de acceso
+        Acceso a la web
       </h3>
 
       {isLoading && (
@@ -154,7 +154,7 @@ export const MemberAccessAccount = ({
 
           {isEditing ? (
             <div className="grid gap-2 sm:flex sm:flex-wrap">
-              <Button type="button" disabled={isSavingEmail} onClick={saveEmail}>
+              <Button type="button" variant="secondary" disabled={isSavingEmail} onClick={saveEmail}>
                 {isSavingEmail ? 'Guardando...' : 'Guardar correo'}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setEditedEmail(null)}>
@@ -165,15 +165,15 @@ export const MemberAccessAccount = ({
             <div className="space-y-2">
               <div className="grid gap-2 sm:flex sm:flex-wrap">
                 {link && (
-                  <Button type="button" onClick={copyLink}>
+                  <Button type="button" variant="outline" onClick={copyLink}>
                     Copiar enlace
                   </Button>
                 )}
 
                 <Button
                   type="button"
-                  variant={link ? 'ghost' : 'default'}
-                  className="h-auto min-h-9 whitespace-normal"
+                  variant="outline"
+                  className="h-auto min-h-10 whitespace-normal"
                   disabled={isGenerating}
                   onClick={() => generateLink(account.id)}
                 >
@@ -187,7 +187,7 @@ export const MemberAccessAccount = ({
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-auto min-h-9 whitespace-normal"
+                  className="h-auto min-h-10 whitespace-normal"
                   onClick={() => setEditedEmail(account.email)}
                 >
                   Corregir correo de acceso

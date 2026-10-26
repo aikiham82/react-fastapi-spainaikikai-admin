@@ -2,13 +2,19 @@ import { useState, useMemo } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Club } from '../data/schemas/club.schema';
-import { Building2, Plus, Search, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState, ListToolbar } from '@/components/ui/list-controls';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+
+const clubLocation = (club: Club): string => {
+  const cityLine = [club.postal_code, club.city].filter(Boolean).join(' ');
+  return [club.address, cityLine].filter(Boolean).join(' · ');
+};
+
+const memberCountLabel = (count: number): string => `${count} ${count === 1 ? 'socio' : 'socios'}`;
 
 export const ClubList = () => {
   const { clubs, isLoading, error, deleteClub } = useClubContext();
@@ -18,6 +24,9 @@ export const ClubList = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedClubForEdit, setSelectedClubForEdit] = useState<Club | null>(null);
   const [clubToDelete, setClubToDelete] = useState<Club | null>(null);
+
+  const canCreate = canAccess({ resource: 'clubs', action: 'create' });
+  const canDelete = canAccess({ resource: 'clubs', action: 'delete' });
 
   const filteredClubs = useMemo(() => {
     const sorted = [...clubs].sort((a, b) => a.name.localeCompare(b.name, 'es'));
@@ -30,125 +39,107 @@ export const ClubList = () => {
     );
   }, [clubs, debouncedSearch]);
 
+  const openCreate = () => {
+    setSelectedClubForEdit(null);
+    setIsFormOpen(true);
+  };
+
+  const openEdit = (club: Club) => {
+    setSelectedClubForEdit(club);
+    setIsFormOpen(true);
+  };
+
+  const requestDelete = (club: Club) => {
+    setIsFormOpen(false);
+    setClubToDelete(club);
+  };
+
+  const createButton = canCreate ? (
+    <Button onClick={openCreate}>
+      <Plus className="size-4" />
+      Nuevo club
+    </Button>
+  ) : null;
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      <div className="flex h-64 items-center justify-center" role="status" aria-label="Cargando clubs">
+        <div className="size-8 animate-spin rounded-full border-b-2 border-foreground" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Error al cargar los clubs</p>
-        <p className="text-sm text-gray-600 mt-2">{error.message}</p>
+      <div className="py-12" role="alert">
+        <p className="font-medium text-danger">No se han podido cargar los clubs</p>
+        <p className="mt-1 text-sm text-muted-foreground">Inténtalo de nuevo en unos minutos.</p>
       </div>
     );
   }
 
-  if (clubs.length === 0 && !searchTerm) {
-    return (
-      <div className="text-center py-12">
-        <Building2 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay clubs</h3>
-        <p className="text-gray-600 mb-4">No hay clubs registrados</p>
-        {canAccess({ resource: 'clubs', action: 'create' }) && (
-          <Button onClick={() => { setSelectedClubForEdit(null); setIsFormOpen(true); }}>
-            <Plus className="w-4 h-4 mr-2" />
-            Crear Club
-          </Button>
-        )}
-        <ClubForm
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          club={selectedClubForEdit}
-        />
-      </div>
-    );
-  }
+  const deleteDescription = `Se eliminará permanentemente el club "${clubToDelete?.name}". Esta acción no se puede deshacer.`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Buscar clubs por nombre o ciudad..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        {canAccess({ resource: 'clubs', action: 'create' }) && (
-          <Button onClick={() => { setSelectedClubForEdit(null); setIsFormOpen(true); }}>
-            <Plus className="w-4 h-4 mr-2" />
-            Crear Club
-          </Button>
-        )}
-      </div>
-
-      {filteredClubs.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">No se encontraron resultados para tu búsqueda</p>
-        </div>
+    <div className="space-y-4">
+      {clubs.length === 0 && !searchTerm ? (
+        <EmptyState title="Todavía no hay clubs" description="Crea el primer club para empezar." action={createButton} />
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClubs.map((club) => (
-          <Card key={club.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg">
-                    <button
-                      type="button"
-                      className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
-                      onClick={() => { setSelectedClubForEdit(club); setIsFormOpen(true); }}
-                    >
-                      {club.name}
-                    </button>
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-2 mt-1">
-                    <Building2 className="w-4 h-4" />
-                    {club.city}
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  {canAccess({ resource: 'clubs', action: 'delete' }) && (
+        <>
+          <ListToolbar
+            search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar club' }}
+            action={createButton}
+          />
+
+          {filteredClubs.length === 0 ? (
+            <EmptyState
+              title="No hay clubs que coincidan"
+              description="Prueba con otro nombre o ciudad."
+              onClear={() => setSearchTerm('')}
+            />
+          ) : (
+            <ul className="border-t border-border">
+              {filteredClubs.map((club) => {
+                const location = clubLocation(club);
+                return (
+                  <li
+                    key={club.id}
+                    className="flex items-center justify-between gap-3 border-b border-border py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[15px] font-semibold text-foreground">{club.name}</p>
+                      {location && <p className="truncate text-sm text-muted-foreground">{location}</p>}
+                      {club.member_count !== undefined && (
+                        <p className="text-sm text-muted-foreground">{memberCountLabel(club.member_count)}</p>
+                      )}
+                    </div>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setClubToDelete(club)}
-                      aria-label="Eliminar club"
+                      variant="outline"
+                      className="shrink-0"
+                      aria-label={`Editar ${club.name}`}
+                      onClick={() => openEdit(club)}
                     >
-                      <Trash2 className="w-4 h-4 text-red-600" />
+                      Editar
                     </Button>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <p className="text-gray-600 truncate">{club.address}</p>
-                <p className="text-gray-600">{club.postal_code}, {club.city}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
       )}
 
       <ClubForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         club={selectedClubForEdit}
+        onDelete={canDelete ? requestDelete : undefined}
       />
 
       <ConfirmDeleteDialog
         open={!!clubToDelete}
         onOpenChange={(open) => !open && setClubToDelete(null)}
-        description={`Se eliminará permanentemente el club "${clubToDelete?.name}". Esta acción no se puede deshacer.`}
+        description={deleteDescription}
         onConfirm={() => {
           if (clubToDelete) {
             deleteClub(clubToDelete.id);

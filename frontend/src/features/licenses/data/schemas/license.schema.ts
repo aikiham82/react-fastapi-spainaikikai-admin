@@ -42,7 +42,7 @@ export interface LicenseFilters {
   search?: string;
   member_id?: string;
   club_id?: string;
-  status?: 'active' | 'expired' | 'pending';
+  status?: 'active' | 'expired' | 'pending' | 'revoked';
   expiring_soon?: boolean;
   date_from?: string;
   date_to?: string;

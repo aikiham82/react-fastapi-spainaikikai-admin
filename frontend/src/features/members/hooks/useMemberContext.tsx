@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type Dispatch, type SetStateAction, type ReactNode } from 'react';
 import { useMembersQuery } from './queries/useMemberQueries';
 import { useCreateMemberMutation, useUpdateMemberMutation, useDeleteMemberMutation, useChangeMemberStatusMutation } from './mutations/useMemberMutations';
 import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters } from '../data/schemas/member.schema';
@@ -18,7 +18,7 @@ interface MemberContextType {
   deleteMember: (id: string) => void;
   changeMemberStatus: (id: string, status: 'active' | 'inactive') => void;
   selectMember: (member: Member | null) => void;
-  setFilters: (filters: MemberFilters) => void;
+  setFilters: Dispatch<SetStateAction<MemberFilters>>;
   setPagination: (offset: number, limit: number) => void;
 }
 
@@ -50,8 +50,8 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [changeStatusMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {
-    setFilters({ ...filters, offset, limit });
-  }, [filters, setFilters]);
+    setFilters(prev => ({ ...prev, offset, limit }));
+  }, []);
 
   const value: MemberContextType = {
     members: membersData || [],

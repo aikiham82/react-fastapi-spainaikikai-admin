@@ -131,7 +131,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Licencia' : 'Crear Licencia'}</DialogTitle>
           <DialogDescription>
@@ -139,7 +139,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="contents">
           <div className="space-y-2">
             <Label htmlFor="member_id">Miembro *</Label>
             <SearchableSelect
