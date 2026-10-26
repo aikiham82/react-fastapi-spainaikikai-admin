@@ -51,8 +51,13 @@ async def list_members(club_id: str, role: str):      # role from the client
 
 Anyone can pass `role=admin`, and the error hands the caller a stack detail.
 
+Do not catch unexpected errors in a route at all. The `answer_unexpected_errors` middleware in `app.py` sits inside CORS: it logs the traceback (Sentry gets one event) and answers `500 {"detail": "Error interno del servidor"}`, which the browser can read. A route that does catch one logs nothing extra and returns a generic detail.
+
+An infrastructure failure must not raise a domain exception. The domain handlers echo `str(exc)` to the caller (`BusinessRuleViolationError` → 409), so a message such as "Template image not found at /app/..." reaches the browser.
+
 ## 🧐 Real world examples
 
+- [`backend/src/app.py`](../../backend/src/app.py)
 - [`backend/src/infrastructure/web/authorization.py`](../../backend/src/infrastructure/web/authorization.py)
 - [`backend/src/infrastructure/web/dependencies.py`](../../backend/src/infrastructure/web/dependencies.py)
 - [`frontend/src/core/hooks/usePermissions.ts`](../../frontend/src/core/hooks/usePermissions.ts)
