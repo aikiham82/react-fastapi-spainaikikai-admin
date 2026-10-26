@@ -239,7 +239,9 @@ describe('useRegisterManualPaymentMutation', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['members'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member'] });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['licenses'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['license'] });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['insurance'] });
     });
   });

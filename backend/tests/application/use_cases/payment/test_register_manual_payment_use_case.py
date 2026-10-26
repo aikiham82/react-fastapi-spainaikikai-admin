@@ -132,6 +132,33 @@ class TestManualPaymentGeneratesLicencesAndInsurance:
         insurance: Insurance = mock_repos["insurance_repo"].create.call_args[0][0]
         assert insurance.insurance_type == InsuranceType.CIVIL_LIABILITY
 
+    async def test_an_october_payment_records_insurance_in_the_next_season_year(
+        self, generating_use_case, mock_repos, monkeypatch
+    ):
+        class October(datetime):
+            @classmethod
+            def utcnow(cls):
+                return datetime(2026, 10, 26, 10, 0, 0)
+
+        monkeypatch.setattr(
+            "src.application.use_cases.payment.register_manual_payment_use_case.datetime", October
+        )
+
+        result = await _pay(generating_use_case, ["kyu", "seguro_accidentes"])
+
+        years = {mp.payment_type: mp.payment_year for mp in result.member_payments}
+        assert years == {
+            MemberPaymentType.LICENCIA_KYU: 2026,
+            MemberPaymentType.SEGURO_ACCIDENTES: 2027,
+        }
+        checked = {
+            c.kwargs["payment_type"]: c.kwargs["payment_year"]
+            for c in mock_repos["member_payment_repo"].exists_for_member_year_type.call_args_list
+        }
+        assert checked[MemberPaymentType.SEGURO_ACCIDENTES] == 2027
+        insurance: Insurance = mock_repos["insurance_repo"].create.call_args[0][0]
+        assert insurance.start_date.year == 2026 and insurance.end_date.year == 2027
+
     async def test_generation_failure_does_not_abort_payment(self, generating_use_case, mock_repos):
         mock_repos["license_repo"].create = AsyncMock(side_effect=RuntimeError("mongo down"))
 

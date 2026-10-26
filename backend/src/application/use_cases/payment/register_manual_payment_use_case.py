@@ -11,7 +11,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType, PaymentMethod
+from src.domain.entities.insurance import insurance_season_year
 from src.domain.entities.member_payment import (
+    INSURANCE_PAYMENT_TYPES,
     MemberPayment,
     MemberPaymentStatus,
     ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE,
@@ -122,7 +124,14 @@ class RegisterManualPaymentUseCase:
         if not member_assignments:
             raise InvalidPaymentDataError("Al menos una línea de pago es requerida")
 
-        # 2. Duplicate check per (member_id, payment_type, payment_year).
+        paid_at = datetime.utcnow()
+
+        def line_year(mp_type) -> int:
+            if mp_type in INSURANCE_PAYMENT_TYPES:
+                return insurance_season_year(paid_at)
+            return payment_year
+
+        # 2. Duplicate check per (member_id, payment_type, line year).
         # club_fee is checked here too — a caller can include it in payment_types directly.
         for assignment in member_assignments:
             for ptype in assignment.payment_types:
@@ -131,11 +140,11 @@ class RegisterManualPaymentUseCase:
                     continue
                 already_exists = await self.member_payment_repository.exists_for_member_year_type(
                     member_id=assignment.member_id,
-                    payment_year=payment_year,
+                    payment_year=line_year(mp_type),
                     payment_type=mp_type,
                 )
                 if already_exists:
-                    raise DuplicatePaymentForYearError(assignment.member_id, ptype, payment_year)
+                    raise DuplicatePaymentForYearError(assignment.member_id, ptype, line_year(mp_type))
 
         # Duplicate check for the standalone include_club_fee path (club_fee assigned to
         # member_assignments[0]). Only needed when club_fee is NOT already in payment_types
@@ -210,7 +219,6 @@ class RegisterManualPaymentUseCase:
         # 4. Create parent Payment (status=COMPLETED, payment_method from request)
         # IMPORTANT: Payment must be created FIRST to get its real id before
         # building MemberPayment objects (MemberPayment.__post_init__ rejects empty payment_id).
-        paid_at = datetime.utcnow()
         parent_payment = Payment(
             club_id=club_id,
             payment_type=PaymentType.ANNUAL_QUOTA,
@@ -230,9 +238,9 @@ class RegisterManualPaymentUseCase:
             MemberPayment(
                 payment_id=parent_payment.id,
                 member_id=d["member_id"],
-                payment_year=payment_year,
+                payment_year=line_year(d["mp_type"]),
                 payment_type=d["mp_type"],
-                concept=f"{d['mp_type'].value} - {payment_year}",
+                concept=f"{d['mp_type'].value} - {line_year(d['mp_type'])}",
                 amount=d["price"],
                 status=MemberPaymentStatus.COMPLETED,
             )

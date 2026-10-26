@@ -8,7 +8,9 @@ const invalidatePayments = (queryClient: QueryClient) => {
   queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.all });
   queryClient.invalidateQueries({ queryKey: memberPaymentKeys.all });
   queryClient.invalidateQueries({ queryKey: ['members'] });
+  queryClient.invalidateQueries({ queryKey: ['member'] });
   queryClient.invalidateQueries({ queryKey: ['licenses'] });
+  queryClient.invalidateQueries({ queryKey: ['license'] });
   queryClient.invalidateQueries({ queryKey: ['insurance'] });
 };
 
