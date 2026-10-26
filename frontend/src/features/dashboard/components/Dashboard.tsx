@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDashboardDataQuery } from '../hooks/queries/useDashboardData.query';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import type { RecentActivity } from '../data/schemas/dashboard.schema';
+import { formatCurrency } from '@/core/utils/format';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -162,7 +163,7 @@ export const Dashboard = () => {
                           <h3 className="font-medium text-gray-900">{seminar.title}</h3>
                           <p className="text-sm text-gray-600">{seminar.location}</p>
                         </div>
-                        <Badge variant="outline">{seminar.price.toFixed(2)}€</Badge>
+                        <Badge variant="outline">{formatCurrency(seminar.price)}</Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm text-gray-600">
                         <div className="flex items-center gap-2">

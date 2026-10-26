@@ -62,7 +62,7 @@ export const PriceConfigurationList = () => {
         {canAccess({ resource: 'price_configurations', action: 'create' }) && (
           <Button onClick={handleCreate}>
             <Plus className="w-4 h-4 mr-2" />
-            Nueva Configuracion
+            Nueva Configuración
           </Button>
         )}
         <PriceConfigurationForm
@@ -79,13 +79,13 @@ export const PriceConfigurationList = () => {
       <div className="flex justify-between items-center">
         <div>
           <p className="text-sm text-gray-600">
-            {priceConfigurations.length} configuracion(es) encontrada(s)
+            {priceConfigurations.length} configuración(es) encontrada(s)
           </p>
         </div>
         {canAccess({ resource: 'price_configurations', action: 'create' }) && (
           <Button onClick={handleCreate}>
             <Plus className="w-4 h-4 mr-2" />
-            Nueva Configuracion
+            Nueva Configuración
           </Button>
         )}
       </div>
@@ -121,7 +121,7 @@ export const PriceConfigurationList = () => {
               <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(config.price)}</span>
               <div className="flex items-center gap-2">
                 {canAccess({ resource: 'price_configurations', action: 'delete' }) && (
-                  <Button variant="ghost" size="icon" onClick={() => setConfigToDelete(config)} disabled={isDeleting} aria-label="Eliminar configuracion">
+                  <Button variant="ghost" size="icon" onClick={() => setConfigToDelete(config)} disabled={isDeleting} aria-label="Eliminar configuración">
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </Button>
                 )}
@@ -138,8 +138,8 @@ export const PriceConfigurationList = () => {
             <thead>
               <tr className="border-b bg-gray-50">
                 <th className="text-left p-4 font-medium text-gray-900">Concepto</th>
-                <th className="text-left p-4 font-medium text-gray-900">Categoria</th>
-                <th className="text-left p-4 font-medium text-gray-900">Descripcion</th>
+                <th className="text-left p-4 font-medium text-gray-900">Categoría</th>
+                <th className="text-left p-4 font-medium text-gray-900">Descripción</th>
                 <th className="text-right p-4 font-medium text-gray-900">Precio</th>
                 <th className="text-center p-4 font-medium text-gray-900">Estado</th>
                 <th className="text-right p-4 font-medium text-gray-900">Acciones</th>
@@ -184,7 +184,7 @@ export const PriceConfigurationList = () => {
                           size="icon"
                           onClick={() => setConfigToDelete(config)}
                           disabled={isDeleting}
-                          aria-label="Eliminar configuracion"
+                          aria-label="Eliminar configuración"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </Button>

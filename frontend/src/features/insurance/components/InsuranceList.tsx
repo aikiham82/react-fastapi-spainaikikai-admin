@@ -13,6 +13,7 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { InsuranceForm } from './InsuranceForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
+import { formatCurrency, formatDate } from '@/core/utils/format';
 
 const INSURANCE_TYPE_LABELS: Record<string, string> = {
   accident: 'Seguro de Accidentes',
@@ -181,8 +182,8 @@ export const InsuranceList = () => {
               </Badge>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-              <span>{new Date(insurance.start_date).toLocaleDateString('es-ES')} - {new Date(insurance.end_date).toLocaleDateString('es-ES')}</span>
-              <span className="font-medium text-gray-900 tabular-nums">{insurance.coverage_amount?.toFixed(2) || '-'}€</span>
+              <span>{formatDate(insurance.start_date)} - {formatDate(insurance.end_date)}</span>
+              <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(insurance.coverage_amount)}</span>
               {isExpiringSoon(insurance.end_date) && (
                 <Badge variant="outline" className="border-yellow-500 text-yellow-700">Expira pronto</Badge>
               )}
@@ -210,16 +211,16 @@ export const InsuranceList = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-900">Fecha Inicio</p>
-                        <p className="text-sm text-gray-600">{new Date(insurance.start_date).toLocaleDateString('es-ES')}</p>
+                        <p className="text-sm text-gray-600">{formatDate(insurance.start_date)}</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">Fecha Fin</p>
-                        <p className="text-sm text-gray-600">{new Date(insurance.end_date).toLocaleDateString('es-ES')}</p>
+                        <p className="text-sm text-gray-600">{formatDate(insurance.end_date)}</p>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">Cobertura</p>
-                      <p className="text-2xl font-bold text-gray-900 tabular-nums">{insurance.coverage_amount?.toFixed(2) || '-'}€</p>
+                      <p className="text-2xl font-bold text-gray-900 tabular-nums">{formatCurrency(insurance.coverage_amount)}</p>
                     </div>
                   </div>
                 </DialogContent>
@@ -265,12 +266,12 @@ export const InsuranceList = () => {
                   <td className="p-4 text-gray-600">{insurance.policy_number}</td>
                   <td className="p-4 text-gray-600">{insurance.member_name || '-'}</td>
                   <td className="p-4 text-gray-600">
-                    {new Date(insurance.start_date).toLocaleDateString('es-ES')}
+                    {formatDate(insurance.start_date)}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <span className="text-gray-600">
-                        {new Date(insurance.end_date).toLocaleDateString('es-ES')}
+                        {formatDate(insurance.end_date)}
                       </span>
                       {isExpiringSoon(insurance.end_date) && (
                         <Badge variant="outline" className="border-yellow-500 text-yellow-700">
@@ -280,7 +281,7 @@ export const InsuranceList = () => {
                     </div>
                   </td>
                   <td className="p-4 text-right font-medium text-gray-900 tabular-nums">
-                    {insurance.coverage_amount?.toFixed(2) || '-'}€
+                    {formatCurrency(insurance.coverage_amount)}
                   </td>
                   <td className="p-4">
                     <Badge
@@ -316,13 +317,13 @@ export const InsuranceList = () => {
                               <div>
                                 <p className="text-sm font-medium text-gray-900">Fecha Inicio</p>
                                 <p className="text-sm text-gray-600">
-                                  {new Date(insurance.start_date).toLocaleDateString('es-ES')}
+                                  {formatDate(insurance.start_date)}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-900">Fecha Fin</p>
                                 <p className="text-sm text-gray-600">
-                                  {new Date(insurance.end_date).toLocaleDateString('es-ES')}
+                                  {formatDate(insurance.end_date)}
                                 </p>
                               </div>
                             </div>
@@ -333,7 +334,7 @@ export const InsuranceList = () => {
                             <div>
                               <p className="text-sm font-medium text-gray-900">Cobertura</p>
                               <p className="text-2xl font-bold text-gray-900">
-                                {insurance.coverage_amount?.toFixed(2) || '-'}€
+                                {formatCurrency(insurance.coverage_amount)}
                               </p>
                             </div>
                             <div>

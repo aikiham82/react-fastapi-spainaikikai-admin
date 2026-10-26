@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Minus, Plus } from 'lucide-react';
 import { QUANTITY_LIMITS } from '../data/schemas/annual-payment.schema';
+import { formatCurrency } from '@/core/utils/format';
 
 interface QuantityInputProps {
   label: string;
@@ -28,7 +29,7 @@ export const QuantityInput: React.FC<QuantityInputProps> = ({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-4 sm:py-3 gap-2 sm:gap-0 border-b border-slate-100 last:border-0">
       <div className="flex-1">
         <p className="text-sm font-medium text-slate-900">{label}</p>
-        <p className="text-xs text-slate-500">{unitPrice.toFixed(2)}€ / unidad</p>
+        <p className="text-xs text-slate-500">{formatCurrency(unitPrice)} / unidad</p>
       </div>
 
       <div className="flex items-center justify-between sm:justify-end gap-3">
@@ -67,7 +68,7 @@ export const QuantityInput: React.FC<QuantityInputProps> = ({
         </div>
 
         <div className="w-20 text-right">
-          <span className="font-medium text-slate-900">{total.toFixed(2)}€</span>
+          <span className="font-medium text-slate-900">{formatCurrency(total)}</span>
         </div>
       </div>
     </div>

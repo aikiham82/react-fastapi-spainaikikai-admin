@@ -3,6 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useMemberPaymentStatusQuery } from '../hooks/queries/useMemberPaymentQueries';
 import { MEMBER_PAYMENT_TYPES, type MemberPaymentType } from '../data/schemas/member-payment.schema';
+import { formatCurrency } from '@/core/utils/format';
 
 interface MemberPaymentStatusProps {
   memberId: string;
@@ -63,7 +64,7 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
         <CardTitle className="flex items-center justify-between">
           <span>Estado de Pagos {data.payment_year}</span>
           <span className="text-lg font-normal text-muted-foreground">
-            Total pagado: {data.total_paid.toFixed(2)}
+            Total pagado: {formatCurrency(data.total_paid)}
           </span>
         </CardTitle>
       </CardHeader>
@@ -146,7 +147,7 @@ const PaymentTypeItem: React.FC<PaymentTypeItemProps> = ({
         <span className="text-sm">{label}</span>
       </div>
       {isPaid && amount != null && (
-        <span className="text-sm font-medium">{amount.toFixed(2)}</span>
+        <span className="text-sm font-medium">{formatCurrency(amount)}</span>
       )}
     </div>
   );

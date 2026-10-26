@@ -45,22 +45,22 @@ export default function ForgotPasswordPage() {
             <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
               Recuperar
               <span className="block bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-                Contrasena
+                Contraseña
               </span>
             </h1>
 
             <p className="text-xl text-white/90 leading-relaxed">
               No te preocupes, te ayudaremos a recuperar el acceso a tu cuenta
-              de forma segura y rapida.
+              de forma segura y rápida.
             </p>
 
             {/* Info box */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 space-y-3">
               <h3 className="font-semibold text-lg">Como funciona:</h3>
               <ol className="space-y-2 text-white/90 list-decimal list-inside">
-                <li>Introduce tu correo electronico</li>
-                <li>Recibiras un enlace de recuperacion</li>
-                <li>Crea una nueva contrasena segura</li>
+                <li>Introduce tu correo electrónico</li>
+                <li>Recibirás un enlace de recuperación</li>
+                <li>Crea una nueva contraseña segura</li>
               </ol>
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
           <div className="absolute bottom-8 left-12 right-12">
             <div className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             <div className="text-center pt-4 text-white/60 text-sm">
-              Plataforma oficial de gestion de Spain Aikikai
+              Plataforma oficial de gestión de Spain Aikikai
             </div>
           </div>
         </div>
@@ -103,10 +103,10 @@ export default function ForgotPasswordPage() {
                 <KeyRound className="w-8 h-8 text-slate-700" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Recuperar contrasena
+                Recuperar contraseña
               </h2>
               <p className="text-gray-600">
-                Te enviaremos un enlace para restablecer tu contrasena
+                Te enviaremos un enlace para restablecer tu contraseña
               </p>
             </div>
 

@@ -2,6 +2,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
+import { formatCurrency } from '@/core/utils/format';
 
 export const ClubFeeSection: React.FC = () => {
   const { formData, setField, isSubmitting, prices, clubFeeAlreadyPaid } = useAnnualPaymentContext();
@@ -34,7 +35,7 @@ export const ClubFeeSection: React.FC = () => {
           )}
         </div>
         <span className={`font-semibold ${clubFeeAlreadyPaid ? 'text-slate-400' : 'text-slate-900'}`}>
-          {clubFeePrice.toFixed(2)}€
+          {formatCurrency(clubFeePrice)}
         </span>
       </div>
     </div>

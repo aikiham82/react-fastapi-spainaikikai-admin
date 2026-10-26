@@ -16,24 +16,13 @@ import { toast } from 'sonner';
 import { SolicitudOficialidadModal } from './SolicitudOficialidadModal';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { apiClient } from '@/core/data/apiClient';
+import { formatCurrency, formatDateTime } from '@/core/utils/format';
 
 const STATUS_LABELS: Record<string, string> = {
   upcoming: 'Próximo',
   ongoing: 'En curso',
   completed: 'Finalizado',
   cancelled: 'Cancelado',
-};
-
-const formatDateTime = (dateString: string | undefined) => {
-  if (!dateString) return 'Fecha no disponible';
-  try {
-    return new Date(dateString).toLocaleString('es-ES', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-  } catch {
-    return 'Fecha inválida';
-  }
 };
 
 export const SeminarList = () => {
@@ -298,7 +287,7 @@ export const SeminarList = () => {
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 tabular-nums">
-                    {seminar.price.toFixed(2)} €
+                    {formatCurrency(seminar.price)}
                   </p>
                 </div>
               </div>
@@ -395,7 +384,7 @@ export const SeminarList = () => {
                         <div>
                           <p className="text-sm font-medium text-gray-900">Precio</p>
                           <p className="text-2xl font-bold text-gray-900 tabular-nums">
-                            {seminar.price.toFixed(2)} €
+                            {formatCurrency(seminar.price)}
                           </p>
                         </div>
                       </div>

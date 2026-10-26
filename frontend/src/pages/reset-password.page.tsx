@@ -45,12 +45,12 @@ export default function ResetPasswordPage() {
             <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
               Nueva
               <span className="block bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-                Contrasena
+                Contraseña
               </span>
             </h1>
 
             <p className="text-xl text-white/90 leading-relaxed">
-              Crea una contrasena segura para proteger tu cuenta. Recuerda usar
+              Crea una contraseña segura para proteger tu cuenta. Recuerda usar
               una combinacion de letras, numeros y simbolos.
             </p>
 
@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
           <div className="absolute bottom-8 left-12 right-12">
             <div className="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             <div className="text-center pt-4 text-white/60 text-sm">
-              Plataforma oficial de gestion de Spain Aikikai
+              Plataforma oficial de gestión de Spain Aikikai
             </div>
           </div>
         </div>
@@ -106,10 +106,10 @@ export default function ResetPasswordPage() {
                 <ShieldCheck className="w-8 h-8 text-slate-700" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Nueva contrasena
+                Nueva contraseña
               </h2>
               <p className="text-gray-600">
-                Introduce tu nueva contrasena segura
+                Introduce tu nueva contraseña segura
               </p>
             </div>
 

@@ -20,13 +20,7 @@ export interface PriceConfiguration {
   categoria_edad?: AgeCategory;
 }
 
-// Currency formatter
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(amount);
-};
+export { formatCurrency } from '@/core/utils/format';
 
 export interface CreatePriceConfigurationRequest {
   key: string;
@@ -72,7 +66,7 @@ export const TECHNICAL_GRADE_LABELS: Record<TechnicalGrade, string> = {
 };
 
 export const INSTRUCTOR_CATEGORY_LABELS: Record<InstructorCategory, string> = {
-  none: 'Sin categoria',
+  none: 'Sin categoría',
   fukushidoin: 'Fukushidoin',
   shidoin: 'Shidoin',
 };

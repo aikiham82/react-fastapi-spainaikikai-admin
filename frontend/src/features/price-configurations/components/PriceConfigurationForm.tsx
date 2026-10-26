@@ -146,20 +146,20 @@ export const PriceConfigurationForm = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? 'Editar Configuracion de Precio' : 'Nueva Configuracion de Precio'}
+            {isEditing ? 'Editar Configuración de Precio' : 'Nueva Configuración de Precio'}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label>Categoria</Label>
+            <Label>Categoría</Label>
             <Select
               value={watchedCategory}
               onValueChange={(value) => setValue('category', value as PriceCategory)}
               disabled={isEditing}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Seleccionar categoria" />
+                <SelectValue placeholder="Seleccionar categoría" />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(PRICE_CATEGORY_LABELS).map(([value, label]) => (
@@ -175,7 +175,7 @@ export const PriceConfigurationForm = ({
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="grado_tecnico">Grado Tecnico</Label>
+                  <Label htmlFor="grado_tecnico">Grado Técnico</Label>
                   <Select
                     value={watch('grado_tecnico')}
                     onValueChange={(value) => setValue('grado_tecnico', value as 'dan' | 'kyu')}
@@ -198,7 +198,7 @@ export const PriceConfigurationForm = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="categoria_instructor">Categoria Instructor</Label>
+                  <Label htmlFor="categoria_instructor">Categoría Instructor</Label>
                   <Select
                     value={watch('categoria_instructor')}
                     onValueChange={(value) =>
@@ -207,7 +207,7 @@ export const PriceConfigurationForm = ({
                     disabled={isEditing}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar categoria" />
+                      <SelectValue placeholder="Seleccionar categoría" />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(INSTRUCTOR_CATEGORY_LABELS).map(([value, label]) => (
@@ -224,14 +224,14 @@ export const PriceConfigurationForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="categoria_edad">Categoria Edad</Label>
+                <Label htmlFor="categoria_edad">Categoría Edad</Label>
                 <Select
                   value={watch('categoria_edad')}
                   onValueChange={(value) => setValue('categoria_edad', value as 'infantil' | 'adulto')}
                   disabled={isEditing}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar categoria" />
+                    <SelectValue placeholder="Seleccionar categoría" />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(AGE_CATEGORY_LABELS).map(([value, label]) => (
@@ -276,11 +276,11 @@ export const PriceConfigurationForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descripcion</Label>
+            <Label htmlFor="description">Descripción</Label>
             <Textarea
               id="description"
               {...register('description')}
-              placeholder="Descripcion opcional..."
+              placeholder="Descripción opcional..."
               rows={2}
             />
           </div>
@@ -291,7 +291,7 @@ export const PriceConfigurationForm = ({
               checked={watchedIsActive}
               onCheckedChange={(checked) => setValue('is_active', checked)}
             />
-            <Label htmlFor="is_active">Configuracion activa</Label>
+            <Label htmlFor="is_active">Configuración activa</Label>
           </div>
 
           <DialogFooter>

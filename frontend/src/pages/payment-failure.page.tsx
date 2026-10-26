@@ -7,22 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const REDSYS_ERROR_MESSAGES: Record<string, string> = {
   '0101': 'Tarjeta caducada',
   '0102': 'Tarjeta bloqueada temporalmente o en sospecha de fraude',
-  '0104': 'Operacion no permitida para esa tarjeta',
+  '0104': 'Operación no permitida para esa tarjeta',
   '0116': 'Saldo disponible insuficiente',
   '0118': 'Tarjeta no registrada',
   '0125': 'Tarjeta no operativa',
-  '0129': 'Codigo de seguridad CVV incorrecto',
+  '0129': 'Código de seguridad CVV incorrecto',
   '0180': 'Tarjeta ajena al servicio',
-  '0184': 'Error en la autenticacion del titular',
-  '0190': 'Operacion denegada por el emisor',
+  '0184': 'Error en la autenticación del titular',
+  '0190': 'Operación denegada por el emisor',
   '0191': 'Fecha de caducidad erronea',
   '0202': 'Tarjeta bloqueada o en sospecha de fraude',
   '0904': 'Error en el procesamiento del comercio',
   '0909': 'Error del sistema',
   '0912': 'Emisor no disponible',
   '0913': 'Pedido repetido',
-  '9064': 'Numero de posiciones de tarjeta incorrecto',
-  '9078': 'No existe metodo de pago valido',
+  '9064': 'Número de posiciones de tarjeta incorrecto',
+  '9078': 'No existe método de pago válido',
   '9093': 'Tarjeta no existe',
   '9094': 'Rechazo de los servidores internacionales',
   '9104': 'Comercio con titular seguro y titular sin clave de compra segura',
@@ -70,7 +70,7 @@ export const PaymentFailurePage = () => {
         <CardContent className="space-y-6">
           {orderId && (
             <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-600">Numero de pedido</p>
+              <p className="text-sm text-gray-600">Número de pedido</p>
               <p className="text-lg font-mono font-medium">{orderId}</p>
             </div>
           )}
@@ -81,7 +81,7 @@ export const PaymentFailurePage = () => {
                 <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-red-800">
-                    Codigo de error: {errorCode}
+                    Código de error: {errorCode}
                   </p>
                   {errorMessage && (
                     <p className="text-sm text-red-700 mt-1">{errorMessage}</p>
@@ -92,7 +92,7 @@ export const PaymentFailurePage = () => {
           )}
 
           <div className="text-center text-sm text-gray-600">
-            <p>No se ha realizado ningun cargo en tu tarjeta.</p>
+            <p>No se ha realizado ningún cargo en tu tarjeta.</p>
             <p className="mt-2">Puedes intentar de nuevo o contactar con soporte si el problema persiste.</p>
           </div>
 
@@ -106,7 +106,7 @@ export const PaymentFailurePage = () => {
           </div>
 
           <p className="text-xs text-center text-gray-400">
-            Seras redirigido automaticamente en {countdown} segundos...
+            Serás redirigido automáticamente en {countdown} segundos...
           </p>
         </CardContent>
       </Card>

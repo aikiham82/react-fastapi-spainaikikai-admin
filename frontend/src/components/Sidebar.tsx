@@ -1,51 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import {
-  Home,
-  Building2,
-  Users,
-  IdCard,
-  Calendar,
-  Shield,
-  FileSpreadsheet,
-  Settings,
-  LogOut,
-  DollarSign,
-  FileText,
-  Receipt,
-  Wallet,
-} from 'lucide-react';
-
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import type { LucideIcon } from 'lucide-react';
+import { getNavSections, isActivePath } from '@/components/navigation';
 
-const roleTranslations: Record<string, string> = {
-  'super_admin': 'Administrador',
-  'club_admin': 'Admin de Club',
+const roleLabels: Record<string, string> = {
+  super_admin: 'Administrador',
+  club_admin: 'Responsable de club',
 };
-
-interface NavItem {
-  title: string;
-  path: string;
-  icon: LucideIcon;
-  resource: string;
-}
-
-const navItems: NavItem[] = [
-  { title: 'Panel Principal', path: '/', icon: Home, resource: 'clubs' },
-  { title: 'Clubs', path: '/clubs', icon: Building2, resource: 'clubs' },
-  { title: 'Miembros', path: '/members', icon: Users, resource: 'members' },
-  { title: 'Licencias', path: '/licenses', icon: IdCard, resource: 'licenses' },
-  { title: 'Facturas', path: '/invoices', icon: FileText, resource: 'invoices' },
-  { title: 'Nuevo Pago', path: '/annual-payments', icon: Receipt, resource: 'payments' },
-  { title: 'Resumen de Pagos', path: '/club-payments', icon: Wallet, resource: 'payments' },
-  { title: 'Seminarios', path: '/seminars', icon: Calendar, resource: 'seminars' },
-  { title: 'Seguros', path: '/insurance', icon: Shield, resource: 'insurance' },
-  { title: 'Importar/Exportar', path: '/import-export', icon: FileSpreadsheet, resource: 'import_export' },
-  { title: 'Precios', path: '/price-configurations', icon: DollarSign, resource: 'price_configurations' },
-  { title: 'Configuracion', path: '/settings', icon: Settings, resource: 'clubs' },
-];
 
 interface SidebarProps {
   className?: string;
@@ -54,68 +16,72 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+const rowClasses =
+  'flex min-h-10 w-full items-center rounded-md px-3 text-[15px] transition-colors duration-150 pointer-coarse:min-h-11';
+
 export const Sidebar: React.FC<SidebarProps> = ({ className, id, isMobile, onClose }) => {
   const location = useLocation();
-  const { userRole, logout } = useAuthContext();
+  const { userRole, userEmail, logout } = useAuthContext();
   const { canAccess } = usePermissions();
+
+  const sections = getNavSections(userRole, (resource) => canAccess({ resource, action: 'read' }));
+  const closeOnMobile = isMobile ? onClose : undefined;
 
   const handleLogout = () => {
     logout();
-    if (isMobile && onClose) {
-      onClose();
-    }
+    closeOnMobile?.();
   };
 
-  const filteredNavItems = navItems.filter((item) =>
-    canAccess({ resource: item.resource, action: 'read' })
-  );
-
   return (
-    <div id={id} className={cn('flex flex-col h-full bg-slate-900 text-slate-100', className)}>
-      <div className="p-6 border-b border-slate-800">
-        <h1 className="text-xl font-bold tracking-tight text-white leading-none">Aikido Admin</h1>
-        {userRole && (
-          <p className="text-[11px] font-semibold text-slate-400 mt-1.5 uppercase tracking-wider">
-            {roleTranslations[userRole] || userRole.replace('_', ' ')}
-          </p>
-        )}
+    <div
+      id={id}
+      className={cn('flex h-full flex-col gap-6 border-r border-sidebar-border bg-sidebar px-3 py-5', className)}
+    >
+      <div className="flex items-center gap-3 px-2">
+        <img src="/logo.jpg" alt="" className="size-10 rounded-md mix-blend-multiply" />
+        <div className="min-w-0">
+          <p className="text-[15px] font-semibold leading-tight text-foreground">Spain Aikikai</p>
+          {userRole && <p className="text-[13px] text-muted-foreground">{roleLabels[userRole] ?? userRole}</p>}
+        </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-1 px-3">
-          {filteredNavItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
-
-            return (
-              <li key={item.path}>
+      <div className="flex flex-1 flex-col gap-5 overflow-y-auto">
+        {sections.map((section) => (
+          <nav key={section.id} aria-labelledby={`nav-${section.id}`} className="flex flex-col gap-0.5">
+            <p id={`nav-${section.id}`} className="px-3 pb-1 text-[13px] font-medium text-muted-foreground">
+              {section.title}
+            </p>
+            {section.items.map((item) => {
+              const isActive = isActivePath(item.path, location.pathname);
+              return (
                 <Link
+                  key={item.path}
                   to={item.path}
-                  onClick={isMobile ? onClose : undefined}
+                  onClick={closeOnMobile}
+                  aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                    rowClasses,
                     isActive
-                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
+                      : 'text-sidebar-foreground hover:bg-muted hover:text-foreground'
                   )}
                 >
-                  <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-slate-400")} />
-                  <span className="font-medium text-sm">{item.title}</span>
+                  {item.title}
                 </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+              );
+            })}
+          </nav>
+        ))}
+      </div>
 
-      <div className="p-4 border-t border-slate-800">
+      <div className="flex flex-col gap-1 border-t border-sidebar-border px-1 pt-4">
+        {userEmail && <p className="truncate px-2 text-[13px] text-muted-foreground">{userEmail}</p>}
         <button
+          type="button"
           onClick={handleLogout}
-          aria-label="Cerrar sesión"
-          className="flex items-center gap-3 w-full px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+          className={cn(rowClasses, 'text-sidebar-foreground hover:bg-muted hover:text-foreground')}
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium text-sm">Cerrar Sesión</span>
+          Cerrar sesión
         </button>
       </div>
     </div>

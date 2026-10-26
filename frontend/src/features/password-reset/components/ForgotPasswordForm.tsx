@@ -60,7 +60,7 @@ export const ForgotPasswordForm = () => {
               className="w-full h-10 font-medium transition-all duration-200 text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al inicio de sesion
+              Volver al inicio de sesión
             </Button>
           </Link>
         </CardFooter>
@@ -98,7 +98,7 @@ export const ForgotPasswordForm = () => {
               className="w-full h-12 font-medium transition-all duration-200"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al inicio de sesion
+              Volver al inicio de sesión
             </Button>
           </Link>
           <button
@@ -120,11 +120,11 @@ export const ForgotPasswordForm = () => {
     <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
       <CardHeader className="space-y-1 pb-6">
         <CardTitle className="text-2xl font-bold text-center text-gray-900">
-          Recuperar contrasena
+          Recuperar contraseña
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
           Introduce tu correo o tu nombre de usuario (el de tu club o el
-          tuyo) y te enviaremos un enlace para restablecer tu contrasena
+          tuyo) y te enviaremos un enlace para restablecer tu contraseña
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -178,7 +178,7 @@ export const ForgotPasswordForm = () => {
                 <span>Enviando...</span>
               </div>
             ) : (
-              "Enviar enlace de recuperacion"
+              "Enviar enlace de recuperación"
             )}
           </Button>
         </form>
@@ -190,7 +190,7 @@ export const ForgotPasswordForm = () => {
             className="w-full h-10 font-medium transition-all duration-200 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver al inicio de sesion
+            Volver al inicio de sesión
           </Button>
         </Link>
       </CardFooter>

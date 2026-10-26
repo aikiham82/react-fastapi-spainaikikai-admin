@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { LicenseForm } from './LicenseForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { formatDate } from '@/core/utils/format';
 
 const getGradeDisplay = (license: License): string => {
   if (license.instructor_category === 'shidoin') return 'Shidoin';
@@ -174,7 +175,7 @@ export const LicenseList = () => {
               </Badge>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-              <span>Exp: {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}</span>
+              <span>Exp: {formatDate(license.expiry_date)}</span>
               <span>{getGradeDisplay(license)}</span>
               {license.expiry_date && isExpiringSoon(license.expiry_date) && (
                 <Badge variant="outline" className="border-yellow-500 text-yellow-700">
@@ -202,11 +203,11 @@ export const LicenseList = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-900">Fecha Emisión</p>
-                        <p className="text-sm text-gray-600">{license.issue_date ? new Date(license.issue_date).toLocaleDateString('es-ES') : '-'}</p>
+                        <p className="text-sm text-gray-600">{formatDate(license.issue_date)}</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">Fecha Expiración</p>
-                        <p className="text-sm text-gray-600">{license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}</p>
+                        <p className="text-sm text-gray-600">{formatDate(license.expiry_date)}</p>
                       </div>
                     </div>
                     <div>
@@ -259,12 +260,12 @@ export const LicenseList = () => {
                   </td>
                   <td className="p-4 text-gray-600">{license.member_name || '-'}</td>
                   <td className="p-4 text-gray-600">
-                    {license.issue_date ? new Date(license.issue_date).toLocaleDateString('es-ES') : '-'}
+                    {formatDate(license.issue_date)}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <span className="text-gray-600">
-                        {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}
+                        {formatDate(license.expiry_date)}
                       </span>
                       {license.expiry_date && isExpiringSoon(license.expiry_date) && (
                         <Badge variant="outline" className="border-yellow-500 text-yellow-700">
@@ -308,13 +309,13 @@ export const LicenseList = () => {
                               <div>
                                 <p className="text-sm font-medium text-gray-900">Fecha Emisión</p>
                                 <p className="text-sm text-gray-600">
-                                  {license.issue_date ? new Date(license.issue_date).toLocaleDateString('es-ES') : '-'}
+                                  {formatDate(license.issue_date)}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-900">Fecha Expiración</p>
                                 <p className="text-sm text-gray-600">
-                                  {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-ES') : '-'}
+                                  {formatDate(license.expiry_date)}
                                 </p>
                               </div>
                             </div>

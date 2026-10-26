@@ -406,7 +406,7 @@ export const MemberSelectionTable: React.FC<MemberSelectionTableProps> = ({
             Cancelar
           </Button>
           <Button onClick={handleConfirm}>
-            Confirmar Seleccion ({assignments.size} miembros)
+            Confirmar Selección ({assignments.size} miembros)
           </Button>
         </DialogFooter>
       </DialogContent>

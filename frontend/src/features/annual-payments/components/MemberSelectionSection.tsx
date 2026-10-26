@@ -43,7 +43,7 @@ export const MemberSelectionSection: React.FC = () => {
       <div className="border rounded-lg p-4 bg-muted/50">
         <h3 className="font-medium mb-2 flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Asignacion de Miembros
+          Asignación de Miembros
         </h3>
         <p className="text-sm text-muted-foreground">
           Seleccione un club para poder asignar miembros a los pagos.
@@ -57,7 +57,7 @@ export const MemberSelectionSection: React.FC = () => {
       <div className="border rounded-lg p-4 bg-muted/50">
         <h3 className="font-medium mb-2 flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Asignacion de Miembros
+          Asignación de Miembros
         </h3>
         <p className="text-sm text-muted-foreground">
           Indique cantidades en las secciones anteriores para poder asignar miembros.
@@ -71,7 +71,7 @@ export const MemberSelectionSection: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h3 className="font-medium flex items-center gap-2 min-w-0">
           <Users className="h-5 w-5 shrink-0" />
-          <span className="truncate">Asignacion de Miembros</span>
+          <span className="truncate">Asignación de Miembros</span>
           {hasAssignments && (
             <Badge variant="secondary" className="shrink-0 text-xs">
               {formData.member_assignments.length} asignados
@@ -138,8 +138,8 @@ export const MemberSelectionSection: React.FC = () => {
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Opcional: Asigne miembros especificos a cada tipo de pago para un seguimiento
-          detallado. Si no asigna miembros, el pago se registrara solo a nivel de club.
+          Opcional: Asigne miembros específicos a cada tipo de pago para un seguimiento
+          detallado. Si no asigna miembros, el pago se registrará solo a nivel de club.
         </p>
       )}
 

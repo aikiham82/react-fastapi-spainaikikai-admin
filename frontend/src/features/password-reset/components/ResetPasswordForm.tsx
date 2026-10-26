@@ -60,11 +60,11 @@ export const ResetPasswordForm = () => {
 
   const validatePasswords = (): boolean => {
     if (newPassword.length < 8) {
-      setValidationError("La contrasena debe tener al menos 8 caracteres");
+      setValidationError("La contraseña debe tener al menos 8 caracteres");
       return false;
     }
     if (newPassword !== confirmPassword) {
-      setValidationError("Las contrasenas no coinciden");
+      setValidationError("Las contraseñas no coinciden");
       return false;
     }
     setValidationError("");
@@ -105,16 +105,16 @@ export const ResetPasswordForm = () => {
             <XCircle className="h-8 w-8 text-red-600" />
           </div>
           <CardTitle className="text-2xl font-bold text-center text-gray-900">
-            Enlace invalido
+            Enlace inválido
           </CardTitle>
           <CardDescription className="text-center text-gray-600">
-            El enlace de restablecimiento no es valido o ha expirado
+            El enlace de restablecimiento no es válido o ha expirado
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-500 text-center">
             Los enlaces de restablecimiento solo son validos durante 24 horas.
-            Si necesitas restablecer tu contrasena, solicita un nuevo enlace.
+            Si necesitas restablecer tu contraseña, solicita un nuevo enlace.
           </p>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 pt-6">
@@ -129,7 +129,7 @@ export const ResetPasswordForm = () => {
               className="w-full h-10 font-medium transition-all duration-200 text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al inicio de sesion
+              Volver al inicio de sesión
             </Button>
           </Link>
         </CardFooter>
@@ -146,21 +146,21 @@ export const ResetPasswordForm = () => {
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <CardTitle className="text-2xl font-bold text-center text-gray-900">
-            Contrasena restablecida
+            Contraseña restablecida
           </CardTitle>
           <CardDescription className="text-center text-gray-600">
-            Tu contrasena ha sido actualizada correctamente
+            Tu contraseña ha sido actualizada correctamente
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-500 text-center">
-            Seras redirigido al inicio de sesion en unos segundos...
+            Serás redirigido al inicio de sesión en unos segundos...
           </p>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 pt-6">
           <Link to="/login" className="w-full">
             <Button className="w-full h-12 font-medium transition-all duration-200 bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white">
-              Ir al inicio de sesion
+              Ir al inicio de sesión
             </Button>
           </Link>
         </CardFooter>
@@ -173,12 +173,12 @@ export const ResetPasswordForm = () => {
     <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
       <CardHeader className="space-y-1 pb-6">
         <CardTitle className="text-2xl font-bold text-center text-gray-900">
-          Nueva contrasena
+          Nueva contraseña
         </CardTitle>
         <CardDescription className="text-center text-gray-600">
           {tokenData?.email && (
             <span>
-              Introduce una nueva contrasena para{" "}
+              Introduce una nueva contraseña para{" "}
               <strong>{tokenData.email}</strong>
             </span>
           )}
@@ -191,14 +191,14 @@ export const ResetPasswordForm = () => {
               htmlFor="new-password"
               className="text-sm font-medium text-gray-700"
             >
-              Nueva contrasena
+              Nueva contraseña
             </Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="new-password"
                 type={showNewPassword ? "text" : "password"}
-                placeholder="Minimo 8 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 className="pl-10 pr-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
                 minLength={8}
@@ -227,14 +227,14 @@ export const ResetPasswordForm = () => {
               htmlFor="confirm-password"
               className="text-sm font-medium text-gray-700"
             >
-              Confirmar contrasena
+              Confirmar contraseña
             </Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Repite la contrasena"
+                placeholder="Repite la contraseña"
                 className="pl-10 pr-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 required
                 value={confirmPassword}
@@ -281,7 +281,7 @@ export const ResetPasswordForm = () => {
                 <span>Restableciendo...</span>
               </div>
             ) : (
-              "Restablecer contrasena"
+              "Restablecer contraseña"
             )}
           </Button>
         </form>
@@ -293,7 +293,7 @@ export const ResetPasswordForm = () => {
             className="w-full h-10 font-medium transition-all duration-200 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver al inicio de sesion
+            Volver al inicio de sesión
           </Button>
         </Link>
       </CardFooter>

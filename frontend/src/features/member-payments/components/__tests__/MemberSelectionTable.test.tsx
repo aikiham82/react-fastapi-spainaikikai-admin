@@ -43,7 +43,7 @@ describe('MemberSelectionTable', () => {
       <MemberSelectionTable {...props} members={[member, other]} isOpen />
     )
     fireEvent.change(screen.getByPlaceholderText('Buscar por nombre o DNI...'), { target: { value: 'Luis' } })
-    fireEvent.click(screen.getByRole('button', { name: /Confirmar Seleccion/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar Selección/ }))
 
     rerender(<MemberSelectionTable {...props} members={[member, other]} isOpen={false} />)
     rerender(<MemberSelectionTable {...props} members={[member, other]} isOpen />)

@@ -55,20 +55,4 @@ export const INVOICE_STATUS_VARIANTS: Record<InvoiceStatus, 'default' | 'seconda
   cancelled: 'destructive',
 };
 
-// Format currency in EUR
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(amount);
-};
-
-// Format date in Spanish format
-export const formatDate = (dateStr: string | null): string => {
-  if (!dateStr) return '-';
-  return new Intl.DateTimeFormat('es-ES', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date(dateStr));
-};
+export { formatCurrency, formatDate } from '@/core/utils/format';

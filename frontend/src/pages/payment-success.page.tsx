@@ -31,14 +31,14 @@ export const PaymentSuccessPage = () => {
         <CardContent className="space-y-6">
           {orderId && (
             <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-600">Numero de pedido</p>
+              <p className="text-sm text-gray-600">Número de pedido</p>
               <p className="text-lg font-mono font-medium">{orderId}</p>
             </div>
           )}
 
           <div className="text-center text-sm text-gray-600">
-            <p>Recibiras un correo electronico con la factura y los detalles del pago.</p>
-            <p className="mt-2">Tu licencia sera activada en breve.</p>
+            <p>Recibirás un correo electrónico con la factura y los detalles del pago.</p>
+            <p className="mt-2">Tu licencia será activada en breve.</p>
           </div>
 
           <div className="space-y-2">
@@ -51,7 +51,7 @@ export const PaymentSuccessPage = () => {
           </div>
 
           <p className="text-xs text-center text-gray-400">
-            Seras redirigido automaticamente en 10 segundos...
+            Serás redirigido automáticamente en 10 segundos...
           </p>
         </CardContent>
       </Card>

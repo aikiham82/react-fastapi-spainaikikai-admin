@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CreditCard } from 'lucide-react';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
 import { ANNUAL_PAYMENT_LABELS } from '../data/schemas/annual-payment.schema';
+import { formatCurrency } from '@/core/utils/format';
 
 export const PaymentSummary: React.FC = () => {
   const {
@@ -25,56 +26,56 @@ export const PaymentSummary: React.FC = () => {
         {formData.include_club_fee && totals.subtotals.club_fee > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.club_fee}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.club_fee.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.club_fee)}</span>
           </div>
         )}
 
         {formData.kyu_count > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.kyu} x{formData.kyu_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.kyu.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.kyu)}</span>
           </div>
         )}
 
         {formData.kyu_infantil_count > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.kyu_infantil} x{formData.kyu_infantil_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.kyu_infantil.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.kyu_infantil)}</span>
           </div>
         )}
 
         {formData.dan_count > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.dan} x{formData.dan_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.dan.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.dan)}</span>
           </div>
         )}
 
         {formData.fukushidoin_count > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.fukushidoin} x{formData.fukushidoin_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.fukushidoin.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.fukushidoin)}</span>
           </div>
         )}
 
         {formData.shidoin_count > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.shidoin} x{formData.shidoin_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.shidoin.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.shidoin)}</span>
           </div>
         )}
 
         {formData.seguro_accidentes_count > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.seguro_accidentes} x{formData.seguro_accidentes_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.seguro_accidentes.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.seguro_accidentes)}</span>
           </div>
         )}
 
         {formData.seguro_rc_count > 0 && (
           <div className="flex justify-between gap-2 text-sm">
             <span className="truncate">{ANNUAL_PAYMENT_LABELS.seguro_rc} x{formData.seguro_rc_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.seguro_rc.toFixed(2)}€</span>
+            <span className="whitespace-nowrap">{formatCurrency(totals.subtotals.seguro_rc)}</span>
           </div>
         )}
 
@@ -87,7 +88,7 @@ export const PaymentSummary: React.FC = () => {
         <div className="border-t border-slate-200 pt-3 mt-3">
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>
-            <span>{totals.total.toFixed(2)}€</span>
+            <span>{formatCurrency(totals.total)}</span>
           </div>
         </div>
       </div>
@@ -125,13 +126,13 @@ export const PaymentSummary: React.FC = () => {
         ) : (
           <>
             <CreditCard className="mr-2 h-4 w-4" />
-            Pagar {totals.total.toFixed(2)}€
+            Pagar {formatCurrency(totals.total)}
           </>
         )}
       </Button>
 
       <p className="text-xs text-center text-slate-500">
-        Sera redirigido a la pasarela de pago segura de Redsys
+        Será redirigido a la pasarela de pago segura de Redsys
       </p>
     </div>
   );

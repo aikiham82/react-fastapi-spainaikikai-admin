@@ -8,7 +8,7 @@ implemented_by:
   model:
     name: "Claude Opus"
     version: "5.5"
-last_implementation_at: "2026-10-26T13:00:00Z"
+last_implementation_at: "2026-10-26T15:40:00Z"
 has_completed_all_phases: false
 
 created_by:
@@ -142,40 +142,40 @@ Produce the reference mockups that every later phase is compared against.
 
 A new look on every screen at once: tokens, type, sidebar, header and formatting. Closes `SH-2`, `SH-4`, `SH-5`, `SH-6`, `SH-17`, `SH-18`, `CM-6`, `LI-10`, `LI-11`, `LI-20`, `PY-7`, `PY-8`.
 
-- [ ] `index.css` tokens:
+- [x] `index.css` tokens:
   - Paper, ink and brush-red palette.
   - Status tokens (`--success`, `--warning`, `--danger`).
   - Geist font, self-hosted.
   - One radius scale.
   - Motion easing variables.
   - Reduced-motion block.
-- [ ] `Button`: press feedback, no hover lift, 44px minimum on touch.
-- [ ] `src/core/format/`:
+- [x] `Button`: press feedback, no hover lift, 44px minimum on touch.
+- [x] `src/core/utils/format.ts`:
   - `formatDate(date)`: `dd/mm/yyyy`.
   - `formatDateTime(date)`.
   - `formatCurrency(amount)`: `1.234,56 €`.
   - Replace every `toFixed(2)€` and every bare `toLocaleDateString()`.
-- [ ] `StatusBadge` component: green, amber or red, always with a word, never colour alone.
-- [ ] `Sidebar`:
+- [x] `StatusBadge` component: green, amber or red, always with a word, never colour alone.
+- [x] `Sidebar`:
   - A light surface with groups "Mi club", "Actividad" and "Administración".
   - Super-admin-only items stay gated by `usePermissions().canAccess()`.
   - Email and role shown at the top.
   - 44px rows.
   - The brand line is not an `h1`.
-- [ ] `Header`:
+- [x] `Header`:
   - Remove the bell.
   - `aria-label="Abrir menú"`.
   - Title derived from the matching nav item.
   - 44px buttons.
-- [ ] Global accent pass over every visible string (`contrasena`, `Configuracion`, `sesion`, `Seras`, `Asignacion`, `Descripcion`...).
-- [ ] Tests:
+- [x] Global accent pass over every visible string (`contrasena`, `Configuracion`, `sesion`, `Seras`, `Asignacion`, `Descripcion`...).
+- [x] Tests:
   - `formatDate`, `formatCurrency`: `formats es-ES dates as dd/mm/yyyy`, `formats euros with thousands separator and trailing symbol`, `returns a dash for null values`.
   - `StatusBadge`: `renders the label next to the colour for each status`.
   - `Sidebar`: `groups items into Mi club, Actividad and Administración`, `hides Administración for club admins`.
   - `Header`: `shows the title of the current route`, `labels the menu button`.
-- [ ] Responsive check of the shell at 360, 390, 768, 1024 and 1440 px. The mobile menu must open, and the layout must have no horizontal scroll.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check of the shell at 360, 390, 768, 1024 and 1440 px. The mobile menu must open, and the layout must have no horizontal scroll.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Entry screens
 
@@ -386,6 +386,6 @@ Two plain actions. Closes `LI-18`, `LI-19`.
 
 ## ⏭️ Next step
 
-Start with Phase 0: build the Claude Design mockups that every later phase is checked against.
+Continue with Phase 2: give the entry screens one calm layout.
 
-A calmer dojo for every club director, brought to you by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Ink and paper now on every screen. 🖌️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
