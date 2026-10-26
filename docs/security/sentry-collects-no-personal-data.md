@@ -2,7 +2,7 @@
 
 ## 💡 Convention
 
-Error reports leave the project with no member data. The backend sets `send_default_pii=False` and redacts emails in `before_send` and `before_breadcrumb`. The web sets `dataCollection` with every category off, and redacts emails and `token=` query values in `beforeSend` and `beforeBreadcrumb`. Both stay off unless their DSN variable is set (`SENTRY_DSN`, `VITE_SENTRY_DSN`); the DSNs live in Dokploy, never in the repository.
+Error reports leave the project with no member data. The backend sets `send_default_pii=False` and redacts emails in `before_send` and `before_breadcrumb`. The web sets `dataCollection` with every category off, and redacts emails and `token=` query values in `beforeSend` and `beforeBreadcrumb`. `send_default_pii=False` is not enough on its own: the backend also sets `include_local_variables=False` and `max_request_body_size="never"`, and `before_send` keeps only the method, headers and route template of the request. Without them a crash during a password reset sent the new password in plain text, the reset token (body, URL and query) and the bcrypt hash; `tests/infrastructure/test_sentry_keeps_secrets_out.py` guards it. Both stay off unless their DSN variable is set (`SENTRY_DSN`, `VITE_SENTRY_DSN`); the DSNs live in Dokploy, never in the repository.
 
 ## 🏆 Benefits
 
