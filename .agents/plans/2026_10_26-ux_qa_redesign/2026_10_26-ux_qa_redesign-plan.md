@@ -3,6 +3,14 @@ name: "2026_10_26-ux_qa_redesign"
 description: "Make every admin screen intuitive, minimal, professional and responsive, remove AI-slop styling and fix the frontend bugs found by the UX QA team."
 created_at: "2026-10-26T12:00:00Z"
 
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+last_implementation_at: "2026-10-26T13:00:00Z"
+has_completed_all_phases: false
+
 created_by:
   tool: "Claude Code"
   model:
@@ -118,17 +126,17 @@ The other screens do not depend on per-club data shapes.
 
 Produce the reference mockups that every later phase is compared against.
 
-- [ ] Create a Claude Design project "Spain Aikikai admin" with the visual direction above and the logo.
-- [ ] Mock the following at 390, 768 and 1440 px:
+- [x] Create a Claude Design project "Spain Aikikai admin" with the visual direction above and the logo.
+- [x] Mock the following at 390, 768 and 1440 px:
   - Login.
   - Dashboard.
   - Sidebar (light, grouped).
   - Members list.
   - Payments "Pendientes" (member checklist plus the sticky total).
   - One form dialog.
-- [ ] Record the mockup links in this plan.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Record the mockup links in this plan: [Rediseño.dc.html](https://claude.ai/design/p/11725e09-0da3-4f43-a9ff-13539555008d?file=Redise%C3%B1o.dc.html) (options 1a login, 1c-1e dashboard, 1f-1g members, 1h-1i payments).
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 1: Visual foundation and app shell
 
