@@ -16,8 +16,8 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-26T22:25:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-26T22:45:00Z"
+has_completed_all_phases: true
 ---
 
 # Retire club accounts
@@ -99,15 +99,15 @@ Public contracts:
 - Use case: `ListClubAccountsUseCase.execute() -> list[ClubAccountSummary]` (club id and name, account username and email, candidates: member id, name, instructor category).
 - HTTP: `GET /api/v1/clubs/club-accounts` (super admin only) returning that list.
 - Admin copy: section "Cuentas de club sin persona"; per candidate the button "Pasar la cuenta a {nombre}" (same confirmation as phase 2); empty candidates text "Sin shidoin ni fukushidoin: pásala desde la ficha del socio"; empty list "Ningún club usa ya una cuenta de club".
-- Tests: use case suite (one shidoin, shidoin preferred over fukushidoin, only fukushidoin, several, none, placeholder without user excluded, inactive licence ignored); router suite (super admin 200, club admin 403); vitest for the section rows and buttons.
+- Tests: use case suite (one shidoin, shidoin preferred over fukushidoin, only fukushidoin, several, none, placeholder without user excluded, an expired licence still names the title holder, an annulled one does not; members with their own account left out); router suite (super admin 200, club admin 403); vitest for the section rows and buttons.
 
-- [ ] Write the failing tests.
-- [ ] Implement the use case, the endpoint and the admin section in the clubs page reusing phase 2's mutation.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Implement the use case, the endpoint and the admin section in the clubs page reusing phase 2's mutation.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 3: list of clubs still on a club account, with their shidoin or fukushidoin.
+All phases are implemented: review, QA and merge.
 
-The card app knows a club from a person, and the key changes hands: 🏯 🔑 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+The card app knows a club from a person, the key changes hands, and every dojo finds its shidoin: 🏯 🔑 🥋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

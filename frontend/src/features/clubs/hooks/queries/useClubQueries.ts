@@ -19,3 +19,11 @@ export const useClubQuery = (id: string) => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+export const useClubAccountsQuery = (enabled: boolean) => {
+  return useQuery({
+    queryKey: ['club-accounts'],
+    queryFn: () => clubService.getClubAccounts(),
+    enabled,
+  });
+};

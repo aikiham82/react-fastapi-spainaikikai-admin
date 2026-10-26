@@ -61,3 +61,39 @@ def test_each_refusal_has_its_status(error, status_code):
     response = client_as(super_admin(), transfer_returning(error)).post(TRANSFER, json={"member_id": "person-1"})
 
     assert response.status_code == status_code
+
+
+LIST = "/api/v1/clubs/club-accounts"
+
+
+def client_listing(ctx, summaries) -> TestClient:
+    from src.infrastructure.web.dependencies import get_list_club_accounts_use_case
+
+    use_case = MagicMock()
+    use_case.execute = AsyncMock(return_value=summaries)
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1")
+    app.dependency_overrides[get_auth_context] = lambda: ctx
+    app.dependency_overrides[get_list_club_accounts_use_case] = lambda: use_case
+    return TestClient(app)
+
+
+def test_a_super_admin_lists_the_club_accounts_with_their_instructors():
+    from src.application.use_cases.member_access import ClubAccountCandidate, ClubAccountSummary
+
+    summary = ClubAccountSummary("club-1", "Dojo Ejemplo", "DOJO EJEMPLO", "dojo@example.com",
+                                 [ClubAccountCandidate("person-1", "Ana Ejemplo", "shidoin")])
+
+    response = client_listing(super_admin(), [summary]).get(LIST)
+
+    assert response.status_code == 200
+    assert response.json() == [{
+        "club_id": "club-1", "club_name": "Dojo Ejemplo", "username": "DOJO EJEMPLO", "email": "dojo@example.com",
+        "candidates": [{"member_id": "person-1", "name": "Ana Ejemplo", "instructor_category": "shidoin"}],
+    }]
+
+
+def test_a_club_admin_may_not_list_the_club_accounts():
+    response = client_listing(club_admin(club_id="club-1"), []).get(LIST)
+
+    assert response.status_code == 403

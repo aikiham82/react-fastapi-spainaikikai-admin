@@ -9,6 +9,7 @@ from src.infrastructure.web.dto.club_dto import (
     ClubUpdate,
     ClubResponse,
     TransferClubAccountDTO,
+    ClubAccountSummaryResponse,
 )
 from src.infrastructure.web.mappers_club import ClubMapper
 from src.infrastructure.web.mappers import UserMapper
@@ -24,6 +25,7 @@ from src.infrastructure.web.dependencies import (
     get_delete_club_use_case,
     get_auth_context,
     get_transfer_club_account_use_case,
+    get_list_club_accounts_use_case,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -52,6 +54,16 @@ async def get_clubs(
     # Super admins see all clubs
     clubs = await get_all_use_case.execute(limit)
     return ClubMapper.to_response_list(clubs)
+
+
+@router.get("/club-accounts", response_model=List[ClubAccountSummaryResponse])
+async def list_club_accounts(
+    list_use_case = Depends(get_list_club_accounts_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Clubs still signing in with a shared club account, with their shidoin or fukushidoin (Super Admin only)."""
+    require_super_admin(ctx)
+    return [ClubAccountSummaryResponse.model_validate(summary, from_attributes=True) for summary in await list_use_case.execute()]
 
 
 @router.get("/{club_id}", response_model=ClubResponse)
