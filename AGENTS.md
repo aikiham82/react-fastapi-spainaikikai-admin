@@ -66,6 +66,7 @@ docs/
 ├── documentation-guidelines.md
 ├── domain/
 │   ├── club-admins-manage-member-access.md
+│   ├── club-accounts-pass-to-a-person.md
 │   ├── data-model.md
 │   ├── invoice-creation.md
 │   ├── member-join-date.md
