@@ -12,6 +12,7 @@ import type { ClubRole } from '@/features/auth/data/auth.schema';
 import { GrantMemberAccessForm } from './GrantMemberAccessForm';
 import { AccountManagerControls } from './AccountManagerControls';
 import { TransferClubAccountButton } from './TransferClubAccountButton';
+import { useClubAccountsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
 
 interface MemberAccessAccountProps {
   memberId: string;
@@ -48,6 +49,8 @@ export const MemberAccessAccount = ({
   const managesAccounts = isAssociationAdmin() || isClubAdmin();
 
   const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, managesAccounts);
+  const { data: clubAccounts } = useClubAccountsQuery(isAssociationAdmin());
+  const clubStillHasClubAccount = !!clubAccounts?.some((clubAccount) => clubAccount.club_id === memberClubId);
   const {
     mutate: generateLink,
     isPending: isGenerating,
@@ -117,7 +120,7 @@ export const MemberAccessAccount = ({
 
       {isError && hasNoAccount && <GrantMemberAccessForm memberId={memberId} memberEmail={memberEmail} />}
 
-      {isError && hasNoAccount && isAssociationAdmin() && memberClubId && (
+      {isError && hasNoAccount && memberClubId && clubStillHasClubAccount && (
         <TransferClubAccountButton clubId={memberClubId} memberId={memberId} memberName={memberName} />
       )}
 

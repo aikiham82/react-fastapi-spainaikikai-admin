@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from src.domain.entities.member import ClubRole, Member, MemberStatus
 from src.domain.entities.user import User
-from src.domain.exceptions.member import InvalidClubForMemberError, MemberNotFoundError
+from src.domain.exceptions.member import InactiveMemberError, InvalidClubForMemberError, MemberNotFoundError
 from src.domain.exceptions.user import ClubAccountNotFoundError, UserAlreadyExistsError
 from src.application.use_cases.member_access import TransferClubAccountUseCase
 
@@ -54,6 +54,15 @@ class TestTransferClubAccount:
         members, users = repositories([a_placeholder(), a_person(club_id="club-2")], [the_club_account()])
 
         with pytest.raises(InvalidClubForMemberError):
+            await TransferClubAccountUseCase(members, users).execute("club-1", "person-1")
+        users.update.assert_not_called()
+
+    async def test_refuses_an_inactive_member(self):
+        person = a_person()
+        person.deactivate()
+        members, users = repositories([a_placeholder(), person], [the_club_account()])
+
+        with pytest.raises(InactiveMemberError):
             await TransferClubAccountUseCase(members, users).execute("club-1", "person-1")
         users.update.assert_not_called()
 

@@ -23,6 +23,10 @@ vi.mock('@/features/auth/hooks/useAuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
+vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
+  useClubAccountsQuery: vi.fn((enabled: boolean) => ({ data: enabled ? [{ club_id: 'club1' }] : undefined })),
+}))
+
 vi.mock('../../hooks/queries/useUserByMemberQuery', () => ({
   useUserByMemberQuery: vi.fn(),
 }))
@@ -133,6 +137,14 @@ describe('MemberAccessAccount', () => {
     renderWithProviders(<MemberAccessAccount memberId="member123" memberClubId="club1" memberName="Ana Ejemplo" />)
 
     expect(screen.getByRole('button', { name: 'Pasar la cuenta del club a esta persona' })).toBeInTheDocument()
+  })
+
+  it('does not offer to pass a club account the club no longer has', () => {
+    mockQuery({ data: undefined, isError: true, error: { status: 404 } })
+
+    renderWithProviders(<MemberAccessAccount memberId="member123" memberClubId="club2" memberName="Ana Ejemplo" />)
+
+    expect(screen.queryByRole('button', { name: 'Pasar la cuenta del club a esta persona' })).not.toBeInTheDocument()
   })
 
   it('does not offer a club admin to pass the club account', () => {

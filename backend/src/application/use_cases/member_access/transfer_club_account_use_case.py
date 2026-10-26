@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 from src.domain.entities.member import Member
 from src.domain.entities.user import User
-from src.domain.exceptions.member import InvalidClubForMemberError, MemberNotFoundError
+from src.domain.exceptions.member import InactiveMemberError, InvalidClubForMemberError, MemberNotFoundError
 from src.domain.exceptions.user import ClubAccountNotFoundError, UserAlreadyExistsError
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.repositories import UserRepositoryPort
@@ -28,6 +28,8 @@ class TransferClubAccountUseCase:
             raise MemberNotFoundError(member_id)
         if member.club_id != club_id:
             raise InvalidClubForMemberError("The member does not belong to this club")
+        if not member.is_active:
+            raise InactiveMemberError("The member is not active")
         if await self.user_repository.find_by_member_id(member_id):
             raise UserAlreadyExistsError("This member already has an account")
 
@@ -36,10 +38,10 @@ class TransferClubAccountUseCase:
             raise ClubAccountNotFoundError(club_id)
         placeholder, account = found
 
-        account.link_to_member(member_id)
-        user = await self.user_repository.update(account)
         member.promote_to_admin()
         await self.member_repository.update(member)
+        account.link_to_member(member_id)
+        user = await self.user_repository.update(account)
         placeholder.deactivate()
         await self.member_repository.update(placeholder)
         return user

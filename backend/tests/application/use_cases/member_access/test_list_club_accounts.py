@@ -113,6 +113,22 @@ class TestListClubAccounts:
 
         assert summary.candidates == []
 
+    async def test_offers_the_fukushidoin_when_every_shidoin_has_an_account(self):
+        members = [a_placeholder(), a_person("p1"), a_person("p2", "Luis")]
+        users = [the_club_account(), the_club_account(member_id="p1", id="own", email="ana@example.com")]
+        licences = [a_licence("p1", InstructorCategory.SHIDOIN), a_licence("p2", InstructorCategory.FUKUSHIDOIN)]
+
+        [summary] = await use_case(members, users, licences).execute()
+
+        assert names(summary) == ["Luis Ejemplo"]
+
+    async def test_names_the_club_from_its_placeholder_when_the_club_record_is_missing(self):
+        members = [a_placeholder("club-gone"), a_person("p1", club_id="club-gone")]
+
+        [summary] = await use_case(members, [the_club_account(member_id="placeholder-club-gone")], []).execute()
+
+        assert summary.club_name == "Dojo Ejemplo"
+
     async def test_leaves_out_a_placeholder_with_no_active_account(self):
         members = [a_placeholder(), a_placeholder("club-2"), a_person("p1")]
 

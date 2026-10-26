@@ -1,5 +1,6 @@
 """List the clubs still signing in with a shared club account."""
 
+import asyncio
 from dataclasses import dataclass, field
 from typing import List
 
@@ -35,7 +36,8 @@ class ListClubAccountsUseCase:
     The candidates are the club's shidoin, or its fukushidoin when it has no
     shidoin: whoever holds the title on any licence not annulled, since the
     title outlives an unpaid year. Members who already have an account are
-    left out, as the account cannot be passed to them.
+    left out, as the account cannot be passed to them; when every shidoin
+    already has one, the fukushidoin are offered.
     """
 
     def __init__(
@@ -61,7 +63,7 @@ class ListClubAccountsUseCase:
             club = await self.club_repository.find_by_id(placeholder.club_id)
             summaries.append(ClubAccountSummary(
                 club_id=placeholder.club_id,
-                club_name=club.name if club else placeholder.get_full_name(),
+                club_name=club.name if club else placeholder.first_name,
                 username=account.username,
                 email=account.email,
                 candidates=await self._candidates(placeholder.club_id),
@@ -78,8 +80,9 @@ class ListClubAccountsUseCase:
         licences = await self.license_repository.find_by_member_ids(list(people))
         for title in CANDIDATE_TITLES:
             holders = [people[member_id] for member_id in _holders_of(licences, title)]
-            free = [m for m in holders if not await self.user_repository.find_by_member_id(m.id)]
-            if holders:
+            accounts = await asyncio.gather(*(self.user_repository.find_by_member_id(m.id) for m in holders))
+            free = [m for m, account in zip(holders, accounts) if not account]
+            if free:
                 return [ClubAccountCandidate(m.id, m.get_full_name(), title.value) for m in sorted(free, key=Member.get_full_name)]
         return []
 

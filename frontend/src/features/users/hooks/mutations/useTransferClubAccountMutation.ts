@@ -18,6 +18,7 @@ export const useTransferClubAccountMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['user-by-member', memberId] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['club-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-accounts'] });
       toast.success(`Cuenta del club pasada a ${memberName}`);
     },
     onError: (error: Error & { detail?: unknown; status?: number }) => {

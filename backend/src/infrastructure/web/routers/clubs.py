@@ -15,7 +15,7 @@ from src.infrastructure.web.mappers_club import ClubMapper
 from src.infrastructure.web.mappers import UserMapper
 from src.infrastructure.web.dto.user_dto import UserResponse
 from src.infrastructure.web.audit import audit
-from src.domain.exceptions.member import InvalidClubForMemberError, MemberNotFoundError
+from src.domain.exceptions.member import InactiveMemberError, InvalidClubForMemberError, MemberNotFoundError
 from src.domain.exceptions.user import ClubAccountNotFoundError, UserAlreadyExistsError
 from src.infrastructure.web.dependencies import (
     get_all_clubs_use_case,
@@ -141,6 +141,8 @@ async def transfer_club_account(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado")
     except InvalidClubForMemberError:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="El socio no es de este club")
+    except InactiveMemberError:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="El socio no está activo")
     except UserAlreadyExistsError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este socio ya tiene su propia cuenta")
 

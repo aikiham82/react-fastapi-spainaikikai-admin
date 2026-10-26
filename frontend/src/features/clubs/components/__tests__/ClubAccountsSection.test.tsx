@@ -68,6 +68,14 @@ describe('ClubAccountsSection', () => {
     expect(screen.getByText('Ningún club usa ya una cuenta de club')).toBeInTheDocument()
   })
 
+  it('says when the club accounts could not be loaded', () => {
+    vi.mocked(useClubAccountsQuery).mockReturnValue({ data: undefined, isLoading: false, isError: true } as ReturnType<typeof useClubAccountsQuery>)
+
+    renderWithProviders(<ClubAccountsSection />)
+
+    expect(screen.getByText('No se pudieron cargar las cuentas de club')).toBeInTheDocument()
+  })
+
   it('shows nothing to a club admin', () => {
     asSuperAdmin(false)
     withAccounts(undefined)

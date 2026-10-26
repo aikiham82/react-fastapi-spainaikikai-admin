@@ -71,7 +71,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       .then((current) => {
         if (current.is_club_account) refuseClubAccount();
       })
-      .catch(() => {});
+      .catch((error) => console.error("Could not check the stored session:", error));
     // ponytail: checked once per stored session at app start; a session started in this run was already checked at login.
   }, [isLoading]);
 

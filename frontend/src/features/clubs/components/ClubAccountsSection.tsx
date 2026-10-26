@@ -8,9 +8,12 @@ const TITLE_LABELS: Record<string, string> = { shidoin: 'Shidoin', fukushidoin: 
 export const ClubAccountsSection = () => {
   const { isAssociationAdmin } = usePermissions();
   const isSuperAdmin = isAssociationAdmin();
-  const { data: accounts, isLoading } = useClubAccountsQuery(isSuperAdmin);
+  const { data: accounts, isLoading, isError } = useClubAccountsQuery(isSuperAdmin);
 
-  if (!isSuperAdmin || isLoading || !accounts) return null;
+  if (!isSuperAdmin || isLoading) return null;
+  if (isError || !accounts) {
+    return <p className="mb-6 text-sm text-muted-foreground">No se pudieron cargar las cuentas de club</p>;
+  }
 
   return (
     <Card className="mb-6">
