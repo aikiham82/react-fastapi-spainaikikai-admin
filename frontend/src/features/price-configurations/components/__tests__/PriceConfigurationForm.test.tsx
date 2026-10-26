@@ -51,6 +51,7 @@ describe('PriceConfigurationForm', () => {
       'Licencia Shidoin',
       'Seguro de accidentes',
       'Seguro de responsabilidad civil (ya tiene precio)',
+      'Oficialidad de seminario',
     ])
     expect(options[7]).toHaveAttribute('aria-disabled', 'true')
     expect(options[0]).not.toHaveAttribute('aria-disabled', 'true')

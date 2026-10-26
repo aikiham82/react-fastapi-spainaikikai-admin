@@ -4,7 +4,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { RowActions } from '@/components/ui/list-controls';
 import { formatCurrency } from '@/core/utils/format';
 import type { Seminar } from '../data/schemas/seminar.schema';
-import { STATUS_LABELS, STATUS_TONES } from '../utils/seminarStatus';
+import { STATUS_LABELS, STATUS_TONES, displayStatus } from '../utils/seminarStatus';
 import { dateBlock, freeSpots, startTimeLabel } from '../utils/seminarDates';
 
 interface RowAction {
@@ -63,7 +63,7 @@ export const SeminarRow = ({
       </button>
 
       <div className="flex items-center gap-2">
-        <StatusBadge tone={STATUS_TONES[seminar.status]}>{STATUS_LABELS[seminar.status] ?? seminar.status}</StatusBadge>
+        <StatusBadge tone={STATUS_TONES[displayStatus(seminar)]}>{STATUS_LABELS[displayStatus(seminar)]}</StatusBadge>
         {isProcessing ? (
           <Button variant="outline" disabled aria-live="polite">
             <Loader2 className="size-4 animate-spin" />

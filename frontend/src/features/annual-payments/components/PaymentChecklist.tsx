@@ -79,7 +79,7 @@ const MemberRow = ({ row }: { row: ChecklistRow }) => {
       )}
     >
       <div className="min-w-0 xl:pt-2.5">
-        <p className="truncate text-[15px] font-semibold text-foreground">{row.memberName}</p>
+        <p className="break-words text-[15px] font-semibold text-foreground">{row.memberName}</p>
         <p className="truncate text-sm text-muted-foreground">{row.grade}</p>
       </div>
 

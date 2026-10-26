@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { formatCurrency, formatDateTime } from '@/core/utils/format';
 import type { Seminar } from '../data/schemas/seminar.schema';
 import { OfficialBadge } from './OfficialBadge';
-import { STATUS_LABELS, STATUS_TONES } from '../utils/seminarStatus';
+import { STATUS_LABELS, STATUS_TONES, displayStatus } from '../utils/seminarStatus';
 
 interface SeminarDetailDialogProps {
   seminar: Seminar | null;
@@ -53,7 +53,7 @@ export const SeminarDetailDialog = ({
 
             <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
               <DetailField label="Estado">
-                <StatusBadge tone={STATUS_TONES[seminar.status]}>{STATUS_LABELS[seminar.status] ?? seminar.status}</StatusBadge>
+                <StatusBadge tone={STATUS_TONES[displayStatus(seminar)]}>{STATUS_LABELS[displayStatus(seminar)]}</StatusBadge>
               </DetailField>
               <DetailField label="Inscritos">{registered}</DetailField>
               <DetailField label="Empieza">{formatDateTime(seminar.start_date)}</DetailField>

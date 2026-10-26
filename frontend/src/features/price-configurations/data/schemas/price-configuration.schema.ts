@@ -106,6 +106,7 @@ export const PRICE_CONCEPTS: readonly PriceConcept[] = [
   { key: 'dan-shidoin-adulto', label: 'Licencia Shidoin', category: 'license' },
   { key: 'seguro_accidentes', label: 'Seguro de accidentes', category: 'insurance' },
   { key: 'seguro_rc', label: 'Seguro de responsabilidad civil', category: 'insurance' },
+  { key: 'oficialidad_seminar', label: 'Oficialidad de seminario', category: 'seminar' },
 ];
 
 // Helper to get human-readable price description
