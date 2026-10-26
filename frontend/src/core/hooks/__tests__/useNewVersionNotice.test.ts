@@ -3,8 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import { useNewVersionNotice } from '../useNewVersionNotice'
 
-vi.mock('sonner', () => ({ toast: vi.fn() }))
-
 const LOADED_ENTRY = '/assets/index-old.js'
 
 const deployedHtml = (entry: string) =>
@@ -19,11 +17,13 @@ const becomeVisible = () => {
   document.dispatchEvent(new Event('visibilitychange'))
 }
 
-const stubDeployedEntry = (entry: string) => {
-  const fetchMock = vi.fn().mockResolvedValue(new Response(deployedHtml(entry)))
+const stubDeployedPage = (html: string) => {
+  const fetchMock = vi.fn().mockResolvedValue(new Response(html))
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }
+
+const stubDeployedEntry = (entry: string) => stubDeployedPage(deployedHtml(entry))
 
 describe('useNewVersionNotice', () => {
   beforeEach(() => {
@@ -84,14 +84,23 @@ describe('useNewVersionNotice', () => {
   })
 
   it('does not show the notice when the deployed page has no entry script', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response('<html><body>Bad gateway</body></html>'))
-    vi.stubGlobal('fetch', fetchMock)
+    const fetchMock = stubDeployedPage('<html><body>Bad gateway</body></html>')
     renderHook(() => useNewVersionNotice())
 
     becomeVisible()
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
     expect(toast).not.toHaveBeenCalled()
+  })
+
+  it('fetches once when focus and visibility fire together', async () => {
+    const fetchMock = stubDeployedEntry(LOADED_ENTRY)
+    renderHook(() => useNewVersionNotice())
+
+    becomeVisible()
+    window.dispatchEvent(new Event('focus'))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
   })
 
   it('does not check while the tab is hidden', () => {

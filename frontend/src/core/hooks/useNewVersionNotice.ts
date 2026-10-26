@@ -20,10 +20,17 @@ const showNewVersionNotice = (): void => {
 
 export const useNewVersionNotice = (): void => {
   useEffect(() => {
-    const checkForNewVersion = async () => {
-      if (document.visibilityState !== 'visible') return
-      const deployed = await isNewVersionDeployed().catch(() => false)
-      if (deployed) showNewVersionNotice()
+    let pendingCheck: Promise<void> | null = null
+    const checkForNewVersion = () => {
+      if (document.visibilityState !== 'visible' || pendingCheck) return
+      pendingCheck = isNewVersionDeployed()
+        .catch(() => false)
+        .then((deployed) => {
+          if (deployed) showNewVersionNotice()
+        })
+        .finally(() => {
+          pendingCheck = null
+        })
     }
     document.addEventListener('visibilitychange', checkForNewVersion)
     window.addEventListener('focus', checkForNewVersion)

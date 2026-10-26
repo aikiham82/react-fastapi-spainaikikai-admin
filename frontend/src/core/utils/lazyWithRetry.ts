@@ -8,9 +8,10 @@ const RELOADED_VERSION = 'chunk_reload'
 
 export const importWithRetry = (factory: () => Promise<PageModule>): Promise<PageModule> =>
   factory().catch((error: unknown) => {
+    const session = appStorage().session
     const loadedVersion = entryScript(document)
-    if (appStorage().session.get<string>(RELOADED_VERSION) === loadedVersion) throw error
-    appStorage().session.set(RELOADED_VERSION, loadedVersion)
+    if (session.get<string>(RELOADED_VERSION) === loadedVersion) throw error
+    session.set(RELOADED_VERSION, loadedVersion)
     window.location.reload()
     return new Promise<PageModule>(() => {})
   })

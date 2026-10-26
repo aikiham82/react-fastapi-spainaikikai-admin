@@ -57,9 +57,9 @@ Show a persistent toast with a reload action when the tab becomes visible and th
 
 ### Phase 2: lazyWithRetry recovers on every deploy
 
-Move `lazyWithRetry` to `src/core/utils/` and clear the reload flag once a chunk loads.
+Move `lazyWithRetry` to `src/core/utils/` and allow at most one reload per loaded version.
 
-- [x] Create `src/core/utils/lazyWithRetry.ts` from the function in `App.tsx`, clearing `chunk_reload` after a successful import.
+- [x] Create `src/core/utils/lazyWithRetry.ts` from the function in `App.tsx`, storing the loaded entry script in `chunk_reload`: a failure on the same version throws, a failure on a newer version reloads.
 - [x] Import it in `App.tsx`.
 - [x] Test suite `src/core/utils/__tests__/lazyWithRetry.test.ts`:
   - the first failure reloads the page
