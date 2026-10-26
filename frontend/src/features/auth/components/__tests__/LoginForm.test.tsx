@@ -45,11 +45,25 @@ describe('LoginForm', () => {
   })
 
   describe('Rendering', () => {
+    it('shows the error inline after a wrong password', () => {
+      Object.assign(mockAuthContext, { loginFailed: true })
+      renderWithProviders(<LoginForm />)
+
+      expect(screen.getByRole('alert')).toHaveTextContent('El correo o la contraseña no son correctos.')
+    })
+
+    it('does not link to registration and explains how to get access', () => {
+      renderWithProviders(<LoginForm />)
+
+      expect(screen.queryByRole('link', { name: /regístrate/i })).not.toBeInTheDocument()
+      expect(screen.getByText('¿Primera vez? Pide acceso a tu club o a la Federación.')).toBeInTheDocument()
+    })
+
     it('should render all form elements correctly', () => {
       renderWithProviders(<LoginForm />)
 
       // Form should be present
-      const form = screen.getByRole('button', { name: /iniciar sesión/i }).closest('form')
+      const form = screen.getByRole('button', { name: /^entrar$/i }).closest('form')
       expect(form).toBeInTheDocument()
 
       // Email field
@@ -67,7 +81,7 @@ describe('LoginForm', () => {
       expect(passwordField).toHaveAttribute('placeholder', 'Introduce tu contraseña')
 
       // Submit button
-      const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
+      const submitButton = screen.getByRole('button', { name: /^entrar$/i })
       expect(submitButton).toBeInTheDocument()
       expect(submitButton).toHaveAttribute('type', 'submit')
     })
@@ -164,7 +178,7 @@ describe('LoginForm', () => {
 
       const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
       const passwordField = screen.getByLabelText('Contraseña')
-      const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
+      const submitButton = screen.getByRole('button', { name: /^entrar$/i })
 
       // Fill form
       await user.type(emailField, testData.email)
@@ -182,7 +196,7 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const form = screen.getByRole('button', { name: /iniciar sesión/i }).closest('form')
+      const form = screen.getByRole('button', { name: /^entrar$/i }).closest('form')
 
       // Mock the form event
       const submitEvent = new Event('submit', { bubbles: true })
@@ -206,7 +220,7 @@ describe('LoginForm', () => {
 
       const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
       const passwordField = screen.getByLabelText('Contraseña')
-      const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
+      const submitButton = screen.getByRole('button', { name: /^entrar$/i })
 
       // Ensure fields are empty and required
       expect(emailField).toHaveValue('')
@@ -247,9 +261,9 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const submitButton = screen.getByRole('button', { name: /iniciando sesión/i })
-      expect(submitButton).toHaveTextContent('Iniciando sesión...')
-      expect(submitButton).not.toHaveTextContent('Iniciar Sesión')
+      const submitButton = screen.getByRole('button', { name: /^entrando…$/i })
+      expect(submitButton).toHaveTextContent('Entrando…')
+      expect(submitButton).not.toHaveTextContent('Entrar')
     })
 
     it('should show normal text when not loading', () => {
@@ -258,9 +272,9 @@ describe('LoginForm', () => {
 
       renderWithProviders(<LoginForm />)
 
-      const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
-      expect(submitButton).toHaveTextContent('Iniciar Sesión')
-      expect(submitButton).not.toHaveTextContent('Iniciando sesión...')
+      const submitButton = screen.getByRole('button', { name: /^entrar$/i })
+      expect(submitButton).toHaveTextContent('Entrar')
+      expect(submitButton).not.toHaveTextContent('Entrando…')
     })
 
     it('should disable interactions during loading state', async () => {
@@ -270,7 +284,7 @@ describe('LoginForm', () => {
 
       const emailField = screen.getByLabelText(/correo o nombre de usuario/i)
       const passwordField = screen.getByLabelText('Contraseña')
-      screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })
+      screen.getByRole('button', { name: /^entra(r|ndo…)$/i })
 
       // Fields should remain accessible during loading
       expect(emailField).not.toBeDisabled()
@@ -285,17 +299,17 @@ describe('LoginForm', () => {
       const { rerender } = renderWithProviders(<LoginForm />)
 
       // Initially not loading
-      expect(screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })).toHaveTextContent('Iniciar Sesión')
+      expect(screen.getByRole('button', { name: /^entra(r|ndo…)$/i })).toHaveTextContent('Entrar')
 
       // Set to loading
       mockAuthContext.isLoading = true
       rerender(<LoginForm />)
-      expect(screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })).toHaveTextContent('Iniciando sesión...')
+      expect(screen.getByRole('button', { name: /^entra(r|ndo…)$/i })).toHaveTextContent('Entrando…')
 
       // Set back to not loading
       mockAuthContext.isLoading = false
       rerender(<LoginForm />)
-      expect(screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })).toHaveTextContent('Iniciar Sesión')
+      expect(screen.getByRole('button', { name: /^entra(r|ndo…)$/i })).toHaveTextContent('Entrar')
     })
   })
 
@@ -387,10 +401,10 @@ describe('LoginForm', () => {
 
       await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
       await user.type(screen.getByLabelText('Contraseña'), 'password123')
-      await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+      await user.click(screen.getByRole('button', { name: /^entrar$/i }))
 
       // Form should still be functional
-      const form = screen.getByRole('button', { name: /iniciar sesión/i }).closest('form')
+      const form = screen.getByRole('button', { name: /^entrar$/i }).closest('form')
       expect(form).toBeInTheDocument()
     })
 
@@ -413,7 +427,7 @@ describe('LoginForm', () => {
       await user.type(passwordField, 'password123')
 
       // Submit and handle error
-      await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+      await user.click(screen.getByRole('button', { name: /^entrar$/i }))
 
       // Form values should be maintained
       expect(emailField).toHaveValue('test@example.com')
@@ -425,7 +439,7 @@ describe('LoginForm', () => {
     it('should handle rapid form submissions', async () => {
       renderWithProviders(<LoginForm />)
 
-      const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
+      const submitButton = screen.getByRole('button', { name: /^entrar$/i })
 
       // Fill form
       await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
@@ -457,7 +471,7 @@ describe('LoginForm', () => {
       expect(emailField).toHaveValue(specialData.email)
       expect(passwordField).toHaveValue(specialData.password)
 
-      await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+      await user.click(screen.getByRole('button', { name: /^entrar$/i }))
 
       expect(mockAuthContext.login).toHaveBeenCalledWith(specialData)
     })
@@ -491,7 +505,7 @@ describe('LoginForm', () => {
       // Start login process
       await user.type(screen.getByLabelText(/correo o nombre de usuario/i), 'test@example.com')
       await user.type(screen.getByLabelText('Contraseña'), 'password123')
-      await user.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+      await user.click(screen.getByRole('button', { name: /^entrar$/i }))
 
       // Unmount before login completes
       unmount()
@@ -539,7 +553,7 @@ describe('LoginForm', () => {
 
         if (mockAuthContext.login && !state.isAuthenticated) {
           // Component should render successfully when not authenticated
-          expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument()
+          expect(screen.getByRole('button', { name: /^entrar$/i })).toBeInTheDocument()
         }
       })
     })
@@ -551,12 +565,12 @@ describe('LoginForm', () => {
       const { rerender } = renderWithProviders(<LoginForm />)
 
       // Initial state
-      expect(screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })).toHaveTextContent('Iniciar Sesión')
+      expect(screen.getByRole('button', { name: /^entra(r|ndo…)$/i })).toHaveTextContent('Entrar')
 
       // Update loading state
       mockAuthContext.isLoading = true
       rerender(<LoginForm />)
-      expect(screen.getByRole('button', { name: /iniciar sesión|iniciando sesión/i })).toHaveTextContent('Iniciando sesión...')
+      expect(screen.getByRole('button', { name: /^entra(r|ndo…)$/i })).toHaveTextContent('Entrando…')
 
       // Update auth state (should trigger navigation)
       mockAuthContext.isAuthenticated = true
@@ -573,11 +587,11 @@ describe('LoginForm', () => {
       renderWithProviders(<LoginForm />)
 
       // Form should be present
-      const form = screen.getByRole('button', { name: /iniciar sesión/i }).closest('form')
+      const form = screen.getByRole('button', { name: /^entrar$/i }).closest('form')
       expect(form).toBeInTheDocument()
 
       // Buttons should be properly labeled
-      expect(screen.getByRole('button', { name: /iniciar sesión/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^entrar$/i })).toBeInTheDocument()
 
       // Form fields should be properly labeled
       expect(screen.getByLabelText(/correo o nombre de usuario/i)).toBeInTheDocument()
@@ -599,9 +613,10 @@ describe('LoginForm', () => {
       expect(screen.getByRole('button', { name: 'Mostrar contraseña' })).toHaveFocus()
 
       await user.tab()
-      // Then skip the "Forgot password?" link
+      expect(screen.getByRole('button', { name: /^entrar$/i })).toHaveFocus()
+
       await user.tab()
-      expect(screen.getByRole('button', { name: /iniciar sesión/i })).toHaveFocus()
+      expect(screen.getByRole('link', { name: 'He olvidado la contraseña' })).toHaveFocus()
     })
 
     it('should handle form submission via keyboard', async () => {
@@ -611,7 +626,7 @@ describe('LoginForm', () => {
       await user.type(screen.getByLabelText('Contraseña'), 'password123')
 
       // Focus submit button and press Enter
-      const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
+      const submitButton = screen.getByRole('button', { name: /^entrar$/i })
       submitButton.focus()
       await user.keyboard('{Enter}')
 

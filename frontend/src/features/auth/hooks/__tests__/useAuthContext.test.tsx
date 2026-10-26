@@ -280,22 +280,21 @@ describe('useAuthContext', () => {
   })
 
   describe('Error Handling', () => {
-    it('should display toast for login errors', async () => {
+    it('exposes a failed login for the form to show inline', async () => {
       const loginError = new Error('Invalid credentials')
-      
+
       mockUseLoginMutation.mockReturnValue({
         login: vi.fn(),
         isLoading: false,
         error: loginError
       })
 
-      renderHook(() => useAuthContext(), {
+      const { result } = renderHook(() => useAuthContext(), {
         wrapper: createWrapper
       })
 
-      await waitFor(() => {
-        expect(mockToastError).toHaveBeenCalled()
-      })
+      expect(result.current.loginFailed).toBe(true)
+      expect(mockToastError).not.toHaveBeenCalled()
     })
 
     it('should display toast for register errors', async () => {
@@ -476,13 +475,11 @@ describe('useAuthContext', () => {
           error: loginError
         })
 
-        renderHook(() => useAuthContext(), {
+        const { result } = renderHook(() => useAuthContext(), {
           wrapper: createWrapper
         })
 
-        await waitFor(() => {
-          expect(mockToastError).toHaveBeenCalled()
-        })
+        expect(result.current.loginFailed).toBe(true)
       })
     })
 

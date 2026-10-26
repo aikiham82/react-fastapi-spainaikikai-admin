@@ -8,7 +8,7 @@ implemented_by:
   model:
     name: "Claude Opus"
     version: "5.5"
-last_implementation_at: "2026-10-26T15:40:00Z"
+last_implementation_at: "2026-10-26T16:30:00Z"
 has_completed_all_phases: false
 
 created_by:
@@ -181,38 +181,38 @@ A new look on every screen at once: tokens, type, sidebar, header and formatting
 
 Login, password recovery, registration, unauthorized and payment result pages share one calm layout. Closes `SH-1`, `SH-9`, `SH-10`, `SH-11`, `SH-12`, `SH-13`, `SH-14`, `SH-15`, `SH-16`, `SH-19`.
 
-- [ ] One `AuthLayout`:
+- [x] One `AuthLayout`:
   - The logo, large, on paper.
   - A left-aligned form.
   - No gradient, blur, feature list or filler copy.
   - Single column on mobile and tablet portrait.
-- [ ] Login:
+- [x] Login:
   - Inline `role="alert"` error that stays until the next submit.
   - Underlined 44px links.
   - "¿Primera vez? Pide acceso a tu club o a la Federación" instead of "Regístrate".
-- [ ] `/register`: Spanish copy, same layout, password rule aligned with reset (8 characters).
-- [ ] Forgot and reset password:
+- [x] `/register`: Spanish copy, same layout, password rule aligned with reset (8 characters).
+- [x] Forgot and reset password:
   - The invalid-token state hides the "nueva contraseña" heading.
   - `aria-label` on the eye buttons.
   - "Mínimo 8 caracteres" always visible.
   - `Button asChild` instead of `Link > Button`.
-- [ ] Payment success and failure:
+- [x] Payment success and failure:
   - No countdown or auto-redirect.
   - One plain sentence per outcome.
   - The Redsys code in small print.
-- [ ] `/unauthorized`: plain message with "Volver al inicio" and "Cerrar sesión".
-- [ ] Spanish copy:
+- [x] `/unauthorized`: plain message with "Volver al inicio" and "Cerrar sesión".
+- [x] Spanish copy:
   - "Entra para gestionar tu club."
   - "Pago recibido. Te hemos enviado la factura por correo."
   - "No tienes permiso para ver esta página."
-- [ ] Tests:
+- [x] Tests:
   - `LoginForm`: `shows the error inline after a wrong password`, `does not link to registration`.
   - `RegisterForm`: `renders Spanish labels`.
   - `ResetPasswordForm`: `hides the new password heading when the token is invalid`.
   - `PaymentFailurePage`: `does not redirect automatically`.
-- [ ] Responsive check at all five widths.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Responsive check at all five widths.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: Dashboard "what needs your attention"
 
@@ -386,6 +386,6 @@ Two plain actions. Closes `LI-18`, `LI-19`.
 
 ## ⏭️ Next step
 
-Continue with Phase 2: give the entry screens one calm layout.
+Continue with Phase 3: turn the dashboard into what needs your attention.
 
-Ink and paper now on every screen. 🖌️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Ink and paper on every screen, and a calm door to walk in through. 🖌️ 🚪 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

@@ -23,6 +23,7 @@ interface AuthContextType {
   currentUser: CurrentUser | null;
   userRole: UserRole;
   clubId: string | null;
+  loginFailed: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,14 +76,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clubId: string | null = effectiveUser?.club_id || null;
 
   useEffect(() => {
-    if (loginError) {
-      toast.error('No hemos podido entrar. Revisa el correo o nombre de usuario y la contraseña.');
-    }
-  }, [loginError]);
-
-  useEffect(() => {
     if (registerError) {
-      toast.error('No se ha podido crear la cuenta. Intentalo de nuevo.');
+      toast.error('No se ha podido crear la cuenta. Inténtalo de nuevo.');
     }
   }, [registerError]);
 
@@ -189,7 +184,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           getJwt,
           currentUser,
           userRole,
-          clubId
+          clubId,
+          loginFailed: Boolean(loginError)
         }}
       >
         {children}

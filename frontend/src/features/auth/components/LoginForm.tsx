@@ -1,143 +1,89 @@
 import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useNavigate, Link } from "react-router-dom";
-
+import { PasswordInput } from "@/components/ui/password-input";
 
 export const LoginForm = () => {
-  const { login, isAuthenticated, isLoading } = useAuthContext();
+  const { login, isAuthenticated, isLoading, loginFailed } = useAuthContext();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
-      return;
     }
   }, [isAuthenticated, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = {
-      email,
-      password
-    }
-    login(data);
+    login({ email, password });
   };
-
 
   if (!login) {
     return <></>;
   }
+
   return (
-    <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-      <CardHeader className="space-y-1 pb-6">
-        <CardTitle className="text-2xl font-bold text-center text-gray-900">
-          Bienvenido
-        </CardTitle>
-        <CardDescription className="text-center text-gray-600">
-          Entra con tu correo o tu nombre de usuario
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={onSubmit}>
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Correo o nombre de usuario
-            </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                id="email"
-                type="text"
-                name="username"
-                autoComplete="username"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                placeholder="correo@ejemplo.com"
-                className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Contraseña
-            </Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                placeholder="Introduce tu contraseña"
-                className="pl-10 pr-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 h-6 w-6 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-gray-100"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-primary hover:text-primary/80 transition-colors font-medium underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-1"
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className={cn(
-              "w-full h-12 bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white font-medium transition-all duration-200",
-              "hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0",
-              isLoading && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                <span>Iniciando sesión...</span>
-              </div>
-            ) : (
-              "Iniciar Sesión"
-            )}
-          </Button>
-        </form>
-      </CardContent>
-      <CardFooter className="flex flex-col space-y-4 pt-6">
-        <div className="text-center text-sm text-gray-600">
-          ¿No tienes cuenta?{" "}
-          <Link
-            to="/register"
-            className="font-medium text-primary hover:text-primary/80 transition-colors underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-primary/20 rounded px-1"
-          >
-            Regístrate
-          </Link>
+    <div className="flex flex-col gap-6">
+      <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email" className="text-sm font-medium">
+            Correo o nombre de usuario
+          </Label>
+          <Input
+            id="email"
+            type="text"
+            name="username"
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="correo@ejemplo.com"
+            className="h-12 text-base"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
-      </CardFooter>
-    </Card>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="password" className="text-sm font-medium">
+            Contraseña
+          </Label>
+          <PasswordInput
+            id="password"
+            autoComplete="current-password"
+            placeholder="Introduce tu contraseña"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {loginFailed && (
+          <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+            El correo o la contraseña no son correctos.
+          </p>
+        )}
+
+        <Button type="submit" size="lg" disabled={isLoading} className="w-full">
+          {isLoading ? "Entrando…" : "Entrar"}
+        </Button>
+      </form>
+
+      <div className="flex flex-col gap-2 text-[15px]">
+        <Link
+          to="/forgot-password"
+          className="flex min-h-11 w-fit items-center text-foreground underline underline-offset-4 hover:text-primary"
+        >
+          He olvidado la contraseña
+        </Link>
+        <p className="text-muted-foreground">¿Primera vez? Pide acceso a tu club o a la Federación.</p>
+      </div>
+    </div>
   );
 };
