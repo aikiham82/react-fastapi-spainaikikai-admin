@@ -149,7 +149,7 @@ export const InsuranceList = () => {
   return (
     <div className="space-y-4">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar por nombre o póliza' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar seguro' }}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
         filters={
@@ -204,17 +204,17 @@ export const InsuranceList = () => {
                   className="flex cursor-pointer items-start gap-2 border-b border-border py-3 first:border-t"
                 >
                   <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <button
-                        type="button"
-                        className="truncate text-left text-[15px] font-medium text-foreground"
-                        onClick={() => openDetail(insurance)}
-                      >
-                        {insurance.member_name || 'Sin miembro'}
-                      </button>
+                    <button
+                      type="button"
+                      className="block max-w-full text-left text-[15px] font-medium text-foreground"
+                      onClick={() => openDetail(insurance)}
+                    >
+                      {insurance.member_name || 'Sin miembro'}
+                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+                      <span className="text-sm text-muted-foreground">{insuranceTypeLabel(insurance.insurance_type)}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{insuranceTypeLabel(insurance.insurance_type)}</p>
                     <p className="text-sm text-muted-foreground">
                       {formatDate(insurance.start_date)} a {formatDate(insurance.end_date)}
                     </p>
@@ -231,7 +231,7 @@ export const InsuranceList = () => {
           <table className="hidden w-full text-sm md:table">
             <thead>
               <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="py-2 pr-3 font-medium">Miembro</th>
+                <th className="w-[36%] min-w-[11rem] py-2 pr-3 font-medium">Miembro</th>
                 <th className="py-2 pr-3 font-medium">Tipo</th>
                 <th className="py-2 pr-3 font-medium">Vigencia</th>
                 <th className="py-2 pr-3 text-right font-medium">Cobertura</th>
@@ -260,8 +260,13 @@ export const InsuranceList = () => {
                       )}
                     </td>
                     <td className="py-3 pr-3 text-foreground">{insuranceTypeLabel(insurance.insurance_type)}</td>
-                    <td className="whitespace-nowrap py-3 pr-3 text-muted-foreground">
-                      {formatDate(insurance.start_date)} a {formatDate(insurance.end_date)}
+                    <td className="py-3 pr-3 text-muted-foreground lg:whitespace-nowrap">
+                      {formatDate(insurance.start_date)}
+                      <span className="hidden lg:inline"> a </span>
+                      <span className="block lg:inline">
+                        <span className="lg:hidden">hasta </span>
+                        {formatDate(insurance.end_date)}
+                      </span>
                     </td>
                     <td className="py-3 pr-3 text-right tabular-nums text-foreground">
                       {insurance.coverage_amount ? formatCurrency(insurance.coverage_amount) : '-'}

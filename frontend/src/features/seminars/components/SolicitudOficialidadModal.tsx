@@ -79,16 +79,24 @@ export const SolicitudOficialidadModal = ({
           )}
 
           {price === null && priceFailed && (
-            <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border-y border-border py-4">
-              <p className="text-sm text-danger">No se pudo cargar el precio.</p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => priceQuery.refetch()}
-                disabled={priceQuery.isFetching}
-              >
-                Reintentar
-              </Button>
+            <div role="alert" className="space-y-3 border-y border-border py-4">
+              <div>
+                <p className="text-sm text-danger">No se pudo cargar el precio.</p>
+                <p className="text-sm text-muted-foreground">Inténtalo más tarde o escribe a la Federación.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => priceQuery.refetch()}
+                  disabled={priceQuery.isFetching}
+                >
+                  Reintentar
+                </Button>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cerrar
+                </Button>
+              </div>
             </div>
           )}
 

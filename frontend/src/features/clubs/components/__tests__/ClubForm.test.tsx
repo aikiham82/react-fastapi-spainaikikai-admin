@@ -15,7 +15,7 @@ describe('ClubForm', () => {
   it('requires only name and city', async () => {
     renderWithProviders(<ClubForm open onOpenChange={vi.fn()} />)
     await userEvent.type(screen.getByLabelText(/email/i), 'club@example.com')
-    await userEvent.click(screen.getByRole('button', { name: 'Crear' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Crear club' }))
 
     expect(screen.getByText('El nombre es obligatorio')).toBeInTheDocument()
     expect(screen.getByText('La ciudad es obligatoria')).toBeInTheDocument()
@@ -36,7 +36,7 @@ describe('ClubForm', () => {
     await userEvent.type(screen.getByLabelText(/nombre/i), 'Club Ejemplo')
     await userEvent.type(screen.getByLabelText(/ciudad/i), 'Madrid')
     await userEvent.type(screen.getByLabelText(/email/i), 'club@example.com')
-    await userEvent.click(screen.getByRole('button', { name: 'Crear' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Crear club' }))
 
     expect(createClub).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Club Ejemplo', city: 'Madrid', country: 'España', address: '' })

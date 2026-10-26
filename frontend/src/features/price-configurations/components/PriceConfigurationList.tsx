@@ -45,13 +45,12 @@ export const PriceConfigurationList = () => {
   const addButton = canCreate && (
     <Button onClick={handleCreate}>
       <Plus className="size-4" />
-      Añadir precio
+      Nuevo precio
     </Button>
   );
 
-  const status = (config: PriceConfiguration) => (
-    <StatusBadge tone={config.is_active ? 'ok' : 'neutral'}>{config.is_active ? 'Activo' : 'Inactivo'}</StatusBadge>
-  );
+  const status = (config: PriceConfiguration) =>
+    config.is_active ? null : <StatusBadge tone="neutral">Inactivo</StatusBadge>;
 
   const actions = (config: PriceConfiguration) => (
     <div className="flex items-center justify-end gap-1">

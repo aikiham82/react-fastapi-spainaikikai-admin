@@ -9,14 +9,19 @@ let membersByClub: Record<string, Member[]>
 let pendingMembersClubs: Set<string>
 let prefillByClub: Record<string, PrefillAnnualPaymentResponse>
 let lastMembers: Member[] = []
-let auth: { userRole: string; clubId: string | null } = { userRole: 'super_admin', clubId: null }
+let auth: { userRole: string; clubId: string | null; currentUser?: { username: string } | null } = {
+  userRole: 'super_admin',
+  clubId: null,
+  currentUser: { username: 'director.ejemplo' },
+}
+let clubsList: Array<{ id: string; name: string }> = []
 
 vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
   useAuthContext: () => auth,
 }))
 vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
-  useClubsQuery: () => ({ data: [], isLoading: false }),
+  useClubsQuery: () => ({ data: clubsList, isLoading: false }),
 }))
 vi.mock('@/features/members/hooks/queries/useMemberQueries', () => ({
   useMembersQuery: (filters: { club_id: string }) => {
@@ -84,6 +89,7 @@ const Probe = () => {
       <button onClick={() => setField('club_id', 'club-a')}>go-a</button>
       <button onClick={() => setField('club_id', 'club-b')}>go-b</button>
       <output data-testid="rows">{rows.map((row) => row.memberId).join(',')}</output>
+      <output data-testid="payer">{formData.payer_name}</output>
       <output data-testid="ticked">{formData.member_assignments.map((a) => a.member_id).join(',')}</output>
     </>
   )
@@ -99,7 +105,8 @@ const goTo = (label: string) => act(async () => screen.getByText(label).click())
 
 describe('useAnnualPaymentContext club switching', () => {
   beforeEach(() => {
-    auth = { userRole: 'super_admin', clubId: null }
+    auth = { userRole: 'super_admin', clubId: null, currentUser: { username: 'director.ejemplo' } }
+    clubsList = [{ id: 'club-a', name: 'Aikido Ejemplo' }, { id: 'club-b', name: 'Dojo Beta' }]
     lastMembers = []
     pendingMembersClubs = new Set()
     membersByClub = {
@@ -147,5 +154,25 @@ describe('useAnnualPaymentContext club switching', () => {
     rerender(tree())
 
     expect(screen.getByTestId('rows').textContent).toBe('a-1')
+  })
+
+  it('keeps the payer name from the prefill when it is a real name', async () => {
+    renderWithProviders(tree())
+    await goTo('go-a')
+    expect(screen.getByTestId('payer').textContent).toBe('Director Ejemplo')
+  })
+
+  it('uses the club name when the prefilled payer is the account username', async () => {
+    prefillByClub['club-a'] = { ...prefillFor('a-1'), payer_name: 'director.ejemplo' }
+    renderWithProviders(tree())
+    await goTo('go-a')
+    expect(screen.getByTestId('payer').textContent).toBe('Aikido Ejemplo')
+  })
+
+  it('uses the club name when the prefilled payer is empty', async () => {
+    prefillByClub['club-b'] = { ...prefillFor('b-1'), payer_name: '' }
+    renderWithProviders(tree())
+    await goTo('go-b')
+    expect(screen.getByTestId('payer').textContent).toBe('Dojo Beta')
   })
 })

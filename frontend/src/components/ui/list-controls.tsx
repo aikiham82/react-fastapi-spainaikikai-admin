@@ -64,7 +64,7 @@ export function ListToolbar({ search, filters, activeFilters = 0, onClearFilters
         </Popover>
       )}
 
-      {action && <div className="ml-auto flex shrink-0 gap-2">{action}</div>}
+      {action && <div className="flex w-full shrink-0 gap-2 sm:ml-auto sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">{action}</div>}
     </div>
   )
 }

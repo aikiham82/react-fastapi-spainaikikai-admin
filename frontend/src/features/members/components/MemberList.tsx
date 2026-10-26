@@ -27,7 +27,7 @@ import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { MemberPaymentLines } from '@/features/club-payments/components/MemberPaymentLines';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, MemberAccessBadge, MemberStatusBadge } from './MemberBadges';
+import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, InsuranceAttentionBadges, MemberAccessBadge, MemberStatusBadge } from './MemberBadges';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useMembersWithAccountQuery } from '@/features/users/hooks/queries/useMembersWithAccountQuery';
@@ -321,8 +321,7 @@ export const MemberList = () => {
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
                 <LicenseStatusBadge licenseSummary={member.license_summary} labelled />
-                <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
-                <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
+                <InsuranceAttentionBadges insuranceSummary={member.insurance_summary} />
                 <MemberStatusBadge status={member.status} />
                 {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
               </div>
@@ -377,8 +376,8 @@ export const MemberList = () => {
                 </td>
                 <td className="px-2.5 py-3">
                   <div className="flex flex-col items-start gap-1">
-                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" compact />
-                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" compact />
+                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
+                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
                   </div>
                 </td>
                 <td className="px-2.5 py-3 text-right">

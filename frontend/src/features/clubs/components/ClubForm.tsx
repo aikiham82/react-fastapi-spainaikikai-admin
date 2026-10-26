@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { normalizeCountry } from '@/core/utils/country';
 import { useClubContext } from '../hooks/useClubContext';
 import type { Club, CreateClubRequest } from '../data/schemas/club.schema';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
         city: club.city || '',
         province: club.province || '',
         postal_code: club.postal_code || '',
-        country: club.country || 'España',
+        country: normalizeCountry(club.country),
         phone: club.phone || '',
         email: club.email || '',
         website: club.website || '',
@@ -113,7 +114,7 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Club' : 'Crear Club'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar club' : 'Nuevo club'}</DialogTitle>
           <DialogDescription>
             {isEditing ? 'Actualiza la información del club' : 'Completa la información para crear un nuevo club'}
           </DialogDescription>
@@ -172,7 +173,7 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="postal_code">Código Postal</Label>
+              <Label htmlFor="postal_code">Código postal</Label>
               <Input
                 id="postal_code"
                 value={formData.postal_code}
@@ -223,7 +224,7 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="website">Sitio Web</Label>
+            <Label htmlFor="website">Sitio web</Label>
             <Input
               id="website"
               type="url"
@@ -248,7 +249,7 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
               Cancelar
             </Button>
             <Button type="submit">
-              {isEditing ? 'Actualizar' : 'Crear'}
+              {isEditing ? 'Guardar cambios' : 'Crear club'}
             </Button>
           </DialogFooter>
         </form>

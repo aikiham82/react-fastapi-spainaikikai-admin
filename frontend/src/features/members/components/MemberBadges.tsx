@@ -90,10 +90,9 @@ export function LicenseStatusBadge({ licenseSummary, labelled = false }: License
 interface InsuranceStatusBadgeProps {
   insuranceSummary?: InsuranceSummary;
   type: 'rc' | 'accident';
-  compact?: boolean;
 }
 
-export function InsuranceStatusBadge({ insuranceSummary, type, compact = false }: InsuranceStatusBadgeProps) {
+export function InsuranceStatusBadge({ insuranceSummary, type }: InsuranceStatusBadgeProps) {
   const has = type === 'rc'
     ? insuranceSummary?.has_rc ?? false
     : insuranceSummary?.has_accident ?? false;
@@ -101,7 +100,7 @@ export function InsuranceStatusBadge({ insuranceSummary, type, compact = false }
     ? insuranceSummary?.rc_status
     : insuranceSummary?.accident_status;
 
-  const prefix = type === 'rc' ? 'RC' : compact ? 'Acc.' : 'Accidentes';
+  const prefix = type === 'rc' ? 'Resp. civil' : 'Accidentes';
 
   const { tone, label } = presentInsurance(has, status);
 
@@ -109,5 +108,26 @@ export function InsuranceStatusBadge({ insuranceSummary, type, compact = false }
     <StatusBadge tone={tone}>
       {`${prefix}: ${label}`}
     </StatusBadge>
+  );
+}
+
+const insuranceIsOk = (has: boolean, rawStatus: string | null | undefined): boolean =>
+  presentInsurance(has, rawStatus).tone === 'ok';
+
+interface InsuranceAttentionBadgesProps {
+  insuranceSummary?: InsuranceSummary;
+}
+
+export function InsuranceAttentionBadges({ insuranceSummary }: InsuranceAttentionBadgesProps) {
+  const rcOk = insuranceIsOk(insuranceSummary?.has_rc ?? false, insuranceSummary?.rc_status);
+  const accidentOk = insuranceIsOk(insuranceSummary?.has_accident ?? false, insuranceSummary?.accident_status);
+
+  if (rcOk && accidentOk) return <StatusBadge tone="ok">Seguros al día</StatusBadge>;
+
+  return (
+    <>
+      {!rcOk && <InsuranceStatusBadge insuranceSummary={insuranceSummary} type="rc" />}
+      {!accidentOk && <InsuranceStatusBadge insuranceSummary={insuranceSummary} type="accident" />}
+    </>
   );
 }

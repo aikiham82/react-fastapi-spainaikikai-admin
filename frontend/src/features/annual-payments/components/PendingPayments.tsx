@@ -22,7 +22,7 @@ const MissingPrices = () => {
       description={`Falta el precio de: ${missingPrices.map((concept) => PRICE_CONCEPT_LABELS[concept]).join(', ')}.`}
       action={
         <Button asChild variant="outline">
-          <Link to="/price-configurations">Ir a Precios</Link>
+          <Link to="/price-configurations">Ir a precios</Link>
         </Button>
       }
     />

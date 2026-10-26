@@ -140,7 +140,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Seguro' : 'Crear Seguro'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar seguro' : 'Nuevo seguro'}</DialogTitle>
           <DialogDescription>
             {isEditing ? 'Actualiza la información del seguro' : 'Completa la información para crear un nuevo seguro'}
           </DialogDescription>
@@ -165,7 +165,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="insurance_type">Tipo de Seguro *</Label>
+              <Label htmlFor="insurance_type">Tipo de seguro *</Label>
               <Select
                 value={formData.insurance_type}
                 onValueChange={(value: InsuranceType) => handleChange('insurance_type', value)}
@@ -190,13 +190,13 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
                 min="0"
                 value={formData.coverage_amount || ''}
                 onChange={(e) => handleChange('coverage_amount', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
+                placeholder="Ej.: 50.000,00"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="insurance_company">Compañía de Seguros *</Label>
+            <Label htmlFor="insurance_company">Compañía de seguros *</Label>
             <Input
               id="insurance_company"
               value={formData.insurance_company}
@@ -208,7 +208,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="policy_number">Número de Póliza *</Label>
+            <Label htmlFor="policy_number">Número de póliza *</Label>
             <Input
               id="policy_number"
               value={formData.policy_number}
@@ -221,7 +221,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start_date">Fecha de Inicio *</Label>
+              <Label htmlFor="start_date">Fecha de inicio *</Label>
               <Input
                 id="start_date"
                 type="date"
@@ -233,7 +233,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="end_date">Fecha de Fin *</Label>
+              <Label htmlFor="end_date">Fecha de fin *</Label>
               <Input
                 id="end_date"
                 type="date"
@@ -263,7 +263,7 @@ export const InsuranceForm = ({ open, onOpenChange, insurance, memberOptions = [
               Cancelar
             </Button>
             <Button type="submit">
-              {isEditing ? 'Actualizar' : 'Crear'}
+              {isEditing ? 'Guardar cambios' : 'Crear seguro'}
             </Button>
           </DialogFooter>
         </form>

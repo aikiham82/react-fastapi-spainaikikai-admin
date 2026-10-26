@@ -57,7 +57,7 @@ interface AnnualPaymentProviderProps {
 }
 
 export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children }) => {
-  const { userRole, clubId } = useAuthContext();
+  const { userRole, clubId, currentUser } = useAuthContext();
   const { data: clubsData, isLoading: isLoadingClubs } = useClubsQuery({});
   const initiatePaymentMutation = useInitiateAnnualPaymentMutation();
 
@@ -149,15 +149,19 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       applyAssignments([]);
     }
 
-    if (prefillAppliedRef.current || !prefillData || !membersBelongToClub || isLoadingMembers) return;
+    if (prefillAppliedRef.current || !prefillData || !membersBelongToClub || isLoadingMembers || isLoadingClubs) return;
     prefillAppliedRef.current = true;
 
-    if (prefillData.payer_name) {
-      setField('payer_name', prefillData.payer_name);
+    const prefilledPayer = prefillData.payer_name?.trim() ?? '';
+    const isAccountName = !!currentUser?.username && prefilledPayer === currentUser.username;
+    const clubName = (clubsData ?? []).find((club) => club.id === formData.club_id)?.name ?? '';
+    const payerName = prefilledPayer && !isAccountName ? prefilledPayer : clubName;
+    if (payerName) {
+      setField('payer_name', payerName);
     }
     setField('include_club_fee', prefillData.include_club_fee && !prefillData.club_fee_already_paid);
     applyAssignments(sanitizeAssignments(prefillData.member_assignments, rows));
-  }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, rows, setField, applyAssignments]);
+  }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, isLoadingClubs, clubsData, currentUser?.username, formData.club_id, rows, setField, applyAssignments]);
 
   const clubs = useMemo(() => {
     if (isClubAdmin && userClubId) {

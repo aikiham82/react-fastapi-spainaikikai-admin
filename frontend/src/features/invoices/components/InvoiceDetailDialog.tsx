@@ -20,7 +20,10 @@ export const InvoiceDetailDialog = ({ invoice, onClose, onDownload, isDownloadin
       {invoice && (
         <>
           <DialogHeader>
-            <DialogTitle>Factura {invoice.invoice_number}</DialogTitle>
+            <DialogTitle>
+              Factura
+              <span className="block whitespace-nowrap text-base font-normal text-muted-foreground">{invoice.invoice_number}</span>
+            </DialogTitle>
             <DialogDescription className="sr-only">Datos de la factura</DialogDescription>
           </DialogHeader>
 
@@ -56,7 +59,7 @@ export const InvoiceDetailDialog = ({ invoice, onClose, onDownload, isDownloadin
               </div>
             )}
 
-            <dl className="ml-auto w-full max-w-60 space-y-1 text-sm">
+            <dl className="w-full space-y-1 border-t border-border pt-3 text-sm">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Subtotal</dt>
                 <dd className="tabular-nums">{formatCurrency(invoice.subtotal)}</dd>

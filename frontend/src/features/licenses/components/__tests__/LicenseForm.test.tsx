@@ -45,11 +45,11 @@ describe('LicenseForm', () => {
 
     await userEvent.click(screen.getByRole('combobox', { name: 'Miembro *' }))
     await userEvent.click(screen.getByRole('option', { name: 'Ana Example' }))
-    await userEvent.type(screen.getByLabelText('Fecha de Emisión *'), '2026-01-15')
-    await userEvent.type(screen.getByLabelText('Fecha de Vencimiento *'), '2026-12-31')
+    await userEvent.type(screen.getByLabelText('Fecha de emisión *'), '2026-01-15')
+    await userEvent.type(screen.getByLabelText('Fecha de vencimiento *'), '2026-12-31')
     await choose('Categoría de instructor', 'Shidoin')
     await choose('Categoría de edad', 'Infantil')
-    await userEvent.click(screen.getByRole('button', { name: 'Crear' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Crear licencia' }))
 
     expect(createLicense).toHaveBeenCalledWith(
       expect.objectContaining({ member_id: 'member-ana', instructor_category: 'shidoin', age_category: 'infantil' }),
@@ -59,11 +59,11 @@ describe('LicenseForm', () => {
   it('edits the expiration date and grade', async () => {
     renderWithProviders(<LicenseForm open onOpenChange={vi.fn()} license={LICENCE} memberOptions={MEMBERS} />)
 
-    const expiry = screen.getByLabelText('Fecha de Vencimiento *')
+    const expiry = screen.getByLabelText('Fecha de vencimiento *')
     await userEvent.clear(expiry)
     await userEvent.type(expiry, '2027-12-31')
     await choose('Grado *', '1º Kyu')
-    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(updateLicense).toHaveBeenCalledWith('license-ana', {
       issue_date: '2026-01-15',
@@ -80,10 +80,10 @@ describe('LicenseForm', () => {
       <LicenseForm open onOpenChange={vi.fn()} license={{ ...LICENCE, dan_grade: 0 }} memberOptions={MEMBERS} />,
     )
 
-    const expiry = screen.getByLabelText('Fecha de Vencimiento *')
+    const expiry = screen.getByLabelText('Fecha de vencimiento *')
     await userEvent.clear(expiry)
     await userEvent.type(expiry, '2027-12-31')
-    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(updateLicense).toHaveBeenCalledWith('license-ana', expect.not.objectContaining({ grade: expect.anything() }))
   })

@@ -51,14 +51,36 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  onOpenAutoFocus,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
+  const contentRef = React.useRef<HTMLDivElement>(null)
+
+  const focusFirstFieldWithoutSelecting = (event: Event) => {
+    onOpenAutoFocus?.(event)
+    if (event.defaultPrevented) return
+    const field = contentRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+      "input:not([type='hidden']):not([disabled]), textarea:not([disabled])"
+    )
+    if (!field) return
+    event.preventDefault()
+    field.focus({ preventScroll: true })
+    try {
+      const end = field.value.length
+      field.setSelectionRange(end, end)
+    } catch {
+      return
+    }
+  }
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
+        ref={contentRef}
+        onOpenAutoFocus={focusFirstFieldWithoutSelecting}
         data-slot="dialog-content"
         className={cn(
           "bg-card data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.97] data-[state=open]:zoom-in-[0.97] fixed top-[50%] left-[50%] z-50 grid max-h-[90dvh] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-5 overflow-y-auto rounded-xl border p-6 shadow-xl has-[[data-slot=dialog-footer]]:pb-0 duration-200 ease-out outline-none data-[state=closed]:duration-150 sm:max-w-lg",

@@ -14,7 +14,7 @@ export const ANNUAL_PAYMENT_LABELS = {
   dan: 'Licencia DAN',
   fukushidoin: 'FUKUSHIDOIN (incluye RC + DAN)',
   shidoin: 'SHIDOIN (incluye RC + DAN)',
-  seguro_accidentes: 'Seguro de Accidentes',
+  seguro_accidentes: 'Seguro de accidentes',
   seguro_rc: 'Seguro RC',
 } as const;
 

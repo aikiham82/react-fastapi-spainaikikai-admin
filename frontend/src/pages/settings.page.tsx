@@ -1,14 +1,11 @@
 import { useState } from 'react';
+import { roleLabels } from '@/core/utils/roleLabels';
 import { toast } from 'sonner';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { Button } from '@/components/ui/button';
 import { UpdateOwnEmailDialog } from '@/features/auth/components/UpdateOwnEmailDialog';
 import { useRequestPasswordResetMutation } from '@/features/password-reset/hooks/mutations/useRequestPasswordReset.mutation';
 
-const roleTranslations: Record<string, string> = {
-  super_admin: 'Administrador de la federación',
-  club_admin: 'Administrador de club',
-};
 
 export const SettingsPage = () => {
   const { currentUser, userEmail, userRole } = useAuthContext();
@@ -44,7 +41,7 @@ export const SettingsPage = () => {
           <div>
             <dt className="text-sm text-muted-foreground">Rol</dt>
             <dd className="text-foreground">
-              {userRole ? (roleTranslations[userRole] ?? userRole) : 'No disponible'}
+              {userRole ? (roleLabels[userRole] ?? userRole) : 'No disponible'}
             </dd>
           </div>
         </dl>

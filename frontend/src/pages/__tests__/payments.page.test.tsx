@@ -115,7 +115,7 @@ describe('PaymentsPage', () => {
 
     expect(screen.getByText('El pago no está disponible todavía. Avisa a la Federación.')).toBeInTheDocument()
     expect(screen.queryByRole('group', { name: /Kira/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Ir a Precios' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ir a precios' })).not.toBeInTheDocument()
   })
 
   it('tells super admins which concepts are missing and links to Precios', async () => {
@@ -129,6 +129,6 @@ describe('PaymentsPage', () => {
 
     expect(screen.queryByText(/El pago no está disponible/)).not.toBeInTheDocument()
     expect(screen.getByText(/Falta el precio de: Licencia Kyu, Seguro de accidentes, Seguro de responsabilidad civil/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ir a Precios' })).toHaveAttribute('href', '/price-configurations')
+    expect(screen.getByRole('link', { name: 'Ir a precios' })).toHaveAttribute('href', '/price-configurations')
   })
 })

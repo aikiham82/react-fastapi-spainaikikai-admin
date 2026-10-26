@@ -57,9 +57,9 @@ const PAYMENT_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'dan', label: 'Licencia DAN' },
   { value: 'fukushidoin', label: 'Título Fukushidoin' },
   { value: 'shidoin', label: 'Título Shidoin' },
-  { value: 'seguro_accidentes', label: 'Seguro de Accidentes' },
+  { value: 'seguro_accidentes', label: 'Seguro de accidentes' },
   { value: 'seguro_rc', label: 'Seguro RC' },
-  { value: 'club_fee', label: 'Cuota Club' },
+  { value: 'club_fee', label: 'Cuota del club' },
 ]
 
 // Manual payment methods exclude redsys
@@ -183,7 +183,7 @@ export function ManualPaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Registrar pago manual: {clubName}</DialogTitle>
           <DialogDescription className="sr-only">

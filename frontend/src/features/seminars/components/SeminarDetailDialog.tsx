@@ -32,7 +32,7 @@ export const SeminarDetailDialog = ({
 
   return (
     <Dialog open={!!seminar} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         {seminar && (
           <>
             <DialogHeader>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { TextButton } from '@/components/ui/text-link';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDate } from '@/core/utils/format';
@@ -24,7 +24,7 @@ export const PaymentSetup = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid items-start gap-4 sm:grid-cols-2">
         {!isClubAdmin && (
           <div className="grid gap-1.5">
             <Label htmlFor="club_id">Club</Label>
@@ -51,6 +51,7 @@ export const PaymentSetup = () => {
             aria-invalid={!!errors.payer_name}
             className="h-11"
           />
+          <p className="text-sm text-muted-foreground">Así aparecerá en la factura.</p>
           {errors.payer_name && <p className="text-sm text-danger">{errors.payer_name}</p>}
         </div>
       </div>
@@ -58,9 +59,9 @@ export const PaymentSetup = () => {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
         <p>{seasonText(formData.payment_year, today)}</p>
         {!showYear && (
-          <Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={() => setShowYear(true)}>
+          <TextButton variant="inline" onClick={() => setShowYear(true)}>
             Otro año
-          </Button>
+          </TextButton>
         )}
       </div>
 

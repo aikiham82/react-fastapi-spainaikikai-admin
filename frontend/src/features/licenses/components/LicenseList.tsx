@@ -24,6 +24,7 @@ import {
   sortByUrgency,
   type LicenseChip,
 } from '../utils/licenseStatus';
+import { formatGradeNumber } from '@/core/utils/grade';
 import { LicenseForm } from './LicenseForm';
 
 type StatusFilter = NonNullable<LicenseFilters['status']>;
@@ -31,8 +32,8 @@ type StatusFilter = NonNullable<LicenseFilters['status']>;
 const getGradeDisplay = (license: License): string => {
   if (license.instructor_category === 'shidoin') return 'Shidoin';
   if (license.instructor_category === 'fukushidoin') return 'Fukushidoin';
-  if (license.technical_grade === 'kyu') return license.dan_grade > 0 ? `${license.dan_grade}º Kyu` : 'Kyu';
-  if (license.dan_grade > 0) return `${license.dan_grade}º Dan`;
+  if (license.technical_grade === 'kyu') return license.dan_grade > 0 ? formatGradeNumber(license.dan_grade, 'Kyu') : 'Kyu';
+  if (license.dan_grade > 0) return formatGradeNumber(license.dan_grade, 'Dan');
   return 'Kyu';
 };
 

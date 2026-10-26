@@ -40,6 +40,6 @@ describe('SettingsPage', () => {
     expect(screen.queryByRole('switch')).not.toBeInTheDocument()
     expect(screen.queryByText(/modo oscuro|notificaciones|última sesión/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cambiar mi correo' })).toBeInTheDocument()
-    expect(screen.getByText('Administrador de club')).toBeInTheDocument()
+    expect(screen.getByText('Responsable de club')).toBeInTheDocument()
   })
 })

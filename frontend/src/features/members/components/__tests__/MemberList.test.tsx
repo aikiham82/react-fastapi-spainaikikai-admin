@@ -131,12 +131,34 @@ describe('MemberList', () => {
     expect(screen.getByRole('searchbox')).toBe(search)
   })
 
-  it('labels RC and accident insurance on mobile cards', () => {
+  it('shows only the insurance pills that are not in order on mobile cards', () => {
     renderWithProviders(<MemberList />)
 
-    const cards = screen.getAllByTestId('member-card')
-    expect(within(cards[0]).getByText('RC: Activo')).toBeInTheDocument()
-    expect(within(cards[0]).getByText('Accidentes: Sin seguro')).toBeInTheDocument()
+    const card = screen.getAllByTestId('member-card')[0]
+    expect(within(card).getByText('Accidentes: Sin seguro')).toBeInTheDocument()
+    expect(within(card).queryByText('Resp. civil: Activo')).not.toBeInTheDocument()
+    expect(within(card).queryByText('Seguros al día')).not.toBeInTheDocument()
+  })
+
+  it('says the member is up to date when both insurances are in order', () => {
+    state.members = [
+      member({
+        insurance_summary: { has_rc: true, rc_status: 'active', has_accident: true, accident_status: 'active' },
+      } as Partial<Member>),
+    ]
+    renderWithProviders(<MemberList />)
+
+    const card = screen.getAllByTestId('member-card')[0]
+    expect(within(card).getByText('Licencia: Activa')).toBeInTheDocument()
+    expect(within(card).getByText('Seguros al día')).toBeInTheDocument()
+    expect(within(card).queryByText(/Accidentes:/)).not.toBeInTheDocument()
+  })
+
+  it('shows grades with Spanish ordinals', () => {
+    state.members = [member({ license_summary: { grade: '4th Dan', status: 'active' } } as Partial<Member>)]
+    renderWithProviders(<MemberList />)
+
+    expect(within(screen.getAllByTestId('member-card')[0]).getByText('4.º Dan')).toBeInTheDocument()
   })
 
   it('shows skeleton rows instead of a bare spinner while loading', () => {

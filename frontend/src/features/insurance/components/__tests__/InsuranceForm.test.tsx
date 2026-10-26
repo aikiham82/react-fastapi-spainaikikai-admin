@@ -46,14 +46,14 @@ describe('InsuranceForm', () => {
   it('edits type company and policy', async () => {
     renderEditing()
 
-    expect(screen.getByRole('combobox', { name: 'Tipo de Seguro *' })).toHaveTextContent('Responsabilidad civil (RC)')
-    await userEvent.click(screen.getByRole('combobox', { name: 'Tipo de Seguro *' }))
+    expect(screen.getByRole('combobox', { name: 'Tipo de seguro *' })).toHaveTextContent('Responsabilidad civil (RC)')
+    await userEvent.click(screen.getByRole('combobox', { name: 'Tipo de seguro *' }))
     await userEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Accidentes' }))
-    await userEvent.clear(screen.getByLabelText('Compañía de Seguros *'))
-    await userEvent.type(screen.getByLabelText('Compañía de Seguros *'), 'Otra Example')
-    await userEvent.clear(screen.getByLabelText('Número de Póliza *'))
-    await userEvent.type(screen.getByLabelText('Número de Póliza *'), 'POL-2')
-    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+    await userEvent.clear(screen.getByLabelText('Compañía de seguros *'))
+    await userEvent.type(screen.getByLabelText('Compañía de seguros *'), 'Otra Example')
+    await userEvent.clear(screen.getByLabelText('Número de póliza *'))
+    await userEvent.type(screen.getByLabelText('Número de póliza *'), 'POL-2')
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(updateInsurance).toHaveBeenCalledWith('insurance-ana', {
       insurance_type: 'accident',

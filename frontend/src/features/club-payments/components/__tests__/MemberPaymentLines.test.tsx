@@ -60,7 +60,7 @@ describe('MemberPaymentLines', () => {
   it('a super admin edits a payment line from the member', async () => {
     renderLines()
 
-    expect(screen.getByText('2027 · Seguro de Accidentes')).toBeInTheDocument()
+    expect(screen.getByText('2027 · Seguro de accidentes')).toBeInTheDocument()
     await userEvent.click(screen.getAllByRole('button', { name: 'Editar' })[1])
 
     expect(screen.getByRole('dialog')).toHaveTextContent('Editando mp-insurance')

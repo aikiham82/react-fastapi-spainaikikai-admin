@@ -1,6 +1,8 @@
+import { formatGradeEs } from '@/core/utils/grade';
+
 export function formatGrade(grade: string | null | undefined): string {
   if (!grade) return 'Sin grado';
-  return grade;
+  return formatGradeEs(grade);
 }
 
 export function formatInstructorCategory(category: string | null | undefined): string | null {

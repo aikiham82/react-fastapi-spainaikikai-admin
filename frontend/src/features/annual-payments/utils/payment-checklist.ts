@@ -1,3 +1,4 @@
+import { formatGradeEs } from '@/core/utils/grade';
 import type { Member } from '@/features/members/data/schemas/member.schema';
 import type {
   AnnualPaymentItemType,
@@ -101,7 +102,7 @@ export const buildChecklistRows = (
     return {
       memberId: member.id,
       memberName: fullName(member),
-      grade: member.license_summary?.grade ?? 'Sin licencia',
+      grade: member.license_summary?.grade ? formatGradeEs(member.license_summary.grade) : 'Sin licencia',
       licence,
       licenceChoosable: !member.license_summary,
       offersRc,

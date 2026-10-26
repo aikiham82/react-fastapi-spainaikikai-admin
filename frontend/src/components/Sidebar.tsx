@@ -1,13 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
+import { roleLabels } from '@/core/utils/roleLabels';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { getNavSections, isActivePath } from '@/components/navigation';
 
-const roleLabels: Record<string, string> = {
-  super_admin: 'Administrador',
-  club_admin: 'Responsable de club',
-};
 
 interface SidebarProps {
   className?: string;
@@ -74,8 +71,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, id, isMobile, onClo
         ))}
       </div>
 
-      <div className="flex flex-col gap-1 border-t border-sidebar-border px-1 pt-4">
-        {userEmail && <p className="truncate px-2 text-[13px] text-muted-foreground">{userEmail}</p>}
+      <div className="flex flex-col gap-1 border-t border-sidebar-border pt-4">
+        {userEmail && <p className="truncate px-3 text-[13px] text-muted-foreground">{userEmail}</p>}
         <button
           type="button"
           onClick={handleLogout}

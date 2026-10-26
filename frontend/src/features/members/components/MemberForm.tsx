@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { normalizeCountry } from '@/core/utils/country';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useClubContext } from '../../clubs/hooks/useClubContext';
 import type { Member, CreateMemberRequest } from '../data/schemas/member.schema';
@@ -22,8 +23,6 @@ const localToday = (): string => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
-const normalizeCountry = (country?: string | null): string =>
-  !country || country.trim().toLowerCase() === 'spain' ? 'España' : country;
 
 const joinDateOf = (member: Member): string =>
   (member.registration_date ?? member.created_at ?? '').substring(0, 10);
