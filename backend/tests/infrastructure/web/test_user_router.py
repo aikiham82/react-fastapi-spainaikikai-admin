@@ -342,6 +342,29 @@ class TestCurrentUserEndpoint:
         assert data["email"] == user_entity_with_id.email
         assert data["username"] == user_entity_with_id.username
 
+    def _me_linked_to(self, test_app, user, last_name):
+        from src.domain.entities.member import Member
+        from src.infrastructure.web.authorization import AuthContext
+        from src.infrastructure.web.dependencies import get_auth_context
+
+        member = Member(first_name="Dojo Ejemplo", last_name=last_name, club_id="club-1", id="member-1")
+        test_app.dependency_overrides[get_auth_context] = lambda: AuthContext(user=user, member=member)
+        return TestClient(test_app).get("/api/v1/users/me").json()
+
+    def test_me_flags_a_user_linked_to_the_club_placeholder_as_a_club_account(
+        self, test_app, user_entity_with_id
+    ):
+        data = self._me_linked_to(test_app, user_entity_with_id, "(Club Admin)")
+
+        assert data["is_club_account"] is True
+
+    def test_me_does_not_flag_a_user_linked_to_a_real_member(
+        self, test_app, user_entity_with_id
+    ):
+        data = self._me_linked_to(test_app, user_entity_with_id, "Persona Inventada")
+
+        assert data["is_club_account"] is False
+
     def test_get_current_user_without_auth_returns_401(
         self, test_app
     ):

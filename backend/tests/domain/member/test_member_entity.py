@@ -34,6 +34,14 @@ class TestMemberEntity:
             status=MemberStatus.ACTIVE
         )
 
+    def test_the_migration_club_placeholder_is_recognised(self):
+        placeholder = Member(first_name="Dojo Ejemplo", last_name="(Club Admin)", club_id="club-1")
+
+        assert placeholder.is_club_account_placeholder is True
+
+    def test_a_real_member_is_not_a_club_placeholder(self, member_fixture):
+        assert member_fixture.is_club_account_placeholder is False
+
     def test_member_creation_valid(self, member_fixture):
         """Test valid member creation."""
         assert member_fixture.first_name == "John"

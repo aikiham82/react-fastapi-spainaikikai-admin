@@ -1,10 +1,13 @@
 import React, { useContext, createContext, type PropsWithChildren } from "react";
 import { useStorageState } from "@/core/storage";
+import { getCurrentUser } from "../auth.service";
 import type { UserMe } from "../auth.schema";
 
 interface AuthContextValue {
   signIn: (token: string, user: UserMe) => void;
   signOut: () => void;
+  refuseClubAccount: () => void;
+  clubAccountRefused: boolean;
   session: string | null;
   user: UserMe | null;
   isLoading: boolean;
@@ -13,6 +16,8 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   signIn: () => {},
   signOut: () => {},
+  refuseClubAccount: () => {},
+  clubAccountRefused: false,
   session: null,
   user: null,
   isLoading: true,
@@ -30,6 +35,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [[isLoading, session], setSession] = useStorageState("session");
   const [[_isUserLoading, userJson], setUserJson] =
     useStorageState("user");
+  const [clubAccountRefused, setClubAccountRefused] = React.useState(false);
 
   const user: UserMe | null = React.useMemo(() => {
     if (!userJson) return null;
@@ -42,6 +48,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const signIn = React.useCallback(
     (token: string, userData: UserMe) => {
+      setClubAccountRefused(false);
       setSession(token);
       setUserJson(JSON.stringify(userData));
     },
@@ -53,10 +60,25 @@ export function SessionProvider({ children }: PropsWithChildren) {
     setUserJson(null);
   }, [setSession, setUserJson]);
 
+  const refuseClubAccount = React.useCallback(() => {
+    signOut();
+    setClubAccountRefused(true);
+  }, [signOut]);
+
+  React.useEffect(() => {
+    if (isLoading || !session) return;
+    getCurrentUser(session)
+      .then((current) => {
+        if (current.is_club_account) refuseClubAccount();
+      })
+      .catch(() => {});
+    // ponytail: checked once per stored session at app start; a session started in this run was already checked at login.
+  }, [isLoading]);
+
   return React.createElement(
     AuthContext.Provider,
     {
-      value: { signIn, signOut, session, user, isLoading },
+      value: { signIn, signOut, refuseClubAccount, clubAccountRefused, session, user, isLoading },
     },
     children
   );

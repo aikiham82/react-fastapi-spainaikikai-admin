@@ -8,7 +8,7 @@ interface LoginInput {
 }
 
 export function useLoginMutation() {
-  const { signIn } = useAuth();
+  const { signIn, refuseClubAccount } = useAuth();
 
   return useMutation({
     mutationFn: async ({ email, password }: LoginInput) => {
@@ -18,6 +18,10 @@ export function useLoginMutation() {
       return { token, user };
     },
     onSuccess: ({ token, user }) => {
+      if (user.is_club_account) {
+        refuseClubAccount();
+        return;
+      }
       signIn(token, user);
     },
   });

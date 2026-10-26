@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-26T22:10:00Z"
+has_completed_all_phases: false
 ---
 
 # Retire club accounts
@@ -56,12 +65,12 @@ Public contracts:
 - Mobile copy (login screen): title "Esta es la cuenta del club"; body "La app es el carné de cada socio. Para gestionar el club entra en Spain Aikikai Admin con esta cuenta."; button "Abrir Spain Aikikai Admin".
 - Tests: `test_user_router.py` - "me flags a user linked to the club placeholder as a club account", "me does not flag a user linked to a real member"; domain unit test for the property.
 
-- [ ] Write the failing backend tests.
-- [ ] Add the property on `Member` and `is_club_account` to `UserMeResponse` and `/users/me`.
-- [ ] Mobile: `is_club_account` in `UserMeSchema`; the login mutation does not call `signIn` for a club account and the login screen shows the club-account message with the admin web button.
-- [ ] Mobile: on app start with a stored session, re-fetch `/users/me` and sign out a club account (so it lands on the message).
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing backend tests.
+- [x] Add the property on `Member` and `is_club_account` to `UserMeResponse` and `/users/me`.
+- [x] Mobile: `is_club_account` in `UserMeSchema`; the login mutation does not call `signIn` for a club account and the login screen shows the club-account message with the admin web button.
+- [x] Mobile: on app start with a stored session, re-fetch `/users/me` and sign out a club account (so it lands on the message).
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: a super admin moves a club account onto a person
 
@@ -99,6 +108,6 @@ Public contracts:
 
 ## ⏭️ Next step
 
-Implement Phase 1: the card app refuses club accounts.
+Implement Phase 2: a super admin moves a club account onto a person.
 
-Retiring shared logins one shidoin at a time, powered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+The card app now knows a club from a person: 🏯 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
