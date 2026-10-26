@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/list-controls';
 import {
   Table,
   TableBody,
@@ -70,9 +71,7 @@ export const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            No hay pagos registrados para este miembro.
-          </p>
+          <EmptyState title="No hay pagos registrados para este miembro." />
         </CardContent>
       </Card>
     );

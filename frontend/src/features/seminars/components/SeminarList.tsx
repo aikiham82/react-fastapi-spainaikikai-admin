@@ -1,3 +1,4 @@
+import { foldForSearch } from '@/core/utils/search';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
@@ -7,7 +8,7 @@ import type { Seminar } from '../data/schemas/seminar.schema';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EmptyState, ListToolbar } from '@/components/ui/list-controls';
+import { EmptyState, ListToolbar, ListLoading } from '@/components/ui/list-controls';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { seminarService } from '../data/services/seminar.service';
@@ -100,10 +101,10 @@ export const SeminarList = () => {
   };
 
   const visible = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
+    const term = foldForSearch(searchTerm.trim());
     const matching = term
       ? seminars.filter((s) =>
-          [s.title, s.instructor_name, s.city, s.venue].some((value) => value?.toLowerCase().includes(term))
+          [s.title, s.instructor_name, s.city, s.venue].some((value) => value && foldForSearch(value).includes(term))
         )
       : seminars;
     return splitSeminars(matching);
@@ -144,11 +145,7 @@ export const SeminarList = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center" role="status" aria-label="Cargando seminarios">
-        <div className="size-8 animate-spin rounded-full border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading label="Cargando seminarios" />;
   }
 
   if (error) {

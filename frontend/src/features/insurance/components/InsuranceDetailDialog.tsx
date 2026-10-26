@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { DetailField } from '@/components/ui/detail-field';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -13,13 +13,6 @@ interface InsuranceDetailDialogProps {
   onDelete?: (insurance: Insurance) => void;
 }
 
-const Field = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div>
-    <dt className="text-sm text-muted-foreground">{label}</dt>
-    <dd className="mt-0.5 text-[15px] text-foreground">{children}</dd>
-  </div>
-);
-
 export const InsuranceDetailDialog = ({ insurance, onClose, onEdit, onDelete }: InsuranceDetailDialogProps) => {
   const status = insurance ? insuranceStatus(insurance) : null;
 
@@ -33,20 +26,20 @@ export const InsuranceDetailDialog = ({ insurance, onClose, onEdit, onDelete }: 
               <DialogDescription className="sr-only">Datos del seguro</DialogDescription>
             </DialogHeader>
             <dl className="space-y-4 py-2">
-              {insurance.member_name && <Field label="Miembro">{insurance.member_name}</Field>}
-              <Field label="Estado">
+              {insurance.member_name && <DetailField label="Miembro">{insurance.member_name}</DetailField>}
+              <DetailField label="Estado">
                 <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
-              </Field>
+              </DetailField>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Desde">{formatDate(insurance.start_date)}</Field>
-                <Field label="Hasta">{formatDate(insurance.end_date)}</Field>
+                <DetailField label="Desde">{formatDate(insurance.start_date)}</DetailField>
+                <DetailField label="Hasta">{formatDate(insurance.end_date)}</DetailField>
               </div>
-              {insurance.insurance_company && <Field label="Compañía aseguradora">{insurance.insurance_company}</Field>}
-              {insurance.policy_number && <Field label="Número de póliza">{insurance.policy_number}</Field>}
+              {insurance.insurance_company && <DetailField label="Compañía aseguradora">{insurance.insurance_company}</DetailField>}
+              {insurance.policy_number && <DetailField label="Número de póliza">{insurance.policy_number}</DetailField>}
               {!!insurance.coverage_amount && (
-                <Field label="Cobertura">
+                <DetailField label="Cobertura">
                   <span className="tabular-nums">{formatCurrency(insurance.coverage_amount)}</span>
-                </Field>
+                </DetailField>
               )}
             </dl>
             {(onEdit || onDelete) && (

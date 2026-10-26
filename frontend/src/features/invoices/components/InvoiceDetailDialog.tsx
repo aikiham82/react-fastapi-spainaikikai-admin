@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { DetailField } from '@/components/ui/detail-field';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -13,13 +13,6 @@ interface InvoiceDetailDialogProps {
   onDownload: (invoice: Invoice) => void;
   isDownloading: boolean;
 }
-
-const Field = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div>
-    <dt className="text-sm text-muted-foreground">{label}</dt>
-    <dd className="mt-0.5 text-[15px] text-foreground">{children}</dd>
-  </div>
-);
 
 export const InvoiceDetailDialog = ({ invoice, onClose, onDownload, isDownloading }: InvoiceDetailDialogProps) => (
   <Dialog open={!!invoice} onOpenChange={(open) => !open && onClose()}>
@@ -38,12 +31,12 @@ export const InvoiceDetailDialog = ({ invoice, onClose, onDownload, isDownloadin
             </div>
 
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {invoice.customer_name && <Field label="Cliente">{invoice.customer_name}</Field>}
-              {invoice.customer_tax_id && <Field label="NIF/CIF">{invoice.customer_tax_id}</Field>}
-              {invoice.customer_address && <Field label="Dirección">{invoice.customer_address}</Field>}
-              {invoice.issue_date && <Field label="Fecha de emisión">{formatDate(invoice.issue_date)}</Field>}
-              {invoice.due_date && <Field label="Fecha de vencimiento">{formatDate(invoice.due_date)}</Field>}
-              {invoice.paid_date && <Field label="Fecha de pago">{formatDate(invoice.paid_date)}</Field>}
+              {invoice.customer_name && <DetailField label="Cliente">{invoice.customer_name}</DetailField>}
+              {invoice.customer_tax_id && <DetailField label="NIF/CIF">{invoice.customer_tax_id}</DetailField>}
+              {invoice.customer_address && <DetailField label="Dirección">{invoice.customer_address}</DetailField>}
+              {invoice.issue_date && <DetailField label="Fecha de emisión">{formatDate(invoice.issue_date)}</DetailField>}
+              {invoice.due_date && <DetailField label="Fecha de vencimiento">{formatDate(invoice.due_date)}</DetailField>}
+              {invoice.paid_date && <DetailField label="Fecha de pago">{formatDate(invoice.paid_date)}</DetailField>}
             </dl>
 
             {invoice.line_items.length > 0 && (
@@ -78,7 +71,7 @@ export const InvoiceDetailDialog = ({ invoice, onClose, onDownload, isDownloadin
               </div>
             </dl>
 
-            {invoice.notes && <Field label="Notas">{invoice.notes}</Field>}
+            {invoice.notes && <DetailField label="Notas">{invoice.notes}</DetailField>}
           </div>
 
           <DialogFooter>

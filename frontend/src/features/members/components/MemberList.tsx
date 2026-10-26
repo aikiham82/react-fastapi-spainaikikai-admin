@@ -32,9 +32,11 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useMembersWithAccountQuery } from '@/features/users/hooks/queries/useMembersWithAccountQuery';
 import { filterMembersWithAccess } from '../utils/member-access';
+import { DEFAULT_MEMBER_STATUS } from '../utils/member-defaults';
 import { cn } from '@/lib/utils';
 
-const DEFAULT_STATUS = 'active';
+const DEFAULT_STATUS = DEFAULT_MEMBER_STATUS;
+const NAME_COLLATOR = new Intl.Collator('es');
 
 const fullName = (member: Member) => `${member.first_name} ${member.last_name ?? ''}`.trim();
 
@@ -118,22 +120,29 @@ export const MemberList = () => {
   ], [clubs]);
 
   useEffect(() => {
-    setFilters(prev => ({ ...prev, search: debouncedSearch || undefined, offset: 0 }));
+    const search = debouncedSearch || undefined;
+    setFilters(prev => (prev.search === search ? prev : { ...prev, search, offset: 0 }));
   }, [debouncedSearch, setFilters]);
 
   useEffect(() => {
     const statusValue = memberStatusFilter === 'all' ? undefined : memberStatusFilter;
-    setFilters(prev => ({ ...prev, status: statusValue, offset: 0 }));
+    setFilters(prev => (prev.status === statusValue ? prev : { ...prev, status: statusValue, offset: 0 }));
   }, [memberStatusFilter, setFilters]);
 
   const { memberIdsWithAccount } = useMembersWithAccountQuery(isSuperAdmin);
 
-  const sortedMembers = filterMembersWithAccess(
-    [...members].sort((a, b) =>
-      (a.first_name || '').localeCompare(b.first_name || '', 'es') || (a.last_name || '').localeCompare(b.last_name || '', 'es')
-    ),
-    memberIdsWithAccount,
-    onlyWithAccess
+  const sortedMembers = useMemo(
+    () =>
+      filterMembersWithAccess(
+        [...members].sort(
+          (a, b) =>
+            NAME_COLLATOR.compare(a.first_name || '', b.first_name || '') ||
+            NAME_COLLATOR.compare(a.last_name || '', b.last_name || '')
+        ),
+        memberIdsWithAccount,
+        onlyWithAccess
+      ),
+    [members, memberIdsWithAccount, onlyWithAccess]
   );
 
   const handleLicenseFilter = (value: string) => {

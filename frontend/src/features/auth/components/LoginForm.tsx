@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { FormError } from "@/components/ui/form-error";
+import { TextLink } from "@/components/ui/text-link";
 
 const LOGIN_FAILURE_MESSAGES = {
   invalid: "El correo o la contraseña no son correctos.",
@@ -71,9 +73,9 @@ export const LoginForm = () => {
         </div>
 
         {loginFailure && (
-          <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+          <FormError>
             {LOGIN_FAILURE_MESSAGES[loginFailure]}
-          </p>
+          </FormError>
         )}
 
         <Button type="submit" size="lg" disabled={isLoading} className="w-full">
@@ -82,12 +84,7 @@ export const LoginForm = () => {
       </form>
 
       <div className="flex flex-col gap-2 text-[15px]">
-        <Link
-          to="/forgot-password"
-          className="flex min-h-11 w-fit items-center text-foreground underline underline-offset-4 hover:text-primary"
-        >
-          He olvidado la contraseña
-        </Link>
+        <TextLink to="/forgot-password">He olvidado la contraseña</TextLink>
         <p className="text-muted-foreground">¿Primera vez? Pide acceso a tu club o a la Federación.</p>
       </div>
     </div>

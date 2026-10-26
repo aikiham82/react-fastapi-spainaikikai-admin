@@ -5,9 +5,8 @@ import { AuthHeading } from "@/features/auth/components/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const linkClasses =
-  "flex min-h-11 w-fit items-center text-[15px] text-foreground underline underline-offset-4 hover:text-primary";
+import { FormError } from "@/components/ui/form-error";
+import { TextLink, TextButton } from "@/components/ui/text-link";
 
 export const ForgotPasswordForm = () => {
   const [identifier, setIdentifier] = useState("");
@@ -35,9 +34,9 @@ export const ForgotPasswordForm = () => {
         <Button size="lg" variant="outline" className="w-full" onClick={() => reset()}>
           Intentar de nuevo
         </Button>
-        <Link to="/login" className={linkClasses}>
+        <TextLink to="/login">
           Volver a entrar
-        </Link>
+        </TextLink>
       </div>
     );
   }
@@ -55,9 +54,9 @@ export const ForgotPasswordForm = () => {
         <Button size="lg" className="w-full" asChild>
           <Link to="/login">Volver a entrar</Link>
         </Button>
-        <button type="button" onClick={startAgain} className={linkClasses}>
+        <TextButton onClick={startAgain}>
           Probar con otra cuenta
-        </button>
+        </TextButton>
       </div>
     );
   }
@@ -86,9 +85,9 @@ export const ForgotPasswordForm = () => {
         </div>
 
         {error && (
-          <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+          <FormError>
             Ha ocurrido un error. Inténtalo de nuevo.
-          </p>
+          </FormError>
         )}
 
         <Button type="submit" size="lg" disabled={isLoading || !identifier.trim()} className="w-full">
@@ -96,9 +95,9 @@ export const ForgotPasswordForm = () => {
         </Button>
       </form>
 
-      <Link to="/login" className={linkClasses}>
+      <TextLink to="/login">
         Volver a entrar
-      </Link>
+      </TextLink>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { useInvoiceContext } from '../hooks/useInvoiceContext';
 import { Button } from '@/components/ui/button';
-import { ChipGroup, EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
+import { ChipGroup, EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { formatCurrency, formatDate } from '@/core/utils/format';
@@ -71,20 +71,11 @@ export const InvoiceList = () => {
   ];
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading />;
   }
 
   if (error) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-danger">Error al cargar las facturas</p>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </div>
-    );
+    return <ListError title="Error al cargar las facturas" description={error.message} />;
   }
 
   const canClear = invoices.length > 0 || statusFilter !== ALL_STATUSES;

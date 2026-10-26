@@ -29,7 +29,6 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   isLoadingClubs: boolean;
   rows: ChecklistRow[];
   pendingMemberCount: number;
-  pickedMemberCount: number;
   isLoadingMembers: boolean;
   userClubId: string | null;
   isClubAdmin: boolean;
@@ -175,7 +174,6 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   }, [isLoadingPrices, prices, formData.member_assignments, formData.include_club_fee, missingPrices]);
 
   const pendingMemberCount = useMemo(() => rows.filter((row) => !row.isUpToDate).length, [rows]);
-  const pickedMemberCount = formData.member_assignments.length;
 
   const toggleMemberItems = useCallback((row: ChecklistRow, items: MemberItem[]) => {
     applyAssignments(toggleItems(formData.member_assignments, row, items));
@@ -227,7 +225,6 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     isLoadingClubs,
     rows,
     pendingMemberCount,
-    pickedMemberCount,
     isLoadingMembers,
     userClubId,
     isClubAdmin,

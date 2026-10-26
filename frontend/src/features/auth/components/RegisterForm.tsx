@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useRegisterMutation } from "../hooks/mutations/useRegister.mutation";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { FormError } from "@/components/ui/form-error";
+import { TextLink } from "@/components/ui/text-link";
 import { appStorage } from "@/core/data/appStorage";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -158,9 +160,9 @@ export const RegisterForm = () => {
         </div>
 
         {serverError && (
-          <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+          <FormError>
             {serverError}
-          </p>
+          </FormError>
         )}
 
         <Button type="submit" size="lg" disabled={isPending} className="w-full">
@@ -168,12 +170,7 @@ export const RegisterForm = () => {
         </Button>
       </form>
 
-      <Link
-        to="/login"
-        className="flex min-h-11 w-fit items-center text-[15px] text-foreground underline underline-offset-4 hover:text-primary"
-      >
-        Ya tengo cuenta
-      </Link>
+      <TextLink to="/login">Ya tengo cuenta</TextLink>
     </div>
   );
 };

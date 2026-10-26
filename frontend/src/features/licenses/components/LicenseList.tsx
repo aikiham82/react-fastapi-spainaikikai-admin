@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { ListPager } from '@/core/components/ListPager';
 import { useDebounce } from '@/core/hooks/useDebounce';
@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChipGroup, EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
+import { ChipGroup, EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
+import { TextLink } from '@/components/ui/text-link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useLicenseContext } from '../hooks/useLicenseContext';
-import { useMemberContext } from '../../members/hooks/useMemberContext';
+import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { License, LicenseFilters } from '../data/schemas/license.schema';
 import {
   CHIP_TO_ESTADO_PARAM,
@@ -61,7 +62,6 @@ const DetailField = ({ label, children }: { label: string; children: React.React
 
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
-  const { members } = useMemberContext();
   const { canAccess } = usePermissions();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,10 +85,15 @@ export const LicenseList = () => {
     setSearchParams(params, { replace: true });
   };
 
-  const memberOptions = members.map(member => ({
-    id: member.id,
-    name: `${member.first_name} ${member.last_name || ''}`.trim()
-  }));
+  const { data: members } = useMembersQuery(undefined, { enabled: isFormOpen });
+  const memberOptions = useMemo(
+    () =>
+      (members ?? []).map((member) => ({
+        id: member.id,
+        name: `${member.first_name} ${member.last_name || ''}`.trim(),
+      })),
+    [members],
+  );
 
   const debouncedSearch = useDebounce(searchTerm, 300);
 
@@ -147,20 +152,11 @@ export const LicenseList = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="size-8 animate-spin rounded-full border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading />;
   }
 
   if (error) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-danger">Error al cargar las licencias</p>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </div>
-    );
+    return <ListError title="Error al cargar las licencias" description={error.message} />;
   }
 
   const createButton = canCreate ? (
@@ -208,9 +204,9 @@ export const LicenseList = () => {
       {!canCreate && (
         <p className="text-sm text-muted-foreground">
           Las licencias se crean al registrar el pago de la temporada.{' '}
-          <Link to="/payments" className="font-medium text-foreground underline underline-offset-4">
+          <TextLink to="/payments" variant="inline" className="font-medium">
             Ir a pagar
-          </Link>
+          </TextLink>
         </p>
       )}
 

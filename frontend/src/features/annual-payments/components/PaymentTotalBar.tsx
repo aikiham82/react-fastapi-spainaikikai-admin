@@ -10,7 +10,7 @@ const describeSelection = (members: number, withClubFee: boolean): string => {
 };
 
 export const PaymentTotalBar = () => {
-  const { formData, totals, pickedMemberCount, canPay, isSubmitting, submitPayment, submitError } =
+  const { formData, totals, canPay, isSubmitting, submitPayment, submitError } =
     useAnnualPaymentContext();
 
   return (
@@ -22,7 +22,7 @@ export const PaymentTotalBar = () => {
       )}
       <div className="flex items-center justify-between gap-4">
         <p className="min-w-0 text-[15px] text-foreground">
-          <span>{describeSelection(pickedMemberCount, formData.include_club_fee)}</span>
+          <span>{describeSelection(formData.member_assignments.length, formData.include_club_fee)}</span>
           <span aria-hidden="true"> · </span>
           <span className="font-semibold tabular-nums">{formatCurrency(totals.total)}</span>
         </p>

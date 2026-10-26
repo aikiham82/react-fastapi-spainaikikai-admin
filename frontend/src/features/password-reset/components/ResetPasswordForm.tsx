@@ -5,12 +5,11 @@ import { useResetPasswordMutation } from "../hooks/mutations/useResetPassword.mu
 import { AuthHeading } from "@/features/auth/components/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { FormError } from "@/components/ui/form-error";
+import { TextLink } from "@/components/ui/text-link";
 import { PasswordInput } from "@/components/ui/password-input";
 
 const MIN_PASSWORD_LENGTH = 8;
-
-const linkClasses =
-  "flex min-h-11 w-fit items-center text-[15px] text-foreground underline underline-offset-4 hover:text-primary";
 
 export const ResetPasswordForm = () => {
   const [searchParams] = useSearchParams();
@@ -60,9 +59,9 @@ export const ResetPasswordForm = () => {
         <Button size="lg" className="w-full" asChild>
           <Link to="/forgot-password">Pedir un enlace nuevo</Link>
         </Button>
-        <Link to="/login" className={linkClasses}>
+        <TextLink to="/login">
           Volver a entrar
-        </Link>
+        </TextLink>
       </div>
     );
   }
@@ -126,9 +125,9 @@ export const ResetPasswordForm = () => {
         </div>
 
         {formError && (
-          <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+          <FormError>
             {formError}
-          </p>
+          </FormError>
         )}
 
         <Button type="submit" size="lg" disabled={isResetting} className="w-full">
@@ -136,9 +135,9 @@ export const ResetPasswordForm = () => {
         </Button>
       </form>
 
-      <Link to="/login" className={linkClasses}>
+      <TextLink to="/login">
         Volver a entrar
-      </Link>
+      </TextLink>
     </div>
   );
 };

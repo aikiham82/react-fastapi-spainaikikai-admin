@@ -1,4 +1,5 @@
 import { Checkbox } from '@/components/ui/checkbox';
+import { TextButton } from '@/components/ui/text-link';
 import type { ColumnOption } from '../data/importExportConfig';
 
 interface ColumnSelectorProps {
@@ -21,22 +22,18 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
     <fieldset className="space-y-3">
       <legend className="text-sm font-medium text-foreground">Elegir columnas</legend>
       <div className="flex items-center gap-4 text-sm">
-        <button
-          type="button"
+        <TextButton variant="inline"
           onClick={() => onChange(columns.map((c) => c.key))}
           disabled={allSelected}
-          className="min-h-8 text-foreground underline underline-offset-4 disabled:text-muted-foreground disabled:no-underline"
         >
           Marcar todas
-        </button>
-        <button
-          type="button"
+        </TextButton>
+        <TextButton variant="inline"
           onClick={() => onChange([])}
           disabled={noneSelected}
-          className="min-h-8 text-foreground underline underline-offset-4 disabled:text-muted-foreground disabled:no-underline"
         >
           Quitar todas
-        </button>
+        </TextButton>
       </div>
       <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
         {columns.map((col) => (

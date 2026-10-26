@@ -1,6 +1,7 @@
+import { foldForSearch } from '@/core/utils/search';
 import { useState } from 'react';
 import { useClubPaymentsContext } from '../hooks/useClubPaymentsContext';
-import { ListToolbar, EmptyState } from '@/components/ui/list-controls';
+import { ListToolbar, EmptyState, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
 import { formatCurrency } from '@/core/utils/format';
 
@@ -23,24 +24,15 @@ export const AllClubsSummaryTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   if (isLoadingAllClubs) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading />;
   }
 
   if (allClubsError) {
-    return (
-      <div className="py-12">
-        <p className="text-danger">Error al cargar los datos de pagos</p>
-        <p className="mt-2 text-sm text-muted-foreground">{allClubsError.message}</p>
-      </div>
-    );
+    return <ListError title="Error al cargar los datos de pagos" description={allClubsError.message} />;
   }
 
   const clubs = [...(allClubsSummary?.clubs ?? [])].sort((a, b) => a.club_name.localeCompare(b.club_name, 'es'));
-  const filtered = clubs.filter((c) => c.club_name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filtered = clubs.filter((c) => foldForSearch(c.club_name).includes(foldForSearch(searchTerm)));
 
   if (clubs.length === 0) {
     return <EmptyState title="No hay clubs" description="No se encontraron clubs con datos de pagos" />;

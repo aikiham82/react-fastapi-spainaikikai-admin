@@ -14,6 +14,9 @@ export const getToken = () => {
   return token
 }
 
+export const resolveApiUrl = (path: string): string =>
+  `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${path}`
+
 const client = axios.create({
   headers: {
     'Content-Type': 'application/json',

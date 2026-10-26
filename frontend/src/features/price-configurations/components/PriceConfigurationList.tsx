@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { usePriceConfigurationContext } from '../hooks/usePriceConfigurationContext';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EmptyState, RowActions } from '@/components/ui/list-controls';
+import { EmptyState, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { PriceConfigurationForm } from './PriceConfigurationForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import type { PriceConfiguration } from '../data/schemas/price-configuration.schema';
-import { getPriceKeyDescription, formatCurrency } from '../data/schemas/price-configuration.schema';
+import { getPriceKeyDescription } from '../data/schemas/price-configuration.schema';
+import { formatCurrency } from '@/core/utils/format';
 
 const th = 'px-3 py-3 text-left text-sm font-medium text-muted-foreground';
 
@@ -33,20 +34,11 @@ export const PriceConfigurationList = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading />;
   }
 
   if (error) {
-    return (
-      <div className="py-12">
-        <p className="text-danger">Error al cargar los precios</p>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </div>
-    );
+    return <ListError title="Error al cargar los precios" description={error.message} />;
   }
 
   const addButton = canCreate && (

@@ -24,8 +24,13 @@ interface MemberContextType {
 
 const MemberContext = createContext<MemberContextType | undefined>(undefined);
 
-export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [filters, setFilters] = useState<MemberFilters>({ limit: 0, offset: 0 });
+interface MemberProviderProps {
+  children: ReactNode;
+  initialFilters?: MemberFilters;
+}
+
+export const MemberProvider: React.FC<MemberProviderProps> = ({ children, initialFilters }) => {
+  const [filters, setFilters] = useState<MemberFilters>({ limit: 0, offset: 0, ...initialFilters });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const { data: membersData, isLoading, isFetching, error } = useMembersQuery(filters);
   const createMutation = useCreateMemberMutation();

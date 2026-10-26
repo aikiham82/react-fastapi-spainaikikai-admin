@@ -10,7 +10,7 @@ export const INSURANCE_TYPE_LABELS: Record<string, string> = {
 
 export const insuranceTypeLabel = (type: string): string => INSURANCE_TYPE_LABELS[type] ?? type;
 
-export const insuranceStatus = (insurance: Insurance): { tone: StatusTone; label: string } => {
+export const insuranceStatus = (insurance: Pick<Insurance, 'status' | 'end_date'>): { tone: StatusTone; label: string } => {
   switch (insurance.status) {
     case 'cancelled':
       return { tone: 'bad', label: 'Anulado' };

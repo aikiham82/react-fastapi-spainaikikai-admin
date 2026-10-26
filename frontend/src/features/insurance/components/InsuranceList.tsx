@@ -6,7 +6,7 @@ import type { Insurance, InsuranceType } from '../data/schemas/insurance.schema'
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
+import { EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { InsuranceForm } from './InsuranceForm';
@@ -34,8 +34,11 @@ export const InsuranceList = () => {
   const [insuranceForDetail, setInsuranceForDetail] = useState<Insurance | null>(null);
   const [insuranceToDelete, setInsuranceToDelete] = useState<Insurance | null>(null);
 
-  const { data: members = [] } = useMembersQuery();
-  const memberOptions = members.map((m) => ({ id: m.id, name: `${m.first_name} ${m.last_name}` }));
+  const { data: members } = useMembersQuery(undefined, { enabled: isFormOpen });
+  const memberOptions = useMemo(
+    () => (members ?? []).map((m) => ({ id: m.id, name: `${m.first_name} ${m.last_name}` })),
+    [members],
+  );
 
   const visibleInsurance = useMemo(() => {
     const term = foldForSearch(searchTerm.trim());
@@ -92,20 +95,11 @@ export const InsuranceList = () => {
   ];
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading />;
   }
 
   if (error) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-danger">Error al cargar los seguros</p>
-        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
-      </div>
-    );
+    return <ListError title="Error al cargar los seguros" description={error.message} />;
   }
 
   const createButton = canCreate && (

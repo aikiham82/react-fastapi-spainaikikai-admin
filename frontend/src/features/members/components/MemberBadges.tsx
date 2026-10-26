@@ -3,12 +3,31 @@ import type { LicenseSummary, InsuranceSummary } from '../data/schemas/member.sc
 import {
   formatGrade,
   formatInstructorCategory,
-  getLicenseStatusTone,
-  getLicenseStatusLabel,
-  getInsuranceStatusTone,
-  getInsuranceStatusLabel,
   getMemberStatusLabel,
 } from '../utils/member-badges';
+import { getStatusPresentation } from '@/features/licenses/utils/licenseStatus';
+import { insuranceStatus } from '@/features/insurance/components/insuranceDisplay';
+import type { Insurance } from '@/features/insurance/data/schemas/insurance.schema';
+import type { License } from '@/features/licenses/data/schemas/license.schema';
+
+type StatusPresentation = ReturnType<typeof getStatusPresentation>;
+
+const NO_LICENSE: StatusPresentation = { tone: 'neutral', label: 'Sin licencia' };
+const NO_INSURANCE: StatusPresentation = { tone: 'neutral', label: 'Sin seguro' };
+const LICENSE_STATUSES: readonly License['status'][] = ['active', 'expired', 'pending', 'revoked'];
+const INSURANCE_STATUSES: readonly Insurance['status'][] = ['active', 'expired', 'pending', 'cancelled'];
+
+const presentLicense = (summary?: LicenseSummary): StatusPresentation => {
+  const status = LICENSE_STATUSES.find((value) => value === summary?.status);
+  if (!status) return NO_LICENSE;
+  return getStatusPresentation({ status, expiry_date: summary?.expiration_date ?? '' });
+};
+
+const presentInsurance = (has: boolean, rawStatus: string | null | undefined): StatusPresentation => {
+  const status = INSURANCE_STATUSES.find((value) => value === rawStatus);
+  if (!has || !status) return NO_INSURANCE;
+  return insuranceStatus({ status, end_date: '' });
+};
 
 interface MemberStatusBadgeProps {
   status?: string;
@@ -60,10 +79,9 @@ interface LicenseStatusBadgeProps {
 }
 
 export function LicenseStatusBadge({ licenseSummary, labelled = false }: LicenseStatusBadgeProps) {
-  const status = licenseSummary?.status;
-  const label = getLicenseStatusLabel(status);
+  const { tone, label } = presentLicense(licenseSummary);
   return (
-    <StatusBadge tone={getLicenseStatusTone(status)}>
+    <StatusBadge tone={tone}>
       {labelled ? `Licencia: ${label}` : label}
     </StatusBadge>
   );
@@ -85,9 +103,11 @@ export function InsuranceStatusBadge({ insuranceSummary, type, compact = false }
 
   const prefix = type === 'rc' ? 'RC' : compact ? 'Acc.' : 'Accidentes';
 
+  const { tone, label } = presentInsurance(has, status);
+
   return (
-    <StatusBadge tone={getInsuranceStatusTone(has, status)}>
-      {`${prefix}: ${getInsuranceStatusLabel(has, status)}`}
+    <StatusBadge tone={tone}>
+      {`${prefix}: ${label}`}
     </StatusBadge>
   );
 }

@@ -4,9 +4,8 @@ import { renderWithProviders } from '@/test-utils'
 import { PaymentTotalBar } from '../PaymentTotalBar'
 
 const context = {
-  formData: { include_club_fee: true },
+  formData: { include_club_fee: true, member_assignments: [{}, {}, {}, {}] },
   totals: { total: 323 },
-  pickedMemberCount: 4,
   isSubmitting: false,
   submitPayment: vi.fn(),
   canPay: true,

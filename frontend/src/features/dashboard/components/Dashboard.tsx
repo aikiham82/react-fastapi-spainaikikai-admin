@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import { formatDate } from '@/core/utils/format';
+import { formatDate, formatDayMonth } from '@/core/utils/format';
 import { cn } from '@/lib/utils';
 import { useDashboardDataQuery } from '../hooks/queries/useDashboardData.query';
 import type { DashboardData } from '../data/schemas/dashboard.schema';
@@ -164,7 +164,7 @@ export const Dashboard = () => {
           <AttentionRow
             item={{
               key: 'seminar',
-              lead: <span className="text-[15px] font-medium">{formatDate(nextSeminar.date).slice(0, 5)}</span>,
+              lead: <span className="text-[15px] font-medium">{formatDayMonth(nextSeminar.date)}</span>,
               tone: 'neutral',
               title: `Próximo seminario: ${nextSeminar.title}`,
               detail: `${formatDate(nextSeminar.date)} · ${nextSeminar.location}`,

@@ -6,22 +6,14 @@ import type {
 } from '../data/schemas/annual-payment.schema';
 
 export type LicenceItem = 'kyu' | 'kyu_infantil' | 'dan' | 'fukushidoin' | 'shidoin';
-export type InsuranceItem = 'seguro_accidentes' | 'seguro_rc';
+type InsuranceItem = 'seguro_accidentes' | 'seguro_rc';
 export type MemberItem = LicenceItem | InsuranceItem;
 
-export const LICENCE_ITEMS: readonly LicenceItem[] = ['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'];
+const LICENCE_ITEMS: readonly LicenceItem[] = ['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'];
 const INSTRUCTOR_ITEMS: readonly LicenceItem[] = ['fukushidoin', 'shidoin'];
 export const CHOOSABLE_LICENCE_ITEMS: readonly LicenceItem[] = ['kyu', 'kyu_infantil', 'dan'];
 const MEMBER_ITEMS: readonly MemberItem[] = [...LICENCE_ITEMS, 'seguro_accidentes', 'seguro_rc'];
 const CHILD_MAX_AGE = 14;
-
-export const LICENCE_LABELS: Record<LicenceItem, string> = {
-  kyu: 'Licencia Kyu',
-  kyu_infantil: 'Licencia Kyu infantil',
-  dan: 'Licencia Dan',
-  fukushidoin: 'Licencia Fukushidoin',
-  shidoin: 'Licencia Shidoin',
-};
 
 export const PRICE_CONCEPT_LABELS: Record<AnnualPaymentItemType, string> = {
   club_fee: 'Cuota anual del club',
@@ -32,6 +24,19 @@ export const PRICE_CONCEPT_LABELS: Record<AnnualPaymentItemType, string> = {
   shidoin: 'Licencia Shidoin',
   seguro_accidentes: 'Seguro de accidentes',
   seguro_rc: 'Seguro de responsabilidad civil',
+};
+
+export const LICENCE_LABELS: Record<LicenceItem, string> = {
+  kyu: PRICE_CONCEPT_LABELS.kyu,
+  kyu_infantil: PRICE_CONCEPT_LABELS.kyu_infantil,
+  dan: PRICE_CONCEPT_LABELS.dan,
+  fukushidoin: PRICE_CONCEPT_LABELS.fukushidoin,
+  shidoin: PRICE_CONCEPT_LABELS.shidoin,
+};
+
+export const INSURANCE_LABELS: Record<InsuranceItem, string> = {
+  seguro_accidentes: PRICE_CONCEPT_LABELS.seguro_accidentes,
+  seguro_rc: 'Seguro RC',
 };
 
 export interface ChecklistRow {
@@ -61,7 +66,7 @@ const ageOn = (birthDate: string | undefined, today: Date): number | null => {
   return age;
 };
 
-export const licenceItemOf = (member: Member, today: Date = new Date()): LicenceItem => {
+const licenceItemOf = (member: Member, today: Date = new Date()): LicenceItem => {
   const summary = member.license_summary;
   const instructor = summary?.instructor_category;
   if (instructor === 'fukushidoin' || instructor === 'shidoin') return instructor;
@@ -112,21 +117,15 @@ export const buildChecklistRows = (
   ];
 };
 
-export const pendingItemsOf = (row: ChecklistRow): MemberItem[] => [
-  ...(row.licencePaid ? [] : [row.licence]),
-  ...(row.accidentPaid ? [] : (['seguro_accidentes'] as const)),
-  ...(row.offersRc && !row.rcPaid ? (['seguro_rc'] as const) : []),
-];
-
 export const pendingInsuranceOf = (row: ChecklistRow): InsuranceItem[] => [
   ...(row.accidentPaid ? [] : (['seguro_accidentes'] as const)),
   ...(row.offersRc && !row.rcPaid ? (['seguro_rc'] as const) : []),
 ];
 
-export const INSURANCE_LABELS: Record<InsuranceItem, string> = {
-  seguro_accidentes: 'Seguro de accidentes',
-  seguro_rc: 'Seguro RC',
-};
+const pendingItemsOf = (row: ChecklistRow): MemberItem[] => [
+  ...(row.licencePaid ? [] : [row.licence]),
+  ...pendingInsuranceOf(row),
+];
 
 export const tickedLicenceOf = (ticked: Set<string>, row: ChecklistRow): LicenceItem =>
   row.licenceChoosable
@@ -190,7 +189,7 @@ export const tickAllPending = (
       : [];
   });
 
-export type ItemCounts = Record<MemberItem, number>;
+type ItemCounts = Record<MemberItem, number>;
 
 export const deriveCounts = (assignments: MemberPaymentAssignment[]): ItemCounts => {
   const counts = Object.fromEntries(MEMBER_ITEMS.map((item) => [item, 0])) as ItemCounts;

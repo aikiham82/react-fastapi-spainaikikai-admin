@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { foldForSearch } from '@/core/utils/search';
+import { useMemo, useState } from 'react';
 import { useClubPaymentsContext } from '../hooks/useClubPaymentsContext';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
@@ -6,7 +7,7 @@ import { ManualPaymentModal } from './ManualPaymentModal';
 import { TransactionsSection } from './TransactionsSection';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ListToolbar, EmptyState } from '@/components/ui/list-controls';
+import { ListToolbar, EmptyState, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
 import { formatCurrency } from '@/core/utils/format';
 import { seasonLabel } from '@/core/utils/defaultPaymentYear';
@@ -41,37 +42,32 @@ export const ClubPaymentDetail = () => {
 
   const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
     { club_id: clubDetail?.club_id ?? '', status: 'active', limit: 0 },
-    { enabled: canManagePayments && !!clubDetail?.club_id }
+    { enabled: canManagePayments && !!clubDetail?.club_id && isManualPaymentOpen }
   );
-  const modalMembers = (membersData ?? []).map((m) => ({
-    id: m.id,
-    name: `${m.first_name} ${m.last_name}`.trim(),
-  }));
+  const modalMembers = useMemo(
+    () =>
+      (membersData ?? []).map((m) => ({
+        id: m.id,
+        name: `${m.first_name} ${m.last_name}`.trim(),
+      })),
+    [membersData],
+  );
 
   if (isLoadingClubDetail) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading />;
   }
 
   if (clubDetailError) {
-    return (
-      <div className="py-12">
-        <p className="text-danger">Error al cargar los datos del club</p>
-        <p className="mt-2 text-sm text-muted-foreground">{clubDetailError.message}</p>
-      </div>
-    );
+    return <ListError title="Error al cargar los datos del club" description={clubDetailError.message} />;
   }
 
   if (!clubDetail) {
-    return <p className="py-12 text-muted-foreground">No se encontraron datos de pagos</p>;
+    return <EmptyState title="No se encontraron datos de pagos" />;
   }
 
   const members = clubDetail.members ?? [];
   const upToDate = members.filter((m) => m.license_paid && m.insurance_paid).length;
-  const filtered = members.filter((m) => m.member_name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filtered = members.filter((m) => foldForSearch(m.member_name).includes(foldForSearch(searchTerm)));
 
   return (
     <div className="flex flex-col gap-6">

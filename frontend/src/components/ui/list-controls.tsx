@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { MoreHorizontal, Search, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   DropdownMenu,
@@ -86,6 +87,38 @@ export function EmptyState({ title, description, onClear, action }: EmptyStatePr
         </Button>
       )}
       {action}
+    </div>
+  )
+}
+
+export function ListLoading({ label = 'Cargando' }: { label?: string }) {
+  return (
+    <div role="status" aria-label={label} className="flex flex-col border-t border-border">
+      {Array.from({ length: 5 }, (_, index) => (
+        <div key={index} className="border-b border-border py-4">
+          <Skeleton className="h-5 w-2/3 max-w-sm" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+interface ListErrorProps {
+  title: string
+  description?: string
+  onRetry?: () => void
+}
+
+export function ListError({ title, description, onRetry }: ListErrorProps) {
+  return (
+    <div role="alert" className="flex flex-col items-start gap-2 py-12">
+      <p className="font-medium text-danger">{title}</p>
+      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      {onRetry && (
+        <Button variant="outline" onClick={onRetry}>
+          Reintentar
+        </Button>
+      )}
     </div>
   )
 }

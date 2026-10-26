@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type DragEvent } from 'react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
+import { TextButton } from '@/components/ui/text-link';
 import {
   useImportMembersMutation,
   useImportLicensesMutation,
@@ -238,13 +239,9 @@ export function ImportSection({ kinds }: ImportSectionProps) {
 
           <p className="text-sm text-muted-foreground">
             ¿No sabes cómo preparar el archivo?{' '}
-            <button
-              type="button"
-              onClick={downloadTemplate}
-              className="min-h-8 text-foreground underline underline-offset-4"
-            >
+            <TextButton variant="inline" onClick={downloadTemplate}>
               Descargar plantilla
-            </button>
+            </TextButton>
             . Es tu Excel actual, para que lo uses como punto de partida.
           </p>
         </div>

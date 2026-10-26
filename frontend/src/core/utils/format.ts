@@ -43,6 +43,13 @@ export const formatDate = (value: DateInput): string => {
   return date ? dateFormatter.format(date) : EMPTY
 }
 
+const twoDigits = (value: number): string => String(value).padStart(2, '0')
+
+export const formatDayMonth = (value: DateInput): string => {
+  const date = toValidDate(value)
+  return date ? `${twoDigits(date.getDate())}/${twoDigits(date.getMonth() + 1)}` : EMPTY
+}
+
 export const formatDateTime = (value: DateInput): string => {
   const date = toValidDate(value)
   return date ? dateTimeFormatter.format(date) : EMPTY

@@ -20,7 +20,6 @@ export interface PriceConfiguration {
   categoria_edad?: AgeCategory;
 }
 
-export { formatCurrency } from '@/core/utils/format';
 
 export interface CreatePriceConfigurationRequest {
   key: string;

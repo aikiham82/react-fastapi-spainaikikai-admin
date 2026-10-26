@@ -5,7 +5,7 @@ import { daysUntil, EXPIRING_SOON_DAYS } from '@/core/utils/expiry';
 export type LicenseUrgency = 'expired' | 'expiring' | 'other';
 export type LicenseChip = 'all' | 'expired' | 'expiring';
 
-export const getUrgency = (license: License, now: Date = new Date()): LicenseUrgency => {
+export const getUrgency = (license: Pick<License, 'status' | 'expiry_date'>, now: Date = new Date()): LicenseUrgency => {
   if (license.status === 'expired') return 'expired';
   if (license.status !== 'active' || !license.expiry_date) return 'other';
   const days = daysUntil(license.expiry_date, now);
@@ -14,7 +14,7 @@ export const getUrgency = (license: License, now: Date = new Date()): LicenseUrg
 };
 
 export const getStatusPresentation = (
-  license: License,
+  license: Pick<License, 'status' | 'expiry_date'>,
   now: Date = new Date(),
 ): { tone: StatusTone; label: string } => {
   const urgency = getUrgency(license, now);

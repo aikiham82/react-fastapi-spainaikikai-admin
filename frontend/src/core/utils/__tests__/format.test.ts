@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatCurrency, formatDate, formatDateTime } from '../format'
+import { formatCurrency, formatDate, formatDateTime, formatDayMonth } from '../format'
 
 describe('formatDate', () => {
   it('formats es-ES dates as dd/mm/yyyy', () => {
@@ -18,6 +18,18 @@ describe('formatDate', () => {
 
   it('returns a dash for unparseable dates', () => {
     expect(formatDate('not a date')).toBe('-')
+  })
+})
+
+describe('formatDayMonth', () => {
+  it('formats as dd/mm without the year', () => {
+    expect(formatDayMonth('2025-03-01')).toBe('01/03')
+    expect(formatDayMonth('2025-12-25T10:00:00')).toBe('25/12')
+  })
+
+  it('returns a dash for empty or invalid dates', () => {
+    expect(formatDayMonth(null)).toBe('-')
+    expect(formatDayMonth('nope')).toBe('-')
   })
 })
 

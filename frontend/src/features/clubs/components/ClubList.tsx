@@ -1,10 +1,11 @@
+import { foldForSearch } from '@/core/utils/search';
 import { useState, useMemo } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Club } from '../data/schemas/club.schema';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EmptyState, ListToolbar } from '@/components/ui/list-controls';
+import { EmptyState, ListToolbar, ListLoading, ListError } from '@/components/ui/list-controls';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -31,11 +32,11 @@ export const ClubList = () => {
   const filteredClubs = useMemo(() => {
     const sorted = [...clubs].sort((a, b) => a.name.localeCompare(b.name, 'es'));
     if (!debouncedSearch) return sorted;
-    const term = debouncedSearch.toLowerCase();
+    const term = foldForSearch(debouncedSearch);
     return sorted.filter(
       (club) =>
-        club.name.toLowerCase().includes(term) ||
-        club.city?.toLowerCase().includes(term)
+        foldForSearch(club.name).includes(term) ||
+        (club.city ? foldForSearch(club.city).includes(term) : false)
     );
   }, [clubs, debouncedSearch]);
 
@@ -62,20 +63,11 @@ export const ClubList = () => {
   ) : null;
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center" role="status" aria-label="Cargando clubs">
-        <div className="size-8 animate-spin rounded-full border-b-2 border-foreground" />
-      </div>
-    );
+    return <ListLoading label="Cargando clubs" />;
   }
 
   if (error) {
-    return (
-      <div className="py-12" role="alert">
-        <p className="font-medium text-danger">No se han podido cargar los clubs</p>
-        <p className="mt-1 text-sm text-muted-foreground">Inténtalo de nuevo en unos minutos.</p>
-      </div>
-    );
+    return <ListError title="No se han podido cargar los clubs" description="Inténtalo de nuevo en unos minutos." />;
   }
 
   const deleteDescription = `Se eliminará permanentemente el club "${clubToDelete?.name}". Esta acción no se puede deshacer.`;
