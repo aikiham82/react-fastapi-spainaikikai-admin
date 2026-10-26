@@ -96,9 +96,39 @@ describe('MemberList', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Quitar filtros' }))
 
-    expect(screen.getByText('Todavía no hay miembros')).toBeInTheDocument()
+    expect(screen.getByRole('searchbox')).toBeInTheDocument()
+    expect(screen.getByText('Todavía no hay miembros activos')).toBeInTheDocument()
     const reset = state.setFilters.mock.calls.at(-1)?.[0]
     expect(reset({ search: 'zzz' })).toMatchObject({ search: undefined, status: 'active' })
+  })
+
+  it('keeps the toolbar and a way to reach members de baja when no active member exists', async () => {
+    state.members = []
+    renderWithProviders(<MemberList />)
+
+    expect(screen.getByRole('searchbox')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Filtros/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Incluir miembros de baja' })).toBeInTheDocument()
+  })
+
+  it('shows the empty-club state only when every status is empty', async () => {
+    state.members = []
+    renderWithProviders(<MemberList />)
+    await userEvent.click(screen.getByRole('button', { name: 'Incluir miembros de baja' }))
+
+    expect(screen.getByText('Todavía no hay miembros')).toBeInTheDocument()
+    expect(screen.getByRole('searchbox')).toBeInTheDocument()
+  })
+
+  it('does not unmount the search box while the user clears a search with no results', async () => {
+    const { rerender } = renderWithProviders(<MemberList />)
+    const search = screen.getByRole('searchbox')
+    await userEvent.type(search, 'zzz')
+    state.members = []
+    rerender(<MemberList />)
+    await userEvent.clear(screen.getByRole('searchbox'))
+
+    expect(screen.getByRole('searchbox')).toBe(search)
   })
 
   it('labels RC and accident insurance on mobile cards', () => {

@@ -9,7 +9,7 @@ const context = {
   pickedMemberCount: 4,
   isSubmitting: false,
   submitPayment: vi.fn(),
-  isValid: true,
+  canPay: true,
   submitError: null,
   errors: {},
 }

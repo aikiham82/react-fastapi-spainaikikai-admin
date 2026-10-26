@@ -30,8 +30,17 @@ const MissingPrices = () => {
 };
 
 export const PendingPayments = () => {
-  const { isLoadingPrices, pricesError, formData, isLoadingPrefill, missingPrices, isClubAdmin } =
-    useAnnualPaymentContext();
+  const {
+    isLoadingPrices,
+    pricesError,
+    formData,
+    isLoadingPrefill,
+    missingPrices,
+    missingTickedPrices,
+    isClubAdmin,
+    hasLoadError,
+    retryLoad,
+  } = useAnnualPaymentContext();
 
   if (isLoadingPrices) {
     return (
@@ -60,6 +69,15 @@ export const PendingPayments = () => {
         <p className="border-y border-border py-8 text-sm text-muted-foreground">
           Elige un club para ver a sus miembros y lo que falta por pagar.
         </p>
+      ) : hasLoadError ? (
+        <EmptyState
+          title="No hemos podido comprobar lo que ya está pagado. Inténtalo de nuevo."
+          action={
+            <Button type="button" variant="outline" onClick={retryLoad}>
+              Reintentar
+            </Button>
+          }
+        />
       ) : isLoadingPrefill ? (
         <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
@@ -69,14 +87,23 @@ export const PendingPayments = () => {
         <MissingPrices />
       ) : (
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-          <PaymentChecklist />
+          <div className="flex min-w-0 flex-col gap-4">
+            {missingTickedPrices.length > 0 && (
+              <p role="alert" className="rounded-md bg-warning-soft px-4 py-3 text-sm text-warning">
+                {missingTickedPrices.map((concept) => PRICE_CONCEPT_LABELS[concept]).join(', ')}{' '}
+                {missingTickedPrices.length === 1 ? 'no tiene' : 'no tienen'} precio todavía. Elige otro tipo o avisa a la
+                Federación.
+              </p>
+            )}
+            <PaymentChecklist />
+          </div>
           <div className="lg:sticky lg:top-0">
             <PaymentSummary />
           </div>
         </div>
       )}
 
-      {hasClub && !isLoadingPrefill && missingPrices.length === 0 && <PaymentTotalBar />}
+      {hasClub && !hasLoadError && !isLoadingPrefill && missingPrices.length === 0 && <PaymentTotalBar />}
     </div>
   );
 };

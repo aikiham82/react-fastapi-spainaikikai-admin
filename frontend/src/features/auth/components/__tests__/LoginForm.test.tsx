@@ -46,10 +46,25 @@ describe('LoginForm', () => {
 
   describe('Rendering', () => {
     it('shows the error inline after a wrong password', () => {
-      Object.assign(mockAuthContext, { loginFailed: true })
+      Object.assign(mockAuthContext, { loginFailed: true, loginFailure: 'invalid' })
       renderWithProviders(<LoginForm />)
 
       expect(screen.getByRole('alert')).toHaveTextContent('El correo o la contraseña no son correctos.')
+    })
+
+    it('asks to wait after too many attempts', () => {
+      Object.assign(mockAuthContext, { loginFailed: true, loginFailure: 'rate_limited' })
+      renderWithProviders(<LoginForm />)
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Demasiados intentos. Espera un momento y vuelve a probar.')
+    })
+
+    it('blames the connection, not the password, when the server is unreachable', () => {
+      Object.assign(mockAuthContext, { loginFailed: true, loginFailure: 'unavailable' })
+      renderWithProviders(<LoginForm />)
+
+      expect(screen.getByRole('alert')).toHaveTextContent('No hemos podido conectar. Inténtalo de nuevo en unos minutos.')
+      expect(screen.getByRole('alert')).not.toHaveTextContent('no son correctos')
     })
 
     it('does not link to registration and explains how to get access', () => {

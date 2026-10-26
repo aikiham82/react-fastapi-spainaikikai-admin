@@ -10,6 +10,16 @@ import { useRegisterMutation } from './mutations/useRegister.mutation';
 import { getCurrentUser } from '../data/auth.service';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+export type LoginFailure = 'invalid' | 'rate_limited' | 'unavailable';
+
+const classifyLoginFailure = (error: unknown): LoginFailure | null => {
+  if (!error) return null;
+  const status = (error as { status?: number }).status;
+  if (status === 401) return 'invalid';
+  if (status === 429) return 'rate_limited';
+  return 'unavailable';
+};
+
 interface AuthContextType {
   isAuthenticated: boolean;
   userEmail: string | null;
@@ -24,6 +34,7 @@ interface AuthContextType {
   userRole: UserRole;
   clubId: string | null;
   loginFailed: boolean;
+  loginFailure: LoginFailure | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -185,7 +196,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           currentUser,
           userRole,
           clubId,
-          loginFailed: Boolean(loginError)
+          loginFailed: Boolean(loginError),
+          loginFailure: classifyLoginFailure(loginError)
         }}
       >
         {children}

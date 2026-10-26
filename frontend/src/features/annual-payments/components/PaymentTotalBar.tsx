@@ -10,7 +10,7 @@ const describeSelection = (members: number, withClubFee: boolean): string => {
 };
 
 export const PaymentTotalBar = () => {
-  const { formData, totals, pickedMemberCount, isValid, isSubmitting, submitPayment, submitError } =
+  const { formData, totals, pickedMemberCount, canPay, isSubmitting, submitPayment, submitError } =
     useAnnualPaymentContext();
 
   return (
@@ -26,7 +26,7 @@ export const PaymentTotalBar = () => {
           <span aria-hidden="true"> · </span>
           <span className="font-semibold tabular-nums">{formatCurrency(totals.total)}</span>
         </p>
-        <Button type="button" size="lg" onClick={submitPayment} disabled={!isValid || isSubmitting || totals.total <= 0}>
+        <Button type="button" size="lg" onClick={submitPayment} disabled={!canPay || isSubmitting || totals.total <= 0}>
           {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
           Pagar con tarjeta
         </Button>

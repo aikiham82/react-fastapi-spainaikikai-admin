@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { EmptyState, ListToolbar } from '@/components/ui/list-controls';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
-import { apiClient } from '@/core/data/apiClient';
+import { seminarService } from '../data/services/seminar.service';
+import { ListPager } from '@/core/components/ListPager';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { SeminarForm } from './SeminarForm';
 import { SeminarRow } from './SeminarRow';
@@ -67,15 +68,11 @@ export const SeminarList = () => {
     if (!pendingOficialidadId) return;
 
     pollingRef.current = setInterval(async () => {
-      try {
-        const seminar = await apiClient.get<Seminar>(`/api/v1/seminars/${pendingOficialidadId}`);
-        if (seminar.is_official) {
-          setPendingOficialidadId(null);
-          toast.success('El seminario ya es oficial');
-          setFilters({ ...filters });
-        }
-      } catch {
-        // Polling errors are retried on the next tick
+      const seminar = await seminarService.getSeminar(pendingOficialidadId).catch(() => null);
+      if (seminar?.is_official) {
+        setPendingOficialidadId(null);
+        toast.success('El seminario ya es oficial');
+        setFilters({ ...filters });
       }
 
       if (Date.now() - pollingStartRef.current > 30000) {
@@ -112,8 +109,6 @@ export const SeminarList = () => {
     return splitSeminars(matching);
   }, [seminars, searchTerm]);
 
-  const totalPages = Math.ceil(total / limit);
-  const currentPage = Math.floor(offset / limit) + 1;
   const canCreate = canAccess({ resource: 'seminars', action: 'create' });
   const canUpdate = canAccess({ resource: 'seminars', action: 'update' });
   const canDelete = canAccess({ resource: 'seminars', action: 'delete' });
@@ -229,24 +224,7 @@ export const SeminarList = () => {
         </div>
       )}
 
-      {total > limit && limit > 0 && (
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            Mostrando {offset + 1}-{Math.min(offset + limit, total)} de {total} seminarios
-          </p>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setPagination(Math.max(0, offset - limit), limit)} disabled={currentPage === 1}>
-              Anterior
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Página {currentPage} de {totalPages}
-            </span>
-            <Button variant="outline" size="sm" onClick={() => setPagination(offset + limit, limit)} disabled={currentPage === totalPages}>
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      )}
+      <ListPager total={total} limit={limit} offset={offset} noun="seminarios" onPage={(next) => setPagination(next, limit)} />
 
       <SeminarDetailDialog
         seminar={detailSeminar}

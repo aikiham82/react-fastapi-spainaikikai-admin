@@ -17,6 +17,7 @@ import {
   sanitizeAssignments,
   chooseLicence,
   tickAllPending,
+  tickedPriceConcepts,
   toggleItems,
   type ChecklistRow,
   type MemberItem,
@@ -39,7 +40,11 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   isLoadingPrices: boolean;
   pricesError: string | null;
   missingPrices: AnnualPaymentItemType[];
+  missingTickedPrices: AnnualPaymentItemType[];
+  canPay: boolean;
   isLoadingPrefill: boolean;
+  hasLoadError: boolean;
+  retryLoad: () => void;
   clubFeeAlreadyPaid: boolean;
   toggleMemberItems: (row: ChecklistRow, items: MemberItem[]) => void;
   chooseMemberLicence: (row: ChecklistRow, licence: LicenceItem) => void;
@@ -80,20 +85,41 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   const form = useAnnualPaymentForm(initialFormValues, prices);
   const { formData, setField } = form;
 
-  const { data: prefillData, isLoading: isLoadingPrefill } = useAnnualPaymentPrefillQuery(
+  const {
+    data: prefillData,
+    isLoading: isLoadingPrefill,
+    isError: prefillFailed,
+    refetch: refetchPrefill,
+  } = useAnnualPaymentPrefillQuery(
     formData.club_id,
     formData.payment_year,
   );
 
-  const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
+  const {
+    data: membersData,
+    isLoading: isLoadingMembersQuery,
+    isPlaceholderData: membersArePlaceholder,
+    isError: membersFailed,
+    refetch: refetchMembers,
+  } = useMembersQuery(
     { club_id: formData.club_id, status: 'active', limit: 0 },
     { enabled: !!formData.club_id }
   );
 
+  const membersBelongToClub = !!formData.club_id && !membersArePlaceholder;
+  const isLoadingMembers = !!formData.club_id && (isLoadingMembersQuery || !!membersArePlaceholder);
+
   const rows = useMemo(
-    () => buildChecklistRows(membersData ?? [], prefillData?.paid_assignments),
-    [membersData, prefillData?.paid_assignments],
+    () => buildChecklistRows(membersBelongToClub ? (membersData ?? []) : [], prefillData?.paid_assignments),
+    [membersBelongToClub, membersData, prefillData?.paid_assignments],
   );
+
+  const hasLoadError = !!formData.club_id && (prefillFailed || !!membersFailed);
+
+  const retryLoad = useCallback(() => {
+    if (prefillFailed) void refetchPrefill();
+    if (membersFailed) void refetchMembers();
+  }, [prefillFailed, membersFailed, refetchPrefill, refetchMembers]);
 
   const applyAssignments = useCallback((assignments: MemberPaymentAssignment[]) => {
     const counts = deriveCounts(assignments);
@@ -107,32 +133,26 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     setField('member_assignments', assignments);
   }, [setField]);
 
-  const prefillAppliedRef = useRef<string>('');
+  const scopeKey = `${formData.club_id}:${formData.payment_year}`;
+  const resetScopeRef = useRef('');
+  const prefillAppliedRef = useRef(false);
 
   useEffect(() => {
-    if (!prefillData || isLoadingMembers) return;
+    if (resetScopeRef.current !== scopeKey) {
+      resetScopeRef.current = scopeKey;
+      prefillAppliedRef.current = false;
+      applyAssignments([]);
+    }
 
-    const prefillKey = `${formData.club_id}-${formData.payment_year}`;
-    if (prefillAppliedRef.current === prefillKey) return;
-    prefillAppliedRef.current = prefillKey;
+    if (prefillAppliedRef.current || !prefillData || !membersBelongToClub || isLoadingMembers) return;
+    prefillAppliedRef.current = true;
 
     if (prefillData.payer_name) {
       setField('payer_name', prefillData.payer_name);
     }
     setField('include_club_fee', prefillData.include_club_fee && !prefillData.club_fee_already_paid);
     applyAssignments(sanitizeAssignments(prefillData.member_assignments, rows));
-  }, [prefillData, isLoadingMembers, rows, formData.club_id, formData.payment_year, setField, applyAssignments]);
-
-  const previousClubIdRef = useRef(formData.club_id);
-  useEffect(() => {
-    if (previousClubIdRef.current !== formData.club_id) {
-      if (formData.member_assignments.length > 0) {
-        applyAssignments([]);
-      }
-      prefillAppliedRef.current = '';
-      previousClubIdRef.current = formData.club_id;
-    }
-  }, [formData.club_id, formData.member_assignments.length, applyAssignments]);
+  }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, rows, setField, applyAssignments]);
 
   const clubs = useMemo(() => {
     if (isClubAdmin && userClubId) {
@@ -143,10 +163,16 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
 
   const clubFeeAlreadyPaid = prefillData?.club_fee_already_paid ?? false;
 
-  const missingPrices = useMemo(
-    () => (isLoadingPrices || rows.length === 0 && !prefillData ? [] : missingPriceConcepts(prices, requiredPriceConcepts(rows, clubFeeAlreadyPaid))),
-    [isLoadingPrices, prices, rows, prefillData, clubFeeAlreadyPaid],
-  );
+  const missingPrices = useMemo(() => {
+    if (isLoadingPrices || (rows.length === 0 && !prefillData)) return [];
+    return missingPriceConcepts(prices, requiredPriceConcepts(rows, clubFeeAlreadyPaid));
+  }, [isLoadingPrices, prices, rows, prefillData, clubFeeAlreadyPaid]);
+
+  const missingTickedPrices = useMemo(() => {
+    if (isLoadingPrices) return [];
+    const ticked = tickedPriceConcepts(formData.member_assignments, formData.include_club_fee);
+    return missingPriceConcepts(prices, ticked).filter((concept) => !missingPrices.includes(concept));
+  }, [isLoadingPrices, prices, formData.member_assignments, formData.include_club_fee, missingPrices]);
 
   const pendingMemberCount = useMemo(() => rows.filter((row) => !row.isUpToDate).length, [rows]);
   const pickedMemberCount = formData.member_assignments.length;
@@ -160,12 +186,12 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   }, [applyAssignments, formData.member_assignments]);
 
   const tickEverythingPending = useCallback(() => {
-    applyAssignments(tickAllPending(rows));
+    applyAssignments(tickAllPending(rows, formData.member_assignments));
     if (!clubFeeAlreadyPaid) setField('include_club_fee', true);
-  }, [applyAssignments, rows, clubFeeAlreadyPaid, setField]);
+  }, [applyAssignments, rows, formData.member_assignments, clubFeeAlreadyPaid, setField]);
 
   const submitPayment = useCallback(() => {
-    if (!form.validate()) {
+    if (missingPrices.length > 0 || missingTickedPrices.length > 0 || hasLoadError || !form.validate()) {
       return;
     }
 
@@ -185,7 +211,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     };
 
     initiatePaymentMutation.mutate(request);
-  }, [form, formData, initiatePaymentMutation]);
+  }, [form, formData, initiatePaymentMutation, missingPrices, missingTickedPrices, hasLoadError]);
 
   const submitError = useMemo(() => {
     if (initiatePaymentMutation.error) {
@@ -212,7 +238,11 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     isLoadingPrices,
     pricesError,
     missingPrices,
+    missingTickedPrices,
+    canPay: form.isValid && missingTickedPrices.length === 0,
     isLoadingPrefill,
+    hasLoadError,
+    retryLoad,
     clubFeeAlreadyPaid,
     toggleMemberItems,
     chooseMemberLicence,

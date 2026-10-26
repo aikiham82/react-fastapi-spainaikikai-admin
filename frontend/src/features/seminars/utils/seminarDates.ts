@@ -4,8 +4,11 @@ const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', '
 
 export const isSeminarPast = (seminar: Seminar, now: Date = new Date()): boolean => {
   if (seminar.status === 'completed' || seminar.status === 'cancelled') return true;
+  if (seminar.status === 'ongoing') return false;
   const end = new Date(seminar.end_date || seminar.start_date);
-  return !Number.isNaN(end.getTime()) && end.getTime() < now.getTime();
+  if (Number.isNaN(end.getTime())) return false;
+  const endOfLastDay = new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1);
+  return endOfLastDay.getTime() <= now.getTime();
 };
 
 export const canRequestOficialidad = (seminar: Seminar, now: Date = new Date()): boolean =>

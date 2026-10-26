@@ -1,16 +1,9 @@
 import type { License } from '../data/schemas/license.schema';
+import type { StatusTone } from '@/components/ui/status-badge';
+import { daysUntil, EXPIRING_SOON_DAYS } from '@/core/utils/expiry';
 
 export type LicenseUrgency = 'expired' | 'expiring' | 'other';
 export type LicenseChip = 'all' | 'expired' | 'expiring';
-export type StatusTone = 'ok' | 'warn' | 'bad' | 'neutral';
-
-export const EXPIRING_SOON_DAYS = 30;
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const startOfDay = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate());
-
-export const daysUntil = (expiryDate: string, now: Date = new Date()): number =>
-  Math.round((startOfDay(new Date(expiryDate)).getTime() - startOfDay(now).getTime()) / DAY_MS);
 
 export const getUrgency = (license: License, now: Date = new Date()): LicenseUrgency => {
   if (license.status === 'expired') return 'expired';

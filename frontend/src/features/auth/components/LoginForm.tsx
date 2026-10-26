@@ -6,8 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 
+const LOGIN_FAILURE_MESSAGES = {
+  invalid: "El correo o la contraseña no son correctos.",
+  rate_limited: "Demasiados intentos. Espera un momento y vuelve a probar.",
+  unavailable: "No hemos podido conectar. Inténtalo de nuevo en unos minutos.",
+} as const;
+
 export const LoginForm = () => {
-  const { login, isAuthenticated, isLoading, loginFailed } = useAuthContext();
+  const { login, isAuthenticated, isLoading, loginFailure } = useAuthContext();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,9 +70,9 @@ export const LoginForm = () => {
           />
         </div>
 
-        {loginFailed && (
+        {loginFailure && (
           <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
-            El correo o la contraseña no son correctos.
+            {LOGIN_FAILURE_MESSAGES[loginFailure]}
           </p>
         )}
 

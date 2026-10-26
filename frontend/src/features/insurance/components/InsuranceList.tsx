@@ -12,14 +12,12 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { InsuranceForm } from './InsuranceForm';
 import { InsuranceDetailDialog } from './InsuranceDetailDialog';
 import { insuranceStatus, insuranceTypeLabel } from './insuranceDisplay';
+import { foldForSearch } from '@/core/utils/search';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import { formatCurrency, formatDate } from '@/core/utils/format';
 
 const ALL = 'all';
-
-const foldForSearch = (text: string): string =>
-  text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 export const InsuranceList = () => {
   const { insuranceList, isLoading, error, filters, setFilters, total, limit, offset, deleteInsurance, selectInsurance, setPagination } = useInsuranceContext();

@@ -297,6 +297,27 @@ describe('useAuthContext', () => {
       expect(mockToastError).not.toHaveBeenCalled()
     })
 
+    it.each([
+      [{ status: 401, message: 'x' }, 'invalid'],
+      [{ status: 429, message: 'x' }, 'rate_limited'],
+      [{ status: 500, message: 'x' }, 'unavailable'],
+      [{ message: 'Network Error' }, 'unavailable'],
+    ])('classifies login error %j as %s', (loginError, expected) => {
+      mockUseLoginMutation.mockReturnValue({ login: vi.fn(), isLoading: false, error: loginError as unknown as Error })
+
+      const { result } = renderHook(() => useAuthContext(), { wrapper: createWrapper })
+
+      expect(result.current.loginFailure).toBe(expected)
+    })
+
+    it('reports no login failure when there is no error', () => {
+      mockUseLoginMutation.mockReturnValue({ login: vi.fn(), isLoading: false, error: null })
+
+      const { result } = renderHook(() => useAuthContext(), { wrapper: createWrapper })
+
+      expect(result.current.loginFailure).toBeNull()
+    })
+
     it('should display toast for register errors', async () => {
       const registerError = new Error('Email already exists')
       

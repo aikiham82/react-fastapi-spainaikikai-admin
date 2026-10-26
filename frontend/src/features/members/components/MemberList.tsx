@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { ListPager } from '@/core/components/ListPager';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
@@ -45,6 +45,53 @@ const LoadingRows = () => (
     ))}
   </div>
 );
+
+interface MembersEmptyStateProps {
+  untouched: boolean;
+  statusFilter: string;
+  onClear: () => void;
+  onIncludeInactive: () => void;
+  action: ReactNode;
+}
+
+const MembersEmptyState = ({ untouched, statusFilter, onClear, onIncludeInactive, action }: MembersEmptyStateProps) => {
+  if (untouched && statusFilter === 'all') {
+    return (
+      <EmptyState
+        title="Todavía no hay miembros"
+        description="Cuando añadas el primero aparecerá aquí."
+        action={action}
+      />
+    );
+  }
+  const includeInactive = statusFilter === 'active' && (
+    <Button variant="outline" onClick={onIncludeInactive}>
+      Incluir miembros de baja
+    </Button>
+  );
+  if (untouched && statusFilter === 'active') {
+    return (
+      <EmptyState
+        title="Todavía no hay miembros activos"
+        description="Si tienes miembros de baja, puedes verlos aquí."
+        action={
+          <div className="flex flex-wrap justify-center gap-2">
+            {action}
+            {includeInactive}
+          </div>
+        }
+      />
+    );
+  }
+  return (
+    <EmptyState
+      title="No hay miembros que coincidan"
+      description="Prueba con otro nombre o quita los filtros."
+      onClear={onClear}
+      action={includeInactive}
+    />
+  );
+};
 
 export const MemberList = () => {
   const { members, isLoading, error, setFilters, total, limit, offset, deleteMember, changeMemberStatus, setPagination } = useMemberContext();
@@ -155,27 +202,6 @@ export const MemberList = () => {
     );
   }
 
-  const hasNoMembersAtAll =
-    members.length === 0 && !searchTerm && activeFilters === 0;
-
-  if (hasNoMembersAtAll) {
-    return (
-      <>
-        <EmptyState
-          title="Todavía no hay miembros"
-          description="Cuando añadas el primero aparecerá aquí."
-          action={canCreate && (
-            <Button onClick={openCreate}>
-              <Plus className="size-4" />
-              Nuevo miembro
-            </Button>
-          )}
-        />
-        <MemberForm open={isFormOpen} onOpenChange={setIsFormOpen} member={selectedMemberForEdit} />
-      </>
-    );
-  }
-
   const filtersPanel = (
     <>
       <div className="space-y-1.5">
@@ -249,13 +275,15 @@ export const MemberList = () => {
       />
 
       {sortedMembers.length === 0 && (
-        <EmptyState
-          title="No hay miembros que coincidan"
-          description="Prueba con otro nombre o quita los filtros."
+        <MembersEmptyState
+          untouched={!searchTerm && activeFilters - (memberStatusFilter !== DEFAULT_STATUS ? 1 : 0) === 0}
+          statusFilter={memberStatusFilter}
           onClear={clearFilters}
-          action={memberStatusFilter === 'active' && (
-            <Button variant="outline" onClick={() => setMemberStatusFilter('all')}>
-              Incluir miembros de baja
+          onIncludeInactive={() => setMemberStatusFilter('all')}
+          action={canCreate && (
+            <Button onClick={openCreate}>
+              <Plus className="size-4" />
+              Nuevo miembro
             </Button>
           )}
         />

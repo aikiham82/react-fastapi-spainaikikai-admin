@@ -178,9 +178,13 @@ export const chooseLicence = (
   return [...others, { member_id: row.memberId, member_name: row.memberName, payment_types: [licence, ...insurance] }];
 };
 
-export const tickAllPending = (rows: ChecklistRow[]): MemberPaymentAssignment[] =>
+export const tickAllPending = (
+  rows: ChecklistRow[],
+  assignments: MemberPaymentAssignment[] = [],
+): MemberPaymentAssignment[] =>
   rows.flatMap((row) => {
-    const items = pendingItemsOf(row);
+    const licence = tickedLicenceOf(tickedItemsOf(assignments, row.memberId), row);
+    const items = pendingItemsOf(row).map((item) => (LICENCE_ITEMS.includes(item as LicenceItem) ? licence : item));
     return items.length > 0
       ? [{ member_id: row.memberId, member_name: row.memberName, payment_types: items }]
       : [];
@@ -209,3 +213,14 @@ export const missingPriceConcepts = (
   prices: Partial<AnnualPaymentPrices> | null | undefined,
   required: AnnualPaymentItemType[],
 ): AnnualPaymentItemType[] => required.filter((concept) => prices?.[concept] == null);
+
+export const tickedPriceConcepts = (
+  assignments: MemberPaymentAssignment[],
+  includeClubFee: boolean,
+): AnnualPaymentItemType[] => {
+  const counts = deriveCounts(assignments);
+  return [
+    ...(includeClubFee ? (['club_fee'] as const) : []),
+    ...MEMBER_ITEMS.filter((item) => counts[item] > 0),
+  ];
+};

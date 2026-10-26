@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -10,9 +9,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { apiClient } from '@/core/data/apiClient';
 import type { ApiError } from '@/core/data/apiClient';
 import { formatCurrency } from '@/core/utils/format';
+import { useSeminarOfficialidadPriceQuery } from '../hooks/queries/useSeminarPriceQuery';
 import { useInitiateSeminarOfficialidadMutation } from '../hooks/mutations/useInitiateSeminarOficialidad.mutation';
 
 interface SolicitudOficialidadModalProps {
@@ -31,12 +30,7 @@ export const SolicitudOficialidadModal = ({
   const mutation = useInitiateSeminarOfficialidadMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const priceQuery = useQuery({
-    queryKey: ['seminar-oficialidad-price'],
-    queryFn: () => apiClient.get<{ key: string; price: number }>('/api/v1/price-configurations/seminar-price'),
-    enabled: open,
-    retry: false,
-  });
+  const priceQuery = useSeminarOfficialidadPriceQuery(open);
   const price = priceQuery.data?.price ?? null;
   const priceFailed = priceQuery.isError;
 

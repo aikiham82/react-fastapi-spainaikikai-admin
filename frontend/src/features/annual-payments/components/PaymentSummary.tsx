@@ -18,7 +18,7 @@ const SummaryLine = ({ label, amount }: SummaryLineProps) => (
 );
 
 export const PaymentSummary = () => {
-  const { formData, totals, errors, isValid, isSubmitting, submitError, submitPayment } = useAnnualPaymentContext();
+  const { formData, totals, errors, canPay, isSubmitting, submitError, submitPayment } = useAnnualPaymentContext();
 
   const licenceCount =
     formData.kyu_count +
@@ -70,7 +70,7 @@ export const PaymentSummary = () => {
         </p>
       )}
 
-      <Button type="button" size="lg" className="w-full" onClick={submitPayment} disabled={!isValid || isSubmitting || !hasItems}>
+      <Button type="button" size="lg" className="w-full" onClick={submitPayment} disabled={!canPay || isSubmitting || !hasItems}>
         {isSubmitting ? (
           <>
             <Loader2 className="size-4 animate-spin" />

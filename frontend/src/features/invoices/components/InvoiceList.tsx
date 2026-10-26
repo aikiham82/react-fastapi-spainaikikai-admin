@@ -11,6 +11,8 @@ import { INVOICE_STATUS_LABELS } from '../data/schemas/invoice.schema';
 import { InvoiceDetailDialog } from './InvoiceDetailDialog';
 import { INVOICE_STATUS_TONES } from './invoiceDisplay';
 
+import { foldForSearch } from '@/core/utils/search';
+
 const ALL_STATUSES = 'all';
 
 const STATUS_OPTIONS = [
@@ -23,9 +25,6 @@ const emptyListMessage = (searchHidAll: boolean, statusFilter: string): string =
   if (statusFilter === ALL_STATUSES) return 'No hay facturas registradas';
   return 'No se encontraron facturas con ese estado';
 };
-
-const foldForSearch = (text: string): string =>
-  text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 export const InvoiceList = () => {
   const {
