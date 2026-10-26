@@ -26,7 +26,6 @@ from src.config.settings import get_invoice_settings
 from src.domain.entities.insurance import insurance_season_year
 from src.domain.entities.member_payment import (
     INSURANCE_PAYMENT_TYPES,
-    TITLE_PAYMENT_TYPES,
     MemberPayment,
     MemberPaymentStatus,
     MemberPaymentType,
@@ -35,8 +34,9 @@ from src.domain.entities.member_payment import (
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.seminar_repository import SeminarRepositoryPort
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
-from src.application.use_cases.license.generate_licenses_from_payment_use_case import GenerateLicensesFromPaymentUseCase
-from src.application.use_cases.insurance.generate_insurance_from_payment_use_case import GenerateInsuranceFromPaymentUseCase
+from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
+    GenerateLicensesAndInsuranceFromPaymentUseCase,
+)
 
 
 @dataclass
@@ -161,9 +161,9 @@ class ProcessRedsysWebhookUseCase:
                 member_payments = await self._create_member_payments(payment, paid_at)
 
                 # Auto-generate licenses and insurance from member payments
-                await self._generate_licenses_and_insurance(
-                    member_payments, payment.id, payment.payment_year, paid_at
-                )
+                await GenerateLicensesAndInsuranceFromPaymentUseCase(
+                    self.license_repository, self.insurance_repository
+                ).execute(member_payments, payment.id, payment.payment_year, paid_at)
 
             # Update payment status BEFORE invoice/email so it's always persisted
             payment = await self.payment_repository.update(payment)
@@ -493,69 +493,3 @@ class ProcessRedsysWebhookUseCase:
             await self.member_payment_repository.create_bulk(member_payments)
 
         return member_payments
-
-    # Instructor payment types that implicitly include RC insurance
-    INSTRUCTOR_TYPES_WITH_RC = TITLE_PAYMENT_TYPES
-
-    async def _generate_licenses_and_insurance(
-        self,
-        member_payments: List[MemberPayment],
-        payment_id: str,
-        payment_year: int,
-        paid_at: datetime,
-    ) -> None:
-        """Auto-generate License and Insurance entities from member payments.
-
-        Filters member payments into license and insurance types, then
-        delegates to the respective use cases for creation.
-
-        Fukushidoin and Shidoin payments implicitly include RC insurance,
-        so synthetic SEGURO_RC payments are created for those members
-        unless an explicit SEGURO_RC payment already exists.
-        """
-        license_payments = [mp for mp in member_payments if mp.is_license_payment]
-        insurance_payments = [mp for mp in member_payments if mp.is_insurance_payment]
-
-        # Also generate RC insurance for instructor types (fukushidoin/shidoin include RC)
-        instructor_payments = [
-            mp for mp in member_payments
-            if mp.payment_type in self.INSTRUCTOR_TYPES_WITH_RC
-        ]
-        for ip in instructor_payments:
-            already_has_rc = any(
-                mp.member_id == ip.member_id and mp.payment_type == MemberPaymentType.SEGURO_RC
-                for mp in member_payments
-            )
-            if not already_has_rc:
-                insurance_payments.append(MemberPayment(
-                    payment_id=ip.payment_id,
-                    member_id=ip.member_id,
-                    payment_year=ip.payment_year,
-                    payment_type=MemberPaymentType.SEGURO_RC,
-                    concept=f"Seguro RC (incluido en {ip.payment_type.value})",
-                    amount=0.0,
-                    status=ip.status,
-                ))
-
-        # Generate licenses
-        if license_payments and self.license_repository:
-            try:
-                use_case = GenerateLicensesFromPaymentUseCase(self.license_repository)
-                await use_case.execute(license_payments, payment_id, payment_year)
-            except Exception:
-                # Log but don't fail the webhook — payments are already recorded
-                import logging
-                logging.getLogger(__name__).exception(
-                    "Failed to auto-generate licenses for payment %s", payment_id
-                )
-
-        # Generate insurance
-        if insurance_payments and self.insurance_repository:
-            try:
-                use_case = GenerateInsuranceFromPaymentUseCase(self.insurance_repository)
-                await use_case.execute(insurance_payments, payment_id, paid_at)
-            except Exception:
-                import logging
-                logging.getLogger(__name__).exception(
-                    "Failed to auto-generate insurance for payment %s", payment_id
-                )

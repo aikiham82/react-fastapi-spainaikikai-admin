@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-26T15:05:00Z"
+has_completed_all_phases: true
 ---
 
 # Manual payment generates licences and insurance
@@ -58,16 +67,18 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests.
-- [ ] Create the shared use case and make the webhook delegate to it.
-- [ ] Call it from `RegisterManualPaymentUseCase` with `paid_at = payment.payment_date`.
-- [ ] Wire both repositories in `dependencies.py`.
-- [ ] Invalidate `members`, `licenses` and `insurance` in `invalidatePayments`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Create the shared use case and make the webhook delegate to it.
+- [x] Call it from `RegisterManualPaymentUseCase` with `paid_at = payment.payment_date`.
+- [x] Wire both repositories in `dependencies.py`.
+- [x] Invalidate `members`, `licenses` and `insurance` in `invalidatePayments`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1; after merge and deploy, backfill the licence of member `6a26cb12878bd7470c42768f` (grade `6º Kyu`) from payment `6a2e64da313457bd62521449`.
+All phases implemented; after merge and deploy, backfill the licence of member `6a26cb12878bd7470c42768f` (grade `6º Kyu`) from payment `6a2e64da313457bd62521449`.
 
 Paid in cash, licensed at last, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+
+Phase 1 shipped at turtle speed, which is to say instantly, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

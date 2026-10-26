@@ -214,6 +214,34 @@ describe('useRegisterManualPaymentMutation', () => {
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['club-payments'] });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member-payments'] });
     });
+
+    it('invalidates members, licenses and insurance on success', async () => {
+      const { wrapper, queryClient } = createWrapper();
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+      mockService.registerManualPayment.mockResolvedValue(mockPayment);
+
+      const { result } = renderHook(
+        () => useRegisterManualPaymentMutation(),
+        { wrapper }
+      );
+
+      act(() => {
+        result.current.registerManualPayment({
+          payer_name: 'Juan',
+          club_id: CLUB_ID,
+          payment_year: YEAR,
+          payment_method: 'cash',
+          member_assignments: [{ member_id: 'm1', member_name: 'Ana', payment_types: ['kyu'] }],
+          include_club_fee: false,
+        });
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['members'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['licenses'] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['insurance'] });
+    });
   });
 
   describe('Error path', () => {

@@ -24,6 +24,11 @@ from src.application.ports.invoice_repository import InvoiceRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.pdf_service import PDFServicePort
+from src.application.ports.license_repository import LicenseRepositoryPort
+from src.application.ports.insurance_repository import InsuranceRepositoryPort
+from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
+    GenerateLicensesAndInsuranceFromPaymentUseCase,
+)
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
 from src.config.settings import get_invoice_settings
 
@@ -63,7 +68,8 @@ class RegisterManualPaymentUseCase:
     2. Fetch prices for each item type and compute total.
     3. Create parent Payment with status=COMPLETED and requested payment_method.
     4. Create MemberPayment lines using the real payment_id from step 3.
-    5. Generate Invoice (errors are logged but do not abort the operation).
+    5. Create or renew the licences and insurance paid for (errors are logged).
+    6. Generate Invoice (errors are logged but do not abort the operation).
     """
 
     def __init__(
@@ -74,6 +80,8 @@ class RegisterManualPaymentUseCase:
         member_repository: MemberRepositoryPort,
         price_configuration_repository: PriceConfigurationRepositoryPort,
         pdf_service: Optional[PDFServicePort] = None,
+        license_repository: Optional[LicenseRepositoryPort] = None,
+        insurance_repository: Optional[InsuranceRepositoryPort] = None,
     ):
         self.payment_repository = payment_repository
         self.member_payment_repository = member_payment_repository
@@ -81,6 +89,8 @@ class RegisterManualPaymentUseCase:
         self.member_repository = member_repository
         self.price_configuration_repository = price_configuration_repository
         self.pdf_service = pdf_service
+        self.license_repository = license_repository
+        self.insurance_repository = insurance_repository
 
     async def execute(
         self,
@@ -200,13 +210,14 @@ class RegisterManualPaymentUseCase:
         # 4. Create parent Payment (status=COMPLETED, payment_method from request)
         # IMPORTANT: Payment must be created FIRST to get its real id before
         # building MemberPayment objects (MemberPayment.__post_init__ rejects empty payment_id).
+        paid_at = datetime.utcnow()
         parent_payment = Payment(
             club_id=club_id,
             payment_type=PaymentType.ANNUAL_QUOTA,
             payment_method=PaymentMethod(payment_method),
             amount=total_amount,
             status=PaymentStatus.COMPLETED,
-            payment_date=datetime.utcnow(),
+            payment_date=paid_at,
             payment_year=payment_year,
             payer_name=payer_name,
             line_items_data=json.dumps(line_items_for_invoice),
@@ -229,7 +240,12 @@ class RegisterManualPaymentUseCase:
         ]
         created_member_payments = await self.member_payment_repository.create_bulk(member_payments)
 
-        # 6. Generate Invoice (errors are logged but do not abort the operation)
+        # 6. Create or renew the licences and insurance paid for
+        await GenerateLicensesAndInsuranceFromPaymentUseCase(
+            self.license_repository, self.insurance_repository
+        ).execute(member_payments, parent_payment.id, payment_year, paid_at)
+
+        # 7. Generate Invoice (errors are logged but do not abort the operation)
         invoice = None
         try:
             invoice = await self._create_invoice(parent_payment)
