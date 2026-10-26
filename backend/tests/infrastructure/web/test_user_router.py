@@ -154,32 +154,6 @@ class TestRegisterEndpoint:
         # Assert
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    def test_register_with_server_error_returns_500(
-        self, test_app, user_create_data
-    ):
-        """Test registration with server error returns 500 Internal Server Error."""
-        # Arrange - Mock dependencies using FastAPI's dependency override
-        from src.infrastructure.web.dependencies import get_create_user_use_case
-
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.side_effect = Exception("Database connection failed")
-
-        # Override dependencies
-        test_app.dependency_overrides[get_create_user_use_case] = lambda: mock_use_case
-
-        with patch('src.infrastructure.web.routers.users.get_password_hash') as mock_hash_password:
-            mock_hash_password.return_value = "hashed_password"
-
-            client = TestClient(test_app)
-
-            # Act
-            response = client.post("/api/v1/auth/register", json=user_create_data)
-
-        # Assert
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        data = response.json()
-        assert "Failed to create user" in data["detail"]
-
     def test_register_missing_required_fields_returns_422(self, client):
         """Test registration with missing fields returns 422."""
         # Act

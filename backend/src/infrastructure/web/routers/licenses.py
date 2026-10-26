@@ -238,10 +238,10 @@ async def get_license_image(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
-    except LicenseImageGenerationError as e:
+    except LicenseImageGenerationError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate license image: {str(e)}"
+            detail="No se pudo generar la imagen de la licencia"
         )
 
 
