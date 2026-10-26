@@ -1,8 +1,7 @@
-"""Tests for implicit RC insurance generation in ProcessRedsysWebhookUseCase.
+"""Tests for GenerateLicensesAndInsuranceFromPaymentUseCase.
 
-Fukushidoin and Shidoin payments include RC insurance implicitly.
-The webhook use case should create synthetic SEGURO_RC MemberPayments
-so that GenerateInsuranceFromPaymentUseCase generates RC insurance.
+Fukushidoin and Shidoin payments include RC insurance implicitly, so the
+use case adds synthetic SEGURO_RC MemberPayments for the insurance generator.
 """
 
 import pytest
@@ -15,8 +14,8 @@ from src.domain.entities.member_payment import (
     MemberPaymentType,
 )
 from src.domain.entities.insurance import Insurance, InsuranceType, InsuranceStatus
-from src.application.use_cases.payment.process_redsys_webhook_use_case import (
-    ProcessRedsysWebhookUseCase,
+from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
+    GenerateLicensesAndInsuranceFromPaymentUseCase,
 )
 
 
@@ -24,8 +23,6 @@ from src.application.use_cases.payment.process_redsys_webhook_use_case import (
 def mock_repos():
     """Provide minimal mock repositories for the use case."""
     return {
-        "payment_repository": MagicMock(),
-        "redsys_service": MagicMock(),
         "license_repository": MagicMock(),
         "insurance_repository": MagicMock(),
     }
@@ -35,9 +32,7 @@ PAID_AT = datetime(2026, 5, 1)
 
 
 def _build_use_case(mock_repos):
-    return ProcessRedsysWebhookUseCase(
-        payment_repository=mock_repos["payment_repository"],
-        redsys_service=mock_repos["redsys_service"],
+    return GenerateLicensesAndInsuranceFromPaymentUseCase(
         license_repository=mock_repos["license_repository"],
         insurance_repository=mock_repos["insurance_repository"],
     )
@@ -58,7 +53,7 @@ def _make_member_payment(member_id, payment_type, payment_id="pay1", year=2026):
 @pytest.mark.unit
 @pytest.mark.asyncio
 class TestImplicitRCInsuranceFromInstructorPayments:
-    """Test that _generate_licenses_and_insurance creates RC insurance for instructor types."""
+    """Test that the use case creates RC insurance for instructor types."""
 
     async def test_fukushidoin_generates_rc_insurance(self, mock_repos):
         """Fukushidoin payment should produce a synthetic SEGURO_RC for insurance generation."""
@@ -69,9 +64,9 @@ class TestImplicitRCInsuranceFromInstructorPayments:
         ]
 
         with patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateLicensesFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateLicensesFromPaymentUseCase"
         ) as MockLicUC, patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateInsuranceFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateInsuranceFromPaymentUseCase"
         ) as MockInsUC:
             mock_lic_instance = AsyncMock()
             MockLicUC.return_value = mock_lic_instance
@@ -79,7 +74,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
+            await uc.execute(member_payments, "pay1", 2026, PAID_AT)
 
             # Insurance use case should have been called
             mock_ins_instance.execute.assert_called_once()
@@ -101,9 +96,9 @@ class TestImplicitRCInsuranceFromInstructorPayments:
         ]
 
         with patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateLicensesFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateLicensesFromPaymentUseCase"
         ) as MockLicUC, patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateInsuranceFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateInsuranceFromPaymentUseCase"
         ) as MockInsUC:
             mock_lic_instance = AsyncMock()
             MockLicUC.return_value = mock_lic_instance
@@ -111,7 +106,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
+            await uc.execute(member_payments, "pay1", 2026, PAID_AT)
 
             mock_ins_instance.execute.assert_called_once()
             insurance_payments = mock_ins_instance.execute.call_args[0][0]
@@ -132,9 +127,9 @@ class TestImplicitRCInsuranceFromInstructorPayments:
         ]
 
         with patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateLicensesFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateLicensesFromPaymentUseCase"
         ) as MockLicUC, patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateInsuranceFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateInsuranceFromPaymentUseCase"
         ) as MockInsUC:
             mock_lic_instance = AsyncMock()
             MockLicUC.return_value = mock_lic_instance
@@ -142,7 +137,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
+            await uc.execute(member_payments, "pay1", 2026, PAID_AT)
 
             mock_ins_instance.execute.assert_called_once()
             insurance_payments = mock_ins_instance.execute.call_args[0][0]
@@ -162,9 +157,9 @@ class TestImplicitRCInsuranceFromInstructorPayments:
         ]
 
         with patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateLicensesFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateLicensesFromPaymentUseCase"
         ) as MockLicUC, patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateInsuranceFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateInsuranceFromPaymentUseCase"
         ) as MockInsUC:
             mock_lic_instance = AsyncMock()
             MockLicUC.return_value = mock_lic_instance
@@ -172,7 +167,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
+            await uc.execute(member_payments, "pay1", 2026, PAID_AT)
 
             mock_ins_instance.execute.assert_called_once()
             insurance_payments = mock_ins_instance.execute.call_args[0][0]
@@ -193,9 +188,9 @@ class TestImplicitRCInsuranceFromInstructorPayments:
         ]
 
         with patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateLicensesFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateLicensesFromPaymentUseCase"
         ) as MockLicUC, patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateInsuranceFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateInsuranceFromPaymentUseCase"
         ) as MockInsUC:
             mock_lic_instance = AsyncMock()
             MockLicUC.return_value = mock_lic_instance
@@ -203,7 +198,7 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
+            await uc.execute(member_payments, "pay1", 2026, PAID_AT)
 
             # Licenses: kyu + fukushidoin (both are is_license_payment)
             mock_lic_instance.execute.assert_called_once()
@@ -227,9 +222,9 @@ class TestImplicitRCInsuranceFromInstructorPayments:
         ]
 
         with patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateLicensesFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateLicensesFromPaymentUseCase"
         ) as MockLicUC, patch(
-            "src.application.use_cases.payment.process_redsys_webhook_use_case.GenerateInsuranceFromPaymentUseCase"
+            "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case.GenerateInsuranceFromPaymentUseCase"
         ) as MockInsUC:
             mock_lic_instance = AsyncMock()
             MockLicUC.return_value = mock_lic_instance
@@ -237,7 +232,64 @@ class TestImplicitRCInsuranceFromInstructorPayments:
             mock_ins_instance = AsyncMock()
             MockInsUC.return_value = mock_ins_instance
 
-            await uc._generate_licenses_and_insurance(member_payments, "pay1", 2026, PAID_AT)
+            await uc.execute(member_payments, "pay1", 2026, PAID_AT)
 
             # No insurance payments at all
             mock_ins_instance.execute.assert_not_called()
+
+
+GENERATORS = "src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestGenerationBoundaries:
+
+    async def test_club_fee_only_generates_nothing(self, mock_repos):
+        uc = _build_use_case(mock_repos)
+
+        with patch(f"{GENERATORS}.GenerateLicensesFromPaymentUseCase") as MockLicUC, patch(
+            f"{GENERATORS}.GenerateInsuranceFromPaymentUseCase"
+        ) as MockInsUC:
+            await uc.execute(
+                [_make_member_payment("member1", MemberPaymentType.CUOTA_CLUB)], "pay1", 2026, PAID_AT
+            )
+
+        MockLicUC.assert_not_called()
+        MockInsUC.assert_not_called()
+
+    async def test_licence_failure_still_generates_insurance(self, mock_repos):
+        uc = _build_use_case(mock_repos)
+
+        with patch(f"{GENERATORS}.GenerateLicensesFromPaymentUseCase") as MockLicUC, patch(
+            f"{GENERATORS}.GenerateInsuranceFromPaymentUseCase"
+        ) as MockInsUC:
+            MockLicUC.return_value.execute = AsyncMock(side_effect=RuntimeError("mongo down"))
+            MockInsUC.return_value.execute = AsyncMock()
+
+            await uc.execute(
+                [
+                    _make_member_payment("member1", MemberPaymentType.LICENCIA_KYU),
+                    _make_member_payment("member1", MemberPaymentType.SEGURO_ACCIDENTES),
+                ],
+                "pay1",
+                2026,
+                PAID_AT,
+            )
+
+        MockInsUC.return_value.execute.assert_awaited_once()
+        assert MockInsUC.return_value.execute.call_args[0][1:] == ("pay1", PAID_AT)
+
+    async def test_licences_use_the_payment_year(self, mock_repos):
+        uc = _build_use_case(mock_repos)
+
+        with patch(f"{GENERATORS}.GenerateLicensesFromPaymentUseCase") as MockLicUC, patch(
+            f"{GENERATORS}.GenerateInsuranceFromPaymentUseCase"
+        ):
+            MockLicUC.return_value.execute = AsyncMock()
+            await uc.execute(
+                [_make_member_payment("member1", MemberPaymentType.LICENCIA_KYU)], "pay1", 2026, PAID_AT
+            )
+
+        MockLicUC.assert_called_once_with(mock_repos["license_repository"])
+        assert MockLicUC.return_value.execute.call_args[0][1:] == ("pay1", 2026)

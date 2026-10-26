@@ -11,7 +11,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType, PaymentMethod
+from src.domain.entities.insurance import insurance_season_year
 from src.domain.entities.member_payment import (
+    INSURANCE_PAYMENT_TYPES,
     MemberPayment,
     MemberPaymentStatus,
     ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE,
@@ -24,6 +26,11 @@ from src.application.ports.invoice_repository import InvoiceRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.pdf_service import PDFServicePort
+from src.application.ports.license_repository import LicenseRepositoryPort
+from src.application.ports.insurance_repository import InsuranceRepositoryPort
+from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
+    GenerateLicensesAndInsuranceFromPaymentUseCase,
+)
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
 from src.config.settings import get_invoice_settings
 
@@ -63,7 +70,8 @@ class RegisterManualPaymentUseCase:
     2. Fetch prices for each item type and compute total.
     3. Create parent Payment with status=COMPLETED and requested payment_method.
     4. Create MemberPayment lines using the real payment_id from step 3.
-    5. Generate Invoice (errors are logged but do not abort the operation).
+    5. Create or renew the licences and insurance paid for (errors are logged).
+    6. Generate Invoice (errors are logged but do not abort the operation).
     """
 
     def __init__(
@@ -74,6 +82,8 @@ class RegisterManualPaymentUseCase:
         member_repository: MemberRepositoryPort,
         price_configuration_repository: PriceConfigurationRepositoryPort,
         pdf_service: Optional[PDFServicePort] = None,
+        license_repository: Optional[LicenseRepositoryPort] = None,
+        insurance_repository: Optional[InsuranceRepositoryPort] = None,
     ):
         self.payment_repository = payment_repository
         self.member_payment_repository = member_payment_repository
@@ -81,6 +91,8 @@ class RegisterManualPaymentUseCase:
         self.member_repository = member_repository
         self.price_configuration_repository = price_configuration_repository
         self.pdf_service = pdf_service
+        self.license_repository = license_repository
+        self.insurance_repository = insurance_repository
 
     async def execute(
         self,
@@ -112,20 +124,28 @@ class RegisterManualPaymentUseCase:
         if not member_assignments:
             raise InvalidPaymentDataError("Al menos una línea de pago es requerida")
 
-        # 2. Duplicate check per (member_id, payment_type, payment_year).
+        paid_at = datetime.utcnow()
+
+        def line_year(mp_type) -> int:
+            if mp_type in INSURANCE_PAYMENT_TYPES:
+                return insurance_season_year(paid_at)
+            return payment_year
+
+        # 2. Duplicate check per (member_id, payment_type, line year).
         # club_fee is checked here too — a caller can include it in payment_types directly.
         for assignment in member_assignments:
             for ptype in assignment.payment_types:
                 mp_type = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get(ptype)
                 if mp_type is None:
                     continue
+                year = line_year(mp_type)
                 already_exists = await self.member_payment_repository.exists_for_member_year_type(
                     member_id=assignment.member_id,
-                    payment_year=payment_year,
+                    payment_year=year,
                     payment_type=mp_type,
                 )
                 if already_exists:
-                    raise DuplicatePaymentForYearError(assignment.member_id, ptype, payment_year)
+                    raise DuplicatePaymentForYearError(assignment.member_id, ptype, year)
 
         # Duplicate check for the standalone include_club_fee path (club_fee assigned to
         # member_assignments[0]). Only needed when club_fee is NOT already in payment_types
@@ -206,7 +226,7 @@ class RegisterManualPaymentUseCase:
             payment_method=PaymentMethod(payment_method),
             amount=total_amount,
             status=PaymentStatus.COMPLETED,
-            payment_date=datetime.utcnow(),
+            payment_date=paid_at,
             payment_year=payment_year,
             payer_name=payer_name,
             line_items_data=json.dumps(line_items_for_invoice),
@@ -219,9 +239,9 @@ class RegisterManualPaymentUseCase:
             MemberPayment(
                 payment_id=parent_payment.id,
                 member_id=d["member_id"],
-                payment_year=payment_year,
+                payment_year=line_year(d["mp_type"]),
                 payment_type=d["mp_type"],
-                concept=f"{d['mp_type'].value} - {payment_year}",
+                concept=f"{d['mp_type'].value} - {line_year(d['mp_type'])}",
                 amount=d["price"],
                 status=MemberPaymentStatus.COMPLETED,
             )
@@ -229,7 +249,12 @@ class RegisterManualPaymentUseCase:
         ]
         created_member_payments = await self.member_payment_repository.create_bulk(member_payments)
 
-        # 6. Generate Invoice (errors are logged but do not abort the operation)
+        # 6. Create or renew the licences and insurance paid for
+        await GenerateLicensesAndInsuranceFromPaymentUseCase(
+            self.license_repository, self.insurance_repository
+        ).execute(member_payments, parent_payment.id, payment_year, paid_at)
+
+        # 7. Generate Invoice (errors are logged but do not abort the operation)
         invoice = None
         try:
             invoice = await self._create_invoice(parent_payment)

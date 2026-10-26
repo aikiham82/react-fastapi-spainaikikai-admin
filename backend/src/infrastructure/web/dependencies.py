@@ -430,6 +430,8 @@ def get_register_manual_payment_use_case() -> RegisterManualPaymentUseCase:
         member_repository=get_member_repository(),
         price_configuration_repository=get_price_configuration_repository(),
         pdf_service=get_pdf_service(),
+        license_repository=get_license_repository(),
+        insurance_repository=get_insurance_repository(),
     )
 
 

@@ -1,6 +1,7 @@
 """Tests for RegisterManualPaymentUseCase."""
 
 import pytest
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 from src.application.use_cases.payment.register_manual_payment_use_case import (
@@ -10,6 +11,8 @@ from src.application.use_cases.payment.register_manual_payment_use_case import (
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentMethod, PaymentType
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.invoice import Invoice, InvoiceStatus
+from src.domain.entities.insurance import Insurance, InsuranceType
+from src.domain.entities.license import License, LicenseStatus, LicenseType
 from src.domain.exceptions.payment import DuplicatePaymentForYearError, InvalidPaymentDataError
 
 
@@ -61,6 +64,108 @@ def use_case(mock_repos):
         member_repository=mock_repos["member_repo"],
         price_configuration_repository=mock_repos["price_config_repo"],
     )
+
+
+@pytest.fixture
+def generating_use_case(mock_repos):
+    license_repo = AsyncMock()
+    license_repo.find_active_by_member_year = AsyncMock(return_value=None)
+    license_repo.find_by_member_id = AsyncMock(return_value=[])
+    license_repo.count_by_license_number_prefix = AsyncMock(return_value=0)
+    license_repo.create = AsyncMock(side_effect=lambda lic: lic)
+    insurance_repo = AsyncMock()
+    insurance_repo.find_active_by_member_year_type = AsyncMock(return_value=None)
+    insurance_repo.create = AsyncMock(side_effect=lambda ins: ins)
+    mock_repos["license_repo"] = license_repo
+    mock_repos["insurance_repo"] = insurance_repo
+    mock_repos["member_payment_repo"].create_bulk = AsyncMock(side_effect=lambda mps: mps)
+    return RegisterManualPaymentUseCase(
+        payment_repository=mock_repos["payment_repo"],
+        member_payment_repository=mock_repos["member_payment_repo"],
+        invoice_repository=mock_repos["invoice_repo"],
+        member_repository=mock_repos["member_repo"],
+        price_configuration_repository=mock_repos["price_config_repo"],
+        license_repository=license_repo,
+        insurance_repository=insurance_repo,
+    )
+
+
+async def _pay(use_case, payment_types, member_id="m1"):
+    return await use_case.execute(
+        payer_name="Test Admin",
+        club_id="club1",
+        payment_year=2026,
+        payment_method="cash",
+        member_assignments=[ManualMemberAssignment(member_id, "M One", payment_types)],
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestManualPaymentGeneratesLicencesAndInsurance:
+
+    async def test_licence_payment_generates_member_licence(self, generating_use_case, mock_repos):
+        await _pay(generating_use_case, ["kyu"])
+
+        mock_repos["license_repo"].create.assert_awaited_once()
+        licence: License = mock_repos["license_repo"].create.call_args[0][0]
+        assert licence.member_id == "m1"
+        assert licence.license_type == LicenseType.KYU
+        assert licence.status == LicenseStatus.ACTIVE
+        assert licence.last_payment_id == "pay123"
+        assert licence.expiration_date == datetime(2026, 12, 31, 23, 59, 59)
+
+    async def test_insurance_payment_generates_insurance(self, generating_use_case, mock_repos):
+        await _pay(generating_use_case, ["seguro_accidentes"])
+
+        mock_repos["insurance_repo"].create.assert_awaited_once()
+        insurance: Insurance = mock_repos["insurance_repo"].create.call_args[0][0]
+        assert insurance.member_id == "m1"
+        assert insurance.insurance_type == InsuranceType.ACCIDENT
+        assert insurance.payment_id == "pay123"
+        mock_repos["license_repo"].create.assert_not_awaited()
+
+    async def test_title_payment_generates_implicit_rc_insurance(self, generating_use_case, mock_repos):
+        await _pay(generating_use_case, ["shidoin"])
+
+        mock_repos["license_repo"].create.assert_awaited_once()
+        insurance: Insurance = mock_repos["insurance_repo"].create.call_args[0][0]
+        assert insurance.insurance_type == InsuranceType.CIVIL_LIABILITY
+
+    async def test_an_october_payment_records_insurance_in_the_next_season_year(
+        self, generating_use_case, mock_repos, monkeypatch
+    ):
+        class October(datetime):
+            @classmethod
+            def utcnow(cls):
+                return datetime(2026, 10, 26, 10, 0, 0)
+
+        monkeypatch.setattr(
+            "src.application.use_cases.payment.register_manual_payment_use_case.datetime", October
+        )
+
+        result = await _pay(generating_use_case, ["kyu", "seguro_accidentes"])
+
+        years = {mp.payment_type: mp.payment_year for mp in result.member_payments}
+        assert years == {
+            MemberPaymentType.LICENCIA_KYU: 2026,
+            MemberPaymentType.SEGURO_ACCIDENTES: 2027,
+        }
+        checked = {
+            c.kwargs["payment_type"]: c.kwargs["payment_year"]
+            for c in mock_repos["member_payment_repo"].exists_for_member_year_type.call_args_list
+        }
+        assert checked[MemberPaymentType.SEGURO_ACCIDENTES] == 2027
+        insurance: Insurance = mock_repos["insurance_repo"].create.call_args[0][0]
+        assert insurance.start_date.year == 2026 and insurance.end_date.year == 2027
+
+    async def test_generation_failure_does_not_abort_payment(self, generating_use_case, mock_repos):
+        mock_repos["license_repo"].create = AsyncMock(side_effect=RuntimeError("mongo down"))
+
+        result = await _pay(generating_use_case, ["kyu"])
+
+        assert result.payment.id == "pay123"
+        mock_repos["invoice_repo"].create.assert_awaited_once()
 
 
 @pytest.mark.unit

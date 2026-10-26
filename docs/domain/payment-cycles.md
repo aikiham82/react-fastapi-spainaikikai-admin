@@ -30,6 +30,10 @@ A **separate** cycle running from 1 October to 30 September.
 
 A completed `titulo_shidoin` or `titulo_fukushidoin` line of year N covers the RC insurance of season N (`MemberPayment.covered_types`), wherever paid status is derived: summaries, member status, unpaid lists, prefill and the duplicate check when a payment starts. Since the form proposes N+1 from October, a title and its RC land in the same year. Moving a title line to another year also moves the RC insurance it generated, unless that season is already covered by another one.
 
+### Every completed payment generates its licences and insurance
+
+Whatever the channel, a payment that completes calls [`GenerateLicensesAndInsuranceFromPaymentUseCase`](../../backend/src/application/use_cases/payment/generate_licenses_and_insurance_from_payment_use_case.py) with its member lines: it creates or renews the `License`, creates the season `Insurance`, and adds the RC a title includes. Today the Redsys webhook and the manual payment (`RegisterManualPaymentUseCase`) both do. A new payment path that skips it records the payment but leaves the member on "Sin licencia": until October 2026 the manual payment did exactly that.
+
 ### Paid status comes from payments, never from entities
 
 `license_paid` and `insurance_paid` derive **only** from completed `MemberPayment` records for the year (`is_license_payment` / `is_insurance_payment`). The federation `License` entity is used **only** for `grade_group` classification.

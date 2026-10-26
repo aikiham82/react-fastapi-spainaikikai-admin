@@ -7,6 +7,9 @@ import { memberPaymentKeys } from '@/features/member-payments/hooks/queries/useM
 const invalidatePayments = (queryClient: QueryClient) => {
   queryClient.invalidateQueries({ queryKey: clubPaymentsKeys.all });
   queryClient.invalidateQueries({ queryKey: memberPaymentKeys.all });
+  for (const key of ['members', 'member', 'licenses', 'license', 'insurance']) {
+    queryClient.invalidateQueries({ queryKey: [key] });
+  }
 };
 
 // ─── Register Manual Payment ───────────────────────────────────────────────
