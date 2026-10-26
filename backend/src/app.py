@@ -85,6 +85,15 @@ def create_app() -> FastAPI:
     async def domain_exception_handler(request: Request, exc: DomainException):
         return JSONResponse(status_code=400, content={"detail": str(exc)})
 
+    @app.middleware("http")
+    async def answer_unexpected_errors(request: Request, call_next):
+        try:
+            return await call_next(request)
+        except Exception:
+            route = request.scope.get("route")
+            logger.exception("Unhandled error on %s %s", request.method, getattr(route, "path", "unknown route"))
+            return JSONResponse(status_code=500, content={"detail": "Error interno del servidor"})
+
     # Configure CORS
     settings = AppSettings()
     cors_origins = [

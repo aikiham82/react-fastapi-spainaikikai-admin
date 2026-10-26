@@ -11,14 +11,14 @@ created_by:
     reasoning_effort: "low"
 
 implemented_by:
-  tool: ""
+  tool: "Claude Code"
   model:
-    name: ""
-    version: ""
-    reasoning_effort: ""
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
 
-last_implementation_at: ""
-has_completed_all_phases: false
+last_implementation_at: "2026-10-26T14:20:00Z"
+has_completed_all_phases: true
 ---
 
 # Email autoescape and server errors
@@ -46,8 +46,8 @@ Real-data matrix: a member name with `&`, one with `<`/`>`, one with a quote, an
 
 ## Phase 2: Generic JSON 500 with CORS
 
-- [ ] Test: an unhandled exception answers JSON 500 with `access-control-allow-origin` for an allowed origin, and is logged with `logger.exception`.
-- [ ] Test: user creation, licence image and Redsys webhook failures do not return the exception text.
-- [ ] Add an HTTP middleware inside CORS that turns unexpected exceptions into the generic 500.
-- [ ] Replace the three leaking messages; log the Redsys failure.
-- [ ] STOP. Present the changes to the user and wait for approval.
+- [x] Test: an unhandled exception answers JSON 500 with `access-control-allow-origin` for an allowed origin, and is logged with `logger.exception`.
+- [x] Test: user creation, licence image and Redsys webhook failures do not return the exception text.
+- [x] Add an HTTP middleware inside CORS that turns unexpected exceptions into the generic 500.
+- [x] Replace the three leaking messages; log the Redsys failure.
+- [x] STOP. Present the changes to the user and wait for approval.

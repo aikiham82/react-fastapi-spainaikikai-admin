@@ -1,5 +1,7 @@
 """License routes."""
 
+import logging
+
 from typing import List, Optional
 from io import BytesIO
 import uuid
@@ -40,6 +42,7 @@ from src.infrastructure.web.authorization import (
 from src.domain.exceptions.license import LicenseNotFoundError, LicenseImageGenerationError
 from src.domain.exceptions.member import MemberNotFoundError
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/licenses", tags=["licenses"])
 self_service_router = APIRouter(prefix="/licenses", tags=["licenses"])
 
@@ -238,10 +241,11 @@ async def get_license_image(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
-    except LicenseImageGenerationError as e:
+    except LicenseImageGenerationError:
+        logger.exception("License image generation failed for %s", license_id)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate license image: {str(e)}"
+            detail="No se pudo generar la imagen de la licencia"
         )
 
 

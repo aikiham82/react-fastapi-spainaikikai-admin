@@ -1,5 +1,7 @@
 """Payment routes."""
 
+import logging
+
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Form
@@ -59,6 +61,7 @@ from src.infrastructure.web.dependencies import (
 from src.application.use_cases.payment.register_manual_payment_use_case import ManualMemberAssignment
 from src.config.settings import get_app_settings
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/payments", tags=["payments"])
 public_router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -313,12 +316,11 @@ async def redsys_webhook(
             payment_id=result.payment.id,
             invoice_number=result.invoice.invoice_number if result.invoice else None
         )
-    except Exception as e:
-        # Log the error but return OK to Redsys
-        # Redsys expects HTTP 200 even on errors
+    except Exception:
+        logger.exception("Redsys notification could not be processed")
         return RedsysWebhookResponse(
             success=False,
-            message=str(e)
+            message="Error procesando la notificación"
         )
 
 
