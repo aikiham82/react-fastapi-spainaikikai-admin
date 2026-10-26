@@ -48,9 +48,15 @@ class TransferClubAccountUseCase:
 
     async def _club_account(self, club_id: str) -> Optional[Tuple[Member, User]]:
         for candidate in await self.member_repository.find_by_club_id(club_id):
-            if not candidate.is_club_account_placeholder:
-                continue
-            account = await self.user_repository.find_by_member_id(candidate.id)
-            if account and account.is_active:
+            account = await active_club_account(candidate, self.user_repository)
+            if account:
                 return candidate, account
         return None
+
+
+async def active_club_account(member: Member, user_repository: UserRepositoryPort) -> Optional[User]:
+    """The shared login hanging from a migration placeholder, if it still signs in."""
+    if not member.is_club_account_placeholder:
+        return None
+    account = await user_repository.find_by_member_id(member.id)
+    return account if account and account.is_active else None

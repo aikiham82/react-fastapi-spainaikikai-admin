@@ -10,6 +10,7 @@ from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.repositories import UserRepositoryPort
+from src.application.use_cases.member_access.transfer_club_account_use_case import active_club_account
 
 CANDIDATE_TITLES = (InstructorCategory.SHIDOIN, InstructorCategory.FUKUSHIDOIN)
 
@@ -57,8 +58,8 @@ class ListClubAccountsUseCase:
         placeholders = [m for m in await self.member_repository.find_all() if m.is_club_account_placeholder]
         summaries = []
         for placeholder in placeholders:
-            account = await self.user_repository.find_by_member_id(placeholder.id)
-            if not account or not account.is_active:
+            account = await active_club_account(placeholder, self.user_repository)
+            if not account:
                 continue
             club = await self.club_repository.find_by_id(placeholder.club_id)
             summaries.append(ClubAccountSummary(

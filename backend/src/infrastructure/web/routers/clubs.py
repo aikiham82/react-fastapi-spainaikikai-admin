@@ -63,7 +63,7 @@ async def list_club_accounts(
 ):
     """Clubs still signing in with a shared club account, with their shidoin or fukushidoin (Super Admin only)."""
     require_super_admin(ctx)
-    return [ClubAccountSummaryResponse.model_validate(summary, from_attributes=True) for summary in await list_use_case.execute()]
+    return await list_use_case.execute()
 
 
 @router.get("/{club_id}", response_model=ClubResponse)

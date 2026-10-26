@@ -66,13 +66,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, [signOut]);
 
   React.useEffect(() => {
-    if (isLoading || !session) return;
+    if (isLoading || !session || user?.is_club_account !== undefined) return;
     getCurrentUser(session)
       .then((current) => {
         if (current.is_club_account) refuseClubAccount();
       })
       .catch((error) => console.error("Could not check the stored session:", error));
-    // ponytail: checked once per stored session at app start; a session started in this run was already checked at login.
+    // ponytail: only sessions stored before the club-account check lack the flag; drop this effect once those have expired.
   }, [isLoading]);
 
   return React.createElement(

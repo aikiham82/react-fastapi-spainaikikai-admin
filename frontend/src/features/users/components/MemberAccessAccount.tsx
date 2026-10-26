@@ -49,8 +49,6 @@ export const MemberAccessAccount = ({
   const managesAccounts = isAssociationAdmin() || isClubAdmin();
 
   const { data: account, isLoading, isError, error } = useUserByMemberQuery(memberId, managesAccounts);
-  const { data: clubAccounts } = useClubAccountsQuery(isAssociationAdmin());
-  const clubStillHasClubAccount = !!clubAccounts?.some((clubAccount) => clubAccount.club_id === memberClubId);
   const {
     mutate: generateLink,
     isPending: isGenerating,
@@ -58,6 +56,9 @@ export const MemberAccessAccount = ({
     reset: forgetLink,
   } = useGeneratePasswordResetLinkMutation();
   const { mutate: updateEmail, isPending: isSavingEmail } = useUpdateUserEmailMutation();
+  const hasNoAccount = (error as { status?: number } | null)?.status === 404;
+  const { data: clubAccounts } = useClubAccountsQuery(isAssociationAdmin() && hasNoAccount && !!memberClubId);
+  const clubStillHasClubAccount = !!clubAccounts?.some((clubAccount) => clubAccount.club_id === memberClubId);
 
   const [editedEmail, setEditedEmail] = useState<string | null>(null);
 
@@ -101,7 +102,6 @@ export const MemberAccessAccount = ({
 
   const expiry = link ? formatExpiry(link.expires_at) : '';
 
-  const hasNoAccount = (error as { status?: number } | null)?.status === 404;
 
   return (
     <section
