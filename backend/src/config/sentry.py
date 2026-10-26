@@ -17,8 +17,18 @@ def _redact_emails(value):
     return value
 
 
+def _keep_only_the_route_of_the_request(event):
+    request = event.get("request")
+    if not request:
+        return event
+    safe_request = {key: value for key, value in request.items() if key in ("method", "headers")}
+    if str(event.get("transaction", "")).startswith("/"):
+        safe_request["url"] = event["transaction"]
+    return {**event, "request": safe_request}
+
+
 def before_send(event, hint):
-    return _redact_emails(event)
+    return _redact_emails(_keep_only_the_route_of_the_request(event))
 
 
 def before_breadcrumb(crumb, hint):
@@ -39,6 +49,8 @@ def configure_sentry() -> bool:
         environment=os.getenv("ENVIRONMENT") or "development",
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0")),
         send_default_pii=False,
+        include_local_variables=False,
+        max_request_body_size="never",
         before_send=before_send,
         before_send_transaction=before_send,
         before_breadcrumb=before_breadcrumb,
