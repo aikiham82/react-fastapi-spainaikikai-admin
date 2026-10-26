@@ -56,6 +56,7 @@ docs/
 │   ├── excel-import-cells-are-text.md
 │   ├── frontend.md
 │   ├── public-images-are-unignored.md
+│   ├── pwa-updates-without-service-worker.md
 │   ├── select-all-option.md
 │   └── update-use-cases-take-named-fields.md
 ├── dev-tooling/

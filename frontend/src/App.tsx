@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,22 +11,8 @@ import { queryClient } from "./core/data/queryClient";
 import { AppLayout } from "./components/AppLayout";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "sonner";
-
-// Retry dynamic imports with full page reload on chunk load failure (stale deployments)
-function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType }>) {
-  return lazy(() =>
-    factory().catch((error) => {
-      const hasReloaded = sessionStorage.getItem("chunk_reload");
-      if (!hasReloaded) {
-        sessionStorage.setItem("chunk_reload", "1");
-        window.location.reload();
-        return new Promise(() => {}); // never resolves — page is reloading
-      }
-      sessionStorage.removeItem("chunk_reload");
-      throw error;
-    })
-  );
-}
+import { useNewVersionNotice } from "./core/hooks/useNewVersionNotice";
+import { lazyWithRetry } from "./core/utils/lazyWithRetry";
 
 // Pages with default exports
 const LoginPage = lazyWithRetry(() => import("./pages/login.page"));
@@ -58,6 +44,8 @@ const LoadingSpinner = () => (
 );
 
 function App() {
+  useNewVersionNotice();
+
   return (
     <div className="overflow-hidden">
       <QueryClientProvider client={queryClient}>
