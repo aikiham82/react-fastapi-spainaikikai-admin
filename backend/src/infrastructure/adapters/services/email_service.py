@@ -8,7 +8,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from typing import Optional
 from jinja2 import Environment, BaseLoader
-from markupsafe import escape
 
 from src.application.ports.email_service import (
     EmailServicePort,
@@ -260,7 +259,7 @@ class EmailService(EmailServicePort):
 
     def __init__(self):
         self.settings = get_email_settings()
-        self.jinja_env = Environment(loader=BaseLoader())
+        self.jinja_env = Environment(loader=BaseLoader(), autoescape=True)
 
     def is_available(self) -> bool:
         """Check if SMTP settings are properly configured."""
@@ -511,8 +510,8 @@ class EmailService(EmailServicePort):
         """Send a member the link to set the password of their new account."""
         html_body = self._render_template(
             ACCOUNT_INVITATION_TEMPLATE,
-            member_name=escape(member_name),
-            login_email=escape(to_email),
+            member_name=member_name,
+            login_email=to_email,
             url=url
         )
 

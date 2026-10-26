@@ -39,10 +39,10 @@ Real-data matrix: a member name with `&`, one with `<`/`>`, one with a quote, an
 
 ## Phase 1: Escape every email value
 
-- [ ] Test: each template renders `Aikido & <b>Zen</b> "O'Brien"` escaped, and a plain name unchanged.
-- [ ] Test: a URL with `&` stays a working link (`&amp;` inside `href`).
-- [ ] Turn on `autoescape=True` in the email `Environment` and drop the manual `escape` calls.
-- [ ] STOP. Present the changes to the user and wait for approval.
+- [x] Test: each template renders `Aikido & <b>Zen</b> "O'Brien"` escaped, and a plain name unchanged.
+- [x] Test: a URL with `&` stays a working link (`&amp;` inside `href`).
+- [x] Turn on `autoescape=True` in the email `Environment` and drop the manual `escape` calls.
+- [x] STOP. Present the changes to the user and wait for approval.
 
 ## Phase 2: Generic JSON 500 with CORS
 
