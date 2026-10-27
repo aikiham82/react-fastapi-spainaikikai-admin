@@ -19,6 +19,10 @@ const SAME_ORIGIN_PATH = /^\/(?![/\\])/
 export const resolveApiUrl = (path: string): string =>
   SAME_ORIGIN_PATH.test(path) ? `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${path}` : ''
 
+const SIGN_IN_ENDPOINT = /\/auth\/(login|social-login)$/
+
+export const isSignInAttempt = (url: string | undefined): boolean => SIGN_IN_ENDPOINT.test(url ?? '')
+
 const client = axios.create({
   headers: {
     'Content-Type': 'application/json',
@@ -116,9 +120,7 @@ function handleError(error: AxiosError<ErrorResponse>): ApiError {
     cancelled: axios.isCancel(error),
   })
 
-  const isLoginAttempt = error.config?.url?.includes('/auth/login')
-
-  if (response?.status === 401 && !isLoginAttempt) {
+  if (response?.status === 401 && !isSignInAttempt(error.config?.url)) {
     // Clear local storage and cookies
     appStorage().local.remove('access_token')
     localStorage.clear();
