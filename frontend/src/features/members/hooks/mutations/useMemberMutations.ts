@@ -71,3 +71,20 @@ export const useChangeMemberStatusMutation = () => {
     },
   });
 };
+
+export const useChangeMemberGradeMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, gradeNumber }: { id: string; gradeNumber: number }) =>
+      memberService.changeMemberGrade(id, gradeNumber),
+    onSuccess: () => {
+      toast.success('Grado actualizado');
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['licenses'] });
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.detail || 'No se ha podido cambiar el grado');
+    },
+  });
+};

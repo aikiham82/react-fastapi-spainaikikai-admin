@@ -35,6 +35,10 @@ export const changeMemberStatus = async (id: string, data: ChangeMemberStatusReq
   return await apiClient.patch<Member>(`${BASE_URL}/${id}/status`, data);
 };
 
+export const changeMemberGrade = async (id: string, gradeNumber: number): Promise<Member> => {
+  return await apiClient.put<Member>(`${BASE_URL}/${id}/grade`, { grade_number: gradeNumber });
+};
+
 export const memberService = {
   getMembers,
   getMember,
@@ -42,4 +46,5 @@ export const memberService = {
   updateMember,
   deleteMember,
   changeMemberStatus,
+  changeMemberGrade,
 };

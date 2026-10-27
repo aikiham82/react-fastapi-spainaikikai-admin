@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, within } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { MemberForm } from '../MemberForm'
 import type { Member } from '../../data/schemas/member.schema'
 
-const { updateMember, createMember, clubs } = vi.hoisted(() => ({
+const { updateMember, createMember, changeMemberGrade, clubs } = vi.hoisted(() => ({
   updateMember: vi.fn(),
   createMember: vi.fn(),
+  changeMemberGrade: vi.fn(),
   clubs: [{ id: 'club-1', name: 'Example Club' }],
 }))
 
@@ -18,7 +19,7 @@ vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
 }))
 
 vi.mock('../../hooks/useMemberContext', () => ({
-  useMemberContext: () => ({ updateMember, createMember }),
+  useMemberContext: () => ({ updateMember, createMember, changeMemberGrade }),
 }))
 
 vi.mock('../../../clubs/hooks/useClubContext', () => ({
@@ -155,5 +156,59 @@ describe('MemberForm club field', () => {
     renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
 
     expect(screen.getByText('Más datos')).toBeInTheDocument()
+  })
+})
+
+describe('MemberForm grade', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    authState.userRole = 'club_admin'
+  })
+
+  const licensed = (grade: string, technical_grade: 'kyu' | 'dan') =>
+    renderEditing({
+      license_summary: { grade, technical_grade, instructor_category: 'none', status: 'active', expiration_date: null },
+    })
+
+  const openGrades = async () => {
+    await userEvent.click(screen.getByRole('combobox', { name: 'Grado' }))
+    return within(screen.getByRole('listbox')).getAllByRole('option').map((option) => option.textContent)
+  }
+
+  it('offers only the numbers of the kyu the member already holds', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    expect(await openGrades()).toEqual(['1.er Kyu', '2.º Kyu', '3.er Kyu', '4.º Kyu', '5.º Kyu', '6.º Kyu'])
+  })
+
+  it('offers dan numbers up to ten for a dan', async () => {
+    licensed('1er Dan', 'dan')
+
+    expect(await openGrades()).toHaveLength(10)
+  })
+
+  it('sends the new grade number on save', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    await openGrades()
+    await userEvent.click(screen.getByRole('option', { name: '4.º Kyu' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(changeMemberGrade).toHaveBeenCalledWith('member-1', 4)
+  })
+
+  it('does not change the grade when it is left alone', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(changeMemberGrade).not.toHaveBeenCalled()
+  })
+
+  it('cannot change the grade of a member without licence', () => {
+    renderEditing()
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
+    expect(screen.getByText('Este socio aún no tiene licencia.')).toBeInTheDocument()
   })
 })

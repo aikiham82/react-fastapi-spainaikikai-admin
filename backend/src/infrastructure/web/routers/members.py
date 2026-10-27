@@ -22,6 +22,7 @@ from src.infrastructure.web.dto.member_dto import (
     MemberResponse,
     GrantMemberAccessDTO,
     SetClubRoleDTO,
+    ChangeGradeDTO,
     LicenseSummary,
     InsuranceSummary,
 )
@@ -40,6 +41,7 @@ from src.infrastructure.web.dependencies import (
     get_grant_member_access_use_case,
     get_revoke_member_access_use_case,
     get_set_member_club_role_use_case,
+    get_change_member_grade_use_case,
     get_license_repository,
     get_insurance_repository,
     get_club_repository,
@@ -428,6 +430,26 @@ async def set_member_club_role(
 
     audit("access.role_changed", member_id=member_id, club_id=existing.club_id, club_role=request.club_role, by=ctx.user.id)
     return MemberMapper.to_response_dto(member)
+
+
+@router.put("/{member_id}/grade", response_model=MemberResponse)
+async def change_member_grade(
+    member_id: str,
+    request: ChangeGradeDTO,
+    get_member_use_case_instance = Depends(get_member_use_case),
+    change_grade_use_case = Depends(get_change_member_grade_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+    license_repo = Depends(get_license_repository),
+    insurance_repo = Depends(get_insurance_repository),
+):
+    """Change the kyu or dan number of a member of the caller's club."""
+    member = await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+    await change_grade_use_case.execute(member_id, request.grade_number)
+
+    audit("member.grade_changed", member_id=member_id, club_id=member.club_id, grade_number=request.grade_number, by=ctx.user.id)
+    response = MemberMapper.to_response_dto(member)
+    enriched = await _enrich_members_with_summaries([response], license_repo, insurance_repo)
+    return enriched[0]
 
 
 @router.delete("/{member_id}/account", status_code=status.HTTP_204_NO_CONTENT)

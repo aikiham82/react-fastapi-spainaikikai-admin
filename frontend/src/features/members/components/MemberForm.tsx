@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatGradeNumber } from '@/core/utils/grade';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { MemberAccessAccount } from '@/features/users/components/MemberAccessAccount';
 import {
@@ -27,6 +29,16 @@ const localToday = (): string => {
 const joinDateOf = (member: Member): string =>
   (member.registration_date ?? member.created_at ?? '').substring(0, 10);
 
+const GRADE_NUMBERS = { kyu: [1, 2, 3, 4, 5, 6], dan: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
+
+const gradeKindOf = (member?: Member | null): 'kyu' | 'dan' | null => {
+  const kind = member?.license_summary?.technical_grade;
+  return kind === 'kyu' || kind === 'dan' ? kind : null;
+};
+
+const gradeNumberOf = (member?: Member | null): string =>
+  /\d+/.exec(member?.license_summary?.grade ?? '')?.[0] ?? '';
+
 interface MemberFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -34,7 +46,7 @@ interface MemberFormProps {
 }
 
 export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
-  const { createMember, updateMember } = useMemberContext();
+  const { createMember, updateMember, changeMemberGrade } = useMemberContext();
   const { clubs } = useClubContext();
   const { userRole, clubId: ownClubId } = useAuthContext();
   const isSuperAdmin = userRole === 'super_admin';
@@ -54,6 +66,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     country: 'España',
     club_id: '',
   });
+
+  const gradeKind = gradeKindOf(member);
+  const [gradeNumber, setGradeNumber] = useState(gradeNumberOf(member));
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateMemberRequest, string>>>({});
 
@@ -91,6 +106,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         registration_date: localToday(),
       });
     }
+    setGradeNumber(gradeNumberOf(member));
     setErrors({});
   }, [member, open, isSuperAdmin, ownClubId]);
 
@@ -133,6 +149,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     const close = () => onOpenChange(false);
     if (isEditing && member) {
       const { registration_date, ...rest } = formData;
+      if (gradeNumber && gradeNumber !== gradeNumberOf(member)) {
+        changeMemberGrade(member.id, Number(gradeNumber));
+      }
       updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData, close);
     } else {
       createMember(formData, close);
@@ -199,6 +218,28 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
               </div>
             )}
             {field('registration_date', 'Fecha de alta', { type: 'date' })}
+            {isEditing && (
+              <div className="space-y-2">
+                <Label htmlFor="grade_number">Grado</Label>
+                <Select value={gradeNumber} onValueChange={setGradeNumber} disabled={!gradeKind}>
+                  <SelectTrigger id="grade_number" className="w-full">
+                    <SelectValue placeholder={gradeKind ? 'Sin número' : 'Sin licencia'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gradeKind && GRADE_NUMBERS[gradeKind].map((value) => (
+                      <SelectItem key={value} value={String(value)}>
+                        {formatGradeNumber(value, gradeKind)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {gradeKind
+                    ? 'El paso de kyu a dan y los títulos de Shidoin y Fukushidoin los gestiona la federación.'
+                    : 'Este socio aún no tiene licencia.'}
+                </p>
+              </div>
+            )}
           </div>
 
           <details className="border-t border-border pt-3" open={errors.birth_date ? true : undefined}>

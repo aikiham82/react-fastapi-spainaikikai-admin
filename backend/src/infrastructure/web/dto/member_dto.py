@@ -133,6 +133,11 @@ class GrantMemberAccessDTO(BaseModel):
     club_admin: bool = False
 
 
+class ChangeGradeDTO(BaseModel):
+    """The kyu or dan number a member now holds."""
+    grade_number: int
+
+
 class SetClubRoleDTO(BaseModel):
     """Whether the member manages the club."""
     club_role: Literal["admin", "member"]

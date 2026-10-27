@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-27T14:25:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Club admin edits a member's grade
@@ -69,11 +79,11 @@ Public contracts:
 
 To-do:
 
-- [ ] Write failing use-case tests, implement `ChangeMemberGradeUseCase`, wire its dependency.
-- [ ] Write failing router tests, add the endpoint with `_load_member_in_callers_club` and a request DTO.
-- [ ] Write failing `MemberForm` tests, add service, mutation and the «Grado» select.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write failing use-case tests, implement `ChangeMemberGradeUseCase`, wire its dependency.
+- [x] Write failing router tests, add the endpoint with `_load_member_in_callers_club` and a request DTO.
+- [x] Write failing `MemberForm` tests, add service, mutation and the «Grado» select.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: the list shows the title stored on another licence
 
@@ -91,6 +101,6 @@ To-do:
 
 ## ⏭️ Next step
 
-Implement Phase 1: the grade select in Editar miembro backed by `PUT /members/{id}/grade`.
+Implement Phase 2: the member list shows the title stored on another licence.
 
-Belts tied tight by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Belts tied tight, first kyu awarded by 🥋 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
