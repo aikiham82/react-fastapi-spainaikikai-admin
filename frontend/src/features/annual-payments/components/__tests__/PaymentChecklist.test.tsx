@@ -217,6 +217,16 @@ describe('PaymentChecklist', () => {
     expect(counts()).toMatchObject({ dan_count: 1, kyu_count: 0 })
   })
 
+  it('offers an adult kyu only Kyu or Dan, never the cheaper child licence', () => {
+    members = [member('m-kyu', 'Kira', { grade: '1º Kyu', technical_grade: 'kyu' })]
+    renderChecklist()
+
+    const options = within(within(rowOf('Kira')).getByRole('combobox', { name: 'Tipo de licencia de Kira Ejemplo' }))
+      .getAllByRole('option')
+      .map((option) => option.getAttribute('value'))
+    expect(options).toEqual(['kyu', 'dan'])
+  })
+
   it('never offers a kyu licence to a dan member or to an instructor', () => {
     members = [
       member('m-dan', 'Dana', { grade: '3º Dan', technical_grade: 'dan' }),

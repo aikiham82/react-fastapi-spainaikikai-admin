@@ -8,7 +8,6 @@ import { formatCurrency } from '@/core/utils/format';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
 import type { AnnualPaymentPrices } from '../data/schemas/annual-payment.schema';
 import {
-  CHOOSABLE_LICENCE_ITEMS,
   LICENCE_LABELS,
   pendingInsuranceOf,
   tickedItemsOf,
@@ -42,7 +41,7 @@ const LicenceChip = ({ row, ticked }: { row: ChecklistRow; ticked: Set<string> }
         disabled={isSubmitting}
         onCheckedChange={() => toggleMemberItems(row, [licence])}
       />
-      {row.licenceChoosable && (
+      {row.licenceChoices.length > 1 && (
         <select
           aria-label={`Tipo de licencia de ${row.memberName}`}
           value={licence}
@@ -50,7 +49,7 @@ const LicenceChip = ({ row, ticked }: { row: ChecklistRow; ticked: Set<string> }
           onChange={(e) => chooseMemberLicence(row, e.target.value as LicenceItem)}
           className="h-10 rounded-full border border-input bg-card px-3 text-sm text-foreground pointer-coarse:h-11"
         >
-          {CHOOSABLE_LICENCE_ITEMS.map((item) => (
+          {row.licenceChoices.map((item) => (
             <option key={item} value={item}>
               {LICENCE_LABELS[item]}
             </option>

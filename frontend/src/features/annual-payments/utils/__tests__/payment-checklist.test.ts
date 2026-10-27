@@ -6,7 +6,7 @@ const row = (overrides: Partial<ChecklistRow> = {}): ChecklistRow => ({
   memberName: 'Nuevo Ejemplo',
   grade: 'Sin licencia',
   licence: 'kyu',
-  licenceChoosable: true,
+  licenceChoices: ['kyu', 'kyu_infantil', 'dan'],
   offersRc: true,
   licencePaid: false,
   accidentPaid: false,

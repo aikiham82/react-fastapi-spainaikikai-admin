@@ -38,7 +38,7 @@ Whatever the channel, a payment that completes calls [`GenerateLicensesAndInsura
 
 ### A kyu member passes to dan by paying Licencia Dan
 
-The grade lives on the member's licence and only a super admin may edit a licence. A club reflects a promotion by choosing "Licencia Dan" for a kyu member in Pendientes (the licence choice is offered to members without a licence and to kyu members, never to a dan or an instructor). When that payment completes, the member's own kyu licence becomes "1º Dan" (same number, age and instructor category kept) and is renewed; no second licence is created. A different dan number is corrected by the federation editing the licence.
+The grade lives on the member's licence and only a super admin may edit a licence. A club reflects a promotion by choosing "Licencia Dan" for a kyu member in Pendientes: a member without licence chooses Kyu, Kyu infantil or Dan; an adult kyu only Kyu or Dan (never the cheaper child licence); a child kyu only Kyu infantil or Dan; a dan or an instructor has no choice. When that payment completes, the member's own kyu licence becomes "1º Dan" (same number and age category) and is renewed; no second licence is created. It is promoted only when the member holds no dan licence at all and the kyu licence has no instructor category (14 such inconsistent records exist): anything else is left for the federation to correct by editing the licence, as is a different dan number.
 
 ### Paid status comes from payments, never from entities
 
