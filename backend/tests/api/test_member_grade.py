@@ -48,7 +48,7 @@ def client_as(licences):
             get_member_use_case: lambda: get_one,
             get_license_repository: lambda: licence_repository,
             get_insurance_repository: lambda: insurance_repository,
-            get_change_member_grade_use_case: lambda: ChangeMemberGradeUseCase(licence_repository),
+            get_change_member_grade_use_case: lambda: ChangeMemberGradeUseCase(licence_repository, AsyncMock(find_by_id=get_one.execute)),
         }
         return TestClient(app)
 

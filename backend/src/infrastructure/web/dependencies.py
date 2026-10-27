@@ -257,7 +257,7 @@ def get_update_license_use_case() -> UpdateLicenseUseCase:
 @lru_cache()
 def get_change_member_grade_use_case() -> ChangeMemberGradeUseCase:
     """Change member grade use case."""
-    return ChangeMemberGradeUseCase(get_license_repository())
+    return ChangeMemberGradeUseCase(get_license_repository(), get_member_repository())
 
 @lru_cache()
 def get_delete_license_use_case() -> DeleteLicenseUseCase:

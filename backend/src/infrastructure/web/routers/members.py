@@ -5,9 +5,9 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
-from src.domain.entities.license import License, grade_licence_among
+from src.domain.entities.license import License, grade_licence_among, title_among
 from src.domain.entities.insurance import Insurance
-from src.domain.entities.member import ClubRole, MemberStatus
+from src.domain.entities.member import ClubRole
 from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import LastClubAdminError, InactiveMemberError
 from src.domain.exceptions.user import (
@@ -69,25 +69,16 @@ async def _load_member_in_callers_club(ctx: AuthContext, member_id: str, get_mem
     return member
 
 
-TITLE_RANK = {"none": 0, "fukushidoin": 1, "shidoin": 2}
-
-
-def _pick_primary_license(licenses: List[License]) -> Optional[License]:
-    """Select the grade license, preferring active ones."""
-    return grade_licence_among([l for l in licenses if l.status.value == "active"] or licenses)
-
-
 def _build_license_summary(licenses: List[License]) -> Optional[LicenseSummary]:
-    """Build a LicenseSummary for one member, taking the title from any of their active licenses."""
-    primary = _pick_primary_license(licenses)
+    """Build a LicenseSummary for one member: grade from the grade licence, title from any current licence."""
+    current = [l for l in licenses if l.status.value == "active"] or licenses
+    primary = grade_licence_among(current)
     if not primary:
         return None
-    active = [l for l in licenses if l.status.value == "active"] or [primary]
-    title = max((l.instructor_category.value for l in active), key=TITLE_RANK.get)
     return LicenseSummary(
         grade=primary.grade,
         technical_grade=primary.technical_grade.value,
-        instructor_category=title,
+        instructor_category=title_among(current).value,
         status=primary.status.value,
         expiration_date=primary.expiration_date,
     )
@@ -445,12 +436,13 @@ async def change_member_grade(
 ):
     """Change the kyu or dan number of a member of the caller's club."""
     member = await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
-    if not ctx.is_super_admin and member.id == ctx.member_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tu grado lo cambia la federación")
-    if not ctx.is_super_admin and member.status == MemberStatus.INACTIVE:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El grado de un socio de baja no se cambia")
+    changed_by = None if ctx.is_super_admin else ctx.member_id
     try:
-        await change_grade_use_case.execute(member.id, request.grade_number)
+        await change_grade_use_case.execute(member.id, request.grade_number, changed_by)
+    except AccessChangeNotAllowedError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tu grado lo cambia la federación")
+    except InactiveMemberError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El grado de un socio de baja no se cambia")
     except LicenseNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este socio aún no tiene licencia en vigor")
 

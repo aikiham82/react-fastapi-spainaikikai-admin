@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { formatGradeNumber } from '@/core/utils/grade';
+import { formatGradeNumber, GRADE_NUMBERS } from '@/core/utils/grade';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { MemberAccessAccount } from '@/features/users/components/MemberAccessAccount';
 import {
@@ -29,8 +29,6 @@ const localToday = (): string => {
 const joinDateOf = (member: Member): string =>
   (member.registration_date ?? member.created_at ?? '').substring(0, 10);
 
-const GRADE_NUMBERS = { kyu: [1, 2, 3, 4, 5, 6], dan: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
-
 const gradeKindOf = (member?: Member | null): 'kyu' | 'dan' | null => {
   const summary = member?.license_summary;
   if (summary?.status !== 'active') return null;
@@ -39,6 +37,14 @@ const gradeKindOf = (member?: Member | null): 'kyu' | 'dan' | null => {
 
 const gradeNumberOf = (member?: Member | null): string =>
   /\d+/.exec(member?.license_summary?.grade ?? '')?.[0] ?? '';
+
+const gradeLockOf = (member: Member | null | undefined, isSuperAdmin: boolean, ownMemberId?: string): string | null => {
+  if (!gradeKindOf(member)) return 'Este socio aún no tiene licencia en vigor.';
+  if (isSuperAdmin) return null;
+  if (member?.status === 'inactive') return 'El grado de un socio de baja no se cambia.';
+  if (member?.id === ownMemberId) return 'Tu grado lo cambia la federación.';
+  return null;
+};
 
 interface MemberFormProps {
   open: boolean;
@@ -69,16 +75,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
   });
 
   const gradeKind = gradeKindOf(member);
-  const gradeLock = !gradeKind
-    ? 'Este socio aún no tiene licencia en vigor.'
-    : isSuperAdmin
-      ? null
-      : member?.status === 'inactive'
-        ? 'El grado de un socio de baja no se cambia.'
-        : member?.id === currentUser?.member_id
-          ? 'Tu grado lo cambia la federación.'
-          : null;
-  const [gradeNumber, setGradeNumber] = useState(gradeNumberOf(member));
+  const gradeLock = gradeLockOf(member, isSuperAdmin, currentUser?.member_id);
+  const savedGradeNumber = gradeNumberOf(member);
+  const [gradeNumber, setGradeNumber] = useState(savedGradeNumber);
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateMemberRequest, string>>>({});
 
@@ -116,9 +115,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         registration_date: localToday(),
       });
     }
-    setGradeNumber(gradeNumberOf(member));
+    setGradeNumber(savedGradeNumber);
     setErrors({});
-  }, [member, open, isSuperAdmin, ownClubId]);
+  }, [member, open, isSuperAdmin, ownClubId, savedGradeNumber]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof CreateMemberRequest, string>> = {};
@@ -160,7 +159,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     if (isEditing && member) {
       const { registration_date, ...rest } = formData;
       const saveMember = () => updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData, close);
-      if (gradeNumber && gradeNumber !== gradeNumberOf(member)) {
+      if (gradeNumber && gradeNumber !== savedGradeNumber) {
         changeMemberGrade(member.id, Number(gradeNumber), saveMember);
       } else {
         saveMember();

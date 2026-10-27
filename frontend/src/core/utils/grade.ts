@@ -13,3 +13,8 @@ export const formatGradeEs = (grade: string | null | undefined): string => {
   if (!match) return grade
   return formatGradeNumber(Number(match[1]), match[2])
 }
+
+export const GRADE_NUMBERS = {
+  kyu: Array.from({ length: 6 }, (_, i) => i + 1),
+  dan: Array.from({ length: 10 }, (_, i) => i + 1),
+}

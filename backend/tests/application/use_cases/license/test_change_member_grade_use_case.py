@@ -8,7 +8,10 @@ import pytest
 from src.application.use_cases.license.change_member_grade_use_case import ChangeMemberGradeUseCase
 from src.domain.entities.license import InstructorCategory, License, LicenseStatus, TechnicalGrade
 from src.domain.exceptions.base import ValidationError
+from src.domain.entities.member import Member, MemberStatus
 from src.domain.exceptions.license import LicenseNotFoundError
+from src.domain.exceptions.member import InactiveMemberError
+from src.domain.exceptions.user import AccessChangeNotAllowedError
 
 pytestmark = [pytest.mark.unit]
 
@@ -33,8 +36,16 @@ def repository_with(*licences):
     return repository
 
 
-async def change(repository, grade_number):
-    return await ChangeMemberGradeUseCase(repository).execute("member-ana", grade_number)
+def members_with(status=MemberStatus.ACTIVE):
+    members = AsyncMock()
+    members.find_by_id.return_value = Member(id="member-ana", first_name="Ana", club_id="club-own", status=status)
+    return members
+
+
+async def change(repository, grade_number, changed_by_member_id="member-admin", members=None):
+    return await ChangeMemberGradeUseCase(repository, members or members_with()).execute(
+        "member-ana", grade_number, changed_by_member_id
+    )
 
 
 @pytest.mark.parametrize(
@@ -121,3 +132,29 @@ async def test_a_number_out_of_range_is_refused(technical_grade, number):
         await change(repository, number)
 
     repository.update.assert_not_called()
+
+
+async def test_a_club_admin_cannot_change_their_own_grade():
+    repository = repository_with(licence("2º Dan", TechnicalGrade.DAN))
+
+    with pytest.raises(AccessChangeNotAllowedError):
+        await change(repository, 10, changed_by_member_id="member-ana")
+
+    repository.update.assert_not_called()
+
+
+async def test_a_club_admin_cannot_rewrite_the_grade_of_a_deregistered_member():
+    repository = repository_with(licence("6º Kyu"))
+
+    with pytest.raises(InactiveMemberError):
+        await change(repository, 4, members=members_with(MemberStatus.INACTIVE))
+
+    repository.update.assert_not_called()
+
+
+async def test_the_federation_changes_any_grade():
+    changed = await change(
+        repository_with(licence("6º Kyu")), 4, changed_by_member_id=None, members=members_with(MemberStatus.INACTIVE)
+    )
+
+    assert changed.grade == "4º Kyu"
