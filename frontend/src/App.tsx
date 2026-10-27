@@ -1,3 +1,4 @@
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Suspense } from "react";
 import {
   BrowserRouter as Router,
@@ -71,7 +72,10 @@ function App() {
                   <Route path="/seminars" element={<SeminarsPage />} />
                   <Route path="/insurance" element={<InsurancePage />} />
                   <Route path="/import-export" element={<ImportExportPage />} />
-                  <Route path="/price-configurations" element={<PriceConfigurationsPage />} />
+                  <Route
+                    path="/price-configurations"
+                    element={<ProtectedRoute allowedRoles={['super_admin']}><PriceConfigurationsPage /></ProtectedRoute>}
+                  />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Route>
 
