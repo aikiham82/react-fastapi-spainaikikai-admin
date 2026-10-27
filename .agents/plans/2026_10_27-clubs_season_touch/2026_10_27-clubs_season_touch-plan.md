@@ -41,11 +41,11 @@ Super admin rows join the all-clubs summary for the current season by `club_id`:
 
 Pendientes, Historial and Inicio name the same season, today "Temporada 2026-27". Historial opens on `defaultPaymentYear(today)` and its header reads "Temporada {seasonLabel(year)}"; the amber "Ver 2027" box goes. Inicio counts clubs paid for the season year (`insurance_season_year(now)`) instead of the calendar year.
 
-- [ ] Tests: `ClubPaymentsPage.test.tsx` opens on the season in October and in September, header "Temporada 2026-27", no amber box; `test_dashboard_*` counts transactions of the season year in October; Pendientes header starts with "Temporada 2026-27".
-- [ ] Implement in `useClubPaymentsContext.tsx`, `ClubPaymentsPage.tsx`, `dashboard.py`.
-- [ ] Copy: Historial "Temporada {season}"; year picker options labelled by season.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Tests: `ClubPaymentsPage.test.tsx` opens on the season in October and in September, header "Temporada 2026-27", no amber box; `test_dashboard_*` counts transactions of the season year in October; Pendientes header starts with "Temporada 2026-27".
+- [x] Implement in `useClubPaymentsContext.tsx`, `ClubPaymentsPage.tsx`, `dashboard.py`.
+- [x] Copy: Historial "Temporada {season}"; year picker options labelled by season.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: Touch targets
 
@@ -55,6 +55,6 @@ Pendientes, Historial and Inicio name the same season, today "Temporada 2026-27"
 
 ## ⏭️ Next step
 
-Implement Phase 2: one season everywhere.
+Implement Phase 3: touch targets.
 
-Clubs counted, one season to go: 🐢 💨 🥋 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+One season, counted once: 🐢 💨 🥋 📅 (Turbotuga™, [Codely](https://codely.com)'s mascot).

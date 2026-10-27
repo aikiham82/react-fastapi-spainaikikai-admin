@@ -7,6 +7,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from src.domain.entities.insurance import insurance_season_year
 from src.infrastructure.database import get_database
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx
@@ -94,20 +95,20 @@ async def get_dashboard_stats(
     active_members = await db["members"].count_documents({**member_filter, "status": "active"})
 
     # Club-level payment stats (current year)
-    current_year = now.year
+    season_year = insurance_season_year(now)
 
     if club_id:
         # Club admin: check if their club has any completed payment this year
         clubs_paid_count = await db["transactions"].count_documents({
             "club_id": club_id,
-            "payment_year": current_year,
+            "payment_year": season_year,
             "status": "completed"
         })
         clubs_paid = 1 if clubs_paid_count > 0 else 0
     else:
         # Super admin: count distinct clubs with completed payments
         pipeline = [
-            {"$match": {"payment_year": current_year, "status": "completed"}},
+            {"$match": {"payment_year": season_year, "status": "completed"}},
             {"$group": {"_id": "$club_id"}},
             {"$count": "total"}
         ]

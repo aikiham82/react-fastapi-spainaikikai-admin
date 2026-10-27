@@ -77,6 +77,15 @@ describe('Dashboard', () => {
     expect(screen.getByRole('progressbar', { name: 'Temporada pagada' })).toHaveAttribute('aria-valuenow', '5')
   })
 
+  it('names the season it counts, the same one Pagos shows', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 27))
+    renderWith(dashboardData())
+    vi.useRealTimers()
+
+    expect(screen.getByText('Temporada 2026-27 pagada')).toBeInTheDocument()
+  })
+
   it('shows licences and accident insurance in force as rings over active members', () => {
     renderWith(dashboardData())
 
