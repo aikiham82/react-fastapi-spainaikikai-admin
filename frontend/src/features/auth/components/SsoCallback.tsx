@@ -40,13 +40,14 @@ export const SsoCallback = () => {
   }, [isSignedIn, getToken, signOut, exchange, startSession, fail]);
 
   return (
-    <div className="flex h-screen items-center justify-center">
+    <div className="flex h-screen items-center justify-center" role="status">
       <HandleSSOCallback
         navigateToApp={({ session }) => session?.status === "pending" && fail()}
         navigateToSignIn={fail}
         navigateToSignUp={fail}
       />
-      <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Entrando con Google" />
+      <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+      <span className="sr-only">Entrando con Google</span>
     </div>
   );
 };

@@ -10,8 +10,10 @@ const clerkConfig = vi.hoisted(() => ({
 vi.mock('@/core/config/clerk', () => clerkConfig)
 
 const sso = vi.fn()
+const clerkState = vi.hoisted(() => ({ loaded: true }))
 vi.mock('@clerk/react', () => ({
   ClerkProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  ClerkLoaded: ({ children }: { children: React.ReactNode }) => (clerkState.loaded ? <>{children}</> : null),
   useSignIn: () => ({ signIn: { sso }, fetchStatus: 'idle' }),
 }))
 
@@ -27,7 +29,15 @@ describe('GoogleSignIn', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     clerkConfig.clerkPublishableKey = 'pk_test_x'
+    clerkState.loaded = true
     sso.mockResolvedValue({ error: null })
+  })
+
+  it('offers nothing while Clerk has not loaded', () => {
+    clerkState.loaded = false
+    renderWithProviders(<GoogleSignIn />)
+
+    expect(screen.queryByRole('button', { name: 'Entrar con Google' })).not.toBeInTheDocument()
   })
 
   it('offers Google when Clerk is configured', () => {
