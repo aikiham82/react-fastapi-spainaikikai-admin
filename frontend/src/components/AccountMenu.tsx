@@ -47,17 +47,11 @@ export const AccountMenu = () => {
           </div>
         </div>
         <div className="flex min-w-0 items-center gap-3 border-t border-border pt-3.5">
-          {clubName ? (
-            <>
-              <ClubMark clubName={clubName} logoUrl={clubLogoUrl} size="sm" />
-              <div className="flex min-w-0 flex-col gap-1">
-                <p className="text-sm font-semibold text-foreground">{clubName}</p>
-                {roleLabel && <RoleChip label={roleLabel} />}
-              </div>
-            </>
-          ) : (
-            roleLabel && <RoleChip label={roleLabel} />
-          )}
+          {clubName && <ClubMark clubName={clubName} logoUrl={clubLogoUrl} size="sm" />}
+          <div className="flex min-w-0 flex-col gap-1">
+            {clubName && <p className="text-sm font-semibold text-foreground">{clubName}</p>}
+            {roleLabel && <RoleChip label={roleLabel} />}
+          </div>
         </div>
         <div className="border-t border-border pt-2">
           <button

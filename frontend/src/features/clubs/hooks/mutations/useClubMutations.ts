@@ -28,6 +28,7 @@ export const useUpdateClubMutation = () => {
       toast.success('Club actualizado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
       queryClient.invalidateQueries({ queryKey: ['club'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },
     onError: () => {
       toast.error('Error al actualizar el club');

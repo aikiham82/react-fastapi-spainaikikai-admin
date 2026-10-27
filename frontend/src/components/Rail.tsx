@@ -36,7 +36,7 @@ const RailLink = ({ group, isActive, count }: { group: NavGroup; isActive: boole
 
 export const Rail = ({ className, id }: RailProps) => {
   const { groups, active } = useNav()
-  const { clubName, clubLogoUrl } = useIdentity()
+  const { clubName, clubTitle, clubLogoUrl } = useIdentity()
   const counters = useNavCounters()
   const render = (group: NavGroup) => (
     <RailLink key={group.id} group={group} isActive={active?.id === group.id} count={groupCount(group, counters)} />
@@ -50,10 +50,10 @@ export const Rail = ({ className, id }: RailProps) => {
     >
       <ClubMark clubName={clubName} logoUrl={clubLogoUrl} />
       <p
-        title={clubName ?? 'Spain Aikikai'}
+        title={clubTitle}
         className="mb-3 mt-1.5 line-clamp-2 w-[72px] text-center text-[11px] font-semibold leading-tight text-foreground"
       >
-        {clubName ?? 'Spain Aikikai'}
+        {clubTitle}
       </p>
       {groups.filter((group) => !group.footer).map(render)}
       <div className="mt-auto flex flex-col items-center gap-1">

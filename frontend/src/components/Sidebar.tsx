@@ -18,7 +18,7 @@ const rowClasses =
 
 export const Sidebar = ({ className, onClose }: SidebarProps) => {
   const { logout } = useAuthContext();
-  const { name, email, clubName, clubLogoUrl, roleLabel } = useIdentity();
+  const { name, email, clubName, clubTitle, clubLogoUrl, roleLabel } = useIdentity();
   const { groups, pathname, search } = useNav();
 
   const handleLogout = () => {
@@ -31,7 +31,7 @@ export const Sidebar = ({ className, onClose }: SidebarProps) => {
       <div className="flex items-center gap-3 pl-2 pr-10">
         <ClubMark clubName={clubName} logoUrl={clubLogoUrl} />
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold leading-tight text-foreground">{clubName ?? 'Spain Aikikai'}</p>
+          <p className="text-[15px] font-semibold leading-tight text-foreground">{clubTitle}</p>
           {roleLabel && <p className="text-[13px] text-muted-foreground">{roleLabel}</p>}
         </div>
       </div>

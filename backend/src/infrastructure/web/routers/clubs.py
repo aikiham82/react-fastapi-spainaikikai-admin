@@ -3,7 +3,7 @@
 from dataclasses import asdict
 from typing import List, Optional
 
-from datetime import datetime
+import time
 
 from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile, status
 from starlette.concurrency import run_in_threadpool
@@ -119,7 +119,7 @@ async def upload_club_logo(
     jpeg = await run_in_threadpool(to_jpeg, content, (256, 256), pad=True)
     save_atomically(CLUB_LOGO_DIR, f"{club_id}.jpg", jpeg)
 
-    logo_url = f"/uploads/clubs/{club_id}.jpg?v={int(datetime.utcnow().timestamp())}"
+    logo_url = f"/uploads/clubs/{club_id}.jpg?v={int(time.time())}"
     try:
         club = await set_logo_use_case.execute(club_id, logo_url)
     except ClubNotFoundError:

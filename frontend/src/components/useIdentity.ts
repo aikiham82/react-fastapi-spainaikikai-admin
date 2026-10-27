@@ -6,6 +6,7 @@ export interface Identity {
   firstName: string
   email: string
   clubName: string | null
+  clubTitle: string
   clubLogoUrl: string | null
   roleLabel: string | null
 }
@@ -19,6 +20,7 @@ export const useIdentity = (): Identity => {
     firstName: name.split(' ')[0],
     email: currentUser?.email ?? userEmail ?? '',
     clubName: currentUser?.club_name ?? null,
+    clubTitle: currentUser?.club_name ?? 'Spain Aikikai',
     clubLogoUrl: currentUser?.club_logo_url ?? null,
     roleLabel: userRole ? (roleLabels[userRole] ?? null) : null,
   }
