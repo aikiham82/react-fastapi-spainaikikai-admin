@@ -113,3 +113,16 @@ async def test_a_new_member_without_registration_date_joins_today(use_case):
     member = await create_with_registration_date(use_case, None)
 
     assert member.registration_date.date() == datetime.utcnow().date()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_refuses_the_last_name_reserved_for_club_account_placeholders(use_case, mock_member_repository):
+    from src.domain.exceptions.member import InvalidMemberDataError
+
+    with pytest.raises(InvalidMemberDataError):
+        await use_case.execute(
+            first_name="Luis", last_name=" (Club Admin) ", dni="", email="", phone="",
+            address="", city="", province="", postal_code="",
+        )
+    mock_member_repository.create.assert_not_called()

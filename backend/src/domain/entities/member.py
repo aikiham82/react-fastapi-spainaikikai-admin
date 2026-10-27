@@ -18,6 +18,13 @@ class ClubRole(str, Enum):
     MEMBER = "member"  # Regular member
 
 
+CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME = "(Club Admin)"
+
+
+def is_club_account_placeholder_name(last_name: Optional[str]) -> bool:
+    return (last_name or "").strip() == CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME
+
+
 @dataclass
 class Member:
     """Member domain entity representing an Aikido practitioner."""
@@ -123,3 +130,8 @@ class Member:
     def is_club_admin(self) -> bool:
         """Check if member has club admin role."""
         return self.club_role == ClubRole.ADMIN
+
+    @property
+    def is_club_account_placeholder(self) -> bool:
+        """The fake member the MariaDB migration hung each shared club login from."""
+        return is_club_account_placeholder_name(self.last_name)

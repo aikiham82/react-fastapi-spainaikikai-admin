@@ -3,8 +3,8 @@
 from datetime import datetime
 from typing import Optional
 
-from src.domain.entities.member import Member, MemberStatus
-from src.domain.exceptions.member import MemberAlreadyExistsError, InvalidClubForMemberError
+from src.domain.entities.member import Member, MemberStatus, is_club_account_placeholder_name
+from src.domain.exceptions.member import MemberAlreadyExistsError, InvalidClubForMemberError, InvalidMemberDataError
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 
@@ -37,6 +37,8 @@ class CreateMemberUseCase:
         registration_date: Optional[datetime] = None,
     ) -> Member:
         """Execute the use case."""
+        if is_club_account_placeholder_name(last_name):
+            raise InvalidMemberDataError("Ese apellido está reservado para las cuentas de club")
         # Check if member with same DNI exists (skip for empty DNIs)
         dni = (dni or "").strip()
         if dni:

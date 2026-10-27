@@ -7,9 +7,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.infrastructure.web.dto.club_dto import (
     ClubCreate,
     ClubUpdate,
-    ClubResponse
+    ClubResponse,
+    TransferClubAccountDTO,
+    ClubAccountSummaryResponse,
 )
 from src.infrastructure.web.mappers_club import ClubMapper
+from src.infrastructure.web.mappers import UserMapper
+from src.infrastructure.web.dto.user_dto import UserResponse
+from src.infrastructure.web.audit import audit
+from src.domain.exceptions.member import InactiveMemberError, InvalidClubForMemberError, MemberNotFoundError
+from src.domain.exceptions.user import ClubAccountNotFoundError, UserAlreadyExistsError
 from src.infrastructure.web.dependencies import (
     get_all_clubs_use_case,
     get_club_use_case,
@@ -17,6 +24,8 @@ from src.infrastructure.web.dependencies import (
     get_update_club_use_case,
     get_delete_club_use_case,
     get_auth_context,
+    get_transfer_club_account_use_case,
+    get_list_club_accounts_use_case,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -45,6 +54,16 @@ async def get_clubs(
     # Super admins see all clubs
     clubs = await get_all_use_case.execute(limit)
     return ClubMapper.to_response_list(clubs)
+
+
+@router.get("/club-accounts", response_model=List[ClubAccountSummaryResponse])
+async def list_club_accounts(
+    list_use_case = Depends(get_list_club_accounts_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Clubs still signing in with a shared club account, with their shidoin or fukushidoin (Super Admin only)."""
+    require_super_admin(ctx)
+    return await list_use_case.execute()
 
 
 @router.get("/{club_id}", response_model=ClubResponse)
@@ -103,3 +122,29 @@ async def delete_club(
     require_super_admin(ctx)
     await get_delete_use_case.execute(club_id)
     return None
+
+
+@router.post("/{club_id}/account/transfer", response_model=UserResponse)
+async def transfer_club_account(
+    club_id: str,
+    request: TransferClubAccountDTO,
+    transfer_use_case = Depends(get_transfer_club_account_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Pass the club's shared account onto one of its members (Super Admin only)."""
+    require_super_admin(ctx)
+    try:
+        user = await transfer_use_case.execute(club_id, request.account_id, request.member_id)
+    except ClubAccountNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este club no tiene cuenta de club")
+    except MemberNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Socio no encontrado")
+    except InvalidClubForMemberError:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="El socio no es de este club")
+    except InactiveMemberError:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="El socio no está activo")
+    except UserAlreadyExistsError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este socio ya tiene su propia cuenta")
+
+    audit("access.club_account_transferred", club_id=club_id, member_id=request.member_id, by=ctx.user.id)
+    return UserMapper.to_response(user)

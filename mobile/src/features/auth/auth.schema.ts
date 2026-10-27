@@ -12,6 +12,7 @@ export const UserMeSchema = z.object({
   club_role: z.string().nullable().optional(),
   club_id: z.string().nullable().optional(),
   member_id: z.string().nullable().optional(),
+  is_club_account: z.boolean().optional(),
 });
 
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;

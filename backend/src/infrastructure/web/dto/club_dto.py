@@ -1,7 +1,7 @@
 """Club DTOs for request/response validation."""
 
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 
 
@@ -46,3 +46,26 @@ class ClubResponse(ClubBase):
 
     class Config:
         from_attributes = True
+
+
+class TransferClubAccountDTO(BaseModel):
+    """DTO for passing the club's shared account onto a member."""
+    account_id: str
+    member_id: str
+
+
+class ClubAccountCandidateResponse(BaseModel):
+    """A shidoin or fukushidoin the club account could be passed to."""
+    member_id: str
+    name: str
+    instructor_category: str
+
+
+class ClubAccountSummaryResponse(BaseModel):
+    """A club still signing in with a shared club account."""
+    club_id: str
+    club_name: str
+    account_id: str
+    username: str
+    email: str
+    candidates: List[ClubAccountCandidateResponse]

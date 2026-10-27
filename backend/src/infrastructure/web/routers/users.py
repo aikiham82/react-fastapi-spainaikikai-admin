@@ -166,6 +166,7 @@ async def read_users_me(ctx: AuthContext = Depends(get_auth_context)):
         **response.model_dump(),
         club_role=ctx.member.club_role.value if ctx.member else None,
         club_id=ctx.member.club_id if ctx.member else None,
+        is_club_account=bool(ctx.member and ctx.member.is_club_account_placeholder),
     )
 
 
