@@ -13,7 +13,7 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { InsuranceForm } from './InsuranceForm';
 import { RenewLink } from '@/features/annual-payments/components/RenewLink';
 import { InsuranceDetailDialog } from './InsuranceDetailDialog';
-import { insuranceStatus, insuranceTypeLabel } from './insuranceDisplay';
+import { insuranceStatus, insuranceTypeLabel, needsRenewal } from './insuranceDisplay';
 import { foldForSearch } from '@/core/utils/search';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
@@ -43,9 +43,13 @@ export const InsuranceList = () => {
   const canDelete = canAccess({ resource: 'insurance', action: 'delete' });
   const canRenew = canAccess({ resource: 'payments', action: 'create' });
   const renewalOf = (insurance: Insurance) =>
-    canRenew && insurance.member_id && (insurance.status === 'expired' || insuranceStatus(insurance).tone === 'warn')
-      ? <RenewLink memberId={insurance.member_id} memberName={memberNameOf(insurance)} />
-      : null;
+    canRenew && insurance.member_id && needsRenewal(insurance) ? (
+      <RenewLink
+        memberId={insurance.member_id}
+        memberName={memberNameOf(insurance)}
+        kind={insurance.insurance_type === 'accident' ? 'accidentes' : 'rc'}
+      />
+    ) : null;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState(ALL);
@@ -218,6 +222,7 @@ export const InsuranceList = () => {
             {visibleInsurance.map((insurance) => {
               const status = insuranceStatus(insurance);
               const actions = rowActions(insurance);
+              const renewal = renewalOf(insurance);
               return (
                 <li
                   key={insurance.id}
@@ -245,7 +250,7 @@ export const InsuranceList = () => {
                         <span className="text-sm font-semibold tabular-nums text-foreground">{formatCurrency(insurance.coverage_amount)}</span>
                       )}
                     </div>
-                    {renewalOf(insurance) && <div onClick={(event) => event.stopPropagation()}>{renewalOf(insurance)}</div>}
+                    {renewal && <div onClick={(event) => event.stopPropagation()}>{renewal}</div>}
                   </div>
                   {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
                 </li>

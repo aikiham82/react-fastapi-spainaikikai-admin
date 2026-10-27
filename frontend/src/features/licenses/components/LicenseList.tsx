@@ -276,7 +276,7 @@ export const LicenseList = () => {
                 </button>
                 {needsRenewal(license) && (
                   <div className="flex justify-end px-3.5 pb-3.5">
-                    <RenewLink memberId={license.member_id} memberName={memberNameOf(license)} />
+                    <RenewLink memberId={license.member_id} memberName={memberNameOf(license)} kind="licencia" />
                   </div>
                 )}
               </li>
@@ -313,7 +313,7 @@ export const LicenseList = () => {
                     <td className="px-3 py-3"><LicenseStatusBadge license={license} /></td>
                     <td className="px-1 py-1.5">
                       <span className="flex items-center justify-end gap-1">
-                        {needsRenewal(license) && <RenewLink memberId={license.member_id} memberName={memberNameOf(license)} />}
+                        {needsRenewal(license) && <RenewLink memberId={license.member_id} memberName={memberNameOf(license)} kind="licencia" />}
                         <RowActions label={`licencia ${license.license_number}`} actions={rowActions(license)} />
                       </span>
                     </td>

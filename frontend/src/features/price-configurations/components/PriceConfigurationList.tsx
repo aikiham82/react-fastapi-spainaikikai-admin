@@ -15,7 +15,7 @@ import { IconTile } from '@/components/ui/graphic';
 import { priceIconOf } from '../utils/price-icon';
 
 export const PriceConfigurationList = () => {
-  const { priceConfigurations, isLoading, error, updatePriceConfiguration, deletePriceConfiguration, isDeleting } =
+  const { priceConfigurations, isLoading, error, updatePriceConfiguration, isUpdating, deletePriceConfiguration, isDeleting } =
     usePriceConfigurationContext();
   const { canAccess } = usePermissions();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -58,6 +58,7 @@ export const PriceConfigurationList = () => {
       <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
         <Switch
           checked={config.is_active}
+          disabled={isUpdating}
           onCheckedChange={(checked) => updatePriceConfiguration(config.id, { is_active: checked })}
           aria-label={`${getPriceKeyDescription(config.key, config.category)} activo`}
         />

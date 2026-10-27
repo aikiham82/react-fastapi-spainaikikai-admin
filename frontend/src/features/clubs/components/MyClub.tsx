@@ -53,7 +53,7 @@ export const MyClub = () => {
   const addressTail = uniqueParts([club.postal_code, club.city, club.province]);
   const hasAddress = Boolean(club.address) || addressTail.length > 0;
   const responsibles = (members ?? [])
-    .filter((member) => member.club_role === 'admin')
+    .filter((member) => member.club_role === 'admin' && member.status !== 'inactive')
     .map((member) => `${member.first_name} ${member.last_name ?? ''}`.trim());
 
   return (

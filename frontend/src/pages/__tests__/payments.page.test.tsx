@@ -124,29 +124,51 @@ describe('PaymentsPage', () => {
     expect(screen.getByText(new RegExp(`^Temporada ${seasonLabel(previous)} · licencias del año ${previous} `))).toBeInTheDocument()
   })
 
-  const ticks = (name: RegExp) =>
-    within(screen.getByRole('group', { name })).getAllByRole('checkbox').map((chip) => chip.getAttribute('aria-checked'))
+  const chipOf = (member: RegExp, chip: RegExp) =>
+    within(screen.getByRole('group', { name: member })).getByRole('checkbox', { name: chip })
 
-  it('renews one member: only that member is ticked, nobody else and not the club fee', () => {
+  const prefillBoth = () => {
     roster.members = [kira, rui]
     roster.prefilled = [
-      { member_id: 'm-1', member_name: 'Kira Ejemplo', payment_types: ['licencia_kyu', 'seguro_accidentes', 'seguro_rc'] },
-      { member_id: 'm-2', member_name: 'Rui Prueba', payment_types: ['licencia_kyu', 'seguro_accidentes', 'seguro_rc'] },
+      { member_id: 'm-1', member_name: 'Kira Ejemplo', payment_types: ['kyu', 'seguro_accidentes', 'seguro_rc'] },
+      { member_id: 'm-2', member_name: 'Rui Prueba', payment_types: ['kyu', 'seguro_accidentes', 'seguro_rc'] },
     ]
-    renderAt('/payments?renovar=m-2')
+  }
 
-    expect(ticks(/Rui/).every((checked) => checked === 'true')).toBe(true)
-    expect(ticks(/Kira/).every((checked) => checked === 'false')).toBe(true)
+  it('renews one licence: only that licence is ticked, nobody else and not the club fee', () => {
+    prefillBoth()
+    renderAt('/payments?renovar=m-2&que=licencia')
+
+    expect(chipOf(/Rui/, /licencia/i)).toHaveAttribute('aria-checked', 'true')
+    expect(chipOf(/Rui/, /accidentes/i)).toHaveAttribute('aria-checked', 'false')
+    expect(chipOf(/Rui/, /RC/)).toHaveAttribute('aria-checked', 'false')
+    expect(chipOf(/Kira/, /licencia/i)).toHaveAttribute('aria-checked', 'false')
     expect(screen.getByRole('checkbox', { name: /cuota/i })).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('renews one insurance without touching the licence cycle', () => {
+    prefillBoth()
+    renderAt('/payments?renovar=m-2&que=rc')
+
+    expect(chipOf(/Rui/, /RC/)).toHaveAttribute('aria-checked', 'true')
+    expect(chipOf(/Rui/, /licencia/i)).toHaveAttribute('aria-checked', 'false')
+    expect(chipOf(/Rui/, /accidentes/i)).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('says so when the member has nothing left to renew in this season', () => {
+    prefillBoth()
+    renderAt('/payments?renovar=m-9&que=licencia')
+
+    expect(screen.getByText('Este miembro no tiene nada pendiente de renovar en esta temporada.')).toBeInTheDocument()
   })
 
   it('chooses the member club for a super admin who renews', () => {
     authContext.userRole = 'super_admin'
     authContext.clubId = null
     roster.members = [kira, rui]
-    renderAt('/payments?renovar=m-2')
+    renderAt('/payments?renovar=m-2&que=licencia')
 
-    expect(ticks(/Rui/).every((checked) => checked === 'true')).toBe(true)
+    expect(chipOf(/Rui/, /licencia/i)).toHaveAttribute('aria-checked', 'true')
   })
 
   it('shows the friendly missing-price message to club admins', () => {

@@ -190,6 +190,26 @@ export const tickAllPending = (
       : [];
   });
 
+export type RenewKind = 'licencia' | 'accidentes' | 'rc';
+
+const RENEWED_ITEMS: Record<RenewKind, (item: MemberItem) => boolean> = {
+  licencia: (item) => LICENCE_ITEMS.includes(item as LicenceItem),
+  accidentes: (item) => item === 'seguro_accidentes',
+  rc: (item) => item === 'seguro_rc',
+};
+
+export const renewalAssignments = (
+  rows: ChecklistRow[],
+  memberId: string,
+  kind: RenewKind,
+): MemberPaymentAssignment[] =>
+  tickAllPending(rows.filter((row) => row.memberId === memberId))
+    .map((assignment) => ({
+      ...assignment,
+      payment_types: assignment.payment_types.filter((item) => RENEWED_ITEMS[kind](item as MemberItem)),
+    }))
+    .filter((assignment) => assignment.payment_types.length > 0);
+
 type ItemCounts = Record<MemberItem, number>;
 
 export const deriveCounts = (assignments: MemberPaymentAssignment[]): ItemCounts => {

@@ -147,7 +147,7 @@ describe('InsuranceList', () => {
     ]
     renderWithProviders(<InsuranceList />)
 
-    expect(screen.getAllByRole('link', { name: 'Renovar Ana Example' })[0]).toHaveAttribute('href', '/payments?renovar=member-1')
+    expect(screen.getAllByRole('link', { name: 'Renovar Ana Example' })[0]).toHaveAttribute('href', '/payments?renovar=member-1&que=accidentes')
     expect(screen.queryByRole('link', { name: 'Renovar Bea Example' })).not.toBeInTheDocument()
   })
 
@@ -156,5 +156,12 @@ describe('InsuranceList', () => {
     renderWithProviders(<InsuranceList />)
 
     expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
+  })
+
+  it('offers Renovar on an insurance whose end date has passed even if it is still marked active', () => {
+    context.insuranceList = [{ ...insurance, status: 'active', insurance_type: 'civil_liability' }]
+    renderWithProviders(<InsuranceList />)
+
+    expect(screen.getAllByRole('link', { name: 'Renovar Ana Example' })[0]).toHaveAttribute('href', '/payments?renovar=member-1&que=rc')
   })
 })

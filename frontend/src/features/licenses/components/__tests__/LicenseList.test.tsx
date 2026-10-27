@@ -169,7 +169,7 @@ describe('LicenseList', () => {
       expect.arrayContaining(['Renovar Carlos Soon', 'Renovar Dora Expired']),
     )
     expect(screen.queryByRole('link', { name: 'Renovar Bea Active' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Renovar Dora Expired' })[0]).toHaveAttribute('href', '/payments?renovar=member-3')
+    expect(screen.getAllByRole('link', { name: 'Renovar Dora Expired' })[0]).toHaveAttribute('href', '/payments?renovar=member-3&que=licencia')
   })
 
   it('does not offer Renovar to whoever cannot pay', () => {

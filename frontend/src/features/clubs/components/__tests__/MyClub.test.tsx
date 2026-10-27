@@ -54,6 +54,17 @@ describe('MyClub', () => {
     expect(screen.getByText('Lucía Ejemplo · Tomás Prueba')).toBeInTheDocument()
   })
 
+  it('does not name a former responsible who left the club', () => {
+    state.members = [
+      { id: 'm1', first_name: 'Lucía', last_name: 'Ejemplo', club_role: 'admin', status: 'active' },
+      { id: 'm4', first_name: 'Antiguo', last_name: 'Ejemplo', club_role: 'admin', status: 'inactive' },
+    ]
+    renderWithProviders(<MyClub />)
+
+    expect(screen.getByText('Lucía Ejemplo')).toBeInTheDocument()
+    expect(screen.queryByText(/Antiguo/)).not.toBeInTheDocument()
+  })
+
   it('leaves out the responsible row when no member runs the club', () => {
     state.members = [{ id: 'm2', first_name: 'Marcos', last_name: 'Prueba', club_role: 'member' }]
     renderWithProviders(<MyClub />)

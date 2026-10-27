@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useMemo, useRef, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useRef, useEffect, useState, type ReactNode } from 'react';
 import { useAnnualPaymentForm, type UseAnnualPaymentFormReturn } from './useAnnualPaymentForm';
 import { useInitiateAnnualPaymentMutation } from './mutations/useInitiateAnnualPayment.mutation';
 import { useAnnualPaymentPricesQuery } from './queries/useAnnualPaymentPricesQuery';
@@ -17,6 +17,8 @@ import {
   sanitizeAssignments,
   chooseLicence,
   tickAllPending,
+  renewalAssignments,
+  type RenewKind,
   tickedPriceConcepts,
   toggleItems,
   type ChecklistRow,
@@ -48,6 +50,7 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   toggleMemberItems: (row: ChecklistRow, items: MemberItem[]) => void;
   chooseMemberLicence: (row: ChecklistRow, licence: LicenceItem) => void;
   tickEverythingPending: () => void;
+  renewNotice: string | null;
 }
 
 const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>(undefined);
@@ -55,9 +58,10 @@ const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>
 interface AnnualPaymentProviderProps {
   children: ReactNode;
   renewMemberId?: string;
+  renewKind?: RenewKind;
 }
 
-export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children, renewMemberId }) => {
+export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children, renewMemberId, renewKind = 'licencia' }) => {
   const { userRole, clubId, currentUser } = useAuthContext();
   const { data: clubsData, isLoading: isLoadingClubs } = useClubsQuery({});
   const initiatePaymentMutation = useInitiateAnnualPaymentMutation();
@@ -91,9 +95,11 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     }
   }, [isClubAdmin, userClubId, formData.club_id, setField]);
 
+  const renewPendingRef = useRef(Boolean(renewMemberId));
+  const [renewNotice, setRenewNotice] = useState<string | null>(null);
   const { data: renewMember } = useMemberQuery(isClubAdmin ? '' : (renewMemberId ?? ''));
   useEffect(() => {
-    if (renewMember?.club_id && !formData.club_id) {
+    if (renewPendingRef.current && renewMember?.club_id && formData.club_id !== renewMember.club_id) {
       setField('club_id', renewMember.club_id);
     }
   }, [renewMember?.club_id, formData.club_id, setField]);
@@ -167,14 +173,18 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     if (payerName) {
       setField('payer_name', payerName);
     }
-    if (renewMemberId) {
+    if (renewPendingRef.current && renewMemberId) {
+      renewPendingRef.current = false;
+      const renewal = renewalAssignments(rows, renewMemberId, renewKind);
       setField('include_club_fee', false);
-      applyAssignments(tickAllPending(rows.filter((row) => row.memberId === renewMemberId)));
+      applyAssignments(renewal);
+      setRenewNotice(renewal.length === 0 ? 'Este miembro no tiene nada pendiente de renovar en esta temporada.' : null);
       return;
     }
+    setRenewNotice(null);
     setField('include_club_fee', prefillData.include_club_fee && !prefillData.club_fee_already_paid);
     applyAssignments(sanitizeAssignments(prefillData.member_assignments, rows));
-  }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, isLoadingClubs, clubsData, currentUser?.username, formData.club_id, rows, setField, applyAssignments, renewMemberId]);
+  }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, isLoadingClubs, clubsData, currentUser?.username, formData.club_id, rows, setField, applyAssignments, renewMemberId, renewKind]);
 
   const clubs = useMemo(() => {
     if (isClubAdmin && userClubId) {
@@ -267,6 +277,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     toggleMemberItems,
     chooseMemberLicence,
     tickEverythingPending,
+    renewNotice,
   };
 
   return (
