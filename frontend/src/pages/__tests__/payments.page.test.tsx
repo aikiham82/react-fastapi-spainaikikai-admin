@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { PaymentsPage } from '../payments.page'
 import { legacyPaymentRoutes } from '../legacy-payment-routes'
+import { defaultPaymentYear, seasonLabel } from '@/core/utils/defaultPaymentYear'
 import type { PrefillAnnualPaymentResponse } from '@/features/annual-payments/data/schemas/annual-payment.schema'
 
 const authContext = { userRole: 'club_admin' as 'club_admin' | 'super_admin', clubId: 'club-1' as string | null }
@@ -108,6 +109,17 @@ describe('PaymentsPage', () => {
     expect(screen.getByRole('group', { name: /Kira/ })).toBeInTheDocument()
     expect(screen.queryByText('Historial de pagos')).not.toBeInTheDocument()
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+  })
+
+  it('names the season of the licences it charges when another one is chosen', async () => {
+    const previous = defaultPaymentYear(new Date()) - 1
+    renderAt('/payments')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Otra temporada' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Temporada' }))
+    await userEvent.click(screen.getByRole('option', { name: seasonLabel(previous) }))
+
+    expect(screen.getByText(new RegExp(`^Temporada ${seasonLabel(previous)} · licencias del año ${previous} `))).toBeInTheDocument()
   })
 
   it('shows the friendly missing-price message to club admins', () => {

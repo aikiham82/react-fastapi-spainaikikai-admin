@@ -65,17 +65,17 @@ describe('ClubPaymentsPage year', () => {
   it('points to the season being paid from October', async () => {
     renderOn('2026-10-25T10:00:00')
 
-    expect(screen.getByText('Ya hay pagos de la temporada 2026-27.')).toBeInTheDocument()
+    expect(screen.getByText('La temporada 2026-27 ya está abierta.')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Ver temporada 2026-27' }))
 
     expect(requestedYear()).toBe(2027)
     expect(screen.getByText('Temporada 2026-27 · licencias 2027')).toBeInTheDocument()
-    expect(screen.queryByText(/Ya hay pagos/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/ya está abierta/)).not.toBeInTheDocument()
   })
 
   it('does not point anywhere until October', () => {
     renderOn('2026-09-30T10:00:00')
 
-    expect(screen.queryByText(/Ya hay pagos/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/ya está abierta/)).not.toBeInTheDocument()
   })
 })

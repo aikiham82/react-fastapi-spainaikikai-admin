@@ -123,6 +123,18 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
     expect(screen.getByText('Seguros de la temporada 2023-24')).toBeInTheDocument()
   })
 
+  it('counts members paid, not up to date, and shows a missing club fee as a warning', () => {
+    mockAsClubAdmin()
+    mockClubDetail.has_club_fee = false
+    renderWithProviders(<ClubPaymentDetail />)
+    mockClubDetail.has_club_fee = true
+
+    expect(screen.getByRole('progressbar', { name: 'Miembros pagados' })).toBeInTheDocument()
+    expect(screen.getByText(/pagados$/)).toBeInTheDocument()
+    expect(screen.queryByText(/al día$/)).not.toBeInTheDocument()
+    expect(screen.getByText('Cuota pendiente').closest('[data-tone]')).toHaveAttribute('data-tone', 'warn')
+  })
+
   // ─── Case 1: non-admin sees no admin UI ─────────────────────────────────
   describe('when isAssociationAdmin() returns false (club_admin)', () => {
     it('does NOT render the "Registrar pago manual" button', () => {

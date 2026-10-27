@@ -95,7 +95,7 @@ export const AllClubsSummaryTable = () => {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <StatusBadge tone={club.has_club_fee ? 'ok' : 'neutral'}>
+                  <StatusBadge tone={club.has_club_fee ? 'ok' : 'warn'}>
                     {club.has_club_fee ? 'Cuota pagada' : 'Cuota pendiente'}
                   </StatusBadge>
                   <span className={`text-sm font-semibold text-foreground ${num}`}>{formatCurrency(club.total_collected)}</span>
@@ -138,7 +138,7 @@ export const AllClubsSummaryTable = () => {
                   </span>
                 </td>
                 <td className="px-3 py-3">
-                  <StatusBadge tone={club.has_club_fee ? 'ok' : 'neutral'}>
+                  <StatusBadge tone={club.has_club_fee ? 'ok' : 'warn'}>
                     {club.has_club_fee ? 'Pagada' : 'Pendiente'}
                   </StatusBadge>
                 </td>
