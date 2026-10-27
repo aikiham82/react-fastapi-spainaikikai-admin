@@ -1,6 +1,6 @@
 """Club DTOs for request/response validation."""
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -14,8 +14,8 @@ class ClubBase(BaseModel):
     postal_code: str
     country: str
     phone: str
-    email: EmailStr
-    website: Optional[str] = None
+    email: Optional[str] = Field(None, max_length=254)
+    website: Optional[str] = Field(None, max_length=2048)
 
 
 class ClubCreate(ClubBase):
@@ -32,8 +32,8 @@ class ClubUpdate(BaseModel):
     postal_code: Optional[str] = None
     country: Optional[str] = None
     phone: Optional[str] = None
-    email: Optional[EmailStr] = None
-    website: Optional[str] = None
+    email: Optional[str] = Field(None, max_length=254)
+    website: Optional[str] = Field(None, max_length=2048)
 
 
 class ClubResponse(ClubBase):

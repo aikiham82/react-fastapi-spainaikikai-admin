@@ -1,5 +1,7 @@
 """Create Club use case."""
 
+from typing import Optional
+
 from src.domain.entities.club import Club
 from src.domain.exceptions.club import ClubAlreadyExistsError
 from src.application.ports.club_repository import ClubRepositoryPort
@@ -12,7 +14,8 @@ class CreateClubUseCase:
         self.club_repository = club_repository
 
     async def execute(self, name: str, address: str, city: str, province: str,
-                     postal_code: str, country: str, phone: str, email: str) -> Club:
+                     postal_code: str, country: str, phone: str, email: Optional[str] = None,
+                     website: Optional[str] = None) -> Club:
         """Execute the use case."""
         club = Club(
             name=name,
@@ -22,7 +25,8 @@ class CreateClubUseCase:
             postal_code=postal_code,
             country=country,
             phone=phone,
-            email=email
+            email=email or "",
+            website=website,
         )
 
         return await self.club_repository.create(club)

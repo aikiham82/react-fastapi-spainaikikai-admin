@@ -7,6 +7,7 @@ A **club account** is a login the MariaDB migration hung from a fake member, `"<
 - **Recognise it in one place.** `Member.is_club_account_placeholder` (and `is_club_account_placeholder_name` for raw input) is the only code that knows the `"(Club Admin)"` marker. `/users/me` exposes it as `is_club_account`.
 - **The last name is reserved.** Creating a member or renaming one to `"(Club Admin)"` is refused for everyone, imports included; only the placeholder itself keeps it. A renamed member would otherwise pass for a club account.
 - **The card app refuses it.** The app is each member's card; a club account sees "Esta es la cuenta del club" and a link to the admin web. The panel still accepts it.
+- **The club record's email is legacy.** It was the shared login's address; nothing signs in with it or sends to it, so the panel neither asks for nor shows it. Stored values are kept, unvalidated and optional; the login email lives on each account.
 - **A super admin passes it to a person.** `POST /clubs/{club_id}/account/transfer` names the `account_id` the super admin saw and the member: the same user (email, username, password) is relinked to the member, who becomes club admin, its reset tokens die and the placeholder becomes inactive. The clubs page lists the remaining ones with the club's shidoin, or fukushidoin, as the proposed person.
 
 ## 🏆 Benefits

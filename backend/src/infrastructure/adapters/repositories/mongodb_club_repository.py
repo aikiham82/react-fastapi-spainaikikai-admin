@@ -33,6 +33,7 @@ class MongoDBClubRepository(ClubRepositoryPort):
             country=doc.get("country", ""),
             phone=doc.get("phone", ""),
             email=doc.get("email", ""),
+            website=doc.get("website"),
             is_active=doc.get("is_active", True),
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
@@ -48,6 +49,7 @@ class MongoDBClubRepository(ClubRepositoryPort):
             "country": club.country,
             "phone": club.phone,
             "email": club.email,
+            "website": club.website,
             "is_active": club.is_active,
             "updated_at": datetime.utcnow()
         }

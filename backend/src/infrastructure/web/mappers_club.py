@@ -22,7 +22,7 @@ class ClubMapper:
             postal_code=dto.postal_code,
             country=dto.country,
             phone=dto.phone,
-            email=dto.email,
+            email=dto.email or "",
             website=dto.website,
             is_active=True
         )
