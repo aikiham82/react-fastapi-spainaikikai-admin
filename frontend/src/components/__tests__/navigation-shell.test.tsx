@@ -48,6 +48,12 @@ describe('Rail', () => {
     expect(screen.getByRole('link', { name: /club/i })).toHaveTextContent('3')
   })
 
+  it('lets the user sign out from the rail', async () => {
+    at('/', <Rail />)
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
+    expect(authContext.logout).toHaveBeenCalled()
+  })
+
   it('hides Admin from club admins', () => {
     authContext.userRole = 'club_admin'
     at('/', <Rail />)

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useNavCounters } from '@/features/dashboard/hooks/useNavCounters'
 import { groupCount, type NavGroup } from '@/components/navigation'
 import { useNav } from '@/components/useNav'
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext'
 
 interface RailProps {
   className?: string
@@ -33,6 +35,7 @@ const RailLink = ({ group, isActive, count }: { group: NavGroup; isActive: boole
 
 export const Rail = ({ className, id }: RailProps) => {
   const { groups, active } = useNav()
+  const { logout } = useAuthContext()
   const counters = useNavCounters()
   const render = (group: NavGroup) => (
     <RailLink key={group.id} group={group} isActive={active?.id === group.id} count={groupCount(group, counters)} />
@@ -46,7 +49,18 @@ export const Rail = ({ className, id }: RailProps) => {
     >
       <img src="/logo.jpg" alt="" className="mb-3 size-10 rounded-md mix-blend-multiply" />
       {groups.filter((group) => !group.footer).map(render)}
-      <div className="mt-auto flex flex-col items-center gap-1">{groups.filter((group) => group.footer).map(render)}</div>
+      <div className="mt-auto flex flex-col items-center gap-1">
+        {groups.filter((group) => group.footer).map(render)}
+        <button
+          type="button"
+          onClick={logout}
+          aria-label="Cerrar sesión"
+          className="flex w-16 flex-col items-center gap-1 rounded-xl py-2 text-[11.5px] text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="size-[22px]" aria-hidden="true" />
+          Salir
+        </button>
+      </div>
     </nav>
   )
 }
