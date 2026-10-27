@@ -1,10 +1,12 @@
 """User and authentication routes."""
 
+import logging
 from datetime import timedelta
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel, Field
 
 from src.domain.exceptions.user import (
     UserNotFoundError,
@@ -21,7 +23,9 @@ from src.infrastructure.web.dto.user_dto import (
     Token,
 )
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
+from src.application.use_cases.member_access import RequestCardAccessUseCase
 from src.infrastructure.web.dependencies import (
+    get_request_card_access_use_case,
     get_all_users_use_case,
     get_user_by_id_use_case,
     get_create_user_use_case,
@@ -59,6 +63,8 @@ from src.application.use_cases.user_use_cases import (
 )
 from src.application.use_cases.password_reset import GenerateAdminPasswordResetLinkUseCase
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["users"])
 
@@ -156,6 +162,26 @@ async def login(
     )
     
     return Token(access_token=access_token)
+
+
+CARD_ACCESS_ANSWER = "Si tu correo está en la ficha de un socio, te llegará un enlace para activar tu carné."
+
+
+class CardAccessRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=254)
+
+
+@router.post("/auth/card-access/request")
+async def request_card_access(
+    request: CardAccessRequest,
+    use_case: RequestCardAccessUseCase = Depends(get_request_card_access_use_case),
+):
+    """Let a member activate their card; the answer is the same whatever happened."""
+    try:
+        await use_case.execute(request.email)
+    except Exception:
+        logger.exception("Card access request failed")
+    return {"message": CARD_ACCESS_ANSWER}
 
 
 @router.get("/users/me", response_model=UserMeResponse)

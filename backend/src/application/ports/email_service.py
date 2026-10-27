@@ -114,3 +114,8 @@ class EmailServicePort(ABC):
     ) -> bool:
         """Send a member the link to set the password of their new account."""
         pass
+
+    @abstractmethod
+    async def send_card_activation_email(self, to_email: str, member_name: str, url: str) -> bool:
+        """Send a member who asked for it the link to set the password their card app uses."""
+        pass

@@ -13,6 +13,7 @@ import * as Haptics from "expo-haptics";
 import * as Linking from "expo-linking";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { useLoginMutation } from "@/features/auth/hooks/mutations/useLoginMutation";
@@ -180,6 +181,14 @@ export default function LoginScreen() {
                 ¿Has olvidado tu contraseña?
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.activateLink}
+              accessibilityRole="link"
+              onPress={() => router.push("/activate")}
+            >
+              <Text style={styles.activateText}>¿Primera vez? Activa tu carné</Text>
+            </TouchableOpacity>
           </Animated.View>
 
           <View style={styles.footer}>
@@ -245,6 +254,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: spacing.lg,
     padding: spacing.sm,
+  },
+  activateLink: {
+    alignItems: "center",
+    padding: spacing.sm,
+  },
+  activateText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.accent,
   },
   forgotText: {
     fontFamily: fonts.body,

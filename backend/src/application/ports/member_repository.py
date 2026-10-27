@@ -30,6 +30,11 @@ class MemberRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_all_by_email(self, email: str) -> List[Member]:
+        """Every member whose file holds this email, case-insensitively."""
+        pass
+
+    @abstractmethod
     async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Member]:
         """Find members by club ID."""
         pass

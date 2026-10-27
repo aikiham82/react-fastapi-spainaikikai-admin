@@ -1,3 +1,4 @@
+import re
 """MongoDB Member Repository Adapter."""
 
 from typing import List, Optional
@@ -97,6 +98,12 @@ class MongoDBMemberRepository(MemberRepositoryPort):
     async def find_by_email(self, email: str) -> Optional[Member]:
         doc = await self.collection.find_one({"email": email})
         return self._to_domain(doc) if doc else None
+
+    async def find_all_by_email(self, email: str) -> List[Member]:
+        documents = await self.collection.find(
+            {"email": {"$regex": f"^{re.escape(email.strip())}$", "$options": "i"}}
+        ).to_list(length=None)
+        return [self._to_domain(doc) for doc in documents]
 
     async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({"club_id": club_id})

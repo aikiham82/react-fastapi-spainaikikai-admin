@@ -109,6 +109,7 @@ from src.application.use_cases.member_access import (
     RevokeMemberAccessUseCase,
     SetMemberClubRoleUseCase,
     TransferClubAccountUseCase,
+    RequestCardAccessUseCase,
     ListClubAccountsUseCase,
 )
 from src.application.use_cases.password_reset import (
@@ -758,6 +759,19 @@ def get_grant_member_access_use_case() -> GrantMemberAccessUseCase:
         email_service=get_email_service(),
         hash_password=get_password_hash,
         frontend_base_url=get_app_settings().frontend_base_url
+    )
+
+
+@lru_cache()
+def get_request_card_access_use_case() -> RequestCardAccessUseCase:
+    """Get request card access use case."""
+    return RequestCardAccessUseCase(
+        member_repository=get_member_repository(),
+        user_repository=get_user_repository(),
+        token_repository=get_password_reset_token_repository(),
+        email_service=get_email_service(),
+        hash_password=get_password_hash,
+        frontend_base_url=get_app_settings().frontend_base_url,
     )
 
 

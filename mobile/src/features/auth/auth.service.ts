@@ -17,6 +17,11 @@ export async function login(
   return AuthResponseSchema.parse(data);
 }
 
+export async function requestCardAccess(email: string): Promise<string> {
+  const { data } = await apiClient.post("/auth/card-access/request", { email });
+  return data.message;
+}
+
 export async function getCurrentUser(token: string): Promise<UserMe> {
   const { data } = await apiClient.get("/users/me", {
     headers: { Authorization: `Bearer ${token}` },

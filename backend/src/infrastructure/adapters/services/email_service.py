@@ -253,6 +253,47 @@ ACCOUNT_INVITATION_TEMPLATE = """
 </html>
 """
 
+CARD_ACTIVATION_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9fafb; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+        .btn { display: inline-block; padding: 14px 28px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+        .link-fallback { word-break: break-all; font-size: 12px; color: #666; margin-top: 15px; padding: 10px; background: #f3f4f6; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Activa tu carné de Spain Aikikai</h1>
+        </div>
+        <div class="content">
+            <p>Hola <strong>{{ member_name }}</strong>,</p>
+            <p>Has pedido activar tu carné. Entrarás en la app Spain Aikikai con tu correo <strong>{{ login_email }}</strong>.</p>
+            <p>Pulsa el botón para poner tu contraseña y luego entra en la app:</p>
+            <p style="text-align: center;">
+                <a href="{{ url }}" class="btn">Poner mi contraseña</a>
+            </p>
+            <p>El enlace caduca en 24 horas. Si caduca, vuelve a pedirlo en la app con "¿Has olvidado tu contraseña?".</p>
+            <div class="link-fallback">
+                <p>Si el boton no funciona, copia y pega este enlace en tu navegador:</p>
+                <p>{{ url }}</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automatico, por favor no responda a este mensaje.</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
 
 class EmailService(EmailServicePort):
     """Email service using OVH SMTP."""
@@ -499,6 +540,22 @@ class EmailService(EmailServicePort):
             )
         )
 
+        return await self.send_email(message)
+
+    async def send_card_activation_email(self, to_email: str, member_name: str, url: str) -> bool:
+        """Send a member who asked for it the link to set the password their card app uses."""
+        html_body = self._render_template(CARD_ACTIVATION_TEMPLATE, member_name=member_name, login_email=to_email, url=url)
+        message = EmailMessage(
+            to=[to_email],
+            subject="Activa tu carné de Spain Aikikai",
+            body_html=html_body,
+            body_text=(
+                f"Hola {member_name},\n\n"
+                f"Has pedido activar tu carné. Entrarás en la app Spain Aikikai con tu correo {to_email}.\n\n"
+                f"Pon tu contraseña con este enlace:\n{url}\n\n"
+                "El enlace caduca en 24 horas."
+            )
+        )
         return await self.send_email(message)
 
     async def send_account_invitation_email(

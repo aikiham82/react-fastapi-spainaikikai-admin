@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-27T13:40:00Z"
+has_completed_all_phases: false
 ---
 
 # Card for every member
@@ -49,11 +58,11 @@ Public contracts:
 - App copy: link "¿Primera vez? Activa tu carné"; screen with email field, button "Enviar enlace", the same confirmation text.
 - Tests: use case (one member → account + mail; shared email, member with account, email used as login, unknown email, member de baja → nothing); router (same 200 body in every case); app typecheck.
 
-- [ ] Write the failing tests.
-- [ ] Implement port method, use case, endpoint.
-- [ ] App: activation screen and link from the login screen.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Implement port method, use case, endpoint.
+- [x] App: activation screen and link from the login screen.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: the panel is for managers only
 
@@ -82,6 +91,6 @@ Public contracts:
 
 ## ⏭️ Next step
 
-Implement Phase 1: "Activa tu carné" in the app.
+Implement Phase 2: the panel is for managers only.
 
-A card in every pocket, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+A card in every pocket: 📱 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
