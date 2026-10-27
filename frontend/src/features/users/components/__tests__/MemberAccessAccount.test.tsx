@@ -127,7 +127,7 @@ describe('MemberAccessAccount', () => {
 
     renderWithProviders(<MemberAccessAccount memberId="member123" memberEmail="ana@example.com" />)
 
-    expect(screen.getByText('Este socio todavía no puede entrar en la web.')).toBeInTheDocument()
+    expect(screen.getByText('Este socio no gestiona el club.')).toBeInTheDocument()
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
 

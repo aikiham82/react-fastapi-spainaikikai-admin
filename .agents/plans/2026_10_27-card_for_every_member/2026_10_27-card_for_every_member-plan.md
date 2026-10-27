@@ -16,7 +16,7 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-27T13:40:00Z"
+last_implementation_at: "2026-10-27T14:10:00Z"
 has_completed_all_phases: false
 ---
 
@@ -68,13 +68,13 @@ Public contracts:
 
 Public contracts:
 
-- Admin copy: a signed-in member who is not a manager sees "El panel es para los responsables de club. Tu carné está en la app." and is signed out; the member card's access section becomes "Hacer responsable del club" (creates the account and makes the member manager at once, no checkbox).
+- Admin copy: a signed-in member who is not a manager sees "El panel es para los responsables de club. Tu carné está en la app." with a "Salir" button; the member card's access section becomes "Hacer responsable del club" (creates the account and makes the member manager at once, no checkbox).
 - Tests: vitest (plain member refused, manager and super admin enter; grant form without checkbox sends club_admin true).
 
-- [ ] Write the failing tests.
-- [ ] Gate the panel and change the grant form.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Gate the panel and change the grant form.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: the manager sees who cannot see their card
 
@@ -91,6 +91,6 @@ Public contracts:
 
 ## ⏭️ Next step
 
-Implement Phase 2: the panel is for managers only.
+Implement Phase 3: the manager sees who cannot see their card.
 
-A card in every pocket: 📱 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+A card in every pocket, the keys to the dojo for its managers: 📱 🔑 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
