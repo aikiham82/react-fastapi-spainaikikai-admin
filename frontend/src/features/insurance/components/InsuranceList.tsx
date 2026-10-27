@@ -208,7 +208,7 @@ export const InsuranceList = () => {
         />
       ) : (
         <>
-          <ul className="space-y-3 md:hidden">
+          <ul className="space-y-3 lg:hidden">
             {visibleInsurance.map((insurance) => {
               const status = insuranceStatus(insurance);
               const actions = rowActions(insurance);
@@ -246,7 +246,7 @@ export const InsuranceList = () => {
             })}
           </ul>
 
-          <div className="hidden overflow-hidden rounded-[18px] bg-card shadow-card md:block">
+          <div className="hidden overflow-hidden rounded-[18px] bg-card shadow-card lg:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">

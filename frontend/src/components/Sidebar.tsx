@@ -34,9 +34,31 @@ export const Sidebar = ({ className, onClose }: SidebarProps) => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto">
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
         {groups.map((group) => {
           const Icon = group.icon;
+          if (group.tabs.length === 1) {
+            const [tab] = group.tabs;
+            const isActive = isActiveTab(tab, group.tabs, pathname, search);
+            return (
+              <nav key={group.id} aria-label={group.title}>
+                <Link
+                  to={tab.to}
+                  onClick={onClose}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    rowClasses,
+                    isActive
+                      ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
+                      : 'text-sidebar-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Icon className={cn('size-[18px] shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} aria-hidden="true" />
+                  {tab.title}
+                </Link>
+              </nav>
+            );
+          }
           return (
             <nav key={group.id} aria-label={group.title} className="flex flex-col gap-0.5">
               <p className="flex items-center gap-2 px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">

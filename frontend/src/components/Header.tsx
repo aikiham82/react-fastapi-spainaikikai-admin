@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { isActiveTab } from '@/components/navigation'
@@ -6,6 +7,11 @@ import { useNav } from '@/components/useNav'
 export const Header = () => {
   const { active, pathname, search } = useNav()
   const tabs = active && active.tabs.length > 1 ? active.tabs : []
+  const activeTab = useRef<HTMLAnchorElement>(null)
+
+  useEffect(() => {
+    activeTab.current?.scrollIntoView?.({ block: 'nearest', inline: 'center' })
+  }, [pathname, search])
 
   return (
     <header className="shrink-0 border-b border-border bg-card px-4 sm:px-6 lg:px-10">
@@ -22,6 +28,7 @@ export const Header = () => {
             return (
               <Link
                 key={tab.to}
+                ref={isActive ? activeTab : undefined}
                 to={tab.to}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(

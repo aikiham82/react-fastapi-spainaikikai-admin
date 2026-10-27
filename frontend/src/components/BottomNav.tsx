@@ -45,7 +45,11 @@ export const BottomNav = ({ onMore, className }: BottomNavProps) => {
             </Link>
           )
         })}
-      <button type="button" onClick={onMore} className={cn(tabClasses, 'text-muted-foreground')}>
+      <button
+        type="button"
+        onClick={onMore}
+        className={cn(tabClasses, active && !MOBILE_GROUP_IDS.includes(active.id) ? 'font-semibold text-primary' : 'text-muted-foreground')}
+      >
         <Menu className="size-[22px]" aria-hidden="true" />
         Más
       </button>
