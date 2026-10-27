@@ -181,6 +181,16 @@ describe('LicenseList', () => {
     expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
   })
 
+  it('lists deregistered members last', () => {
+    context.licenses = [
+      { ...makeLicense('4', 'Elena Gone', -300, 'expired'), member_status: 'inactive' },
+      makeLicense('1', 'Bea Active', 200, 'active'),
+    ]
+    renderList()
+
+    expect(tableMembers()).toEqual([expect.stringContaining('Bea Active'), expect.stringContaining('Elena Gone')])
+  })
+
   it('chips do not count deregistered members', () => {
     context.licenses = [
       ...context.licenses,

@@ -1,4 +1,5 @@
 import type { License } from '../data/schemas/license.schema';
+import { Ban, type LucideIcon } from 'lucide-react';
 import type { StatusTone } from '@/components/ui/status-badge';
 import { daysUntil, EXPIRING_SOON_DAYS } from '@/core/utils/expiry';
 
@@ -21,8 +22,8 @@ export const getUrgency = (license: LicenseState, now: Date = new Date()): Licen
 export const getStatusPresentation = (
   license: LicenseState,
   now: Date = new Date(),
-): { tone: StatusTone; label: string } => {
-  if (isDeregistered(license)) return { tone: 'neutral', label: 'De baja' };
+): { tone: StatusTone; label: string; icon?: LucideIcon } => {
+  if (isDeregistered(license)) return { tone: 'neutral', label: 'De baja', icon: Ban };
   const urgency = getUrgency(license, now);
   if (urgency === 'expired') return { tone: 'bad', label: 'Caducada' };
   if (urgency === 'expiring') return { tone: 'warn', label: 'Caduca pronto' };
@@ -32,11 +33,15 @@ export const getStatusPresentation = (
 };
 
 const URGENCY_RANK: Record<LicenseUrgency, number> = { expired: 0, expiring: 1, other: 2 };
+const DEREGISTERED_RANK = 3;
+
+const rankOf = (license: License, now: Date): number =>
+  isDeregistered(license) ? DEREGISTERED_RANK : URGENCY_RANK[getUrgency(license, now)];
 
 export const sortByUrgency = (licenses: License[], now: Date = new Date()): License[] =>
   licenses
-    .map((license, index) => ({ license, index, urgency: getUrgency(license, now) }))
-    .sort((a, b) => URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency] || a.index - b.index)
+    .map((license, index) => ({ license, index, rank: rankOf(license, now) }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
     .map(({ license }) => license);
 
 export const ESTADO_PARAM_TO_CHIP: Record<string, LicenseChip> = {

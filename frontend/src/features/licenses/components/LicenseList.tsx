@@ -63,8 +63,8 @@ const EMPTY_CHIP_TITLE: Record<LicenseChip, string> = {
 };
 
 const LicenseStatusBadge = ({ license }: { license: License }) => {
-  const { tone, label } = getStatusPresentation(license);
-  return <StatusBadge tone={tone}>{label}</StatusBadge>;
+  const { tone, label, icon } = getStatusPresentation(license);
+  return <StatusBadge tone={tone} icon={icon}>{label}</StatusBadge>;
 };
 
 const DetailField = ({ label, children }: { label: string; children: React.ReactNode }) => (
