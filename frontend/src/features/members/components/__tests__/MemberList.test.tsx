@@ -152,6 +152,19 @@ describe('MemberList', () => {
     expect(within(card).getByLabelText('Seguro de accidentes: al día')).toHaveAttribute('data-tone', 'ok')
   })
 
+  it('tells a pending insurance apart from a missing one', () => {
+    state.members = [
+      member({
+        insurance_summary: { has_rc: true, rc_status: 'pending', has_accident: false, accident_status: null },
+      } as Partial<Member>),
+    ]
+    renderWithProviders(<MemberList />)
+
+    const card = screen.getAllByTestId('member-card')[0]
+    expect(within(card).getByLabelText('Seguro de responsabilidad civil: pendiente')).toHaveAttribute('data-tone', 'neutral')
+    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'bad')
+  })
+
   it('counts the quick chips and filters by them', async () => {
     state.members = [
       member({ id: 'a', first_name: 'Ana', insurance_summary: { has_rc: true, rc_status: 'active', has_accident: true, accident_status: 'active' } } as Partial<Member>),

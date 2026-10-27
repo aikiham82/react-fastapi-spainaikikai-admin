@@ -105,9 +105,9 @@ def test_the_dashboard_counts_active_members_with_a_licence_and_an_accident_insu
     licence_query = collections["licenses"].distinct.call_args.args[1]
     assert licence_query["member_id"] == {"$in": CLUB_MEMBER_IDS}
     assert "$gte" in licence_query["expiration_date"]
-    assert licence_query["status"] == {"$ne": "revoked"}
+    assert licence_query["status"] == {"$nin": ["revoked", "pending"]}
     insurance_query = collections["insurances"].distinct.call_args.args[1]
     assert insurance_query["member_id"] == {"$in": CLUB_MEMBER_IDS}
     assert insurance_query["insurance_type"] == "accident"
-    assert insurance_query["status"] == {"$ne": "cancelled"}
+    assert insurance_query["status"] == {"$nin": ["cancelled", "pending", "expired"]}
     assert "$gte" in insurance_query["end_date"] and "$lte" in insurance_query["start_date"]

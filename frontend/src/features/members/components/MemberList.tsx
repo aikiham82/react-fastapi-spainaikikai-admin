@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { ListPager } from '@/core/components/ListPager';
 import { useMemberContext } from '../hooks/useMemberContext';
@@ -42,7 +43,7 @@ const NAME_COLLATOR = new Intl.Collator('es');
 const fullName = (member: Member) => `${member.first_name} ${member.last_name ?? ''}`.trim();
 
 const secondaryLine = (member: Member, isSuperAdmin: boolean) =>
-  (isSuperAdmin ? member.club_name : null) || member.email || member.phone || '-';
+  [isSuperAdmin ? member.club_name : null, member.email || member.phone].filter(Boolean).join(' · ') || '-';
 
 const LoadingRows = () => (
   <div role="status" aria-label="Cargando miembros" className="space-y-3">
@@ -327,7 +328,10 @@ export const MemberList = () => {
           <article
             key={member.id}
             data-testid="member-card"
-            className="relative flex items-start gap-3 rounded-[18px] bg-card p-3.5 pr-1.5 shadow-card transition-colors active:bg-muted/60"
+            className={cn(
+              'relative flex items-start gap-3 rounded-[18px] bg-card p-3.5 pr-1.5 shadow-card transition-colors active:bg-muted/60',
+              member.status === 'inactive' && 'opacity-70'
+            )}
           >
             <Avatar name={fullName(member)} size="md" />
             <div className="min-w-0 flex-1 space-y-2">
@@ -372,7 +376,7 @@ export const MemberList = () => {
             </thead>
             <tbody>
               {sortedMembers.map((member) => (
-                <tr key={member.id} className="border-t border-border">
+                <tr key={member.id} className={cn('border-t border-border', member.status === 'inactive' && 'opacity-70')}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar name={fullName(member)} size="md" />

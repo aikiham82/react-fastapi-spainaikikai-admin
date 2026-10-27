@@ -4,9 +4,7 @@ import { BeltBadge } from '@/components/ui/graphic';
 import { cn } from '@/lib/utils';
 import type { LicenseSummary, InsuranceSummary } from '../data/schemas/member.schema';
 import { getMemberStatusLabel } from '../utils/member-badges';
-import { insuranceStatus } from '@/features/insurance/components/insuranceDisplay';
-import type { Insurance } from '@/features/insurance/data/schemas/insurance.schema';
-import { licensePresentation } from '../utils/member-attention';
+import { insurancePresentation, licensePresentation } from '../utils/member-attention';
 
 interface StatusPresentation {
   tone: StatusTone;
@@ -15,13 +13,6 @@ interface StatusPresentation {
 
 const NO_LICENSE: StatusPresentation = { tone: 'neutral', label: 'Sin licencia' };
 const NO_INSURANCE: StatusPresentation = { tone: 'neutral', label: 'Sin seguro' };
-const INSURANCE_STATUSES: readonly Insurance['status'][] = ['active', 'expired', 'pending', 'cancelled'];
-
-const presentInsurance = (has: boolean, rawStatus: string | null | undefined): StatusPresentation => {
-  const status = INSURANCE_STATUSES.find((value) => value === rawStatus);
-  if (!has || !status) return NO_INSURANCE;
-  return insuranceStatus({ status, end_date: '' });
-};
 
 interface MemberStatusBadgeProps {
   status?: string;
@@ -64,9 +55,11 @@ export function LicenseStatusBadge({ licenseSummary }: LicenseStatusBadgeProps) 
   return <StatusBadge tone={tone}>{label}</StatusBadge>;
 }
 
-const TILE_TONES: Record<'ok' | 'bad', string> = {
+const TILE_TONES: Record<StatusTone, string> = {
   ok: 'bg-success-soft text-success',
+  warn: 'bg-warning-soft text-warning',
   bad: 'bg-danger-soft text-danger',
+  neutral: 'bg-muted text-muted-foreground',
 };
 
 interface InsuranceTileProps {
@@ -77,16 +70,17 @@ interface InsuranceTileProps {
 }
 
 function InsuranceTile({ code, name, has, rawStatus }: InsuranceTileProps) {
-  const { tone, label } = presentInsurance(has, rawStatus);
-  const ok = tone === 'ok';
-  const spoken = `${name}: ${ok ? 'al día' : label.toLowerCase()}`;
+  const presentation = insurancePresentation(has, rawStatus);
+  const { label } = presentation ?? NO_INSURANCE;
+  const tone = presentation?.tone ?? 'bad';
+  const spoken = `${name}: ${tone === 'ok' ? 'al día' : label.toLowerCase()}`;
   return (
     <span
       role="img"
       aria-label={spoken}
       title={spoken}
-      data-tone={ok ? 'ok' : 'bad'}
-      className={cn('inline-grid size-[30px] place-items-center rounded-lg text-[11px] font-bold', TILE_TONES[ok ? 'ok' : 'bad'])}
+      data-tone={tone}
+      className={cn('inline-grid size-[30px] place-items-center rounded-lg text-[11px] font-bold', TILE_TONES[tone])}
     >
       {code}
     </span>

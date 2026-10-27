@@ -85,10 +85,10 @@ describe('Dashboard', () => {
     expect(screen.getByRole('progressbar', { name: 'Con seguro de accidentes' })).toHaveAttribute('aria-valuenow', '160')
   })
 
-  it('hides Pagar temporada from a club admin whose season is paid', () => {
+  it('keeps Pagar temporada for a club admin whose season is paid, for members who join later', () => {
     renderWith(dashboardData())
 
-    expect(screen.queryByRole('link', { name: /pagar temporada/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /pagar temporada/i })).toHaveAttribute('href', '/payments')
   })
 
   it('shows Todo al día when nothing is pending', () => {

@@ -135,14 +135,14 @@ async def get_dashboard_stats(
     licensed_members = len(await db["licenses"].distinct("member_id", {
         "member_id": {"$in": active_member_ids},
         "expiration_date": {"$gte": now},
-        "status": {"$ne": "revoked"},
+        "status": {"$nin": ["revoked", "pending"]},
     }))
     insured_members = len(await db["insurances"].distinct("member_id", {
         "member_id": {"$in": active_member_ids},
         "insurance_type": "accident",
         "start_date": {"$lte": now},
         "end_date": {"$gte": now},
-        "status": {"$ne": "cancelled"},
+        "status": {"$nin": ["cancelled", "pending", "expired"]},
     }))
 
     stats = DashboardStats(

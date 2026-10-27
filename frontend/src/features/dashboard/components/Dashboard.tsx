@@ -150,7 +150,7 @@ const SeminarCard = ({ seminar }: { seminar: UpcomingSeminar }) => {
               {seminar.participants} de {seminar.max_participants} plazas
             </span>
             <span className="font-semibold text-foreground">
-              {Math.round((seminar.participants / seminar.max_participants) * 100)}%
+              {Math.min(100, Math.round((seminar.participants / seminar.max_participants) * 100))}%
             </span>
           </span>
           <ProgressBar value={seminar.participants} max={seminar.max_participants} label="Plazas ocupadas" tone="brand" />
@@ -203,7 +203,7 @@ export const Dashboard = () => {
   const attention = buildAttention(data, isSuperAdmin);
   const nextSeminar = data.upcoming_seminars[0];
   const { stats } = data;
-  const canPay = canAccess({ resource: 'payments', action: 'create' }) && (isSuperAdmin || data.stats.clubs_pending > 0);
+  const canPay = canAccess({ resource: 'payments', action: 'create' });
   const canAddMember = canAccess({ resource: 'members', action: 'create' });
 
   return (

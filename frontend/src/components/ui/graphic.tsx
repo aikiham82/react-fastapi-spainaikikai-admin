@@ -57,8 +57,8 @@ export function AvatarStack({ names, max = 3 }: AvatarStackProps) {
   const rest = names.length - shown.length
   return (
     <span className="flex items-center">
-      {shown.map((name) => (
-        <Avatar key={name} name={name} className="-ml-2 ring-2 ring-card first:ml-0" />
+      {shown.map((name, index) => (
+        <Avatar key={`${index}-${name}`} name={name} className="-ml-2 ring-2 ring-card first:ml-0" />
       ))}
       {rest > 0 && (
         <span className="-ml-2 inline-grid size-8 place-items-center rounded-full bg-muted text-xs font-semibold text-muted-foreground ring-2 ring-card">

@@ -6,17 +6,15 @@ import { ClubPaymentsPage } from '@/features/club-payments/components/ClubPaymen
 export const PaymentsPage = () => {
   const [searchParams] = useSearchParams();
 
-  if (searchParams.get('tab') === 'historial') {
-    return (
-      <ClubPaymentsProvider>
-        <ClubPaymentsPage />
-      </ClubPaymentsProvider>
-    );
-  }
-
   return (
     <AnnualPaymentProvider>
-      <PendingPayments />
+      {searchParams.get('tab') === 'historial' ? (
+        <ClubPaymentsProvider>
+          <ClubPaymentsPage />
+        </ClubPaymentsProvider>
+      ) : (
+        <PendingPayments />
+      )}
     </AnnualPaymentProvider>
   );
 };

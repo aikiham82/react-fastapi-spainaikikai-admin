@@ -16,10 +16,13 @@ export const licensePresentation = (member: Pick<Member, 'license_summary'>) => 
   return getStatusPresentation({ status, expiry_date: summary?.expiration_date ?? '' });
 };
 
-export const isInsuranceInOrder = (has: boolean, rawStatus: string | null | undefined): boolean => {
+export const insurancePresentation = (has: boolean, rawStatus: string | null | undefined) => {
   const status = INSURANCE_STATUSES.find((value) => value === rawStatus);
-  return has && !!status && insuranceStatus({ status, end_date: '' }).tone === 'ok';
+  return has && status ? insuranceStatus({ status, end_date: '' }) : null;
 };
+
+export const isInsuranceInOrder = (has: boolean, rawStatus: string | null | undefined): boolean =>
+  insurancePresentation(has, rawStatus)?.tone === 'ok';
 
 export const matchesMemberChip = (member: Member, chip: MemberChip): boolean => {
   if (chip === 'all') return true;
