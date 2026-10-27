@@ -5,9 +5,10 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
-from src.domain.entities.license import License
+from src.domain.entities.license import License, grade_licence_among, title_among
 from src.domain.entities.insurance import Insurance
 from src.domain.entities.member import ClubRole
+from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import LastClubAdminError, InactiveMemberError
 from src.domain.exceptions.user import (
     AccessChangeNotAllowedError,
@@ -22,6 +23,7 @@ from src.infrastructure.web.dto.member_dto import (
     MemberResponse,
     GrantMemberAccessDTO,
     SetClubRoleDTO,
+    ChangeGradeDTO,
     LicenseSummary,
     InsuranceSummary,
 )
@@ -40,6 +42,7 @@ from src.infrastructure.web.dependencies import (
     get_grant_member_access_use_case,
     get_revoke_member_access_use_case,
     get_set_member_club_role_use_case,
+    get_change_member_grade_use_case,
     get_license_repository,
     get_insurance_repository,
     get_club_repository,
@@ -66,25 +69,16 @@ async def _load_member_in_callers_club(ctx: AuthContext, member_id: str, get_mem
     return member
 
 
-def _pick_primary_license(licenses: List[License]) -> Optional[License]:
-    """Select the most relevant license: prefer active with latest expiry, fallback to most recent."""
-    if not licenses:
-        return None
-    active = [l for l in licenses if l.status.value == "active"]
-    if active:
-        return max(active, key=lambda l: l.expiration_date or l.created_at or l.issue_date or l.updated_at)
-    return max(licenses, key=lambda l: l.expiration_date or l.created_at or l.issue_date or l.updated_at)
-
-
 def _build_license_summary(licenses: List[License]) -> Optional[LicenseSummary]:
-    """Build a LicenseSummary from a list of licenses for one member."""
-    primary = _pick_primary_license(licenses)
+    """Build a LicenseSummary for one member: grade from the grade licence, title from any current licence."""
+    current = [l for l in licenses if l.status.value == "active"] or licenses
+    primary = grade_licence_among(current)
     if not primary:
         return None
     return LicenseSummary(
         grade=primary.grade,
         technical_grade=primary.technical_grade.value,
-        instructor_category=primary.instructor_category.value,
+        instructor_category=title_among(current).value,
         status=primary.status.value,
         expiration_date=primary.expiration_date,
     )
@@ -428,6 +422,34 @@ async def set_member_club_role(
 
     audit("access.role_changed", member_id=member_id, club_id=existing.club_id, club_role=request.club_role, by=ctx.user.id)
     return MemberMapper.to_response_dto(member)
+
+
+@router.put("/{member_id}/grade", response_model=MemberResponse)
+async def change_member_grade(
+    member_id: str,
+    request: ChangeGradeDTO,
+    get_member_use_case_instance = Depends(get_member_use_case),
+    change_grade_use_case = Depends(get_change_member_grade_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+    license_repo = Depends(get_license_repository),
+    insurance_repo = Depends(get_insurance_repository),
+):
+    """Change the kyu or dan number of a member of the caller's club."""
+    member = await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
+    changed_by = None if ctx.is_super_admin else ctx.member_id
+    try:
+        await change_grade_use_case.execute(member.id, request.grade_number, changed_by)
+    except AccessChangeNotAllowedError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tu grado lo cambia la federación")
+    except InactiveMemberError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El grado de un socio de baja no se cambia")
+    except LicenseNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este socio aún no tiene licencia en vigor")
+
+    audit("member.grade_changed", member_id=member_id, club_id=member.club_id, grade_number=request.grade_number, by=ctx.user.id)
+    response = MemberMapper.to_response_dto(member)
+    enriched = await _enrich_members_with_summaries([response], license_repo, insurance_repo)
+    return enriched[0]
 
 
 @router.delete("/{member_id}/account", status_code=status.HTTP_204_NO_CONTENT)

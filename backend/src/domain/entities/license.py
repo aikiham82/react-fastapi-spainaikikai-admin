@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime, date
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 
 
@@ -31,11 +31,18 @@ class InstructorCategory(str, Enum):
     FUKUSHIDOIN = "fukushidoin"  # Assistant instructor
     SHIDOIN = "shidoin"  # Instructor
 
+    @property
+    def rank(self) -> int:
+        return list(InstructorCategory).index(self)
+
 
 class AgeCategory(str, Enum):
     """Age category enumeration."""
     INFANTIL = "infantil"  # Children
     ADULTO = "adulto"  # Adult
+
+
+GRADE_NUMBERS = {TechnicalGrade.KYU: range(1, 7), TechnicalGrade.DAN: range(1, 11)}
 
 
 @dataclass
@@ -127,11 +134,22 @@ class License:
         if self.is_expired() and self.status == LicenseStatus.ACTIVE:
             self.status = LicenseStatus.EXPIRED
 
+    def holds_only_a_title(self) -> bool:
+        """Whether the grade text is an instructor title instead of a kyu or dan."""
+        return self.grade.strip().lower() in {InstructorCategory.SHIDOIN.value, InstructorCategory.FUKUSHIDOIN.value}
+
+    def change_grade_number(self, number: int) -> None:
+        """Set the kyu or dan number, keeping the kind of grade."""
+        if number not in GRADE_NUMBERS[self.technical_grade]:
+            raise ValueError(f"No existe el {number}.º {self.technical_grade.value.capitalize()}")
+        self.update_grade(f"{number}º {self.technical_grade.value.capitalize()}")
+
     def update_grade(self, new_grade: str) -> None:
         """Update the license grade."""
         if not new_grade or not new_grade.strip():
             raise ValueError("Grade cannot be empty")
         self.grade = new_grade
+        self.updated_at = datetime.now()
 
     def get_price_key(self) -> str:
         """Generate the price configuration key based on license categories.
@@ -170,3 +188,18 @@ class License:
         """
         self.last_payment_id = payment_id
         self.updated_at = datetime.now()
+
+
+def grade_licence_among(licences: List[License]) -> Optional[License]:
+    """The licence that carries a member's grade: one holding a grade over a title, then the latest."""
+    if not licences:
+        return None
+    return max(licences, key=lambda l: (
+        not l.holds_only_a_title(),
+        l.expiration_date or l.created_at or l.issue_date or l.updated_at or datetime.min,
+    ))
+
+
+def title_among(licences: List[License]) -> InstructorCategory:
+    """The highest instructor title held on any of the licences."""
+    return max((l.instructor_category for l in licences), key=lambda c: c.rank, default=InstructorCategory.NONE)

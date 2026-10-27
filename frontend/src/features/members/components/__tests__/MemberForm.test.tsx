@@ -1,16 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, within } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { MemberForm } from '../MemberForm'
 import type { Member } from '../../data/schemas/member.schema'
 
-const { updateMember, createMember, clubs } = vi.hoisted(() => ({
+const { updateMember, createMember, changeMemberGrade, clubs } = vi.hoisted(() => ({
   updateMember: vi.fn(),
   createMember: vi.fn(),
+  changeMemberGrade: vi.fn(),
   clubs: [{ id: 'club-1', name: 'Example Club' }],
 }))
 
-const authState = vi.hoisted(() => ({ userRole: 'super_admin', clubId: 'club-1' as string | null }))
+const authState = vi.hoisted(() => ({
+  userRole: 'super_admin',
+  clubId: 'club-1' as string | null,
+  currentUser: null as { member_id?: string } | null,
+}))
 
 vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
@@ -18,7 +23,7 @@ vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
 }))
 
 vi.mock('../../hooks/useMemberContext', () => ({
-  useMemberContext: () => ({ updateMember, createMember }),
+  useMemberContext: () => ({ updateMember, createMember, changeMemberGrade }),
 }))
 
 vi.mock('../../../clubs/hooks/useClubContext', () => ({
@@ -155,5 +160,94 @@ describe('MemberForm club field', () => {
     renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
 
     expect(screen.getByText('Más datos')).toBeInTheDocument()
+  })
+})
+
+describe('MemberForm grade', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    authState.userRole = 'club_admin'
+    authState.currentUser = null
+  })
+
+  const licensed = (grade: string, technical_grade: 'kyu' | 'dan', status = 'active') =>
+    renderEditing({
+      license_summary: { grade, technical_grade, instructor_category: 'none', status, expiration_date: null },
+    })
+
+  const openGrades = async () => {
+    await userEvent.click(screen.getByRole('combobox', { name: 'Grado' }))
+    return within(screen.getByRole('listbox')).getAllByRole('option').map((option) => option.textContent)
+  }
+
+  it('offers only the numbers of the kyu the member already holds', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    expect(await openGrades()).toEqual(['1.er Kyu', '2.º Kyu', '3.er Kyu', '4.º Kyu', '5.º Kyu', '6.º Kyu'])
+  })
+
+  it('offers dan numbers up to ten for a dan', async () => {
+    licensed('1er Dan', 'dan')
+
+    expect(await openGrades()).toHaveLength(10)
+  })
+
+  it('sends the new grade number on save', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    await openGrades()
+    await userEvent.click(screen.getByRole('option', { name: '4.º Kyu' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(changeMemberGrade).toHaveBeenCalledWith('member-1', 4, expect.any(Function))
+  })
+
+  it('saves the other fields only once the grade is saved, so a refused grade keeps the dialog open', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    await openGrades()
+    await userEvent.click(screen.getByRole('option', { name: '4.º Kyu' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(updateMember).not.toHaveBeenCalled()
+    changeMemberGrade.mock.calls[0][2]()
+    expect(updateMember).toHaveBeenCalledWith('member-1', expect.any(Object), expect.any(Function))
+  })
+
+  it('cannot change the grade on a licence that is no longer in force', () => {
+    licensed('5º Kyu', 'kyu', 'expired')
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
+  })
+
+  it('does not change the grade when it is left alone', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(changeMemberGrade).not.toHaveBeenCalled()
+  })
+
+  it('cannot change the grade of a member without licence', () => {
+    renderEditing()
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
+    expect(screen.getByText('Este socio aún no tiene licencia en vigor.')).toBeInTheDocument()
+  })
+
+  it('a club admin cannot change their own grade', () => {
+    authState.currentUser = { member_id: 'member-1' }
+    licensed('5º Kyu', 'kyu')
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
+  })
+
+  it('cannot change the grade of a deregistered member', () => {
+    renderEditing({
+      status: 'inactive',
+      license_summary: { grade: '5º Kyu', technical_grade: 'kyu', instructor_category: 'none', status: 'active', expiration_date: null },
+    })
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
   })
 })

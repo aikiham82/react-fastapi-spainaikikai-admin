@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatGradeNumber, GRADE_NUMBERS } from '@/core/utils/grade';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { MemberAccessAccount } from '@/features/users/components/MemberAccessAccount';
 import {
@@ -27,6 +29,23 @@ const localToday = (): string => {
 const joinDateOf = (member: Member): string =>
   (member.registration_date ?? member.created_at ?? '').substring(0, 10);
 
+const gradeKindOf = (member?: Member | null): 'kyu' | 'dan' | null => {
+  const summary = member?.license_summary;
+  if (summary?.status !== 'active') return null;
+  return summary.technical_grade === 'kyu' || summary.technical_grade === 'dan' ? summary.technical_grade : null;
+};
+
+const gradeNumberOf = (member?: Member | null): string =>
+  /\d+/.exec(member?.license_summary?.grade ?? '')?.[0] ?? '';
+
+const gradeLockOf = (member: Member | null | undefined, isSuperAdmin: boolean, ownMemberId?: string): string | null => {
+  if (!gradeKindOf(member)) return 'Este socio aún no tiene licencia en vigor.';
+  if (isSuperAdmin) return null;
+  if (member?.status === 'inactive') return 'El grado de un socio de baja no se cambia.';
+  if (member?.id === ownMemberId) return 'Tu grado lo cambia la federación.';
+  return null;
+};
+
 interface MemberFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -34,9 +53,9 @@ interface MemberFormProps {
 }
 
 export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
-  const { createMember, updateMember } = useMemberContext();
+  const { createMember, updateMember, changeMemberGrade } = useMemberContext();
   const { clubs } = useClubContext();
-  const { userRole, clubId: ownClubId } = useAuthContext();
+  const { userRole, clubId: ownClubId, currentUser } = useAuthContext();
   const isSuperAdmin = userRole === 'super_admin';
   const isEditing = !!member;
 
@@ -54,6 +73,11 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     country: 'España',
     club_id: '',
   });
+
+  const gradeKind = gradeKindOf(member);
+  const gradeLock = gradeLockOf(member, isSuperAdmin, currentUser?.member_id);
+  const savedGradeNumber = gradeNumberOf(member);
+  const [gradeNumber, setGradeNumber] = useState(savedGradeNumber);
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateMemberRequest, string>>>({});
 
@@ -91,8 +115,9 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
         registration_date: localToday(),
       });
     }
+    setGradeNumber(savedGradeNumber);
     setErrors({});
-  }, [member, open, isSuperAdmin, ownClubId]);
+  }, [member, open, isSuperAdmin, ownClubId, savedGradeNumber]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof CreateMemberRequest, string>> = {};
@@ -133,7 +158,12 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     const close = () => onOpenChange(false);
     if (isEditing && member) {
       const { registration_date, ...rest } = formData;
-      updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData, close);
+      const saveMember = () => updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData, close);
+      if (gradeNumber && gradeNumber !== savedGradeNumber) {
+        changeMemberGrade(member.id, Number(gradeNumber), saveMember);
+      } else {
+        saveMember();
+      }
     } else {
       createMember(formData, close);
     }
@@ -199,6 +229,26 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
               </div>
             )}
             {field('registration_date', 'Fecha de alta', { type: 'date' })}
+            {isEditing && (
+              <div className="space-y-2">
+                <Label htmlFor="grade_number">Grado</Label>
+                <Select value={gradeNumber} onValueChange={setGradeNumber} disabled={!!gradeLock}>
+                  <SelectTrigger id="grade_number" className="w-full text-base sm:text-sm">
+                    <SelectValue placeholder={gradeKind ? 'Sin número' : 'Sin licencia'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gradeKind && GRADE_NUMBERS[gradeKind].map((value) => (
+                      <SelectItem key={value} value={String(value)}>
+                        {formatGradeNumber(value, gradeKind)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {gradeLock ?? 'El paso a dan y los títulos los gestiona la federación.'}
+                </p>
+              </div>
+            )}
           </div>
 
           <details className="border-t border-border pt-3" open={errors.birth_date ? true : undefined}>

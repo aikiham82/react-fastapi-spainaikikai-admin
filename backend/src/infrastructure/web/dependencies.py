@@ -58,6 +58,7 @@ from src.application.use_cases import (
     CreateLicenseUseCase,
     RenewLicenseUseCase,
     UpdateLicenseUseCase,
+    ChangeMemberGradeUseCase,
     DeleteLicenseUseCase,
     GenerateLicenseImageUseCase,
     # Seminar use cases
@@ -252,6 +253,11 @@ def get_renew_license_use_case() -> RenewLicenseUseCase:
 def get_update_license_use_case() -> UpdateLicenseUseCase:
     """Update license use case."""
     return UpdateLicenseUseCase(get_license_repository())
+
+@lru_cache()
+def get_change_member_grade_use_case() -> ChangeMemberGradeUseCase:
+    """Change member grade use case."""
+    return ChangeMemberGradeUseCase(get_license_repository(), get_member_repository())
 
 @lru_cache()
 def get_delete_license_use_case() -> DeleteLicenseUseCase:

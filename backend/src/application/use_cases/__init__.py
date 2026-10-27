@@ -23,6 +23,7 @@ from .license.get_expiring_licenses_use_case import GetExpiringLicensesUseCase
 from .license.create_license_use_case import CreateLicenseUseCase
 from .license.renew_license_use_case import RenewLicenseUseCase
 from .license.update_license_use_case import UpdateLicenseUseCase
+from .license.change_member_grade_use_case import ChangeMemberGradeUseCase
 from .license.delete_license_use_case import DeleteLicenseUseCase
 from .license.generate_license_image_use_case import GenerateLicenseImageUseCase, LicenseImageResult
 
@@ -71,7 +72,7 @@ __all__ = [
     "GetLicenseUseCase", "GetAllLicensesUseCase",
     "GetExpiringLicensesUseCase",
     "CreateLicenseUseCase", "RenewLicenseUseCase",
-    "UpdateLicenseUseCase", "DeleteLicenseUseCase",
+    "UpdateLicenseUseCase", "ChangeMemberGradeUseCase", "DeleteLicenseUseCase",
     "GenerateLicenseImageUseCase", "LicenseImageResult",
     # Seminar
     "GetSeminarUseCase", "GetAllSeminarsUseCase",

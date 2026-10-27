@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, type Dispatch, type SetStateAction, type ReactNode } from 'react';
 import { useMembersQuery } from './queries/useMemberQueries';
-import { useCreateMemberMutation, useUpdateMemberMutation, useDeleteMemberMutation, useChangeMemberStatusMutation } from './mutations/useMemberMutations';
+import { useCreateMemberMutation, useUpdateMemberMutation, useDeleteMemberMutation, useChangeMemberStatusMutation, useChangeMemberGradeMutation } from './mutations/useMemberMutations';
 import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters } from '../data/schemas/member.schema';
 
 interface MemberContextType {
@@ -17,6 +17,7 @@ interface MemberContextType {
   updateMember: (id: string, data: UpdateMemberRequest, onSaved?: () => void) => void;
   deleteMember: (id: string) => void;
   changeMemberStatus: (id: string, status: 'active' | 'inactive') => void;
+  changeMemberGrade: (id: string, gradeNumber: number, onSaved?: () => void) => void;
   selectMember: (member: Member | null) => void;
   setFilters: Dispatch<SetStateAction<MemberFilters>>;
   setPagination: (offset: number, limit: number) => void;
@@ -37,6 +38,7 @@ export const MemberProvider: React.FC<MemberProviderProps> = ({ children, initia
   const updateMutation = useUpdateMemberMutation();
   const deleteMutation = useDeleteMemberMutation();
   const changeStatusMutation = useChangeMemberStatusMutation();
+  const changeGradeMutation = useChangeMemberGradeMutation();
 
   const handleCreateMember = useCallback((data: CreateMemberRequest, onSaved?: () => void) => {
     createMutation.mutate(data, { onSuccess: onSaved });
@@ -53,6 +55,10 @@ export const MemberProvider: React.FC<MemberProviderProps> = ({ children, initia
   const handleChangeMemberStatus = useCallback((id: string, status: 'active' | 'inactive') => {
     changeStatusMutation.mutate({ id, data: { status } });
   }, [changeStatusMutation]);
+
+  const handleChangeMemberGrade = useCallback((id: string, gradeNumber: number, onSaved?: () => void) => {
+    changeGradeMutation.mutate({ id, gradeNumber }, { onSuccess: onSaved });
+  }, [changeGradeMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {
     setFilters(prev => ({ ...prev, offset, limit }));
@@ -72,6 +78,7 @@ export const MemberProvider: React.FC<MemberProviderProps> = ({ children, initia
     updateMember: handleUpdateMember,
     deleteMember: handleDeleteMember,
     changeMemberStatus: handleChangeMemberStatus,
+    changeMemberGrade: handleChangeMemberGrade,
     selectMember: setSelectedMember,
     setFilters,
     setPagination: handleSetPagination,

@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { GRADE_NUMBERS } from '@/core/utils/grade';
 import { AnnulmentPanel } from '@/core/components/AnnulmentPanel';
 import {
   Dialog,
@@ -214,10 +215,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
                   <SelectValue placeholder="Selecciona el grado" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(formData.technical_grade === 'kyu'
-                    ? [1, 2, 3, 4, 5, 6]
-                    : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-                  ).map((grade) => (
+                  {GRADE_NUMBERS[formData.technical_grade === 'kyu' ? 'kyu' : 'dan'].map((grade) => (
                     <SelectItem key={grade} value={grade.toString()}>
                       {`${grade}º ${formData.technical_grade === 'kyu' ? 'Kyu' : 'Dan'}`}
                     </SelectItem>
