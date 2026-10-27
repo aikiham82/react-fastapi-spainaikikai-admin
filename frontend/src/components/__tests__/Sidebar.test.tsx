@@ -14,6 +14,10 @@ vi.mock('@/features/auth/hooks/useAuthContext', () => ({
   useAuthContext: () => authContext,
 }))
 
+vi.mock('@/features/dashboard/hooks/useNavCounters', () => ({
+  useNavCounters: () => ({ '/licenses': 3 }),
+}))
+
 const renderSidebar = () =>
   render(
     <MemoryRouter initialEntries={['/members']}>
@@ -60,6 +64,18 @@ describe('Sidebar', () => {
     renderSidebar()
 
     expect(screen.getAllByRole('link', { name: 'Pagos' })).toHaveLength(1)
+  })
+
+  it('gives every section an icon', () => {
+    renderSidebar()
+
+    screen.getAllByRole('link').forEach((link) => expect(link.querySelector('svg')).not.toBeNull())
+  })
+
+  it('counts what needs attention next to its section', () => {
+    renderSidebar()
+
+    expect(screen.getByRole('link', { name: /licencias/i })).toHaveTextContent('3')
   })
 
   it('marks the current page', () => {

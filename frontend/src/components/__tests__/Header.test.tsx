@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { Header } from '../Header'
 
@@ -8,10 +7,10 @@ vi.mock('@/features/auth/hooks/useAuthContext', () => ({
   useAuthContext: () => ({ userRole: 'super_admin', userEmail: 'admin@example.com' }),
 }))
 
-const renderHeader = (path: string, onMenuClick = vi.fn()) =>
+const renderHeader = (path: string) =>
   render(
     <MemoryRouter initialEntries={[path]}>
-      <Header onMenuClick={onMenuClick} />
+      <Header />
     </MemoryRouter>
   )
 
@@ -34,14 +33,6 @@ describe('Header', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Miembros' })).toBeInTheDocument()
   })
 
-  it('labels the menu button and opens the menu', async () => {
-    const onMenuClick = vi.fn()
-    renderHeader('/', onMenuClick)
-
-    await userEvent.click(screen.getByRole('button', { name: 'Abrir menú' }))
-
-    expect(onMenuClick).toHaveBeenCalledOnce()
-  })
 
   it('does not show a notifications button', () => {
     renderHeader('/')

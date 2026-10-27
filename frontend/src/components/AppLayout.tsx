@@ -4,6 +4,7 @@ import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
+import { BottomNav } from '@/components/BottomNav';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
 import { SkipLink } from '@/components/ui/SkipLink';
@@ -36,11 +37,13 @@ export const AppLayout: React.FC = () => {
       <Sidebar className="hidden lg:flex lg:w-60 flex-shrink-0" id="sidebar" />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Header onMenuClick={() => setMobileMenuOpen(true)} />
+        <Header />
 
           <main className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:py-8 lg:px-10" id="main-content" tabIndex={-1}>
             <ProtectedRoute><Outlet /></ProtectedRoute>
           </main>
+
+        <BottomNav className="lg:hidden" onMore={() => setMobileMenuOpen(true)} />
       </div>
 
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
