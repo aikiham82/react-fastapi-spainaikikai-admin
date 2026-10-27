@@ -104,7 +104,7 @@ export const buildChecklistRows = (
       memberName: fullName(member),
       grade: member.license_summary?.grade ? formatGradeEs(member.license_summary.grade) : 'Sin licencia',
       licence,
-      licenceChoosable: !member.license_summary,
+      licenceChoosable: !member.license_summary || licence === 'kyu' || licence === 'kyu_infantil',
       offersRc,
       licencePaid,
       accidentPaid,

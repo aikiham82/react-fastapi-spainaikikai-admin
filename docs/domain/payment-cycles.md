@@ -36,6 +36,10 @@ A completed `titulo_shidoin` or `titulo_fukushidoin` line of year N covers the R
 
 Whatever the channel, a payment that completes calls [`GenerateLicensesAndInsuranceFromPaymentUseCase`](../../backend/src/application/use_cases/payment/generate_licenses_and_insurance_from_payment_use_case.py) with its member lines: it creates or renews the `License`, creates the season `Insurance`, and adds the RC a title includes. Today the Redsys webhook and the manual payment (`RegisterManualPaymentUseCase`) both do. A new payment path that skips it records the payment but leaves the member on "Sin licencia": until October 2026 the manual payment did exactly that.
 
+### A kyu member passes to dan by paying Licencia Dan
+
+The grade lives on the member's licence and only a super admin may edit a licence. A club reflects a promotion by choosing "Licencia Dan" for a kyu member in Pendientes (the licence choice is offered to members without a licence and to kyu members, never to a dan or an instructor). When that payment completes, the member's own kyu licence becomes "1º Dan" (same number, age and instructor category kept) and is renewed; no second licence is created. A different dan number is corrected by the federation editing the licence.
+
 ### Paid status comes from payments, never from entities
 
 `license_paid` and `insurance_paid` derive **only** from completed `MemberPayment` records for the year (`is_license_payment` / `is_insurance_payment`). The federation `License` entity is used **only** for `grade_group` classification.

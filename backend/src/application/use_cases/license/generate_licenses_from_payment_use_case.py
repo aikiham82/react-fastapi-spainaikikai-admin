@@ -100,7 +100,9 @@ class GenerateLicensesFromPaymentUseCase:
 
             # Try to find an existing license for this member to renew
             member_licenses = await self.license_repository.find_by_member_id(mp.member_id)
-            renewable = self._find_renewable_license(member_licenses, attrs)
+            renewable = self._find_renewable_license(member_licenses, attrs, payment_id)
+            if not renewable and mp.payment_type == MemberPaymentType.LICENCIA_DAN:
+                renewable = self._promote_to_first_dan(member_licenses)
 
             if renewable:
                 # Renew the existing license
@@ -148,7 +150,7 @@ class GenerateLicensesFromPaymentUseCase:
 
     @staticmethod
     def _find_renewable_license(
-        licenses: List[License], attrs: dict
+        licenses: List[License], attrs: dict, payment_id: str
     ) -> Optional[License]:
         """Find the best license to renew matching the given attributes.
 
@@ -157,8 +159,20 @@ class GenerateLicensesFromPaymentUseCase:
         candidates = [
             lic for lic in licenses
             if lic.technical_grade == attrs["technical_grade"]
-            and lic.instructor_category == attrs["instructor_category"]
+            and (lic.instructor_category == attrs["instructor_category"] or lic.last_payment_id == payment_id)
         ]
         if not candidates:
             return None
         return max(candidates, key=lambda l: l.expiration_date or datetime.min)
+
+    @staticmethod
+    def _promote_to_first_dan(licenses: List[License]) -> Optional[License]:
+        """A kyu member paid a dan licence: their own licence becomes 1º Dan."""
+        kyu_licences = [lic for lic in licenses if lic.technical_grade == TechnicalGrade.KYU]
+        if not kyu_licences:
+            return None
+        licence = max(kyu_licences, key=lambda l: l.expiration_date or datetime.min)
+        licence.technical_grade = TechnicalGrade.DAN
+        licence.license_type = LicenseType.DAN
+        licence.grade = "1º Dan"
+        return licence

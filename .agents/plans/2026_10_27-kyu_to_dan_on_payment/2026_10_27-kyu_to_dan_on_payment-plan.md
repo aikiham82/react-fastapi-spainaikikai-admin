@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "high"
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-10-27T20:00:00Z"
+has_completed_all_phases: true
 ---
 
 # Kyu to dan on payment
@@ -29,15 +38,15 @@ When a kyu member passes to dan, the club ticks "Licencia Dan" for them in Pendi
 
 ### Phase 1: Promote on payment
 
-- [ ] Backend tests: a Licencia Dan payment for a kyu adulto, a kyu infantil and a kyu with instructor category turns that same licence into technical grade dan, licence type dan, grade "1º Dan", keeping number, age category and instructor category, and renews it to the year; a dan paying dan only renews; running it twice does not duplicate.
-- [ ] Backend: when no matching licence exists for a Licencia Dan, promote the member's latest kyu licence, then renew it.
-- [ ] Frontend tests: a kyu member can choose Licencia Dan in Pendientes; a dan member cannot choose a kyu licence; instructors keep their fixed licence.
-- [ ] Frontend: licence choice offered to kyu members as well as members without licence.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Backend tests: a Licencia Dan payment for a kyu adulto, a kyu infantil and a kyu with instructor category turns that same licence into technical grade dan, licence type dan, grade "1º Dan", keeping number, age category and instructor category, and renews it to the year; a dan paying dan only renews; running it twice does not duplicate.
+- [x] Backend: when no matching licence exists for a Licencia Dan, promote the member's latest kyu licence, then renew it.
+- [x] Frontend tests: a kyu member can choose Licencia Dan in Pendientes; a dan member cannot choose a kyu licence; instructors keep their fixed licence.
+- [x] Frontend: licence choice offered to kyu members as well as members without licence.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+All phases implemented. Next: review and QA.
 
-Black belt earned with 🐢 💨 🥋 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Black belt earned and recorded: 🐢 💨 🥋 ⚫ (Turbotuga™, [Codely](https://codely.com)'s mascot).
