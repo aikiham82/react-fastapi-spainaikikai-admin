@@ -68,6 +68,7 @@ class LicenseResponse(LicenseBase):
     is_renewed: bool
     image_url: Optional[str] = None
     member_name: Optional[str] = None
+    member_status: Optional[str] = None
     # Category fields (English names)
     technical_grade: str = "kyu"
     instructor_category: str = "none"

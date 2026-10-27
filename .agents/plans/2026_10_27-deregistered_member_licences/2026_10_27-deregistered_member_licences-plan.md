@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-27T12:30:00Z"
+has_completed_all_phases: false
 ---
 
 # Deregistered member licences
@@ -46,13 +55,13 @@ A licence whose member is de baja (`member.status == "inactive"`) is history, no
 
 Description: the list response carries the member's status and the screen renders deregistered members' licences grey, without Renovar, outside the chips.
 
-- [ ] Test (backend, `tests/api/test_licenses_list_member_status.py`): "list returns member_status of each licence's member".
-- [ ] `LicenseResponse.member_status: Optional[str]`, filled in `_populate_member_names` from the member document it already reads.
-- [ ] Tests (frontend, `LicenseList.test.tsx`): "a deregistered member's expired licence reads De baja without Renovar"; "chips do not count deregistered members".
-- [ ] `License.member_status?: string`; `getUrgency` returns `'other'` for `member_status === 'inactive'`; `getStatusPresentation` returns `{ tone: 'neutral', label: 'De baja' }`.
-- [ ] Copy: "De baja".
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test (backend, `tests/api/test_licenses_list_member_status.py`): "list returns member_status of each licence's member".
+- [x] `LicenseResponse.member_status: Optional[str]`, filled in `_populate_member_names` from the member document it already reads.
+- [x] Tests (frontend, `LicenseList.test.tsx`): "a deregistered member's expired licence reads De baja without Renovar"; "chips do not count deregistered members".
+- [x] `License.member_status?: string`; `getUrgency` returns `'other'` for `member_status === 'inactive'`; `getStatusPresentation` returns `{ tone: 'neutral', label: 'De baja' }`.
+- [x] Copy: "De baja".
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: the Club menu counter ignores deregistered members
 
@@ -65,6 +74,6 @@ Description: `expired_licenses` and the expiring-licences list on the dashboard 
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
 Less red, more truth, brought to you by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

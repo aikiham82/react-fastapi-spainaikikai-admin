@@ -5,7 +5,12 @@ import { daysUntil, EXPIRING_SOON_DAYS } from '@/core/utils/expiry';
 export type LicenseUrgency = 'expired' | 'expiring' | 'other';
 export type LicenseChip = 'all' | 'expired' | 'expiring';
 
-export const getUrgency = (license: Pick<License, 'status' | 'expiry_date'>, now: Date = new Date()): LicenseUrgency => {
+type LicenseState = Pick<License, 'status' | 'expiry_date' | 'member_status'>;
+
+const isDeregistered = (license: LicenseState): boolean => license.member_status === 'inactive';
+
+export const getUrgency = (license: LicenseState, now: Date = new Date()): LicenseUrgency => {
+  if (isDeregistered(license)) return 'other';
   if (license.status === 'expired') return 'expired';
   if (license.status !== 'active' || !license.expiry_date) return 'other';
   const days = daysUntil(license.expiry_date, now);
@@ -14,9 +19,10 @@ export const getUrgency = (license: Pick<License, 'status' | 'expiry_date'>, now
 };
 
 export const getStatusPresentation = (
-  license: Pick<License, 'status' | 'expiry_date'>,
+  license: LicenseState,
   now: Date = new Date(),
 ): { tone: StatusTone; label: string } => {
+  if (isDeregistered(license)) return { tone: 'neutral', label: 'De baja' };
   const urgency = getUrgency(license, now);
   if (urgency === 'expired') return { tone: 'bad', label: 'Caducada' };
   if (urgency === 'expiring') return { tone: 'warn', label: 'Caduca pronto' };
