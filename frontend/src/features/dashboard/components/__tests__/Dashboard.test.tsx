@@ -9,7 +9,7 @@ vi.mock('../../hooks/queries/useDashboardData.query', () => ({ useDashboardDataQ
 
 const permissions = { isAssociationAdmin: () => false, canAccess: () => true }
 vi.mock('@/core/hooks/usePermissions', () => ({ usePermissions: () => permissions }))
-vi.mock('@/components/useIdentity', () => ({ useIdentity: () => ({ name: 'Laura Ejemplo' }) }))
+vi.mock('@/components/useIdentity', () => ({ useIdentity: () => ({ name: 'Laura Ejemplo', firstName: 'Laura' }) }))
 
 const dashboardData = (overrides: Partial<DashboardData> = {}): DashboardData => ({
   stats: {

@@ -177,7 +177,7 @@ const RingKpi = ({ value, max, label }: { value: number; max: number; label: str
 export const Dashboard = () => {
   const { data, isLoading, error, refetch } = useDashboardDataQuery();
   const { canAccess, isAssociationAdmin } = usePermissions();
-  const firstName = useIdentity().name.split(' ')[0];
+  const { firstName } = useIdentity();
   const isSuperAdmin = isAssociationAdmin();
   const season = seasonLabel(defaultPaymentYear(new Date()));
 

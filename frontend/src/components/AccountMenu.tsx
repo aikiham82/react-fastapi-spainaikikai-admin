@@ -13,7 +13,7 @@ const RoleChip = ({ label }: { label: string }) => (
 
 export const AccountMenu = () => {
   const { logout } = useAuthContext()
-  const { name, email, clubName, clubLogoUrl, roleLabel } = useIdentity()
+  const { name, firstName, email, clubName, clubLogoUrl, roleLabel } = useIdentity()
 
   return (
     <Popover>
@@ -24,7 +24,7 @@ export const AccountMenu = () => {
           className="flex w-16 flex-col items-center gap-1 rounded-xl py-2 text-[11.5px] text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground data-[state=open]:bg-muted"
         >
           <Avatar name={name} />
-          <span className="max-w-full truncate px-1">{name.split(' ')[0]}</span>
+          <span className="max-w-full truncate px-1">{firstName}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent side="right" align="end" sideOffset={8} className="flex w-72 flex-col gap-3.5 p-4">

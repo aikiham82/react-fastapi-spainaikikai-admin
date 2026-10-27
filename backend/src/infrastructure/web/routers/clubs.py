@@ -121,6 +121,7 @@ async def upload_club_logo(
     try:
         club = await set_logo_use_case.execute(club_id, logo_url)
     except ClubNotFoundError:
+        (CLUB_LOGO_DIR / f"{club_id}.jpg").unlink(missing_ok=True)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club no encontrado")
     return ClubMapper.to_response_dto(club)
 
