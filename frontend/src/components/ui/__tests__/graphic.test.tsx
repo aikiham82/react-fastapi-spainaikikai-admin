@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Avatar, AvatarStack, BeltBadge, IconTile, ProgressBar, ProgressRing, TickChip } from '../graphic'
+import { Avatar, AvatarStack, BeltBadge, IconTile, ProgressBar, ProgressRing, StateTile, TickChip } from '../graphic'
 import { StatusBadge } from '../status-badge'
 import { Users } from 'lucide-react'
 
@@ -90,3 +90,19 @@ describe('TickChip', () => {
     expect(onChange).toHaveBeenCalledWith(true)
   })
 })
+
+describe('StateTile', () => {
+  it.each([
+    ['ok', 'lucide-circle-check'],
+    ['warn', 'lucide-clock'],
+    ['bad', 'lucide-circle-x'],
+    ['neutral', 'lucide-circle-dashed'],
+  ] as const)('marks the %s state with an icon, not only a colour', (tone, icon) => {
+    render(<StateTile tone={tone} label="Seguro de accidentes: estado">AC</StateTile>)
+    const tile = screen.getByRole('img', { name: 'Seguro de accidentes: estado' })
+    expect(tile).toHaveAttribute('data-tone', tone)
+    expect(tile).toHaveTextContent('AC')
+    expect(tile.querySelector(`.${icon}`)).not.toBeNull()
+  })
+})
+

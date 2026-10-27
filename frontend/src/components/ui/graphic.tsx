@@ -1,4 +1,4 @@
-import { toneClasses, type StatusTone } from '@/components/ui/status-badge'
+import { toneClasses, toneIcons, type StatusTone } from '@/components/ui/status-badge'
 import type { CSSProperties, ReactNode } from 'react'
 import { Check, Plus, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -184,6 +184,28 @@ export function IconTile({ icon: Icon, tone = 'neutral', className }: IconTilePr
   return (
     <span data-tone={tone} className={cn('grid size-11 shrink-0 place-items-center rounded-xl', tileClasses[tone], className)}>
       <Icon className="size-5" aria-hidden="true" />
+    </span>
+  )
+}
+
+interface StateTileProps {
+  tone: StatusTone
+  label: string
+  children: ReactNode
+}
+
+export function StateTile({ tone, label, children }: StateTileProps) {
+  const StateIcon = toneIcons[tone]
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      data-tone={tone}
+      className={cn('relative grid size-[30px] shrink-0 place-items-center rounded-lg text-[11px] font-bold', toneClasses[tone])}
+    >
+      {children}
+      <StateIcon className="absolute -right-1 -bottom-1 size-3.5 rounded-full bg-card" aria-hidden="true" />
     </span>
   )
 }

@@ -1,7 +1,6 @@
 import { KeyRound } from 'lucide-react';
-import { StatusBadge, toneClasses, type StatusTone } from '@/components/ui/status-badge';
-import { BeltBadge } from '@/components/ui/graphic';
-import { cn } from '@/lib/utils';
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
+import { BeltBadge, StateTile } from '@/components/ui/graphic';
 import type { LicenseSummary, InsuranceSummary } from '../data/schemas/member.schema';
 import { getMemberStatusLabel } from '../utils/member-badges';
 import { insurancePresentation, licensePresentation } from '../utils/member-attention';
@@ -81,15 +80,9 @@ function InsuranceTile({ code, name, has, rawStatus }: InsuranceTileProps) {
   const tone = presentation?.tone ?? 'bad';
   const spoken = `${name}: ${tone === 'ok' ? 'al día' : label.toLowerCase()}`;
   return (
-    <span
-      role="img"
-      aria-label={spoken}
-      title={spoken}
-      data-tone={tone}
-      className={cn('inline-grid size-[30px] place-items-center rounded-lg text-[11px] font-bold', toneClasses[tone])}
-    >
+    <StateTile tone={tone} label={spoken}>
       {code}
-    </span>
+    </StateTile>
   );
 }
 

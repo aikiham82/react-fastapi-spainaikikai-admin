@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-10-27T15:20:00Z"
+has_completed_all_phases: true
 ---
 
 # State icons on small tiles
@@ -29,14 +38,14 @@ The AC/RC insurance tiles in Miembros and the paid marks in Pagos > Historial ca
 
 ### Phase 1: State tiles with an icon
 
-- [ ] `graphic.tsx`: `StateTile({ tone, label, children })`, a 30px tinted tile with its content and a corner icon from the shared tone icons; `status-badge.tsx` exports `toneIcons`.
-- [ ] Tests: `graphic.test.tsx` shows one icon per tone; `MemberList.test.tsx` asserts the icon on the AC/RC tiles; `ClubPaymentDetail` paid marks show check or cross.
-- [ ] Use it in `InsuranceTile` and `PaidMark`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `graphic.tsx`: `StateTile({ tone, label, children })`, a 30px tinted tile with its content and a corner icon from the shared tone icons; `status-badge.tsx` exports `toneIcons`.
+- [x] Tests: `graphic.test.tsx` shows one icon per tone; `MemberList.test.tsx` asserts the icon on the AC/RC tiles; `ClubPaymentDetail` paid marks show check or cross.
+- [x] Use it in `InsuranceTile` and `PaidMark`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+All phases implemented. Next: review and QA.
 
-Seen without colour, thanks to 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Seen without colour, and done: 🐢 💨 👁️ (Turbotuga™, [Codely](https://codely.com)'s mascot).

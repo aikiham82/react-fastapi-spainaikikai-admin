@@ -11,7 +11,7 @@ export const toneClasses: Record<StatusTone, string> = {
   neutral: 'bg-muted text-muted-foreground',
 }
 
-const toneIcons: Record<StatusTone, LucideIcon> = {
+export const toneIcons: Record<StatusTone, LucideIcon> = {
   ok: CircleCheck,
   warn: Clock,
   bad: CircleX,
