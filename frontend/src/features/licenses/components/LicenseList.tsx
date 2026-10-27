@@ -346,14 +346,16 @@ export const LicenseList = () => {
                 <LicenseStatusBadge license={licenseToView} />
               </div>
             </div>
-            <DialogFooter>
-              {canDelete && (
-                <Button variant="ghost" className="text-danger sm:mr-auto" onClick={() => askDelete(licenseToView)}>
-                  Eliminar
-                </Button>
-              )}
-              {canUpdate && <Button onClick={() => openEdit(licenseToView)}>Editar</Button>}
-            </DialogFooter>
+            {(canDelete || canUpdate) && (
+              <DialogFooter>
+                {canDelete && (
+                  <Button variant="ghost" className="text-danger sm:mr-auto" onClick={() => askDelete(licenseToView)}>
+                    Eliminar
+                  </Button>
+                )}
+                {canUpdate && <Button onClick={() => openEdit(licenseToView)}>Editar</Button>}
+              </DialogFooter>
+            )}
           </DialogContent>
         )}
       </Dialog>

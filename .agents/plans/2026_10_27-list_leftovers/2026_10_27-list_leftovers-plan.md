@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 last_implementation_at: "2026-10-27T13:45:00Z"
-has_completed_all_phases: false
+has_completed_all_phases: true
 ---
 
 # List leftovers
@@ -63,13 +63,13 @@ Description: the licence mobile card says "Caducó el" when the expiry date has 
 
 Description: the detail dialog renders its footer only when the user can edit or delete.
 
-- [ ] Test: "a read-only role sees the licence detail without an empty footer".
-- [ ] Gate `DialogFooter` on `canUpdate || canDelete`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test: "a read-only role sees the licence detail without an empty footer".
+- [x] Gate `DialogFooter` on `canUpdate || canDelete`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 3.
+All phases implemented.
 
 Three loose ends tied up by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

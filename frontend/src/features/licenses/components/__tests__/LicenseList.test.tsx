@@ -142,6 +142,17 @@ describe('LicenseList', () => {
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
   })
 
+  it('a read-only role sees the licence detail without an empty footer', async () => {
+    context.canCreate = false
+    context.canUpdate = false
+    renderList()
+
+    await userEvent.click(screen.getAllByRole('button', { name: /LIC-1/ })[0])
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog.querySelector('[data-slot="dialog-footer"]')).not.toBeInTheDocument()
+  })
+
   it('shows the club admin hint instead of a create button', () => {
     context.canCreate = false
     context.canUpdate = false
