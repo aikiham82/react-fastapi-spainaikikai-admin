@@ -23,6 +23,7 @@ const HomePage = lazyWithRetry(() => import("./pages/home.page"));
 const ForgotPasswordPage = lazyWithRetry(() => import("./pages/forgot-password.page"));
 const ResetPasswordPage = lazyWithRetry(() => import("./pages/reset-password.page"));
 const UnauthorizedPage = lazyWithRetry(() => import("./pages/unauthorized.page"));
+const SsoCallbackPage = lazyWithRetry(() => import("./pages/sso-callback.page"));
 
 // Pages with named exports
 const ClubsPage = lazyWithRetry(() => import("./pages/clubs.page").then(m => ({ default: m.ClubsPage })));
@@ -57,6 +58,7 @@ function App() {
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/sso-callback" element={<SsoCallbackPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />

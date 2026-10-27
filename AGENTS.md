@@ -96,6 +96,7 @@ docs/
 │   ├── pdf-text-is-escaped.md
 │   ├── search-terms-are-escaped-and-bounded.md
 │   ├── security-guidelines.md
+│   ├── social-login-only-vouches-for-an-email.md
 │   └── sentry-collects-no-personal-data.md
 ├── testing/
 │   ├── fixtures-are-real-entities.md

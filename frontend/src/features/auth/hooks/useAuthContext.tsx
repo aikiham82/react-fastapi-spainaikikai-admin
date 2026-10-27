@@ -25,6 +25,7 @@ interface AuthContextType {
   userEmail: string | null;
   isLoading: boolean;
   loginWithJWT: () => Promise<void>;
+  startSession: (response: AuthResponse) => void;
   registerUser: (data: RegisterRequest) => Promise<void>;
   auth: AuthResponse | null;
   login: (data: AuthRequest) => Promise<void>;
@@ -109,25 +110,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const startSession = (response: AuthResponse) => {
+    setAuth(response);
+    const { access_token } = response;
+    const decoded = jwtDecode(access_token) as { exp?: number; sub?: string };
+    const { exp, sub } = decoded;
+    if (exp) {
+      const expirationDate = new Date(exp * 1000);
+      localStorage.setItem('session_expiration', expirationDate.toISOString());
+    }
+    localStorage.setItem('user_email', sub || '');
+    appStorage().local.setString('access_token', access_token);
+    setUserEmail(sub || null);
+    setIsAuthenticated(true);
+    refetchCurrentUser();
+  };
+
   const registerUser = async (data: RegisterRequest) => {
     try {
-      registerMutation(data, {
-        onSuccess: (response) => {
-          setAuth(response);
-          const { access_token } = response;
-          const decoded = jwtDecode(access_token) as { exp?: number; sub?: string };
-          const { exp, sub } = decoded;
-          if (exp) {
-            const expirationDate = new Date(exp * 1000);
-            localStorage.setItem('session_expiration', expirationDate.toISOString());
-          }
-          localStorage.setItem('user_email', sub || '');
-          appStorage().local.setString('access_token', access_token);
-          setUserEmail(sub || null);
-          setIsAuthenticated(true);
-          refetchCurrentUser();
-        },
-      });
+      registerMutation(data, { onSuccess: startSession });
     } catch (error) {
       toast(error instanceof Error ? error.message : 'An error occurred during register');
     }
@@ -135,23 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (data: AuthRequest) => {
     try {
-      loginMutation(data, {
-        onSuccess: (response) => {
-          setAuth(response);
-          const { access_token } = response;
-          const decoded = jwtDecode(access_token) as { exp?: number; sub?: string };
-          const { exp, sub } = decoded;
-          if (exp) {
-            const expirationDate = new Date(exp * 1000);
-            localStorage.setItem('session_expiration', expirationDate.toISOString());
-          }
-          localStorage.setItem('user_email', sub || '');
-          appStorage().local.setString('access_token', access_token);
-          setUserEmail(sub || null);
-          setIsAuthenticated(true);
-          refetchCurrentUser();
-        },
-      });
+      loginMutation(data, { onSuccess: startSession });
     } catch (error) {
       toast(error instanceof Error ? error.message : 'An error occurred during login');
     }
@@ -188,6 +173,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           userEmail,
           isLoading: isLoggingIn || isLoggingOut || isRegistering || (isAuthenticated && isLoadingUser),
           loginWithJWT,
+          startSession,
           registerUser,
           auth,
           login,

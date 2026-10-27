@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { GoogleSignIn } from "./GoogleSignIn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,9 +15,13 @@ const LOGIN_FAILURE_MESSAGES = {
   unavailable: "No hemos podido conectar. Inténtalo de nuevo en unos minutos.",
 } as const;
 
+const GOOGLE_FAILURE_MESSAGE = "No hemos podido entrar con Google. Usa el correo con el que tu club te dio acceso.";
+
 export const LoginForm = () => {
   const { login, isAuthenticated, isLoading, loginFailure } = useAuthContext();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const googleFailed = searchParams.get("google") === "failed";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -72,16 +77,20 @@ export const LoginForm = () => {
           />
         </div>
 
-        {loginFailure && (
+        {loginFailure ? (
           <FormError>
             {LOGIN_FAILURE_MESSAGES[loginFailure]}
           </FormError>
+        ) : googleFailed && (
+          <FormError>{GOOGLE_FAILURE_MESSAGE}</FormError>
         )}
 
         <Button type="submit" size="lg" disabled={isLoading} className="w-full">
           {isLoading ? "Entrando…" : "Entrar"}
         </Button>
       </form>
+
+      <GoogleSignIn />
 
       <div className="flex flex-col gap-2 text-[15px]">
         <TextLink to="/forgot-password">He olvidado la contraseña</TextLink>

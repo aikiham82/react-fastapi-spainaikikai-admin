@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { login, getCurrentUser } from "../../auth.service";
+import { login, socialLogin, getCurrentUser } from "../../auth.service";
+import type { AuthResponse } from "../../auth.schema";
 import { useAuth } from "../useAuth";
 
 interface LoginInput {
@@ -7,13 +8,12 @@ interface LoginInput {
   password: string;
 }
 
-export function useLoginMutation() {
+function useSessionMutation<TInput>(authenticate: (input: TInput) => Promise<AuthResponse>) {
   const { signIn } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ email, password }: LoginInput) => {
-      const authResponse = await login(email, password);
-      const token = authResponse.access_token;
+    mutationFn: async (input: TInput) => {
+      const { access_token: token } = await authenticate(input);
       const user = await getCurrentUser(token);
       return { token, user };
     },
@@ -21,4 +21,12 @@ export function useLoginMutation() {
       signIn(token, user);
     },
   });
+}
+
+export function useLoginMutation() {
+  return useSessionMutation(({ email, password }: LoginInput) => login(email, password));
+}
+
+export function useSocialLoginMutation() {
+  return useSessionMutation(socialLogin);
 }
