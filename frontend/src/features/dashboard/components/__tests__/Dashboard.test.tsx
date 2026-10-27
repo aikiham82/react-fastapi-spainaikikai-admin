@@ -19,6 +19,8 @@ const dashboardData = (overrides: Partial<DashboardData> = {}): DashboardData =>
     clubs_pending: 0,
     upcoming_seminars: 0,
     expired_licenses: 0,
+    licensed_members: 150,
+    insured_members: 160,
   },
   expiring_licenses: [],
   upcoming_seminars: [],
@@ -68,6 +70,27 @@ describe('Dashboard', () => {
     expect(screen.getByRole('link', { name: /falta pagar la temporada/i })).toHaveAttribute('href', '/payments')
   })
 
+  it('shows the paid-season bar with the unpaid count', () => {
+    renderWith(dashboardData({ stats: { ...dashboardData().stats, clubs_pending: 1 } }))
+
+    expect(screen.getByText('1 sin pagar')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Temporada pagada' })).toHaveAttribute('aria-valuenow', '5')
+  })
+
+  it('shows licences and accident insurance in force as rings over active members', () => {
+    renderWith(dashboardData())
+
+    expect(screen.getByRole('progressbar', { name: 'Licencias al día' })).toHaveAttribute('aria-valuenow', '150')
+    expect(screen.getByRole('progressbar', { name: 'Licencias al día' })).toHaveAttribute('aria-valuemax', '170')
+    expect(screen.getByRole('progressbar', { name: 'Con seguro de accidentes' })).toHaveAttribute('aria-valuenow', '160')
+  })
+
+  it('keeps Pagar temporada for a club admin whose season is paid, for members who join later', () => {
+    renderWith(dashboardData())
+
+    expect(screen.getByRole('link', { name: /pagar temporada/i })).toHaveAttribute('href', '/payments')
+  })
+
   it('shows Todo al día when nothing is pending', () => {
     renderWith(dashboardData())
 
@@ -105,8 +128,11 @@ describe('Dashboard', () => {
       })
     )
 
-    const row = screen.getByRole('link', { name: /próximo seminario: técnicas con bokken/i })
-    expect(row).toHaveTextContent('16/11/2026 · Valladolid')
-    expect(row).not.toHaveTextContent('08:42')
+    const card = screen.getByRole('link', { name: /próximo seminario/i })
+    expect(card).toHaveAttribute('href', '/seminars')
+    expect(card).toHaveTextContent('Técnicas con bokken')
+    expect(card).toHaveTextContent('Valladolid')
+    expect(card).toHaveTextContent('12 de 40 plazas')
+    expect(card).not.toHaveTextContent('08:42')
   })
 })

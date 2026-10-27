@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -108,7 +109,8 @@ export const MemberAccessAccount = ({
       aria-labelledby="access-account-heading"
       className="space-y-3"
     >
-      <h3 id="access-account-heading" className="text-sm font-medium">
+      <h3 id="access-account-heading" className="flex items-center gap-2 text-sm font-semibold">
+        <KeyRound className="size-[18px] text-primary" aria-hidden="true" />
         Acceso a la web
       </h3>
 

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Download, ReceiptText } from 'lucide-react';
 import { useDebounce } from '@/core/hooks/useDebounce';
+import { IconTile } from '@/components/ui/graphic';
 import { useInvoiceContext } from '../hooks/useInvoiceContext';
 import { Button } from '@/components/ui/button';
 import { ChipGroup, EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
@@ -9,7 +11,7 @@ import { formatCurrency, formatDate } from '@/core/utils/format';
 import type { Invoice, InvoiceStatus } from '../data/schemas/invoice.schema';
 import { INVOICE_STATUS_LABELS } from '../data/schemas/invoice.schema';
 import { InvoiceDetailDialog } from './InvoiceDetailDialog';
-import { INVOICE_STATUS_TONES } from './invoiceDisplay';
+import { INVOICE_STATUS_ICONS, INVOICE_STATUS_TONES } from './invoiceDisplay';
 
 import { foldForSearch } from '@/core/utils/search';
 
@@ -92,99 +94,59 @@ export const InvoiceList = () => {
           onClear={canClear ? clearFilters : undefined}
         />
       ) : (
-        <>
-          <ul className="md:hidden">
-            {visibleInvoices.map((invoice) => (
-              <li
-                key={invoice.id}
-                onClick={() => setInvoiceForDetail(invoice)}
-                className="cursor-pointer space-y-2 border-b border-border py-3 first:border-t"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <button
-                      type="button"
-                      className="text-left text-[15px] font-medium text-foreground"
-                      onClick={() => setInvoiceForDetail(invoice)}
-                    >
-                      {invoice.customer_name || invoice.invoice_number}
-                    </button>
-                    <p className="text-sm text-muted-foreground">
-                      {invoice.invoice_number} · {formatDate(invoice.issue_date)}
-                    </p>
-                  </div>
-                  <StatusBadge tone={INVOICE_STATUS_TONES[invoice.status]}>{INVOICE_STATUS_LABELS[invoice.status]}</StatusBadge>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium tabular-nums text-foreground">{formatCurrency(invoice.total_amount)}</span>
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="pointer-coarse:h-11"
-                      onClick={() => downloadPdf(invoice.id, invoice.invoice_number)}
-                      disabled={isDownloading}
-                    >
-                      Descargar PDF
-                    </Button>
-                    {canUpdate && <RowActions label={invoice.invoice_number} actions={rowActions(invoice)} />}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          <table className="hidden w-full text-sm md:table">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="py-2 pr-3 font-medium">Cliente</th>
-                <th className="py-2 pr-3 font-medium">Emisión</th>
-                <th className="py-2 pr-3 text-right font-medium">Total</th>
-                <th className="py-2 pr-3 font-medium">Estado</th>
-                <th className="py-2 text-right font-medium">
-                  <span className="sr-only">Acciones</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleInvoices.map((invoice) => (
-                <tr
-                  key={invoice.id}
+        <ul className="space-y-3">
+          {visibleInvoices.map((invoice) => (
+            <li
+              key={invoice.id}
+              data-testid="invoice-row"
+              onClick={() => setInvoiceForDetail(invoice)}
+              className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 rounded-[18px] bg-card p-3 shadow-card transition-shadow hover:shadow-md sm:flex-nowrap sm:p-4"
+            >
+              <IconTile icon={ReceiptText} tone="brand" />
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  className="block max-w-full truncate text-left text-[15px] font-semibold text-foreground"
                   onClick={() => setInvoiceForDetail(invoice)}
-                  className="cursor-pointer border-b border-border hover:bg-muted/50"
                 >
-                  <td className="py-3 pr-3">
-                    <button type="button" className="text-left font-medium text-foreground" onClick={() => setInvoiceForDetail(invoice)}>
-                      {invoice.customer_name || invoice.invoice_number}
-                    </button>
-                    <p className="text-muted-foreground">{invoice.invoice_number}</p>
-                  </td>
-                  <td className="whitespace-nowrap py-3 pr-3 text-muted-foreground">{formatDate(invoice.issue_date)}</td>
-                  <td className="whitespace-nowrap py-3 pr-3 text-right font-medium tabular-nums text-foreground">
-                    {formatCurrency(invoice.total_amount)}
-                  </td>
-                  <td className="py-3 pr-3">
-                    <StatusBadge tone={INVOICE_STATUS_TONES[invoice.status]}>{INVOICE_STATUS_LABELS[invoice.status]}</StatusBadge>
-                  </td>
-                  <td className="py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        aria-label="Descargar PDF"
-                        onClick={() => downloadPdf(invoice.id, invoice.invoice_number)}
-                        disabled={isDownloading}
-                      >
-                        PDF
-                      </Button>
-                      {canUpdate && <RowActions label={invoice.invoice_number} actions={rowActions(invoice)} />}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
+                  {invoice.customer_name || invoice.invoice_number}
+                </button>
+                <p className="text-sm text-muted-foreground">
+                  <span className="block sm:inline">{invoice.invoice_number}</span>
+                  <span className="hidden sm:inline" aria-hidden="true">
+                    {' · '}
+                  </span>
+                  <span className="block sm:inline">{formatDate(invoice.issue_date)}</span>
+                </p>
+              </div>
+              <span className="text-lg font-bold tabular-nums text-foreground">{formatCurrency(invoice.total_amount)}</span>
+              <div
+                className="flex w-full items-center gap-1 pl-14 sm:w-auto sm:pl-0"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <StatusBadge
+                  tone={INVOICE_STATUS_TONES[invoice.status]}
+                  icon={INVOICE_STATUS_ICONS[invoice.status]}
+                  className="mr-auto sm:mr-2"
+                >
+                  {INVOICE_STATUS_LABELS[invoice.status]}
+                </StatusBadge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="Descargar PDF"
+                  className="pointer-coarse:h-11"
+                  onClick={() => downloadPdf(invoice.id, invoice.invoice_number)}
+                  disabled={isDownloading}
+                >
+                  <Download className="size-4" aria-hidden="true" />
+                  PDF
+                </Button>
+                {canUpdate && <RowActions label={invoice.invoice_number} actions={rowActions(invoice)} />}
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
 
       <InvoiceDetailDialog

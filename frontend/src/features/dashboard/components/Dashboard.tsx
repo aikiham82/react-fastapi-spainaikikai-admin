@@ -1,36 +1,30 @@
 import { Link } from 'react-router-dom';
+import { Clock, CreditCard, Euro, MapPin, Users, XCircle, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AvatarStack, IconTile, ProgressBar, ProgressRing } from '@/components/ui/graphic';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import { formatDate, formatDayMonth } from '@/core/utils/format';
+import { parseUtcDateTime } from '@/core/utils/format';
 import { cn } from '@/lib/utils';
 import { useDashboardDataQuery } from '../hooks/queries/useDashboardData.query';
-import type { DashboardData } from '../data/schemas/dashboard.schema';
+import type { DashboardData, UpcomingSeminar } from '../data/schemas/dashboard.schema';
 
-type Tone = 'bad' | 'warn' | 'neutral';
+type Tone = 'bad' | 'warn' | 'brand';
 
 interface AttentionItem {
   key: string;
-  lead: ReactNode;
-  count?: number;
+  icon: LucideIcon;
   tone: Tone;
   title: string;
   detail?: string;
+  names?: string[];
   to: string;
   action: string;
+  primary?: boolean;
 }
 
-const toneClasses: Record<Tone, string> = {
-  bad: 'text-danger',
-  warn: 'text-warning',
-  neutral: 'text-foreground',
-};
-
-const namesPreview = (names: string[]): string => {
-  const shown = names.slice(0, 2).join(', ');
-  return names.length > 2 ? `${shown} y ${names.length - 2} más` : shown;
-};
+const cardClasses = 'rounded-[18px] bg-card shadow-card';
 
 const plural = (count: number, singular: string, pluralForm: string) => (count === 1 ? singular : pluralForm);
 
@@ -41,10 +35,9 @@ const buildAttention = (data: DashboardData, isSuperAdmin: boolean): AttentionIt
   if (stats.expired_licenses > 0) {
     items.push({
       key: 'expired',
-      lead: stats.expired_licenses,
-      count: stats.expired_licenses,
+      icon: XCircle,
       tone: 'bad',
-      title: plural(stats.expired_licenses, 'Licencia caducada', 'Licencias caducadas'),
+      title: `${stats.expired_licenses} ${plural(stats.expired_licenses, 'licencia caducada', 'licencias caducadas')}`,
       to: '/licenses?estado=caducadas',
       action: 'Ver',
     });
@@ -53,11 +46,10 @@ const buildAttention = (data: DashboardData, isSuperAdmin: boolean): AttentionIt
   if (expiring.length > 0) {
     items.push({
       key: 'expiring',
-      lead: expiring.length,
-      count: expiring.length,
+      icon: Clock,
       tone: 'warn',
-      title: `${plural(expiring.length, 'Licencia que caduca', 'Licencias que caducan')} en los próximos 30 días`,
-      detail: namesPreview(expiring.map((license) => license.member_name)),
+      title: `${expiring.length} ${plural(expiring.length, 'licencia que caduca', 'licencias que caducan')} en los próximos 30 días`,
+      names: expiring.map((license) => license.member_name),
       to: '/licenses?estado=caducan-pronto',
       action: 'Ver',
     });
@@ -68,21 +60,21 @@ const buildAttention = (data: DashboardData, isSuperAdmin: boolean): AttentionIt
       isSuperAdmin
         ? {
             key: 'pending',
-            lead: stats.clubs_pending,
-            count: stats.clubs_pending,
-            tone: 'neutral',
-            title: `${plural(stats.clubs_pending, 'Club sin pagar', 'Clubs sin pagar')} la temporada`,
+            icon: Euro,
+            tone: 'brand',
+            title: `${stats.clubs_pending} ${plural(stats.clubs_pending, 'club sin pagar', 'clubs sin pagar')} la temporada`,
             to: '/payments?tab=historial',
             action: 'Ver',
           }
         : {
             key: 'pending',
-            lead: '€',
-            tone: 'neutral',
+            icon: Euro,
+            tone: 'brand',
             title: 'Falta pagar la temporada',
             detail: 'Licencias, seguros y cuota del club',
             to: '/payments',
             action: 'Pagar',
+            primary: true,
           }
     );
   }
@@ -93,22 +85,91 @@ const buildAttention = (data: DashboardData, isSuperAdmin: boolean): AttentionIt
 const AttentionRow = ({ item }: { item: AttentionItem }) => (
   <Link
     to={item.to}
-    className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-border px-1 py-4 transition-colors hover:bg-muted/60 sm:grid-cols-[4.5rem_minmax(0,1fr)_auto]"
+    className={cn(cardClasses, 'flex items-center gap-4 p-3.5 transition-shadow hover:shadow-md sm:px-4')}
   >
-    <span aria-hidden="true" className={cn('text-[22px] font-semibold tabular-nums', toneClasses[item.tone])}>
-      {item.lead}
-    </span>
-    <span className="min-w-0">
-      <span className="block text-[15px] text-foreground">
-        {item.count !== undefined && <span className="sr-only">{item.count} </span>}
-        {item.title}
-      </span>
+    <IconTile icon={item.icon} tone={item.tone} />
+    <span className="min-w-0 flex-1">
+      <span className="block text-[15px] font-semibold leading-snug text-foreground">{item.title}</span>
+      {item.names && (
+        <span className="mt-1.5 block">
+          <AvatarStack names={item.names} />
+          <span className="sr-only">{item.names.join(', ')}</span>
+        </span>
+      )}
       {item.detail && <span className="mt-0.5 block truncate text-[13px] text-muted-foreground">{item.detail}</span>}
     </span>
-    <span className="text-sm text-muted-foreground" aria-hidden="true">
-      {item.action} →
+    <span
+      aria-hidden="true"
+      className={buttonVariants({ variant: item.primary ? 'default' : 'outline', className: 'pointer-events-none' })}
+    >
+      {item.action}
     </span>
   </Link>
+);
+
+const KpiCard = ({ children }: { children: ReactNode }) => <div className={cn(cardClasses, 'p-4')}>{children}</div>;
+
+const BigNumber = ({ value, max }: { value: number; max: number }) => (
+  <p className="text-[26px] font-bold leading-none tabular-nums text-foreground">
+    {value} <span className="text-base font-medium text-muted-foreground">/ {max}</span>
+  </p>
+);
+
+const SeminarCard = ({ seminar }: { seminar: UpcomingSeminar }) => {
+  const date = parseUtcDateTime(seminar.date);
+  const day = date ? String(date.getDate()) : '';
+  const month = date ? date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase() : '';
+  const hasCapacity = seminar.max_participants > 0;
+
+  return (
+    <Link to="/seminars" className={cn(cardClasses, 'flex flex-col gap-4 p-4 transition-shadow hover:shadow-md')}>
+      <h3 className="text-[17px] font-semibold text-foreground">Próximo seminario</h3>
+      <div className="flex items-center gap-4">
+        <span
+          aria-hidden="true"
+          className="grid size-[72px] shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground"
+        >
+          <span className="text-center leading-tight">
+            <span className="block text-2xl font-bold">{day}</span>
+            <span className="block text-xs font-semibold tracking-wide">{month}</span>
+          </span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-base font-semibold leading-snug text-foreground">{seminar.title}</span>
+          <span className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin className="size-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">{seminar.location}</span>
+          </span>
+        </span>
+      </div>
+      {hasCapacity && (
+        <div className="flex flex-col gap-1.5">
+          <span className="flex items-center justify-between text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Users className="size-4" aria-hidden="true" />
+              {seminar.participants} de {seminar.max_participants} plazas
+            </span>
+            <span className="font-semibold text-foreground">
+              {Math.min(100, Math.round((seminar.participants / seminar.max_participants) * 100))}%
+            </span>
+          </span>
+          <ProgressBar value={seminar.participants} max={seminar.max_participants} label="Plazas ocupadas" tone="brand" />
+        </div>
+      )}
+    </Link>
+  );
+};
+
+const RingKpi = ({ value, max, label }: { value: number; max: number; label: string }) => (
+  <KpiCard>
+    <div className="flex items-center gap-4">
+      <ProgressRing value={value} max={max} label={label} tone={value / Math.max(max, 1) >= 0.75 ? 'ok' : 'warn'} />
+      <div className="min-w-0">
+        <BigNumber value={value} max={max} />
+        <p className="mt-1.5 text-sm text-muted-foreground">{label}</p>
+      </div>
+    </div>
+  </KpiCard>
 );
 
 export const Dashboard = () => {
@@ -118,10 +179,11 @@ export const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex max-w-3xl flex-col gap-3" aria-busy="true">
+      <div className="flex max-w-5xl flex-col gap-3" aria-busy="true">
         <Skeleton className="h-8 w-72" />
+        <Skeleton className="h-28 w-full rounded-[18px]" />
         {[0, 1, 2].map((row) => (
-          <Skeleton key={row} className="h-16 w-full" />
+          <Skeleton key={row} className="h-[72px] w-full rounded-[18px]" />
         ))}
       </div>
     );
@@ -141,51 +203,68 @@ export const Dashboard = () => {
   const attention = buildAttention(data, isSuperAdmin);
   const nextSeminar = data.upcoming_seminars[0];
   const { stats } = data;
+  const canPay = canAccess({ resource: 'payments', action: 'create' });
+  const canAddMember = canAccess({ resource: 'members', action: 'create' });
 
   return (
-    <div className="flex max-w-3xl flex-col gap-8">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">Lo que necesita tu atención</h2>
-        {isSuperAdmin && (
-          <p className="mt-1 text-[15px] text-muted-foreground">
-            {stats.total_clubs} clubs · {stats.total_members} miembros, {stats.active_members} activos
+    <div className="flex max-w-5xl flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-[28px] font-semibold tracking-tight text-foreground">Hola</h2>
+          {isSuperAdmin && (
+            <p className="mt-1 text-[15px] text-muted-foreground">
+              {stats.total_clubs} clubs · {stats.total_members} miembros, {stats.active_members} activos
+            </p>
+          )}
+        </div>
+        <div className="grid gap-3 sm:flex sm:flex-row-reverse">
+          {canPay && (
+            <Button size="lg" className="shadow-card" asChild>
+              <Link to="/payments">
+                <CreditCard className="size-5" aria-hidden="true" />
+                Pagar temporada
+              </Link>
+            </Button>
+          )}
+          {canAddMember && (
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/members">Añadir miembro</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <RingKpi value={stats.licensed_members ?? 0} max={stats.active_members} label="Licencias al día" />
+        <RingKpi value={stats.insured_members ?? 0} max={stats.active_members} label="Con seguro de accidentes" />
+        <KpiCard>
+          <div className="flex items-start justify-between gap-3">
+            <BigNumber value={stats.clubs_paid} max={stats.total_clubs} />
+            {stats.clubs_pending > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning">
+                <Clock className="size-3.5" aria-hidden="true" />
+                {stats.clubs_pending} sin pagar
+              </span>
+            )}
+          </div>
+          <div className="mt-3">
+            <ProgressBar value={stats.clubs_paid} max={stats.total_clubs} label="Temporada pagada" tone="ok" />
+          </div>
+          <p className="mt-2.5 text-sm text-muted-foreground">
+            {isSuperAdmin ? 'Clubs con la temporada pagada' : 'Temporada pagada'}
           </p>
-        )}
+        </KpiCard>
       </div>
 
-      <div className="border-t border-border">
-        {attention.map((item) => (
-          <AttentionRow key={item.key} item={item} />
-        ))}
-        {attention.length === 0 && (
-          <p className="border-b border-border px-1 py-5 text-[15px] text-foreground">Todo al día.</p>
-        )}
-        {nextSeminar && (
-          <AttentionRow
-            item={{
-              key: 'seminar',
-              lead: <span className="text-[15px] font-medium">{formatDayMonth(nextSeminar.date)}</span>,
-              tone: 'neutral',
-              title: `Próximo seminario: ${nextSeminar.title}`,
-              detail: `${formatDate(nextSeminar.date)} · ${nextSeminar.location}`,
-              to: '/seminars',
-              action: 'Ver',
-            }}
-          />
-        )}
-      </div>
-
-      <div className="grid gap-3 sm:flex">
-        {canAccess({ resource: 'payments', action: 'create' }) && (
-          <Button size="lg" asChild>
-            <Link to="/payments">Pagar licencias y seguros</Link>
-          </Button>
-        )}
-        {canAccess({ resource: 'members', action: 'create' }) && (
-          <Button size="lg" variant="outline" asChild>
-            <Link to="/members">Añadir miembro</Link>
-          </Button>
-        )}
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <section className="flex flex-col gap-3">
+          <h3 className="text-[17px] font-semibold text-foreground">Necesita atención</h3>
+          {attention.map((item) => (
+            <AttentionRow key={item.key} item={item} />
+          ))}
+          {attention.length === 0 && <p className={cn(cardClasses, 'p-5 text-[15px] text-foreground')}>Todo al día.</p>}
+        </section>
+        {nextSeminar && <SeminarCard seminar={nextSeminar} />}
       </div>
     </div>
   );

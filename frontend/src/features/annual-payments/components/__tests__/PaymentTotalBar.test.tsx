@@ -24,5 +24,6 @@ describe('PaymentTotalBar', () => {
     expect(screen.getByText(/4 miembros \+ cuota/)).toBeInTheDocument()
     expect(screen.getByText(/323,00\s€/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Pagar con tarjeta' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Pagar con tarjeta' })).toHaveTextContent(/^Pagar$/)
   })
 })

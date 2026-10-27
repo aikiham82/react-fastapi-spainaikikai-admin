@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Download, Loader2, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { IconTile } from '@/components/ui/graphic';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMemberContext } from '@/features/members/hooks/useMemberContext';
@@ -81,12 +83,15 @@ export function ExportSection({ kinds }: ExportSectionProps) {
   const hasMemberFilters = Object.values(omitPaging(memberFilters)).some(Boolean);
 
   return (
-    <section aria-labelledby="export-title" className="space-y-5">
-      <div className="space-y-1">
-        <h2 id="export-title" className="text-lg font-semibold text-foreground">
-          Descargar Excel
-        </h2>
-        <p className="text-sm text-muted-foreground">Guarda en tu ordenador un Excel con los datos.</p>
+    <section aria-labelledby="export-title" className="min-w-0 space-y-5 rounded-[18px] bg-card p-5 shadow-card sm:p-6">
+      <div className="flex items-center gap-3">
+        <IconTile icon={Download} tone="brand" />
+        <div className="min-w-0">
+          <h2 id="export-title" className="text-lg font-semibold text-foreground">
+            Descargar Excel
+          </h2>
+          <p className="text-sm text-muted-foreground">Guarda los datos en tu ordenador.</p>
+        </div>
       </div>
 
       <KindSelect id="export-kind" label="¿Qué quieres descargar?" kinds={kinds} value={kind} onChange={setKind} />
@@ -95,8 +100,9 @@ export function ExportSection({ kinds }: ExportSectionProps) {
         <p className="text-sm text-muted-foreground">Se descargan solo los miembros que has filtrado en la lista.</p>
       )}
 
-      <details className="group rounded-md border border-border">
-        <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-foreground">
+      <details className="group rounded-xl border border-border">
+        <summary className="flex min-h-11 cursor-pointer items-center gap-2 px-4 text-sm font-medium text-foreground">
+          <SlidersHorizontal className="size-4 text-muted-foreground" aria-hidden="true" />
           Opciones
         </summary>
         <div className="space-y-5 border-t border-border p-4">
@@ -143,7 +149,8 @@ export function ExportSection({ kinds }: ExportSectionProps) {
         </div>
       </details>
 
-      <Button onClick={() => download()} disabled={isPending || columns.length === 0} className="w-full sm:w-auto">
+      <Button onClick={() => download()} disabled={isPending || columns.length === 0} className="min-h-11 w-full sm:w-auto">
+        {isPending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Download className="size-4" aria-hidden="true" />}
         {isPending ? 'Descargando...' : 'Descargar Excel'}
       </Button>
     </section>

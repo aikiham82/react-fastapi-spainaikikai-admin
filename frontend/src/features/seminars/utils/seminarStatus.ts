@@ -1,3 +1,4 @@
+import { CalendarClock, CircleCheck, CirclePlay, CircleX, type LucideIcon } from 'lucide-react';
 import type { StatusTone } from '@/components/ui/status-badge';
 import type { Seminar } from '../data/schemas/seminar.schema';
 import { isSeminarPast } from './seminarDates';
@@ -17,4 +18,18 @@ export const STATUS_TONES: Record<Seminar['status'], StatusTone> = {
   ongoing: 'ok',
   completed: 'neutral',
   cancelled: 'bad',
+};
+
+export const STATUS_ICONS: Record<Seminar['status'], LucideIcon> = {
+  upcoming: CalendarClock,
+  ongoing: CirclePlay,
+  completed: CircleCheck,
+  cancelled: CircleX,
+};
+
+const NEARLY_FULL_RATIO = 0.8;
+
+export const seatsTone = (taken: number, max: number): StatusTone => {
+  if (taken >= max) return 'bad';
+  return taken / max >= NEARLY_FULL_RATIO ? 'warn' : 'ok';
 };

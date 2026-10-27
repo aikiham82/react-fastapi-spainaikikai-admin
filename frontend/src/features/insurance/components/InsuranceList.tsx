@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { HeartPulse, ShieldCheck, ShieldPlus, type LucideIcon } from 'lucide-react';
+import { Avatar, IconTile } from '@/components/ui/graphic';
 import { ListPager } from '@/core/components/ListPager';
 import { useInsuranceContext } from '../hooks/useInsuranceContext';
 import type { Insurance, InsuranceType } from '../data/schemas/insurance.schema';
@@ -18,6 +19,20 @@ import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueri
 import { formatCurrency, formatDate } from '@/core/utils/format';
 
 const ALL = 'all';
+
+const typeIcon = (type: string): LucideIcon => (type === 'accident' ? HeartPulse : ShieldCheck);
+
+const memberNameOf = (insurance: Insurance) => insurance.member_name || 'Sin miembro';
+
+const InsuranceKind = ({ type }: { type: string }) => {
+  const Icon = typeIcon(type);
+  return (
+    <span className="inline-flex items-center gap-1.5 text-foreground">
+      <Icon className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+      {insuranceTypeLabel(type)}
+    </span>
+  );
+};
 
 export const InsuranceList = () => {
   const { insuranceList, isLoading, error, filters, setFilters, total, limit, offset, deleteInsurance, selectInsurance, setPagination } = useInsuranceContext();
@@ -103,8 +118,8 @@ export const InsuranceList = () => {
   }
 
   const createButton = canCreate && (
-    <Button onClick={openCreate}>
-      <Plus className="size-4" />
+    <Button size="lg" onClick={openCreate}>
+      <ShieldPlus className="size-5" />
       Nuevo seguro
     </Button>
   );
@@ -193,7 +208,7 @@ export const InsuranceList = () => {
         />
       ) : (
         <>
-          <ul className="md:hidden">
+          <ul className="space-y-3 lg:hidden">
             {visibleInsurance.map((insurance) => {
               const status = insuranceStatus(insurance);
               const actions = rowActions(insurance);
@@ -201,26 +216,29 @@ export const InsuranceList = () => {
                 <li
                   key={insurance.id}
                   onClick={() => openDetail(insurance)}
-                  className="flex cursor-pointer items-start gap-2 border-b border-border py-3 first:border-t"
+                  className="flex cursor-pointer items-start gap-3 rounded-[18px] bg-card p-3.5 pr-1.5 shadow-card transition-colors active:bg-muted/60"
                 >
-                  <div className="min-w-0 flex-1 space-y-1">
+                  <Avatar name={memberNameOf(insurance)} size="md" />
+                  <div className="min-w-0 flex-1 space-y-2">
                     <button
                       type="button"
-                      className="block max-w-full text-left text-[15px] font-medium text-foreground"
+                      className="block max-w-full truncate text-left text-base font-bold text-foreground"
                       onClick={() => openDetail(insurance)}
                     >
-                      {insurance.member_name || 'Sin miembro'}
+                      {memberNameOf(insurance)}
                     </button>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
-                      <span className="text-sm text-muted-foreground">{insuranceTypeLabel(insurance.insurance_type)}</span>
-                    </div>
+                    <p className="text-sm">
+                      <InsuranceKind type={insurance.insurance_type} />
+                    </p>
                     <p className="text-sm text-muted-foreground">
                       {formatDate(insurance.start_date)} a {formatDate(insurance.end_date)}
                     </p>
-                    {!!insurance.coverage_amount && (
-                      <p className="text-sm tabular-nums text-foreground">{formatCurrency(insurance.coverage_amount)}</p>
-                    )}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+                      {!!insurance.coverage_amount && (
+                        <span className="text-sm font-semibold tabular-nums text-foreground">{formatCurrency(insurance.coverage_amount)}</span>
+                      )}
+                    </div>
                   </div>
                   {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
                 </li>
@@ -228,60 +246,76 @@ export const InsuranceList = () => {
             })}
           </ul>
 
-          <table className="hidden w-full text-sm md:table">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="w-[36%] min-w-[11rem] py-2 pr-3 font-medium">Miembro</th>
-                <th className="py-2 pr-3 font-medium">Tipo</th>
-                <th className="py-2 pr-3 font-medium">Vigencia</th>
-                <th className="py-2 pr-3 text-right font-medium">Cobertura</th>
-                <th className="py-2 pr-3 font-medium">Estado</th>
-                <th className="w-12 py-2">
-                  <span className="sr-only">Acciones</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleInsurance.map((insurance) => {
-                const status = insuranceStatus(insurance);
-                const actions = rowActions(insurance);
-                return (
-                  <tr
-                    key={insurance.id}
-                    onClick={() => openDetail(insurance)}
-                    className="cursor-pointer border-b border-border hover:bg-muted/50"
-                  >
-                    <td className="py-3 pr-3">
-                      <button type="button" className="text-left font-medium text-foreground" onClick={() => openDetail(insurance)}>
-                        {insurance.member_name || 'Sin miembro'}
-                      </button>
-                      {insurance.policy_number && (
-                        <p className="whitespace-nowrap text-muted-foreground">{insurance.policy_number}</p>
-                      )}
-                    </td>
-                    <td className="py-3 pr-3 text-foreground">{insuranceTypeLabel(insurance.insurance_type)}</td>
-                    <td className="py-3 pr-3 text-muted-foreground lg:whitespace-nowrap">
-                      {formatDate(insurance.start_date)}
-                      <span className="hidden lg:inline"> a </span>
-                      <span className="block lg:inline">
-                        <span className="lg:hidden">hasta </span>
-                        {formatDate(insurance.end_date)}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-3 text-right tabular-nums text-foreground">
-                      {insurance.coverage_amount ? formatCurrency(insurance.coverage_amount) : '-'}
-                    </td>
-                    <td className="py-3 pr-3">
-                      <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
-                    </td>
-                    <td className="py-3 text-right">
-                      {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="hidden overflow-hidden rounded-[18px] bg-card shadow-card lg:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="w-[34%] min-w-[11rem] px-4 py-3.5 font-semibold">Miembro</th>
+                  <th className="px-3 py-3.5 font-semibold">Tipo</th>
+                  <th className="px-3 py-3.5 font-semibold">Vigencia</th>
+                  <th className="px-3 py-3.5 text-right font-semibold">Cobertura</th>
+                  <th className="px-3 py-3.5 font-semibold">Estado</th>
+                  <th className="w-12 px-2 py-3.5">
+                    <span className="sr-only">Acciones</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleInsurance.map((insurance) => {
+                  const status = insuranceStatus(insurance);
+                  const actions = rowActions(insurance);
+                  return (
+                    <tr
+                      key={insurance.id}
+                      onClick={() => openDetail(insurance)}
+                      className="cursor-pointer border-t border-border hover:bg-muted/50"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={memberNameOf(insurance)} size="md" />
+                          <div className="min-w-0">
+                            <button type="button" className="text-left font-bold text-foreground" onClick={() => openDetail(insurance)}>
+                              {memberNameOf(insurance)}
+                            </button>
+                            {insurance.policy_number && (
+                              <p className="whitespace-nowrap text-muted-foreground">{insurance.policy_number}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <IconTile
+                            icon={typeIcon(insurance.insurance_type)}
+                            tone={insurance.insurance_type === 'accident' ? 'brand' : 'neutral'}
+                            className="size-9 rounded-lg"
+                          />
+                          <span className="whitespace-nowrap text-foreground">{insuranceTypeLabel(insurance.insurance_type).replace(" (RC)", "")}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground lg:whitespace-nowrap">
+                        {formatDate(insurance.start_date)}
+                        <span className="hidden lg:inline"> a </span>
+                        <span className="block lg:inline">
+                          <span className="lg:hidden">hasta </span>
+                          {formatDate(insurance.end_date)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-right tabular-nums text-foreground">
+                        {insurance.coverage_amount ? formatCurrency(insurance.coverage_amount) : '-'}
+                      </td>
+                      <td className="px-3 py-3">
+                        <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+                      </td>
+                      <td className="px-1 py-1.5 text-right">
+                        {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
 

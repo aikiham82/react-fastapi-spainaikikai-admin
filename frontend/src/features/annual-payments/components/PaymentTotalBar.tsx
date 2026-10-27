@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { CreditCard, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/core/utils/format';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
 
@@ -14,21 +14,33 @@ export const PaymentTotalBar = () => {
     useAnnualPaymentContext();
 
   return (
-    <div className="sticky -bottom-5 z-20 -mx-4 -mb-5 border-t border-border bg-card px-4 py-3 sm:-mx-6 sm:px-6 md:-bottom-8 md:-mb-8 lg:hidden">
+    <div className="sticky -bottom-5 z-20 -mx-4 -mb-5 bg-card px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] sm:-mx-6 sm:px-6 md:-bottom-8 md:-mb-8 lg:hidden">
       {submitError && (
         <p role="alert" className="pb-2 text-sm text-danger">
           {submitError}
         </p>
       )}
       <div className="flex items-center justify-between gap-4">
-        <p className="min-w-0 text-[15px] text-foreground">
-          <span>{describeSelection(formData.member_assignments.length, formData.include_club_fee)}</span>
-          <span aria-hidden="true"> · </span>
-          <span className="font-semibold tabular-nums">{formatCurrency(totals.total)}</span>
-        </p>
-        <Button type="button" size="lg" onClick={submitPayment} disabled={!canPay || isSubmitting || totals.total <= 0}>
-          {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
-          Pagar con tarjeta
+        <div className="min-w-0">
+          <p className="text-2xl font-bold tracking-tight tabular-nums text-foreground">{formatCurrency(totals.total)}</p>
+          <p className="truncate text-[13px] text-muted-foreground">
+            {describeSelection(formData.member_assignments.length, formData.include_club_fee)}
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="lg"
+          aria-label="Pagar con tarjeta"
+          className="h-12 shrink-0 px-6 text-base"
+          onClick={submitPayment}
+          disabled={!canPay || isSubmitting || totals.total <= 0}
+        >
+          {isSubmitting ? (
+            <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+          ) : (
+            <CreditCard className="size-5" aria-hidden="true" />
+          )}
+          Pagar
         </Button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { CircleX } from 'lucide-react'
 import userEvent from '@testing-library/user-event'
 import { ListToolbar, EmptyState, ChipGroup, RowActions } from '../list-controls'
 
@@ -63,6 +64,26 @@ describe('ChipGroup', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'Caducadas 3' }))
 
     expect(onChange).toHaveBeenCalledWith('expired')
+  })
+})
+
+describe('ChipGroup icons', () => {
+  it('draws an optional icon that stays out of the accessible name', () => {
+    render(
+      <ChipGroup
+        label="Mostrar"
+        value="all"
+        onChange={vi.fn()}
+        options={[
+          { value: 'all', label: 'Todos', count: 4 },
+          { value: 'expired', label: 'Caducadas', count: 1, icon: CircleX },
+        ]}
+      />
+    )
+
+    const chip = screen.getByRole('radio', { name: 'Caducadas 1' })
+    expect(chip.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByRole('radio', { name: 'Todos 4' }).querySelector('svg')).toBeNull()
   })
 })
 

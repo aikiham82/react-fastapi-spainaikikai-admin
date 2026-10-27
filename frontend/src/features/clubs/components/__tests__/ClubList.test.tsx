@@ -69,6 +69,11 @@ describe('ClubList', () => {
     expect(screen.getByText('12 socios')).toBeInTheDocument()
   })
 
+  it('gives every club an avatar with its initials', () => {
+    renderWithProviders(<ClubList />)
+    expect(screen.getByRole('img', { name: 'Club Ejemplo' })).toHaveTextContent('CE')
+  })
+
   it('uses a short search placeholder', () => {
     renderWithProviders(<ClubList />)
     expect(screen.getByPlaceholderText('Buscar club')).toBeInTheDocument()

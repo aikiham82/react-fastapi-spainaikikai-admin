@@ -23,6 +23,8 @@ class DashboardStats(BaseModel):
     clubs_pending: int
     upcoming_seminars: int
     expired_licenses: int
+    licensed_members: int = 0
+    insured_members: int = 0
 
 
 class ExpiringLicense(BaseModel):
@@ -127,6 +129,22 @@ async def get_dashboard_stats(
         "status": {"$ne": "revoked"}
     })
 
+    active_member_ids = [
+        str(member["_id"]) async for member in db["members"].find({**member_filter, "status": "active"}, {"_id": 1})
+    ]
+    licensed_members = len(await db["licenses"].distinct("member_id", {
+        "member_id": {"$in": active_member_ids},
+        "expiration_date": {"$gte": now},
+        "status": {"$nin": ["revoked", "pending"]},
+    }))
+    insured_members = len(await db["insurances"].distinct("member_id", {
+        "member_id": {"$in": active_member_ids},
+        "insurance_type": "accident",
+        "start_date": {"$lte": now},
+        "end_date": {"$gte": now},
+        "status": {"$nin": ["cancelled", "pending", "expired"]},
+    }))
+
     stats = DashboardStats(
         total_clubs=total_clubs,
         total_members=total_members,
@@ -134,7 +152,9 @@ async def get_dashboard_stats(
         clubs_paid=clubs_paid,
         clubs_pending=clubs_pending,
         upcoming_seminars=upcoming_seminars_count,
-        expired_licenses=expired_licenses_count
+        expired_licenses=expired_licenses_count,
+        licensed_members=licensed_members,
+        insured_members=insured_members,
     )
 
     # Get expiring licenses details

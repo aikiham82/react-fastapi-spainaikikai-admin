@@ -1,89 +1,127 @@
+import {
+  CalendarDays,
+  CreditCard,
+  House,
+  Settings,
+  ShieldHalf,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 import type { UserRole } from '@/features/auth/data/auth.schema'
 
-type SectionId = 'main' | 'activity' | 'admin' | 'account'
+type GroupId = 'home' | 'club' | 'payments' | 'seminars' | 'admin' | 'settings'
 
-interface NavItemDefinition {
+interface TabDefinition {
   title: string
   path: string
+  tab?: string
   resource: string
-  section: SectionId
-  clubAdmin?: { title?: string; section?: SectionId }
+  roles?: Exclude<UserRole, null>[]
 }
 
-export interface NavItem {
+interface GroupDefinition {
+  id: GroupId
+  title: string
+  icon: LucideIcon
+  tabs: TabDefinition[]
+  footer?: boolean
+  roles?: Exclude<UserRole, null>[]
+}
+
+export interface NavTab {
   title: string
   path: string
+  tab?: string
+  to: string
 }
 
-export interface NavSection {
-  id: SectionId
+export interface NavGroup {
+  id: GroupId
   title: string
-  items: NavItem[]
+  icon: LucideIcon
+  tabs: NavTab[]
+  to: string
+  footer: boolean
 }
 
 type CanRead = (resource: string) => boolean
 
-const NAV_ITEMS: NavItemDefinition[] = [
-  { title: 'Inicio', path: '/', resource: 'clubs', section: 'main' },
-  { title: 'Miembros', path: '/members', resource: 'members', section: 'main' },
-  { title: 'Licencias', path: '/licenses', resource: 'licenses', section: 'main' },
-  { title: 'Pagos', path: '/payments', resource: 'payments', section: 'main' },
-  { title: 'Seminarios', path: '/seminars', resource: 'seminars', section: 'activity' },
-  { title: 'Seguros', path: '/insurance', resource: 'insurance', section: 'activity' },
-  { title: 'Facturas', path: '/invoices', resource: 'invoices', section: 'activity' },
+const GROUPS: GroupDefinition[] = [
+  { id: 'home', title: 'Inicio', icon: House, tabs: [{ title: 'Inicio', path: '/', resource: 'clubs' }] },
   {
-    title: 'Clubs',
-    path: '/clubs',
-    resource: 'clubs',
-    section: 'admin',
-    clubAdmin: { title: 'Datos del club', section: 'main' },
+    id: 'club',
+    title: 'Club',
+    icon: Users,
+    tabs: [
+      { title: 'Miembros', path: '/members', resource: 'members' },
+      { title: 'Licencias', path: '/licenses', resource: 'licenses' },
+      { title: 'Seguros', path: '/insurance', resource: 'insurance' },
+      { title: 'Datos del club', path: '/clubs', resource: 'clubs', roles: ['club_admin'] },
+      { title: 'Importar y exportar', path: '/import-export', resource: 'import_export', roles: ['club_admin'] },
+    ],
   },
-  { title: 'Precios', path: '/price-configurations', resource: 'price_configurations', section: 'admin' },
   {
-    title: 'Importar y exportar',
-    path: '/import-export',
-    resource: 'import_export',
-    section: 'admin',
-    clubAdmin: { section: 'activity' },
+    id: 'payments',
+    title: 'Pagos',
+    icon: CreditCard,
+    tabs: [
+      { title: 'Pendientes', path: '/payments', resource: 'payments' },
+      { title: 'Historial', path: '/payments', tab: 'historial', resource: 'payments' },
+      { title: 'Facturas', path: '/invoices', resource: 'invoices' },
+      { title: 'Precios', path: '/price-configurations', resource: 'price_configurations' },
+    ],
   },
-  { title: 'Configuración', path: '/settings', resource: 'clubs', section: 'account' },
+  { id: 'seminars', title: 'Seminarios', icon: CalendarDays, tabs: [{ title: 'Seminarios', path: '/seminars', resource: 'seminars' }] },
+  {
+    id: 'admin',
+    title: 'Admin',
+    icon: ShieldHalf,
+    roles: ['super_admin'],
+    tabs: [
+      { title: 'Clubs', path: '/clubs', resource: 'clubs' },
+      { title: 'Importar y exportar', path: '/import-export', resource: 'import_export' },
+    ],
+  },
+  {
+    id: 'settings',
+    title: 'Ajustes',
+    icon: Settings,
+    footer: true,
+    tabs: [{ title: 'Configuración', path: '/settings', resource: 'clubs' }],
+  },
 ]
 
-const SECTION_ORDER: SectionId[] = ['main', 'activity', 'admin', 'account']
+const allows = (roles: Exclude<UserRole, null>[] | undefined, role: UserRole) =>
+  !roles || (role !== null && roles.includes(role))
 
-const sectionTitle = (id: SectionId, role: UserRole): string => {
-  const titles: Record<SectionId, string> = {
-    main: role === 'super_admin' ? 'Gestión' : 'Mi club',
-    activity: 'Actividad',
-    admin: 'Administración',
-    account: 'Cuenta',
-  }
-  return titles[id]
+const toOf = ({ path, tab }: { path: string; tab?: string }) => (tab ? `${path}?tab=${tab}` : path)
+
+export const getNavGroups = (role: UserRole, canRead: CanRead): NavGroup[] =>
+  GROUPS.filter((group) => allows(group.roles, role))
+    .map((group) => {
+      const tabs = group.tabs
+        .filter((tab) => allows(tab.roles, role) && canRead(tab.resource))
+        .map(({ title, path, tab }) => ({ title, path, tab, to: toOf({ path, tab }) }))
+      return { id: group.id, title: group.title, icon: group.icon, footer: Boolean(group.footer), tabs, to: tabs[0]?.to ?? '/' }
+    })
+    .filter((group) => group.tabs.length > 0)
+
+const matchesPath = (path: string, pathname: string) =>
+  path === '/' ? pathname === '/' || pathname === '/home' : pathname === path || pathname.startsWith(`${path}/`)
+
+export const isActiveTab = (tab: NavTab, siblings: NavTab[], pathname: string, search: string): boolean => {
+  if (!matchesPath(tab.path, pathname)) return false
+  const current = new URLSearchParams(search).get('tab')
+  if (tab.tab) return current === tab.tab
+  return !siblings.some((other) => other.tab && other.path === tab.path && other.tab === current)
 }
 
-const resolve = (item: NavItemDefinition, role: UserRole) => {
-  const override = role === 'club_admin' ? item.clubAdmin : undefined
-  return {
-    title: override?.title ?? item.title,
-    path: item.path,
-    section: override?.section ?? item.section,
-  }
-}
+export const findActiveGroup = (groups: NavGroup[], pathname: string, search: string): NavGroup | undefined =>
+  groups.find((group) => group.tabs.some((tab) => isActiveTab(tab, group.tabs, pathname, search)))
 
-export const getNavSections = (role: UserRole, canRead: CanRead): NavSection[] => {
-  const items = NAV_ITEMS.filter((item) => canRead(item.resource)).map((item) => resolve(item, role))
+export const MOBILE_GROUP_IDS: GroupId[] = ['home', 'club', 'payments', 'seminars']
 
-  return SECTION_ORDER.map((id) => ({
-    id,
-    title: sectionTitle(id, role),
-    items: items.filter((item) => item.section === id).map(({ title, path }) => ({ title, path })),
-  })).filter((section) => section.items.length > 0)
-}
-
-export const isActivePath = (itemPath: string, pathname: string): boolean =>
-  itemPath === '/' ? pathname === '/' || pathname === '/home' : pathname === itemPath || pathname.startsWith(`${itemPath}/`)
-
-export const getPageTitle = (pathname: string, role: UserRole): string => {
-  const match = NAV_ITEMS.map((item) => resolve(item, role)).find((item) => isActivePath(item.path, pathname))
-  return match?.title ?? 'Inicio'
+export const groupCount = (group: NavGroup, counters: Partial<Record<string, number>>): number | undefined => {
+  const total = [...new Set(group.tabs.map((tab) => tab.path))].reduce((sum, path) => sum + (counters[path] ?? 0), 0)
+  return total > 0 ? total : undefined
 }

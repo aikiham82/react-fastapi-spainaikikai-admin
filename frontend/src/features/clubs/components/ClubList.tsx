@@ -3,13 +3,14 @@ import { useState, useMemo } from 'react';
 import { useClubContext } from '../hooks/useClubContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Club } from '../data/schemas/club.schema';
-import { Plus } from 'lucide-react';
+import { Ban, MapPin, Pencil, Plus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState, ListToolbar, ListLoading, ListError } from '@/components/ui/list-controls';
+import { Avatar } from '@/components/ui/graphic';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-import { Badge } from '@/components/ui/badge';
 import { DeregisterClubButton } from './DeregisterClubButton';
 
 const clubLocation = (club: Club): string => {
@@ -92,34 +93,53 @@ export const ClubList = () => {
               onClear={() => setSearchTerm('')}
             />
           ) : (
-            <ul className="border-t border-border">
+            <ul className="space-y-3">
               {filteredClubs.map((club) => {
                 const location = clubLocation(club);
                 const isDeregistered = club.is_active === false;
                 return (
                   <li
                     key={club.id}
-                    className="flex items-center justify-between gap-3 border-b border-border py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] bg-card p-3 shadow-card sm:flex-nowrap sm:p-4"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-[15px] font-semibold text-foreground">{club.name}</p>
-                      {isDeregistered && <Badge variant="secondary" className="mt-1">De baja</Badge>}
-                      {location && <p className="truncate text-sm text-muted-foreground">{location}</p>}
-                      {club.member_count !== undefined && (
-                        <p className="text-sm text-muted-foreground">{memberCountLabel(club.member_count)}</p>
-                      )}
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <Avatar name={club.name} size="md" className="size-11" />
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="break-words text-[15px] font-semibold text-foreground">{club.name}</p>
+                          {isDeregistered && <StatusBadge tone="neutral" icon={Ban}>De baja</StatusBadge>}
+                        </div>
+                        {location && (
+                          <p className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground" title={location}>
+                            <MapPin className="size-[18px] shrink-0" aria-hidden="true" />
+                            <span className="truncate">{location}</span>
+                          </p>
+                        )}
+                        {club.member_count !== undefined && (
+                          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Users className="size-[18px] shrink-0" aria-hidden="true" />
+                            <span>{memberCountLabel(club.member_count)}</span>
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                    <div className="flex w-full gap-2 pl-14 sm:w-auto sm:shrink-0 sm:pl-0">
                       {isAssociationAdmin() && !isDeregistered && (
                         <DeregisterClubButton
                           clubId={club.id}
                           clubName={club.name}
                           label="Dar de baja"
                           ariaLabel={`Dar de baja ${club.name}`}
-                          className="text-destructive hover:text-destructive"
+                          className="flex-1 text-destructive hover:text-destructive pointer-coarse:h-11 sm:flex-none"
                         />
                       )}
-                      <Button variant="outline" aria-label={`Editar ${club.name}`} onClick={() => openEdit(club)}>
+                      <Button
+                        variant="outline"
+                        aria-label={`Editar ${club.name}`}
+                        className="flex-1 pointer-coarse:h-11 sm:flex-none"
+                        onClick={() => openEdit(club)}
+                      >
+                        <Pencil className="size-4" aria-hidden="true" />
                         Editar
                       </Button>
                     </div>

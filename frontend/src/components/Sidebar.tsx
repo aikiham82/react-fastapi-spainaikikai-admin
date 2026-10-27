@@ -1,39 +1,31 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
+import { Avatar } from '@/components/ui/graphic';
 import { roleLabels } from '@/core/utils/roleLabels';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
-import { usePermissions } from '@/core/hooks/usePermissions';
-import { getNavSections, isActivePath } from '@/components/navigation';
-
+import { isActiveTab } from '@/components/navigation';
+import { useNav } from '@/components/useNav';
 
 interface SidebarProps {
   className?: string;
-  id?: string;
-  isMobile?: boolean;
   onClose?: () => void;
 }
 
 const rowClasses =
-  'flex min-h-10 w-full items-center rounded-md px-3 text-[15px] transition-colors duration-150 pointer-coarse:min-h-11';
+  'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[14.5px] transition-colors duration-150';
 
-export const Sidebar: React.FC<SidebarProps> = ({ className, id, isMobile, onClose }) => {
-  const location = useLocation();
+export const Sidebar = ({ className, onClose }: SidebarProps) => {
   const { userRole, userEmail, logout } = useAuthContext();
-  const { canAccess } = usePermissions();
-
-  const sections = getNavSections(userRole, (resource) => canAccess({ resource, action: 'read' }));
-  const closeOnMobile = isMobile ? onClose : undefined;
+  const { groups, pathname, search } = useNav();
 
   const handleLogout = () => {
     logout();
-    closeOnMobile?.();
+    onClose?.();
   };
 
   return (
-    <div
-      id={id}
-      className={cn('flex h-full flex-col gap-6 border-r border-sidebar-border bg-sidebar px-3 py-5', className)}
-    >
+    <div className={cn('flex h-full flex-col gap-6 bg-sidebar px-3 py-5', className)}>
       <div className="flex items-center gap-3 px-2">
         <img src="/logo.jpg" alt="" className="size-10 rounded-md mix-blend-multiply" />
         <div className="min-w-0">
@@ -42,19 +34,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, id, isMobile, onClo
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto">
-        {sections.map((section) => (
-          <nav key={section.id} aria-labelledby={`nav-${section.id}`} className="flex flex-col gap-0.5">
-            <p id={`nav-${section.id}`} className="px-3 pb-1 text-[13px] font-medium text-muted-foreground">
-              {section.title}
-            </p>
-            {section.items.map((item) => {
-              const isActive = isActivePath(item.path, location.pathname);
-              return (
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
+        {groups.map((group) => {
+          const Icon = group.icon;
+          if (group.tabs.length === 1) {
+            const [tab] = group.tabs;
+            const isActive = isActiveTab(tab, group.tabs, pathname, search);
+            return (
+              <nav key={group.id} aria-label={group.title}>
                 <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={closeOnMobile}
+                  to={tab.to}
+                  onClick={onClose}
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
                     rowClasses,
@@ -63,21 +53,55 @@ export const Sidebar: React.FC<SidebarProps> = ({ className, id, isMobile, onClo
                       : 'text-sidebar-foreground hover:bg-muted hover:text-foreground'
                   )}
                 >
-                  {item.title}
+                  <Icon className={cn('size-[18px] shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} aria-hidden="true" />
+                  {tab.title}
                 </Link>
-              );
-            })}
-          </nav>
-        ))}
+              </nav>
+            );
+          }
+          return (
+            <nav key={group.id} aria-label={group.title} className="flex flex-col gap-0.5">
+              <p className="flex items-center gap-2 px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+                <Icon className="size-3.5" aria-hidden="true" />
+                {group.title}
+              </p>
+              {group.tabs.map((tab) => {
+                const isActive = isActiveTab(tab, group.tabs, pathname, search);
+                return (
+                  <Link
+                    key={tab.to}
+                    to={tab.to}
+                    onClick={onClose}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={cn(
+                      rowClasses,
+                      isActive
+                        ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
+                        : 'text-sidebar-foreground hover:bg-muted hover:text-foreground'
+                    )}
+                  >
+                    {tab.title}
+                  </Link>
+                );
+              })}
+            </nav>
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-1 border-t border-sidebar-border pt-4">
-        {userEmail && <p className="truncate px-3 text-[13px] text-muted-foreground">{userEmail}</p>}
+        {userEmail && (
+          <div className="flex min-w-0 items-center gap-2.5 px-3 pb-1">
+            <Avatar name={userEmail.split('@')[0].replace(/[._-]+/g, ' ')} />
+            <p className="truncate text-[13px] text-muted-foreground">{userEmail}</p>
+          </div>
+        )}
         <button
           type="button"
           onClick={handleLogout}
           className={cn(rowClasses, 'text-sidebar-foreground hover:bg-muted hover:text-foreground')}
         >
+          <LogOut className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
           Cerrar sesión
         </button>
       </div>

@@ -10,8 +10,8 @@ import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import type { PriceConfiguration } from '../data/schemas/price-configuration.schema';
 import { getPriceKeyDescription } from '../data/schemas/price-configuration.schema';
 import { formatCurrency } from '@/core/utils/format';
-
-const th = 'px-3 py-3 text-left text-sm font-medium text-muted-foreground';
+import { IconTile } from '@/components/ui/graphic';
+import { priceIconOf } from '../utils/price-icon';
 
 export const PriceConfigurationList = () => {
   const { priceConfigurations, isLoading, error, deletePriceConfiguration, isDeleting } = usePriceConfigurationContext();
@@ -55,7 +55,7 @@ export const PriceConfigurationList = () => {
   const actions = (config: PriceConfiguration) => (
     <div className="flex items-center justify-end gap-1">
       {canUpdate && (
-        <Button variant="outline" size="sm" onClick={() => handleEdit(config)}>
+        <Button variant="outline" className="h-11" onClick={() => handleEdit(config)}>
           Editar
         </Button>
       )}
@@ -81,51 +81,26 @@ export const PriceConfigurationList = () => {
             {addButton}
           </div>
 
-          <ul className="border-t border-border md:hidden">
+          <ul className="flex flex-col gap-3">
             {priceConfigurations.map((config) => (
-              <li key={config.id} className="flex flex-col gap-2 border-b border-border py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-[15px] font-semibold text-foreground">
+              <li
+                key={config.id}
+                className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[18px] bg-card p-4 shadow-card"
+              >
+                <IconTile icon={priceIconOf(config.key, config.category)} tone={config.is_active ? 'brand' : 'neutral'} />
+                <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
+                  <p className="break-words text-[15px] font-semibold text-foreground">
                     {getPriceKeyDescription(config.key, config.category)}
                   </p>
                   {status(config)}
                 </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-medium tabular-nums text-foreground">{formatCurrency(config.price)}</span>
-                  {actions(config)}
-                </div>
+                <span className="text-2xl font-bold tracking-tight tabular-nums text-foreground">
+                  {formatCurrency(config.price)}
+                </span>
+                <div className="flex w-full justify-end sm:w-auto">{actions(config)}</div>
               </li>
             ))}
           </ul>
-
-          <table className="hidden w-full md:table">
-            <thead>
-              <tr className="border-b border-border">
-                <th className={th}>Concepto</th>
-                <th className={`${th} text-right`}>Precio</th>
-                <th className={th}>Estado</th>
-                <th className={`${th} text-right`}>
-                  <span className="sr-only">Acciones</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {priceConfigurations.map((config) => (
-                <tr key={config.id} className="border-b border-border">
-                  <td className="px-3 py-3">
-                    <p className="text-[15px] font-semibold text-foreground">
-                      {getPriceKeyDescription(config.key, config.category)}
-                    </p>
-                      </td>
-                  <td className="px-3 py-3 text-right font-medium tabular-nums text-foreground">
-                    {formatCurrency(config.price)}
-                  </td>
-                  <td className="px-3 py-3">{status(config)}</td>
-                  <td className="px-3 py-3">{actions(config)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </>
       )}
 

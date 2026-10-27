@@ -1,13 +1,13 @@
-import { Award } from 'lucide-react';
+import { BadgeCheck } from 'lucide-react';
 
 export const OfficialBadge = () => {
   return (
     <div
-      className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-amber-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-sm"
+      className="absolute top-2 right-2 z-10 flex h-[26px] items-center gap-1.5 rounded-full bg-primary pl-2 pr-2.5 text-[12.5px] font-semibold text-primary-foreground shadow-card"
       aria-label="Seminario oficial Spain Aikikai"
       title="Seminario oficial Spain Aikikai"
     >
-      <Award className="w-3 h-3" />
+      <BadgeCheck className="size-3.5" aria-hidden="true" />
       <span>Oficial</span>
     </div>
   );

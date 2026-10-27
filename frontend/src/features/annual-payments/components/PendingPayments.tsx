@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Building2, Loader2 } from 'lucide-react';
+import { IconTile } from '@/components/ui/graphic';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/list-controls';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
@@ -66,9 +67,10 @@ export const PendingPayments = () => {
       <PaymentSetup />
 
       {!hasClub ? (
-        <p className="border-y border-border py-8 text-sm text-muted-foreground">
-          Elige un club para ver a sus miembros y lo que falta por pagar.
-        </p>
+        <div className="flex items-center gap-3 rounded-[18px] bg-card p-4 shadow-card">
+          <IconTile icon={Building2} tone="brand" />
+          <p className="text-[15px] text-foreground">Elige un club para ver a sus miembros y lo que falta por pagar.</p>
+        </div>
       ) : hasLoadError ? (
         <EmptyState
           title="No hemos podido comprobar lo que ya está pagado. Inténtalo de nuevo."
@@ -89,7 +91,7 @@ export const PendingPayments = () => {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
           <div className="flex min-w-0 flex-col gap-4">
             {missingTickedPrices.length > 0 && (
-              <p role="alert" className="rounded-md bg-warning-soft px-4 py-3 text-sm text-warning">
+              <p role="alert" className="rounded-xl bg-warning-soft px-4 py-3 text-sm font-medium text-warning">
                 {missingTickedPrices.map((concept) => PRICE_CONCEPT_LABELS[concept]).join(', ')}{' '}
                 {missingTickedPrices.length === 1 ? 'no tiene' : 'no tienen'} precio todavía. Elige otro tipo o avisa a la
                 Federación.

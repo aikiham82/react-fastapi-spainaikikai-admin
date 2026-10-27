@@ -98,6 +98,17 @@ describe('InvoiceList', () => {
     expect(screen.getAllByRole('button', { name: 'Descargar PDF' }).length).toBeGreaterThan(0)
   })
 
+  it('shows each invoice once with its own PDF download', async () => {
+    renderWithProviders(<InvoiceList />)
+
+    const rows = screen.getAllByTestId('invoice-row')
+    expect(rows).toHaveLength(1)
+    await userEvent.click(within(rows[0]).getByRole('button', { name: 'Descargar PDF' }))
+
+    expect(context.downloadPdf).toHaveBeenCalledWith('invoice-1', '2025-000002')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
   describe('search', () => {
     const accentedClubInvoice: Invoice = {
       ...issuedClubInvoice,

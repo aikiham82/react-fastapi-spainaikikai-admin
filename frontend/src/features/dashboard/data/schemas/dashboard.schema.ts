@@ -6,6 +6,8 @@ export interface DashboardStats {
   clubs_pending: number;
   upcoming_seminars: number;
   expired_licenses: number;
+  licensed_members?: number;
+  insured_members?: number;
 }
 
 export interface ExpiringLicense {

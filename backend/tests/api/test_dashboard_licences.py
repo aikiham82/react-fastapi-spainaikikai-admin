@@ -88,3 +88,26 @@ def test_expired_licences_are_counted_by_their_date(db):
     expired_filter = collections["licenses"].count_documents.call_args.args[0]
     assert "$lt" in expired_filter["expiration_date"]
     assert expired_filter["status"] == {"$ne": "revoked"}
+
+
+def test_the_dashboard_counts_active_members_with_a_licence_and_an_accident_insurance_in_force(db):
+    database, collections = db
+    collections["licenses"] = fake_collection()
+    collections["licenses"].distinct = AsyncMock(return_value=[CLUB_MEMBER_IDS[0]])
+    collections["insurances"] = fake_collection()
+    collections["insurances"].distinct = AsyncMock(return_value=CLUB_MEMBER_IDS)
+
+    response = stats_as(club_admin(), database)
+
+    stats = response.json()["stats"]
+    assert stats["licensed_members"] == 1
+    assert stats["insured_members"] == 2
+    licence_query = collections["licenses"].distinct.call_args.args[1]
+    assert licence_query["member_id"] == {"$in": CLUB_MEMBER_IDS}
+    assert "$gte" in licence_query["expiration_date"]
+    assert licence_query["status"] == {"$nin": ["revoked", "pending"]}
+    insurance_query = collections["insurances"].distinct.call_args.args[1]
+    assert insurance_query["member_id"] == {"$in": CLUB_MEMBER_IDS}
+    assert insurance_query["insurance_type"] == "accident"
+    assert insurance_query["status"] == {"$nin": ["cancelled", "pending", "expired"]}
+    assert "$gte" in insurance_query["end_date"] and "$lte" in insurance_query["start_date"]

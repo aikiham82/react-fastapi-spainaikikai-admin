@@ -81,7 +81,7 @@ describe('MemberList', () => {
     await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
 
     expect(screen.getByText('Estado del miembro')).toBeInTheDocument()
-    expect(screen.getByText('Licencia')).toBeInTheDocument()
+    expect(screen.getByText('Licencia', { selector: 'label' })).toBeInTheDocument()
     expect(screen.getByText('Club', { selector: 'label' })).toBeInTheDocument()
     expect(screen.getByText('Solo con acceso a la web')).toBeInTheDocument()
   })
@@ -131,16 +131,15 @@ describe('MemberList', () => {
     expect(screen.getByRole('searchbox')).toBe(search)
   })
 
-  it('shows only the insurance pills that are not in order on mobile cards', () => {
+  it('shows the two insurance tiles with a spoken state on mobile cards', () => {
     renderWithProviders(<MemberList />)
 
     const card = screen.getAllByTestId('member-card')[0]
-    expect(within(card).getByText('Accidentes: Sin seguro')).toBeInTheDocument()
-    expect(within(card).queryByText('Resp. civil: Activo')).not.toBeInTheDocument()
-    expect(within(card).queryByText('Seguros al día')).not.toBeInTheDocument()
+    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'bad')
+    expect(within(card).getByLabelText('Seguro de responsabilidad civil: al día')).toHaveAttribute('data-tone', 'ok')
   })
 
-  it('says the member is up to date when both insurances are in order', () => {
+  it('marks both tiles ok when both insurances are in order', () => {
     state.members = [
       member({
         insurance_summary: { has_rc: true, rc_status: 'active', has_accident: true, accident_status: 'active' },
@@ -149,9 +148,36 @@ describe('MemberList', () => {
     renderWithProviders(<MemberList />)
 
     const card = screen.getAllByTestId('member-card')[0]
-    expect(within(card).getByText('Licencia: Activa')).toBeInTheDocument()
-    expect(within(card).getByText('Seguros al día')).toBeInTheDocument()
-    expect(within(card).queryByText(/Accidentes:/)).not.toBeInTheDocument()
+    expect(within(card).getByText('Activa')).toBeInTheDocument()
+    expect(within(card).getByLabelText('Seguro de accidentes: al día')).toHaveAttribute('data-tone', 'ok')
+  })
+
+  it('tells a pending insurance apart from a missing one', () => {
+    state.members = [
+      member({
+        insurance_summary: { has_rc: true, rc_status: 'pending', has_accident: false, accident_status: null },
+      } as Partial<Member>),
+    ]
+    renderWithProviders(<MemberList />)
+
+    const card = screen.getAllByTestId('member-card')[0]
+    expect(within(card).getByLabelText('Seguro de responsabilidad civil: pendiente')).toHaveAttribute('data-tone', 'neutral')
+    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'bad')
+  })
+
+  it('counts the quick chips and filters by them', async () => {
+    state.members = [
+      member({ id: 'a', first_name: 'Ana', insurance_summary: { has_rc: true, rc_status: 'active', has_accident: true, accident_status: 'active' } } as Partial<Member>),
+      member({ id: 'b', first_name: 'Beto' }),
+    ]
+    renderWithProviders(<MemberList />)
+
+    expect(screen.getByRole('radio', { name: 'Todos 2' })).toBeChecked()
+    await userEvent.click(screen.getByRole('radio', { name: 'Sin seguro 1' }))
+
+    const cards = screen.getAllByTestId('member-card')
+    expect(cards).toHaveLength(1)
+    expect(within(cards[0]).getByText('Beto Example')).toBeInTheDocument()
   })
 
   it('shows grades with Spanish ordinals', () => {

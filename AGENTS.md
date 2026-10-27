@@ -57,6 +57,7 @@ docs/
 │   ├── excel-import-cells-are-text.md
 │   ├── frontend.md
 │   ├── list-screens-share-one-pattern.md
+│   ├── navigation-groups-and-tabs.md
 │   ├── public-images-are-unignored.md
 │   ├── pwa-updates-without-service-worker.md
 │   ├── select-all-option.md

@@ -1,5 +1,13 @@
+import { CircleCheck, CircleX, FileText, Send, type LucideIcon } from 'lucide-react';
 import type { StatusTone } from '@/components/ui/status-badge';
 import type { InvoiceStatus } from '../data/schemas/invoice.schema';
+
+export const INVOICE_STATUS_ICONS: Record<InvoiceStatus, LucideIcon> = {
+  draft: FileText,
+  issued: Send,
+  paid: CircleCheck,
+  cancelled: CircleX,
+};
 
 export const INVOICE_STATUS_TONES: Record<InvoiceStatus, StatusTone> = {
   draft: 'neutral',

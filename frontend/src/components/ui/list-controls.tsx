@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { MoreHorizontal, Search, SlidersHorizontal } from 'lucide-react'
+import { MoreHorizontal, Search, SlidersHorizontal, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -127,6 +127,7 @@ interface ChipOption<T extends string> {
   value: T
   label: string
   count?: number
+  icon?: LucideIcon
 }
 
 interface ChipGroupProps<T extends string> {
@@ -155,8 +156,18 @@ export function ChipGroup<T extends string>({ label, value, onChange, options }:
                 : 'border-border bg-card text-muted-foreground hover:text-foreground'
             )}
           >
+            {option.icon && <option.icon className="size-4 shrink-0" aria-hidden="true" />}
             {option.label}
-            {option.count !== undefined && <span className="tabular-nums opacity-80">{option.count}</span>}
+            {option.count !== undefined && (
+              <span
+                className={cn(
+                  'min-w-5 rounded-full px-1.5 text-center text-xs font-bold tabular-nums',
+                  selected ? 'bg-background/20' : 'bg-muted'
+                )}
+              >
+                {option.count}
+              </span>
+            )}
           </button>
         )
       })}
