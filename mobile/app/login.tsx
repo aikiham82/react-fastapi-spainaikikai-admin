@@ -17,8 +17,6 @@ import { router } from "expo-router";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { useLoginMutation } from "@/features/auth/hooks/mutations/useLoginMutation";
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import { ClubAccountNotice } from "@/features/auth/components/AdminWebNotice";
 import { colors, fonts, spacing } from "@/core/theme";
 import { FORGOT_PASSWORD_URL } from "@/core/web-urls";
 
@@ -32,7 +30,6 @@ export default function LoginScreen() {
 
   const shakeAnim = useRef(new Animated.Value(0)).current;
   const loginMutation = useLoginMutation();
-  const { clubAccountRefused } = useAuth();
 
   function shake() {
     Animated.sequence([
@@ -87,13 +84,8 @@ export default function LoginScreen() {
     loginMutation.mutate(
       { email: email.trim(), password },
       {
-        onSuccess: ({ user }) => {
-          if (user.is_club_account) setPassword("");
-          Haptics.notificationAsync(
-            user.is_club_account
-              ? Haptics.NotificationFeedbackType.Warning
-              : Haptics.NotificationFeedbackType.Success
-          );
+        onSuccess: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         },
         onError: () => {
           shake();
@@ -137,8 +129,6 @@ export default function LoginScreen() {
             />
             <Text style={styles.subtitle}>Area de Miembros</Text>
           </View>
-
-          {clubAccountRefused && <ClubAccountNotice />}
 
           <Animated.View
             style={[styles.form, { transform: [{ translateX: shakeAnim }] }]}

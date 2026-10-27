@@ -13,9 +13,6 @@ vi.mock('@/features/clubs/hooks/useClubContext', () => ({
 }))
 vi.mock('@/features/clubs/components/ClubList', () => ({ ClubList: () => <div>lista de clubes</div> }))
 vi.mock('@/features/clubs/components/MyClub', () => ({ MyClub: () => <div>mi club</div> }))
-vi.mock('@/features/clubs/components/ClubAccountsSection', () => ({
-  ClubAccountsSection: () => <div>cuentas de club</div>,
-}))
 
 describe('ClubsPage', () => {
   it('shows Mi club for club admins', () => {
@@ -29,6 +26,6 @@ describe('ClubsPage', () => {
     isClubAdmin.mockReturnValue(false)
     renderWithProviders(<ClubsPage />)
     expect(screen.getByText('lista de clubes')).toBeInTheDocument()
-    expect(screen.getByText('cuentas de club')).toBeInTheDocument()
+    expect(screen.queryByText(/cuentas de club/i)).not.toBeInTheDocument()
   })
 })
