@@ -30,7 +30,11 @@ export const SsoCallback = () => {
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <HandleSSOCallback navigateToApp={() => {}} navigateToSignIn={fail} navigateToSignUp={fail} />
+      <HandleSSOCallback
+        navigateToApp={({ session }) => session?.status === "pending" && fail()}
+        navigateToSignIn={fail}
+        navigateToSignUp={fail}
+      />
       <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Entrando con Google" />
     </div>
   );

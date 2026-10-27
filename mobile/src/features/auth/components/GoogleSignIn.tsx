@@ -10,6 +10,7 @@ import { useSocialLoginMutation } from "../hooks/mutations/useSocialLoginMutatio
 WebBrowser.maybeCompleteAuthSession();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+const signInWithAppleMissing = Platform.OS === "ios";
 
 const GOOGLE_FAILURE_MESSAGE =
   "No hemos podido entrar con Google. Usa el correo con el que tu club te dio acceso.";
@@ -61,8 +62,7 @@ function GoogleButton() {
 }
 
 export function GoogleSignIn() {
-  // ponytail: hidden on iOS until Sign in with Apple ships (App Store guideline 4.8)
-  if (!publishableKey || Platform.OS === "ios") return null;
+  if (!publishableKey || signInWithAppleMissing) return null;
 
   return (
     <ClerkProvider publishableKey={publishableKey}>

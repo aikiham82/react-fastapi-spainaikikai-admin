@@ -45,9 +45,9 @@ The default Clerk session token carries no email, and a custom claim says nothin
 
 ## ⚙️ Setup
 
-1. Clerk dashboard: create the application, enable only **Google** under social connections, and set **Restrictions → Sign-up mode → Restricted** so strangers cannot create Clerk users.
+1. Clerk dashboard: create the application, enable only **Google** under social connections, require no extra sign-up field (no username, no password, no phone), and keep **Sign-up mode → Public**. Every member is new to Clerk, so their first Google sign-in is a Clerk sign-up: **Restricted** mode refuses it and nobody gets in. The gate is our backend, not Clerk; a stranger gets a Clerk user and our `401`.
 2. Keys, never committed:
-   - Backend: `CLERK_SECRET_KEY`, and `CLERK_AUTHORIZED_PARTIES` with the panel and Expo web origins (comma-separated). A token that names an origin (`azp`) must name one of them; a native app token names none and is accepted.
+   - Backend: `CLERK_SECRET_KEY`, and `CLERK_AUTHORIZED_PARTIES` with the panel and Expo web origins (comma-separated). A token that names an origin (`azp`) must name one of them, so an empty list refuses every web token; a native app token names none and is accepted. Only session tokens are considered. Optional `CLERK_JWT_KEY` (PEM public key) verifies the signature without calling Clerk.
    - Frontend: `VITE_CLERK_PUBLISHABLE_KEY`, a Docker build arg, so it must be set in the deploy's build arguments.
    - Mobile: `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`, set in the EAS build profile. `@clerk/expo` adds native code (config plugins in `app.json`), so it needs a new EAS build; an `eas update` alone does not ship it. Google is hidden on iOS until Sign in with Apple is added (App Store guideline 4.8).
 3. Development keys (`pk_test_`/`sk_test_`) use Clerk's shared Google credentials and work on `localhost`.

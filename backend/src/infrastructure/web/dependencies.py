@@ -640,7 +640,11 @@ def get_authenticate_user_use_case() -> AuthenticateUserUseCase:
 def get_identity_provider() -> ClerkIdentityProvider:
     """Get the Clerk identity provider; without a secret key it vouches for nobody."""
     parties = [p.strip() for p in os.getenv("CLERK_AUTHORIZED_PARTIES", "").split(",") if p.strip()]
-    return ClerkIdentityProvider(os.getenv("CLERK_SECRET_KEY") or None, parties or None)
+    return ClerkIdentityProvider(
+        os.getenv("CLERK_SECRET_KEY") or None,
+        parties,
+        jwt_key=os.getenv("CLERK_JWT_KEY") or None,
+    )
 
 
 def get_login_with_identity_provider_use_case() -> LoginWithIdentityProviderUseCase:
