@@ -202,10 +202,10 @@ export function StateTile({ tone, label, children }: StateTileProps) {
       aria-label={label}
       title={label}
       data-tone={tone}
-      className={cn('relative grid size-[30px] shrink-0 place-items-center rounded-lg text-[11px] font-bold', toneClasses[tone])}
+      className={cn('relative inline-grid size-[30px] shrink-0 place-items-center rounded-lg text-[11px] font-bold', toneClasses[tone])}
     >
       {children}
-      <StateIcon className="absolute -right-1 -bottom-1 size-3.5 rounded-full bg-card" aria-hidden="true" />
+      <StateIcon className="absolute -right-0.5 -bottom-0.5 size-3.5 rounded-full bg-card" aria-hidden="true" />
     </span>
   )
 }

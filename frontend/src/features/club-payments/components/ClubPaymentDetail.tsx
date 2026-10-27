@@ -32,7 +32,7 @@ interface PaidMarkProps {
 }
 
 const PaidMark = ({ icon: Icon, paid, label }: PaidMarkProps) => (
-  <StateTile tone={paid ? 'ok' : 'bad'} label={label}>
+  <StateTile tone={paid ? 'ok' : 'neutral'} label={label}>
     <Icon className="size-4" aria-hidden="true" />
   </StateTile>
 );
