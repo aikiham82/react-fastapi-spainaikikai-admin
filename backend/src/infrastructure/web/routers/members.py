@@ -198,9 +198,7 @@ async def get_members(
         club_id = ctx.club_id
 
     if search:
-        members = await get_search_use_case.execute(search, limit)
-        if club_id:
-            members = [m for m in members if m.club_id == club_id]
+        members = await get_search_use_case.execute(search, limit, club_id=club_id)
     else:
         members = await get_all_use_case.execute(limit, club_id)
 
@@ -226,10 +224,8 @@ async def search_members(
     """Search members by name."""
     if not ctx.is_super_admin:
         _require_access_to_club(ctx, ctx.club_id)
-    members = await get_search_use_case.execute(name, limit)
-
-    if not ctx.is_super_admin:
-        members = [m for m in members if m.club_id == ctx.club_id]
+    club_id = None if ctx.is_super_admin else ctx.club_id
+    members = await get_search_use_case.execute(name, limit, club_id=club_id)
 
     responses = MemberMapper.to_response_list(members)
     responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)

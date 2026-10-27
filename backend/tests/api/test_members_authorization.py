@@ -169,11 +169,11 @@ def test_a_club_admin_lists_only_their_own_club(client_as, use_cases):
 
 
 @pytest.mark.parametrize("path", ["/api/v1/members?search=ana", "/api/v1/members/search?name=ana"])
-def test_a_club_admin_searches_only_their_own_club(client_as, path):
+def test_a_club_admin_searches_only_their_own_club(client_as, use_cases, path):
     response = client_as(club_admin()).get(path)
 
     assert response.status_code == status.HTTP_200_OK
-    assert [member["id"] for member in response.json()] == ["member-own"]
+    use_cases.search.execute.assert_called_once_with("ana", 0, club_id=OWN_CLUB)
 
 
 def test_a_club_admin_creates_members_in_their_own_club(client_as, use_cases):
@@ -217,10 +217,11 @@ def test_a_super_admin_works_with_members_of_any_club(client_as, stored_club):
     assert all(response.status_code < 300 for response in responses.values())
 
 
-def test_a_super_admin_searches_across_clubs(client_as):
+def test_a_super_admin_searches_across_clubs(client_as, use_cases):
     response = client_as(super_admin()).get("/api/v1/members/search?name=ana")
 
     assert [member["id"] for member in response.json()] == ["member-own", "member-foreign"]
+    use_cases.search.execute.assert_called_once_with("ana", 0, club_id=None)
 
 
 @pytest.mark.parametrize("path", ["/api/v1/members?search=", "/api/v1/members/search?name="])

@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-27T14:45:00Z"
+has_completed_all_phases: true
 ---
 
 # Member search club scope
@@ -35,16 +44,16 @@ A club admin's member search asks MongoDB for their club only, so the result lim
 
 Description: `club_id` travels from the router to the repository and into the Mongo filter; the in-memory filter goes away. Super admin keeps searching across clubs.
 
-- [ ] Test: "a club admin's search asks the use case for their club only" (both `/members?search=` and `/members/search`).
-- [ ] Test: "search_by_name filters by club_id when given".
-- [ ] Port and adapter: `search_by_name(name: str, limit: int = 0, club_id: Optional[str] = None)`.
-- [ ] Use case: `SearchMembersUseCase.execute(name: str, limit: int = 0, club_id: Optional[str] = None)`.
-- [ ] Router: pass the scoped club and drop the in-memory club filter.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test: "a club admin's search asks the use case for their club only" (both `/members?search=` and `/members/search`).
+- [x] Test: "search_by_name filters by club_id when given".
+- [x] Port and adapter: `search_by_name(name: str, limit: int = 0, club_id: Optional[str] = None)`.
+- [x] Use case: `SearchMembersUseCase.execute(name: str, limit: int = 0, club_id: Optional[str] = None)`.
+- [x] Router: pass the scoped club and drop the in-memory club filter.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases implemented.
 
 Scoped where it belongs, courtesy of 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

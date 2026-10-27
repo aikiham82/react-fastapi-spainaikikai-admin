@@ -55,7 +55,7 @@ class MemberRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def search_by_name(self, name: str, limit: int = 0) -> List[Member]:
+    async def search_by_name(self, name: str, limit: int = 0, club_id: Optional[str] = None) -> List[Member]:
         """Search members by name."""
         pass
 
