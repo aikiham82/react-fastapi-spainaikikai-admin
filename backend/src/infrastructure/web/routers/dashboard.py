@@ -123,16 +123,16 @@ async def get_dashboard_stats(
         "status": {"$ne": "cancelled"}
     })
 
-    # Expired licenses
+    active_member_ids = [
+        str(member["_id"]) async for member in db["members"].find({**member_filter, "status": "active"}, {"_id": 1})
+    ]
+
     expired_licenses_count = await db["licenses"].count_documents({
-        **license_filter,
+        "member_id": {"$in": active_member_ids},
         "expiration_date": {"$lt": now},
         "status": {"$ne": "revoked"}
     })
 
-    active_member_ids = [
-        str(member["_id"]) async for member in db["members"].find({**member_filter, "status": "active"}, {"_id": 1})
-    ]
     licensed_members = len(await db["licenses"].distinct("member_id", {
         "member_id": {"$in": active_member_ids},
         "expiration_date": {"$gte": now},
@@ -160,7 +160,7 @@ async def get_dashboard_stats(
 
     # Get expiring licenses details
     expiring_licenses_cursor = db["licenses"].find({
-        **license_filter,
+        "member_id": {"$in": active_member_ids},
         "expiration_date": {"$gte": now, "$lte": now + timedelta(days=30)},
         "status": "active"
     }).sort("expiration_date", 1).limit(5)

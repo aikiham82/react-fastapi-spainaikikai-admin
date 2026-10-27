@@ -123,3 +123,21 @@ def test_the_season_counted_as_paid_is_the_one_being_paid_from_october(db):
 
     paid_filter = collections["transactions"].count_documents.call_args.args[0]
     assert paid_filter["payment_year"] == 2027
+
+
+def test_expired_count_ignores_licences_of_inactive_members(db):
+    database, collections = db
+    active_only = [{"_id": CLUB_MEMBER_IDS[0]}]
+    every_member = [{"_id": member_id} for member_id in CLUB_MEMBER_IDS]
+    collections["members"].find = MagicMock(
+        side_effect=lambda query, *_: FakeCursor(active_only if query.get("status") == "active" else every_member)
+    )
+
+    stats_as(super_admin(), database)
+
+    expired_filter = collections["licenses"].count_documents.call_args.args[0]
+    expiring_filter = next(
+        c.args[0] for c in collections["licenses"].find.call_args_list if "expiration_date" in c.args[0]
+    )
+    assert expired_filter["member_id"] == {"$in": [CLUB_MEMBER_IDS[0]]}
+    assert expiring_filter["member_id"] == {"$in": [CLUB_MEMBER_IDS[0]]}

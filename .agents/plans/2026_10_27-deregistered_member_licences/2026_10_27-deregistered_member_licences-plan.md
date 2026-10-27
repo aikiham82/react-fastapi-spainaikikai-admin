@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 last_implementation_at: "2026-10-27T12:30:00Z"
-has_completed_all_phases: false
+has_completed_all_phases: true
 ---
 
 # Deregistered member licences
@@ -67,13 +67,13 @@ Description: the list response carries the member's status and the screen render
 
 Description: `expired_licenses` and the expiring-licences list on the dashboard only count licences of active members.
 
-- [ ] Test (`tests/api/test_dashboard_licences.py`): "expired count ignores licences of inactive members".
-- [ ] Restrict both queries in `dashboard.py` to `active_member_ids`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test (`tests/api/test_dashboard_licences.py`): "expired count ignores licences of inactive members".
+- [x] Restrict both queries in `dashboard.py` to `active_member_ids`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2.
+All phases implemented.
 
 Less red, more truth, brought to you by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
