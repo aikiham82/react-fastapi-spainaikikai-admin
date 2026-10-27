@@ -139,4 +139,29 @@ describe('InsuranceList', () => {
 
     expect(await screen.findByRole('button', { name: 'Quitar filtros' })).toBeInTheDocument()
   })
+
+  it('offers Renovar in one tap on an expired insurance, not on one in force', () => {
+    context.insuranceList = [
+      insurance,
+      { ...insurance, id: 'insurance-2', member_id: 'member-2', member_name: 'Bea Example', status: 'active', end_date: '2099-12-31T00:00:00' },
+    ]
+    renderWithProviders(<InsuranceList />)
+
+    expect(screen.getAllByRole('link', { name: 'Renovar Ana Example' })[0]).toHaveAttribute('href', '/payments?renovar=member-1&que=accidentes')
+    expect(screen.queryByRole('link', { name: 'Renovar Bea Example' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer Renovar to whoever cannot pay', () => {
+    context.allowed = new Set(['read'])
+    renderWithProviders(<InsuranceList />)
+
+    expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
+  })
+
+  it('offers Renovar on an insurance whose end date has passed even if it is still marked active', () => {
+    context.insuranceList = [{ ...insurance, status: 'active', insurance_type: 'civil_liability' }]
+    renderWithProviders(<InsuranceList />)
+
+    expect(screen.getAllByRole('link', { name: 'Renovar Ana Example' })[0]).toHaveAttribute('href', '/payments?renovar=member-1&que=rc')
+  })
 })

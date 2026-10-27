@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
@@ -10,6 +10,16 @@ import type { PrefillAnnualPaymentResponse } from '@/features/annual-payments/da
 
 const authContext = { userRole: 'club_admin' as 'club_admin' | 'super_admin', clubId: 'club-1' as string | null }
 let prices: Partial<Record<string, number>>
+const kira = {
+  id: 'm-1',
+  first_name: 'Kira',
+  last_name: 'Ejemplo',
+  club_id: 'club-1',
+  birth_date: '1990-01-01',
+  license_summary: { grade: '3er Kyu', technical_grade: 'kyu', instructor_category: null },
+}
+const rui = { ...kira, id: 'm-2', first_name: 'Rui', last_name: 'Prueba' }
+const roster = vi.hoisted(() => ({ members: [] as Record<string, unknown>[], prefilled: [] as unknown[] }))
 
 vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
@@ -19,18 +29,8 @@ vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
   useClubsQuery: () => ({ data: [{ id: 'club-1', name: 'Dojo Ejemplo' }], isLoading: false }),
 }))
 vi.mock('@/features/members/hooks/queries/useMemberQueries', () => ({
-  useMembersQuery: () => ({
-    data: [
-      {
-        id: 'm-1',
-        first_name: 'Kira',
-        last_name: 'Ejemplo',
-        birth_date: '1990-01-01',
-        license_summary: { grade: '3er Kyu', technical_grade: 'kyu', instructor_category: null },
-      },
-    ],
-    isLoading: false,
-  }),
+  useMembersQuery: () => ({ data: roster.members, isLoading: false }),
+  useMemberQuery: (id: string) => ({ data: roster.members.find((member) => member.id === id) }),
 }))
 vi.mock('@/features/annual-payments/hooks/queries/useAnnualPaymentPricesQuery', () => ({
   useAnnualPaymentPricesQuery: () => ({ data: prices, isLoading: false, error: null }),
@@ -41,7 +41,7 @@ vi.mock('@/features/annual-payments/hooks/queries/useAnnualPaymentPrefillQuery',
       payer_name: 'Director Ejemplo',
       include_club_fee: true,
       club_fee_already_paid: false,
-      member_assignments: [],
+      member_assignments: roster.prefilled,
       paid_assignments: [],
       source: 'members',
     } as unknown as PrefillAnnualPaymentResponse,
@@ -88,6 +88,8 @@ describe('PaymentsPage', () => {
     authContext.userRole = 'club_admin'
     authContext.clubId = 'club-1'
     prices = fullPrices
+    roster.members = [kira]
+    roster.prefilled = []
   })
 
   it('redirects /annual-payments and /club-payments to /payments', async () => {
@@ -120,6 +122,53 @@ describe('PaymentsPage', () => {
     await userEvent.click(screen.getByRole('option', { name: seasonLabel(previous) }))
 
     expect(screen.getByText(new RegExp(`^Temporada ${seasonLabel(previous)} · licencias del año ${previous} `))).toBeInTheDocument()
+  })
+
+  const chipOf = (member: RegExp, chip: RegExp) =>
+    within(screen.getByRole('group', { name: member })).getByRole('checkbox', { name: chip })
+
+  const prefillBoth = () => {
+    roster.members = [kira, rui]
+    roster.prefilled = [
+      { member_id: 'm-1', member_name: 'Kira Ejemplo', payment_types: ['kyu', 'seguro_accidentes', 'seguro_rc'] },
+      { member_id: 'm-2', member_name: 'Rui Prueba', payment_types: ['kyu', 'seguro_accidentes', 'seguro_rc'] },
+    ]
+  }
+
+  it('renews one licence: only that licence is ticked, nobody else and not the club fee', () => {
+    prefillBoth()
+    renderAt('/payments?renovar=m-2&que=licencia')
+
+    expect(chipOf(/Rui/, /licencia/i)).toHaveAttribute('aria-checked', 'true')
+    expect(chipOf(/Rui/, /accidentes/i)).toHaveAttribute('aria-checked', 'false')
+    expect(chipOf(/Rui/, /RC/)).toHaveAttribute('aria-checked', 'false')
+    expect(chipOf(/Kira/, /licencia/i)).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByRole('checkbox', { name: /cuota/i })).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('renews one insurance without touching the licence cycle', () => {
+    prefillBoth()
+    renderAt('/payments?renovar=m-2&que=rc')
+
+    expect(chipOf(/Rui/, /RC/)).toHaveAttribute('aria-checked', 'true')
+    expect(chipOf(/Rui/, /licencia/i)).toHaveAttribute('aria-checked', 'false')
+    expect(chipOf(/Rui/, /accidentes/i)).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('says so when the member has nothing left to renew in this season', () => {
+    prefillBoth()
+    renderAt('/payments?renovar=m-9&que=licencia')
+
+    expect(screen.getByText('Este miembro no tiene nada pendiente de renovar en esta temporada.')).toBeInTheDocument()
+  })
+
+  it('chooses the member club for a super admin who renews', () => {
+    authContext.userRole = 'super_admin'
+    authContext.clubId = null
+    roster.members = [kira, rui]
+    renderAt('/payments?renovar=m-2&que=licencia')
+
+    expect(chipOf(/Rui/, /licencia/i)).toHaveAttribute('aria-checked', 'true')
   })
 
   it('shows the friendly missing-price message to club admins', () => {

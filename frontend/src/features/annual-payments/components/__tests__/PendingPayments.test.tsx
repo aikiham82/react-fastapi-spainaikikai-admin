@@ -18,6 +18,7 @@ vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
   useClubsQuery: () => ({ data: [{ id: 'club-1', name: 'Dojo Ejemplo' }], isLoading: false }),
 }))
 vi.mock('@/features/members/hooks/queries/useMemberQueries', () => ({
+  useMemberQuery: () => ({ data: undefined }),
   useMembersQuery: () => ({
     data: [{ id: 'm-new', first_name: 'Nuevo', last_name: 'Ejemplo', birth_date: '1990-01-01', club_id: 'club-1' } as Member],
     isLoading: false,

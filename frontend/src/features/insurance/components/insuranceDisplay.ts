@@ -10,6 +10,10 @@ export const INSURANCE_TYPE_LABELS: Record<string, string> = {
 
 export const insuranceTypeLabel = (type: string): string => INSURANCE_TYPE_LABELS[type] ?? type;
 
+export const needsRenewal = (insurance: Pick<Insurance, 'status' | 'end_date'>, now: Date = new Date()): boolean =>
+  insurance.status === 'expired' ||
+  (insurance.status === 'active' && (new Date(insurance.end_date) < now || isExpiringSoon(insurance.end_date)));
+
 export const insuranceStatus = (insurance: Pick<Insurance, 'status' | 'end_date'>): { tone: StatusTone; label: string } => {
   switch (insurance.status) {
     case 'cancelled':

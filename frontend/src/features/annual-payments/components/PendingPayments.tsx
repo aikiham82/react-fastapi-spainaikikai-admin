@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Loader2 } from 'lucide-react';
+import { Building2, CircleCheck, Loader2 } from 'lucide-react';
 import { IconTile } from '@/components/ui/graphic';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/list-controls';
@@ -41,7 +42,14 @@ export const PendingPayments = () => {
     isClubAdmin,
     hasLoadError,
     retryLoad,
+    renewNotice,
+    renewedMemberId,
   } = useAnnualPaymentContext();
+
+  useEffect(() => {
+    if (!renewedMemberId) return;
+    document.querySelector(`[data-member-id="${CSS.escape(renewedMemberId)}"]`)?.scrollIntoView?.({ block: 'center' });
+  }, [renewedMemberId]);
 
   if (isLoadingPrices) {
     return (
@@ -65,6 +73,13 @@ export const PendingPayments = () => {
   return (
     <div className="flex flex-col gap-6">
       <PaymentSetup />
+
+      {renewNotice && (
+        <div className="flex items-center gap-3 rounded-[18px] bg-card p-4 shadow-card">
+          <IconTile icon={CircleCheck} tone="ok" />
+          <p className="text-[15px] text-foreground">{renewNotice}</p>
+        </div>
+      )}
 
       {!hasClub ? (
         <div className="flex items-center gap-3 rounded-[18px] bg-card p-4 shadow-card">

@@ -94,7 +94,7 @@ const MemberRow = ({ row }: { row: ChecklistRow }) => {
   }
 
   return (
-    <div role="group" aria-label={row.memberName} className={cn(CARD, 'flex flex-col gap-3')}>
+    <div role="group" aria-label={row.memberName} data-member-id={row.memberId} className={cn(CARD, 'flex flex-col gap-3')}>
       <MemberHeading row={row} />
       <div className="flex flex-wrap items-center gap-2 sm:pl-[52px]">
         {row.licencePaid ? (

@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from 'react';
-import { Building2, Globe, MapPin, Pencil, Phone, type LucideIcon } from 'lucide-react';
+import { Building2, Globe, MapPin, Pencil, Phone, UserCheck, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubQuery } from '../hooks/queries/useClubQueries';
+import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { Club } from '../data/schemas/club.schema';
 import { ClubForm } from './ClubForm';
 
@@ -40,6 +41,7 @@ const placeLine =(club: Club): string => uniqueParts([club.city, club.province])
 export const MyClub = () => {
   const { clubId } = useAuthContext();
   const { data: club, isLoading, error } = useClubQuery(clubId ?? '');
+  const { data: members } = useMembersQuery({ club_id: clubId ?? '' }, { enabled: Boolean(clubId) });
   const [isEditing, setIsEditing] = useState(false);
 
   if (isLoading) return <p className="text-muted-foreground">Cargando...</p>;
@@ -50,6 +52,9 @@ export const MyClub = () => {
   const place = placeLine(club);
   const addressTail = uniqueParts([club.postal_code, club.city, club.province]);
   const hasAddress = Boolean(club.address) || addressTail.length > 0;
+  const responsibles = (members ?? [])
+    .filter((member) => member.club_role === 'admin' && member.status !== 'inactive')
+    .map((member) => `${member.first_name} ${member.last_name ?? ''}`.trim());
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -73,6 +78,11 @@ export const MyClub = () => {
       </section>
 
       <dl className="divide-y divide-border rounded-[18px] bg-card px-5 py-2 shadow-card">
+        {responsibles.length > 0 && (
+          <DetailRow icon={UserCheck} label={responsibles.length === 1 ? 'Responsable' : 'Responsables'}>
+            {responsibles.join(' · ')}
+          </DetailRow>
+        )}
         {hasAddress && (
           <DetailRow icon={MapPin} label="Dirección">
             {club.address && <span className="block">{club.address}</span>}
