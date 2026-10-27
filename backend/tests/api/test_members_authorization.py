@@ -221,3 +221,11 @@ def test_a_super_admin_searches_across_clubs(client_as):
     response = client_as(super_admin()).get("/api/v1/members/search?name=ana")
 
     assert [member["id"] for member in response.json()] == ["member-own", "member-foreign"]
+
+
+@pytest.mark.parametrize("path", ["/api/v1/members?search=", "/api/v1/members/search?name="])
+def test_a_member_search_longer_than_100_characters_is_refused(client_as, use_cases, path):
+    response = client_as(super_admin()).get(path + "a" * 101)
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    use_cases.search.execute.assert_not_called()

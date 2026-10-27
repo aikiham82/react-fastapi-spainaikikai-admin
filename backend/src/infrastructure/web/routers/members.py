@@ -182,7 +182,7 @@ async def _enrich_members_with_own_email(
 async def get_members(
     limit: int = 0,
     club_id: Optional[str] = Query(None),
-    search: Optional[str] = Query(None),
+    search: Optional[str] = Query(None, max_length=100),
     status: Optional[str] = Query(None),
     get_all_use_case = Depends(get_all_members_use_case),
     get_search_use_case = Depends(get_search_members_use_case),
@@ -215,7 +215,7 @@ async def get_members(
 
 @router.get("/search", response_model=List[MemberResponse])
 async def search_members(
-    name: str = Query(...),
+    name: str = Query(..., max_length=100),
     limit: int = 0,
     get_search_use_case = Depends(get_search_members_use_case),
     ctx: AuthContext = Depends(get_auth_context),

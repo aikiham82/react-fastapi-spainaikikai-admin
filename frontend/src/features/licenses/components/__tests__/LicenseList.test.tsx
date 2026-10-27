@@ -142,6 +142,17 @@ describe('LicenseList', () => {
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
   })
 
+  it('a read-only role sees the licence detail without an empty footer', async () => {
+    context.canCreate = false
+    context.canUpdate = false
+    renderList()
+
+    await userEvent.click(screen.getAllByRole('button', { name: /LIC-1/ })[0])
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog.querySelector('[data-slot="dialog-footer"]')).not.toBeInTheDocument()
+  })
+
   it('shows the club admin hint instead of a create button', () => {
     context.canCreate = false
     context.canUpdate = false
@@ -179,6 +190,14 @@ describe('LicenseList', () => {
     expect(screen.getAllByText('De baja').length).toBeGreaterThan(0)
     expect(screen.queryByText('Caducada')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
+  })
+
+  it('the mobile card says Caducó el for a past expiry and Caduca el for a future one', () => {
+    context.licenses = [makeLicense('1', 'Bea Active', 200, 'active'), makeLicense('3', 'Dora Expired', -40, 'expired')]
+    renderList()
+
+    expect(screen.getAllByText(/^Caduca el /)).toHaveLength(1)
+    expect(screen.getAllByText(/^Caducó el /)).toHaveLength(1)
   })
 
   it('lists deregistered members last', () => {

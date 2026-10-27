@@ -1,6 +1,7 @@
 """Tests for how the MongoDB Member Repository reads stored documents."""
 
-from unittest.mock import patch
+import re
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from bson import ObjectId
@@ -27,3 +28,29 @@ class TestMongoDBMemberRepositoryToDomain:
         )
 
         assert member.last_name == ""
+
+
+@pytest.mark.unit
+@pytest.mark.repository
+class TestMongoDBMemberRepositorySearchByName:
+    @pytest.fixture
+    def repository(self, mock_database):
+        with patch(
+            "src.infrastructure.adapters.repositories.mongodb_member_repository.get_database",
+            return_value=mock_database,
+        ):
+            repository = MongoDBMemberRepository()
+        cursor = MagicMock()
+        cursor.limit.return_value = cursor
+        cursor.to_list = AsyncMock(return_value=[])
+        repository.collection = MagicMock()
+        repository.collection.find.return_value = cursor
+        return repository
+
+    @pytest.mark.asyncio
+    async def test_search_by_name_escapes_regex_characters(self, repository):
+        await repository.search_by_name("García (Jr")
+
+        query = repository.collection.find.call_args.args[0]
+        escaped = {"$regex": re.escape("García (Jr"), "$options": "i"}
+        assert query["$or"] == [{"first_name": escaped}, {"last_name": escaped}]

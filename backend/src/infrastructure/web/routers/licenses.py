@@ -1,10 +1,11 @@
 """License routes."""
 
+import re
 from typing import List, Optional
 from io import BytesIO
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from datetime import datetime
 
@@ -126,7 +127,7 @@ async def get_licenses(
     offset: int = 0,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
-    search: Optional[str] = None,
+    search: Optional[str] = Query(None, max_length=100),
     status: Optional[str] = None,
     get_all_use_case = Depends(get_all_licenses_use_case),
     member_repository = Depends(get_member_repository),
@@ -150,8 +151,8 @@ async def get_licenses(
         db = get_database()
         member_query = {
             "$or": [
-                {"first_name": {"$regex": search, "$options": "i"}},
-                {"last_name": {"$regex": search, "$options": "i"}}
+                {"first_name": {"$regex": re.escape(search), "$options": "i"}},
+                {"last_name": {"$regex": re.escape(search), "$options": "i"}}
             ]
         }
         matching_members = await db["members"].find(member_query, {"_id": 1}).to_list(length=None)
