@@ -76,6 +76,9 @@ class GrantMemberAccessUseCase:
 
         if make_club_admin:
             member.promote_to_admin()
+        if not (member.email or "").strip():
+            member.email = email
+        if make_club_admin or member.email == email:
             await self.member_repository.update(member)
 
         token, url = await issue_set_password_link(user, self.token_repository, self.frontend_base_url)
