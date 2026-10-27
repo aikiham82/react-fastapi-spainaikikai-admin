@@ -10,6 +10,7 @@ Every admin screen is **graphic first**: what a director needs to read is shown 
 - **Shape.** Cards `rounded-[18px] shadow-card` (the warm shadow in `index.css`), controls 12px, touch targets at least 44px. No gradients, no emoji, no filler copy.
 - **Status never relies on colour alone.** The word or the icon is always there, even on a 30px tile: `StateTile` adds the tone icon in its corner. Not paid yet is `neutral` (dashed circle, like the "Pendiente" pill); the red cross is for missing, expired or cancelled.
 - **Text.** Spanish with accents, sentence case, no developer keys, no em-dashes.
+- **Fewest steps.** Every use case is done in the fewest possible steps without losing functionality: tapping a row opens its edit form directly (no intermediate detail screen), the main action of a row lives on the row, common filters are chips, pending items to pay come pre-ticked. A confirmation is added only when it protects money or a deletion, and destructive actions sit in the row's ⋯ menu.
 - **Design before code.** A new screen or a visual change is drawn in Claude Design first, on the shared data sheet, and the code follows the mockup.
 
 ## 🏆 Benefits
