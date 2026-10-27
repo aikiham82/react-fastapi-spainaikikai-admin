@@ -32,6 +32,29 @@ const parse = (value: string): Date => {
     : new Date(value)
 }
 
+const HAS_OFFSET = /(Z|[+-]\d{2}:?\d{2})$/i
+const EXTRA_FRACTION = /(\.\d{3})\d+/
+
+export const parseUtcDateTime = (value: string | null | undefined): Date | null => {
+  if (!value) return null
+  const trimmed = value.replace(EXTRA_FRACTION, '$1')
+  const date = DATE_ONLY.test(trimmed) || HAS_OFFSET.test(trimmed) ? parse(trimmed) : new Date(`${trimmed}Z`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const twoDigits = (value: number): string => String(value).padStart(2, '0')
+
+export const toDateTimeLocalInput = (value: string | null | undefined): string => {
+  const date = parseUtcDateTime(value)
+  if (!date) return ''
+  return `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}T${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`
+}
+
+export const fromDateTimeLocalInput = (value: string): string => {
+  const date = value ? new Date(value) : null
+  return date && !Number.isNaN(date.getTime()) ? date.toISOString() : ''
+}
+
 const toValidDate = (value: DateInput): Date | null => {
   if (!value) return null
   const date = value instanceof Date ? value : parse(value)
@@ -42,8 +65,6 @@ export const formatDate = (value: DateInput): string => {
   const date = toValidDate(value)
   return date ? dateFormatter.format(date) : EMPTY
 }
-
-const twoDigits = (value: number): string => String(value).padStart(2, '0')
 
 export const formatDayMonth = (value: DateInput): string => {
   const date = toValidDate(value)
