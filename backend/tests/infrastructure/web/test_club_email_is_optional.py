@@ -49,3 +49,13 @@ def test_an_edit_without_email_keeps_the_stored_one():
 
     assert response.status_code == 200
     assert response.json()["email"] == "dojo@example.com"
+
+
+def test_club_contact_texts_are_bounded():
+    from pydantic import ValidationError
+    from src.infrastructure.web.dto.club_dto import ClubUpdate
+
+    with pytest.raises(ValidationError):
+        ClubUpdate(email="a" * 255)
+    with pytest.raises(ValidationError):
+        ClubUpdate(website="https://" + "a" * 2050)
