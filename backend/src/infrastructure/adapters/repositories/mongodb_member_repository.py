@@ -99,6 +99,13 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         doc = await self.collection.find_one({"email": email})
         return self._to_domain(doc) if doc else None
 
+    async def claim_card_access(self, member_id: str) -> bool:
+        claimed = await self.collection.find_one_and_update(
+            {"_id": ObjectId(member_id), "card_access_claimed_at": None},
+            {"$set": {"card_access_claimed_at": datetime.utcnow()}},
+        )
+        return claimed is not None
+
     async def count_by_emails(self, emails: List[str]) -> Dict[str, int]:
         wanted = sorted({e.strip().lower() for e in emails if e and e.strip()})
         if not wanted:

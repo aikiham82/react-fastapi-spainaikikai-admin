@@ -30,6 +30,11 @@ class MemberRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def claim_card_access(self, member_id: str) -> bool:
+        """Mark the member's card as requested; true only for the one call that marks it."""
+        pass
+
+    @abstractmethod
     async def count_by_emails(self, emails: List[str]) -> Dict[str, int]:
         """How many members hold each email, lowercased."""
         pass

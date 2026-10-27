@@ -18,6 +18,7 @@ def a_login(email="ana@example.com", member_id="other") -> User:
 
 def setup(members, logins=()):
     member_repo = MagicMock()
+    member_repo.claim_card_access = AsyncMock(return_value=True)
     member_repo.find_all_by_email = AsyncMock(side_effect=lambda email: [m for m in members if m.email.lower() == email and not m.is_club_account_placeholder])
     user_repo = MagicMock()
     user_repo.find_by_email = AsyncMock(side_effect=lambda email: next((u for u in logins if u.email == email), None))
@@ -30,7 +31,7 @@ def setup(members, logins=()):
     mailer = MagicMock()
     mailer.send_card_activation_email = AsyncMock(return_value=True)
     use_case = RequestCardAccessUseCase(member_repo, user_repo, tokens, mailer, lambda pw: "hashed", "https://admin.example.com")
-    return use_case, user_repo, mailer
+    return use_case, user_repo, mailer, member_repo
 
 
 @pytest.mark.unit
@@ -38,7 +39,7 @@ def setup(members, logins=()):
 class TestRequestCardAccess:
 
     async def test_a_member_with_their_own_email_gets_an_account_and_the_link(self):
-        use_case, users, mailer = setup([a_member()])
+        use_case, users, mailer, *_ = setup([a_member()])
 
         await use_case.execute(" Ana@Example.com ")
 
@@ -67,15 +68,35 @@ class TestRequestCardAccess:
         ([a_member(last_name="(Club Admin)")], ()),
     ], ids=["shared email", "member has an account", "email used as a login", "email used as a user name", "unknown email", "member de baja", "club placeholder"])
     async def test_nothing_is_created_otherwise(self, members, logins):
-        use_case, users, mailer = setup(members, logins)
+        use_case, users, mailer, *_ = setup(members, logins)
 
         await use_case.execute("ana@example.com")
 
         users.create.assert_not_called()
         mailer.send_card_activation_email.assert_not_called()
 
+    async def test_a_member_who_already_manages_the_club_gets_nothing(self):
+        from src.domain.entities.member import ClubRole
+        manager = a_member()
+        manager.club_role = ClubRole.ADMIN
+        use_case, users, mailer, *_ = setup([manager])
+
+        await use_case.execute("ana@example.com")
+
+        users.create.assert_not_called()
+        mailer.send_card_activation_email.assert_not_called()
+
+    async def test_only_the_request_that_claims_the_member_creates_the_account(self):
+        use_case, users, mailer, members = setup([a_member()])
+        members.claim_card_access = AsyncMock(return_value=False)
+
+        await use_case.execute("ana@example.com")
+
+        users.create.assert_not_called()
+        members.claim_card_access.assert_awaited_once_with("m1")
+
     async def test_a_failed_delivery_is_not_reported(self):
-        use_case, _, mailer = setup([a_member()])
+        use_case, _, mailer, *_ = setup([a_member()])
         mailer.send_card_activation_email = AsyncMock(side_effect=RuntimeError("smtp down"))
 
         await use_case.execute("ana@example.com")
