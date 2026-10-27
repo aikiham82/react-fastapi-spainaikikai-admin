@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CalendarDays } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TextButton } from '@/components/ui/text-link';
@@ -23,7 +24,7 @@ export const PaymentSetup = () => {
   const yearOptions = [year - 1, year, year + 1];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 rounded-[18px] bg-card p-4 shadow-card sm:p-5">
       <div className="grid items-start gap-4 sm:grid-cols-2">
         {!isClubAdmin && (
           <div className="grid gap-1.5">
@@ -57,7 +58,10 @@ export const PaymentSetup = () => {
       </div>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-        <p>{seasonText(formData.payment_year, today)}</p>
+        <p className="flex items-start gap-1.5">
+          <CalendarDays className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          {seasonText(formData.payment_year, today)}
+        </p>
         {!showYear && (
           <TextButton variant="inline" onClick={() => setShowYear(true)}>
             Otro año

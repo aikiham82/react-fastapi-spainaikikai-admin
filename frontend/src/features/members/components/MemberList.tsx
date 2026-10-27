@@ -3,7 +3,8 @@ import { ListPager } from '@/core/components/ListPager';
 import { useMemberContext } from '../hooks/useMemberContext';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Member } from '../data/schemas/member.schema';
-import { Plus } from 'lucide-react';
+import { CircleX, Clock, ShieldOff, UserPlus } from 'lucide-react';
+import { Avatar } from '@/components/ui/graphic';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,23 +23,26 @@ import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubContext } from '@/features/clubs/hooks/useClubContext';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
+import { ChipGroup, EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
 import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { MemberPaymentLines } from '@/features/club-payments/components/MemberPaymentLines';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, InsuranceAttentionBadges, MemberAccessBadge, MemberStatusBadge } from './MemberBadges';
+import { GradeBadge, InsuranceTiles, LicenseStatusBadge, MemberAccessBadge, MemberStatusBadge } from './MemberBadges';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useMembersWithAccountQuery } from '@/features/users/hooks/queries/useMembersWithAccountQuery';
 import { filterMembersWithAccess } from '../utils/member-access';
 import { DEFAULT_MEMBER_STATUS } from '../utils/member-defaults';
-import { cn } from '@/lib/utils';
+import { countMemberChips, matchesMemberChip, type MemberChip } from '../utils/member-attention';
 
 const DEFAULT_STATUS = DEFAULT_MEMBER_STATUS;
 const NAME_COLLATOR = new Intl.Collator('es');
 
 const fullName = (member: Member) => `${member.first_name} ${member.last_name ?? ''}`.trim();
+
+const secondaryLine = (member: Member, isSuperAdmin: boolean) =>
+  (isSuperAdmin ? member.club_name : null) || member.email || member.phone || '-';
 
 const LoadingRows = () => (
   <div role="status" aria-label="Cargando miembros" className="space-y-3">
@@ -107,6 +111,7 @@ export const MemberList = () => {
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [licenseStatusFilter, setLicenseStatusFilter] = useState<string>('all');
   const [memberStatusFilter, setMemberStatusFilter] = useState<string>(DEFAULT_STATUS);
+  const [chip, setChip] = useState<MemberChip>('all');
   const [clubFilter, setClubFilter] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState<Member | null>(null);
@@ -131,6 +136,12 @@ export const MemberList = () => {
 
   const { memberIdsWithAccount } = useMembersWithAccountQuery(isSuperAdmin);
 
+  const accessibleMembers = useMemo(
+    () => filterMembersWithAccess(members, memberIdsWithAccount, onlyWithAccess),
+    [members, memberIdsWithAccount, onlyWithAccess]
+  );
+  const chipCounts = useMemo(() => countMemberChips(accessibleMembers), [accessibleMembers]);
+
   const sortedMembers = useMemo(
     () =>
       filterMembersWithAccess(
@@ -141,8 +152,8 @@ export const MemberList = () => {
         ),
         memberIdsWithAccount,
         onlyWithAccess
-      ),
-    [members, memberIdsWithAccount, onlyWithAccess]
+      ).filter((member) => matchesMemberChip(member, chip)),
+    [members, memberIdsWithAccount, onlyWithAccess, chip]
   );
 
   const handleLicenseFilter = (value: string) => {
@@ -168,6 +179,7 @@ export const MemberList = () => {
     setLicenseStatusFilter('all');
     setClubFilter('');
     setOnlyWithAccess(false);
+    setChip('all');
     setFilters(prev => ({
       ...prev,
       search: undefined,
@@ -277,51 +289,62 @@ export const MemberList = () => {
         onClearFilters={clearFilters}
         action={canCreate && (
           <Button size="lg" onClick={openCreate}>
-            <Plus className="size-4" />
+            <UserPlus className="size-5" />
             Nuevo miembro
           </Button>
         )}
       />
 
+      <ChipGroup
+        label="Mostrar miembros"
+        value={chip}
+        onChange={setChip}
+        options={[
+          { value: 'all', label: 'Todos', count: chipCounts.all },
+          { value: 'expired', label: 'Caducadas', count: chipCounts.expired, icon: CircleX },
+          { value: 'expiring', label: 'Caducan pronto', count: chipCounts.expiring, icon: Clock },
+          { value: 'uninsured', label: 'Sin seguro', count: chipCounts.uninsured, icon: ShieldOff },
+        ]}
+      />
+
       {sortedMembers.length === 0 && (
         <MembersEmptyState
-          untouched={!searchTerm && activeFilters - (memberStatusFilter !== DEFAULT_STATUS ? 1 : 0) === 0}
+          untouched={!searchTerm && chip === 'all' && activeFilters - (memberStatusFilter !== DEFAULT_STATUS ? 1 : 0) === 0}
           statusFilter={memberStatusFilter}
           onClear={clearFilters}
           onIncludeInactive={() => setMemberStatusFilter('all')}
           action={canCreate && (
             <Button onClick={openCreate}>
-              <Plus className="size-4" />
+              <UserPlus className="size-5" />
               Nuevo miembro
             </Button>
           )}
         />
       )}
 
-      <div className="md:hidden divide-y divide-border border-y border-border">
+      <div className="space-y-3 md:hidden">
         {sortedMembers.map((member) => (
           <article
             key={member.id}
             data-testid="member-card"
-            className={cn('relative flex items-start gap-2 py-3 pr-1 active:bg-muted/60', member.status === 'inactive' && 'opacity-70')}
+            className="relative flex items-start gap-3 rounded-[18px] bg-card p-3.5 pr-1.5 shadow-card transition-colors active:bg-muted/60"
           >
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <button
-                type="button"
-                className="block max-w-full truncate text-left text-base font-semibold text-foreground after:absolute after:inset-0 after:content-['']"
-                onClick={() => openEdit(member)}
-              >
-                {fullName(member)}
-              </button>
-              <p className="truncate text-sm text-muted-foreground">
-                {[isSuperAdmin ? member.club_name : null, member.email].filter(Boolean).join(' · ') || '-'}
-              </p>
-              <p className="text-sm">
-                <GradeBadge licenseSummary={member.license_summary} compact />
-              </p>
+            <Avatar name={fullName(member)} size="md" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <div>
+                <button
+                  type="button"
+                  className="block max-w-full truncate text-left text-base font-bold text-foreground after:absolute after:inset-0 after:content-['']"
+                  onClick={() => openEdit(member)}
+                >
+                  {fullName(member)}
+                </button>
+                <p className="truncate text-sm text-muted-foreground">{secondaryLine(member, isSuperAdmin)}</p>
+              </div>
+              <GradeBadge licenseSummary={member.license_summary} />
               <div className="flex flex-wrap items-center gap-1.5">
-                <LicenseStatusBadge licenseSummary={member.license_summary} labelled />
-                <InsuranceAttentionBadges insuranceSummary={member.insurance_summary} />
+                <LicenseStatusBadge licenseSummary={member.license_summary} />
+                <InsuranceTiles insuranceSummary={member.insurance_summary} />
                 <MemberStatusBadge status={member.status} />
                 {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
               </div>
@@ -333,61 +356,62 @@ export const MemberList = () => {
         ))}
       </div>
 
-      <div className="hidden md:block">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="px-2.5 py-3 font-medium">Miembro</th>
-              {isSuperAdmin && <th className="px-2.5 py-3 font-medium">Club</th>}
-              <th className="px-2.5 py-3 font-medium">Grado</th>
-              <th className="px-2.5 py-3 font-medium">Seguros</th>
-              <th className="px-2.5 py-3 text-right font-medium">
-                <span className="sr-only">Acciones</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedMembers.map((member) => (
-              <tr key={member.id} className={cn('border-b border-border', member.status === 'inactive' && 'opacity-70')}>
-                <td className="px-2.5 py-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      className="text-left font-semibold text-foreground hover:underline"
-                      onClick={() => openEdit(member)}
-                    >
-                      {fullName(member)}
-                    </button>
-                    <MemberStatusBadge status={member.status} />
-                    {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
-                  </div>
-                  <p className="max-w-[12rem] truncate text-muted-foreground xl:max-w-[16rem]">
-                    {member.email || member.phone || '-'}
-                  </p>
-                </td>
-                {isSuperAdmin && (
-                  <td className="max-w-[10rem] px-2.5 py-3 text-muted-foreground xl:max-w-none xl:whitespace-nowrap">{member.club_name || '-'}</td>
-                )}
-                <td className="px-2.5 py-3">
-                  <div className="flex flex-col items-start gap-1">
-                    <GradeBadge licenseSummary={member.license_summary} />
-                    <LicenseStatusBadge licenseSummary={member.license_summary} />
-                  </div>
-                </td>
-                <td className="px-2.5 py-3">
-                  <div className="flex flex-col items-start gap-1">
-                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="rc" />
-                    <InsuranceStatusBadge insuranceSummary={member.insurance_summary} type="accident" />
-                  </div>
-                </td>
-                <td className="px-2.5 py-3 text-right">
-                  <RowActions label={fullName(member)} actions={rowActions(member)} />
-                </td>
+      {sortedMembers.length > 0 && (
+        <div className="hidden overflow-hidden rounded-[18px] bg-card shadow-card md:block">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-3.5 font-semibold">Miembro</th>
+                <th className="px-3 py-3.5 font-semibold">Grado</th>
+                <th className="px-3 py-3.5 font-semibold">Licencia</th>
+                <th className="px-3 py-3.5 font-semibold">Seguros</th>
+                <th className="px-3 py-3.5 text-right font-semibold">
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {sortedMembers.map((member) => (
+                <tr key={member.id} className="border-t border-border">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={fullName(member)} size="md" />
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            className="text-left font-bold text-foreground hover:underline"
+                            onClick={() => openEdit(member)}
+                          >
+                            {fullName(member)}
+                          </button>
+                          <MemberStatusBadge status={member.status} />
+                          {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
+                        </div>
+                        <p className="max-w-[12rem] truncate text-muted-foreground xl:max-w-[18rem]">
+                          {secondaryLine(member, isSuperAdmin)}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <GradeBadge licenseSummary={member.license_summary} />
+                  </td>
+                  <td className="px-3 py-3">
+                    <LicenseStatusBadge licenseSummary={member.license_summary} />
+                  </td>
+                  <td className="px-3 py-3">
+                    <InsuranceTiles insuranceSummary={member.insurance_summary} />
+                  </td>
+                  <td className="px-2 py-3 text-right">
+                    <RowActions label={fullName(member)} actions={rowActions(member)} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <ListPager total={total} limit={limit} offset={offset} noun="miembros" onPage={(next) => setPagination(next, limit)} />
 

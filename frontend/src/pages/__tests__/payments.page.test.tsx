@@ -98,15 +98,16 @@ describe('PaymentsPage', () => {
   it('redirects /club-payments to the Historial tab', async () => {
     renderAt('/club-payments')
     expect(await screen.findByTestId('where')).toHaveTextContent('/payments?tab=historial')
-    expect(screen.getByRole('tab', { name: 'Historial' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText('Historial de pagos')).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: /Kira/ })).not.toBeInTheDocument()
   })
 
-  it('opens on Pendientes with the member checklist', () => {
+  it('opens on Pendientes with the member checklist and leaves the tabs to the header', () => {
     renderAt('/payments')
 
-    expect(screen.getByRole('tab', { name: /^Pendientes/ })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('group', { name: /Kira/ })).toBeInTheDocument()
+    expect(screen.queryByText('Historial de pagos')).not.toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
   })
 
   it('shows the friendly missing-price message to club admins', () => {

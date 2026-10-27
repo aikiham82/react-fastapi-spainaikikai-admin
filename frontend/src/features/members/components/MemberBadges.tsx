@@ -1,27 +1,21 @@
-import { StatusBadge } from '@/components/ui/status-badge';
+import { KeyRound } from 'lucide-react';
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
+import { BeltBadge } from '@/components/ui/graphic';
+import { cn } from '@/lib/utils';
 import type { LicenseSummary, InsuranceSummary } from '../data/schemas/member.schema';
-import {
-  formatGrade,
-  formatInstructorCategory,
-  getMemberStatusLabel,
-} from '../utils/member-badges';
-import { getStatusPresentation } from '@/features/licenses/utils/licenseStatus';
+import { getMemberStatusLabel } from '../utils/member-badges';
 import { insuranceStatus } from '@/features/insurance/components/insuranceDisplay';
 import type { Insurance } from '@/features/insurance/data/schemas/insurance.schema';
-import type { License } from '@/features/licenses/data/schemas/license.schema';
+import { licensePresentation } from '../utils/member-attention';
 
-type StatusPresentation = ReturnType<typeof getStatusPresentation>;
+interface StatusPresentation {
+  tone: StatusTone;
+  label: string;
+}
 
 const NO_LICENSE: StatusPresentation = { tone: 'neutral', label: 'Sin licencia' };
 const NO_INSURANCE: StatusPresentation = { tone: 'neutral', label: 'Sin seguro' };
-const LICENSE_STATUSES: readonly License['status'][] = ['active', 'expired', 'pending', 'revoked'];
 const INSURANCE_STATUSES: readonly Insurance['status'][] = ['active', 'expired', 'pending', 'cancelled'];
-
-const presentLicense = (summary?: LicenseSummary): StatusPresentation => {
-  const status = LICENSE_STATUSES.find((value) => value === summary?.status);
-  if (!status) return NO_LICENSE;
-  return getStatusPresentation({ status, expiry_date: summary?.expiration_date ?? '' });
-};
 
 const presentInsurance = (has: boolean, rawStatus: string | null | undefined): StatusPresentation => {
   const status = INSURANCE_STATUSES.find((value) => value === rawStatus);
@@ -47,87 +41,77 @@ export function MemberAccessBadge({ hasAccount }: MemberAccessBadgeProps) {
   if (!hasAccount) return null;
 
   return (
-    <span
-      className="inline-flex whitespace-nowrap rounded-full border border-border px-2 py-0.5 text-[13px] font-medium text-muted-foreground"
-      title="Este socio tiene cuenta para entrar en la aplicación"
-    >
-      Acceso
-    </span>
+    <StatusBadge tone="neutral" icon={KeyRound}>
+      <span title="Este socio tiene cuenta para entrar en la aplicación">Acceso</span>
+    </StatusBadge>
   );
 }
 
 interface GradeBadgeProps {
   licenseSummary?: LicenseSummary;
-  compact?: boolean;
 }
 
-export function GradeBadge({ licenseSummary, compact = false }: GradeBadgeProps) {
-  const grade = formatGrade(licenseSummary?.grade);
-  const instructor = formatInstructorCategory(licenseSummary?.instructor_category);
-
-  return (
-    <span className={licenseSummary?.grade ? 'text-foreground' : 'text-muted-foreground'}>
-      {grade}
-      {!compact && instructor && <span className="text-muted-foreground">{` · ${instructor}`}</span>}
-    </span>
-  );
+export function GradeBadge({ licenseSummary }: GradeBadgeProps) {
+  return <BeltBadge grade={licenseSummary?.grade} title={licenseSummary?.instructor_category} />;
 }
 
 interface LicenseStatusBadgeProps {
   licenseSummary?: LicenseSummary;
-  labelled?: boolean;
 }
 
-export function LicenseStatusBadge({ licenseSummary, labelled = false }: LicenseStatusBadgeProps) {
-  const { tone, label } = presentLicense(licenseSummary);
+export function LicenseStatusBadge({ licenseSummary }: LicenseStatusBadgeProps) {
+  const { tone, label } = licensePresentation({ license_summary: licenseSummary }) ?? NO_LICENSE;
+  return <StatusBadge tone={tone}>{label}</StatusBadge>;
+}
+
+const TILE_TONES: Record<'ok' | 'bad', string> = {
+  ok: 'bg-success-soft text-success',
+  bad: 'bg-danger-soft text-danger',
+};
+
+interface InsuranceTileProps {
+  code: 'AC' | 'RC';
+  name: string;
+  has: boolean;
+  rawStatus: string | null | undefined;
+}
+
+function InsuranceTile({ code, name, has, rawStatus }: InsuranceTileProps) {
+  const { tone, label } = presentInsurance(has, rawStatus);
+  const ok = tone === 'ok';
+  const spoken = `${name}: ${ok ? 'al día' : label.toLowerCase()}`;
   return (
-    <StatusBadge tone={tone}>
-      {labelled ? `Licencia: ${label}` : label}
-    </StatusBadge>
+    <span
+      role="img"
+      aria-label={spoken}
+      title={spoken}
+      data-tone={ok ? 'ok' : 'bad'}
+      className={cn('inline-grid size-[30px] place-items-center rounded-lg text-[11px] font-bold', TILE_TONES[ok ? 'ok' : 'bad'])}
+    >
+      {code}
+    </span>
   );
 }
 
-interface InsuranceStatusBadgeProps {
-  insuranceSummary?: InsuranceSummary;
-  type: 'rc' | 'accident';
-}
-
-export function InsuranceStatusBadge({ insuranceSummary, type }: InsuranceStatusBadgeProps) {
-  const has = type === 'rc'
-    ? insuranceSummary?.has_rc ?? false
-    : insuranceSummary?.has_accident ?? false;
-  const status = type === 'rc'
-    ? insuranceSummary?.rc_status
-    : insuranceSummary?.accident_status;
-
-  const prefix = type === 'rc' ? 'Resp. civil' : 'Accidentes';
-
-  const { tone, label } = presentInsurance(has, status);
-
-  return (
-    <StatusBadge tone={tone}>
-      {`${prefix}: ${label}`}
-    </StatusBadge>
-  );
-}
-
-const insuranceIsOk = (has: boolean, rawStatus: string | null | undefined): boolean =>
-  presentInsurance(has, rawStatus).tone === 'ok';
-
-interface InsuranceAttentionBadgesProps {
+interface InsuranceTilesProps {
   insuranceSummary?: InsuranceSummary;
 }
 
-export function InsuranceAttentionBadges({ insuranceSummary }: InsuranceAttentionBadgesProps) {
-  const rcOk = insuranceIsOk(insuranceSummary?.has_rc ?? false, insuranceSummary?.rc_status);
-  const accidentOk = insuranceIsOk(insuranceSummary?.has_accident ?? false, insuranceSummary?.accident_status);
-
-  if (rcOk && accidentOk) return <StatusBadge tone="ok">Seguros al día</StatusBadge>;
-
+export function InsuranceTiles({ insuranceSummary }: InsuranceTilesProps) {
   return (
-    <>
-      {!rcOk && <InsuranceStatusBadge insuranceSummary={insuranceSummary} type="rc" />}
-      {!accidentOk && <InsuranceStatusBadge insuranceSummary={insuranceSummary} type="accident" />}
-    </>
+    <span className="inline-flex items-center gap-1.5">
+      <InsuranceTile
+        code="AC"
+        name="Seguro de accidentes"
+        has={insuranceSummary?.has_accident ?? false}
+        rawStatus={insuranceSummary?.accident_status}
+      />
+      <InsuranceTile
+        code="RC"
+        name="Seguro de responsabilidad civil"
+        has={insuranceSummary?.has_rc ?? false}
+        rawStatus={insuranceSummary?.rc_status}
+      />
+    </span>
   );
 }

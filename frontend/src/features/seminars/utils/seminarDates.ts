@@ -34,6 +34,3 @@ export const startTimeLabel = (iso: string): string | null => {
   if (date.getHours() === 0 && date.getMinutes() === 0) return null;
   return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 };
-
-export const freeSpots = (seminar: Seminar): number | null =>
-  seminar.max_participants ? Math.max(seminar.max_participants - seminar.current_participants, 0) : null;

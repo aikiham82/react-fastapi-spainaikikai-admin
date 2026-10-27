@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { displayStatus } from '../seminarStatus'
+import { displayStatus, seatsTone } from '../seminarStatus'
 import type { Seminar } from '../../data/schemas/seminar.schema'
 
 const seminar = (status: Seminar['status'], start: string): Seminar =>
@@ -19,5 +19,13 @@ describe('displayStatus', () => {
 
   it('keeps cancelled as cancelled', () => {
     expect(displayStatus(seminar('cancelled', '2026-10-17T10:00:00'), now)).toBe('cancelled')
+  })
+})
+
+describe('seatsTone', () => {
+  it('is calm while there is room, warns near the limit and alerts when full', () => {
+    expect(seatsTone(10, 30)).toBe('ok')
+    expect(seatsTone(24, 30)).toBe('warn')
+    expect(seatsTone(30, 30)).toBe('bad')
   })
 })

@@ -1,11 +1,16 @@
 import { useState } from 'react';
+import { CircleCheck, KeyRound, Mail, ShieldCheck } from 'lucide-react';
 import { roleLabels } from '@/core/utils/roleLabels';
 import { toast } from 'sonner';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { Button } from '@/components/ui/button';
+import { Avatar, IconTile } from '@/components/ui/graphic';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { UpdateOwnEmailDialog } from '@/features/auth/components/UpdateOwnEmailDialog';
 import { useRequestPasswordResetMutation } from '@/features/password-reset/hooks/mutations/useRequestPasswordReset.mutation';
 
+const cardClass = 'space-y-4 rounded-[18px] bg-card p-5 shadow-card';
+const headingClass = 'text-sm font-semibold text-muted-foreground';
 
 export const SettingsPage = () => {
   const { currentUser, userEmail, userRole } = useAuthContext();
@@ -14,6 +19,7 @@ export const SettingsPage = () => {
   const { requestResetAsync, isLoading } = useRequestPasswordResetMutation();
 
   const email = currentUser?.email ?? userEmail ?? null;
+  const roleLabel = userRole ? (roleLabels[userRole] ?? userRole) : 'No disponible';
 
   const sendLink = async () => {
     if (!email) return;
@@ -30,22 +36,22 @@ export const SettingsPage = () => {
   };
 
   return (
-    <div className="max-w-2xl divide-y divide-border">
-      <section className="space-y-4 pb-8">
-        <h2 className="text-lg font-semibold text-foreground">Mi cuenta</h2>
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-sm text-muted-foreground">Correo de acceso</dt>
-            <dd className="break-all text-foreground">{email ?? 'No disponible'}</dd>
+    <div className="max-w-2xl space-y-4">
+      <section aria-labelledby="settings-account" className={cardClass}>
+        <h2 id="settings-account" className={headingClass}>
+          Mi cuenta
+        </h2>
+        <div className="flex items-center gap-3">
+          <Avatar name={email ?? '?'} size="md" className="size-12 text-base" />
+          <div className="min-w-0 space-y-1">
+            <p className="break-all text-[15px] font-semibold text-foreground">{email ?? 'No disponible'}</p>
+            <StatusBadge tone="neutral" icon={ShieldCheck}>
+              {roleLabel}
+            </StatusBadge>
           </div>
-          <div>
-            <dt className="text-sm text-muted-foreground">Rol</dt>
-            <dd className="text-foreground">
-              {userRole ? (roleLabels[userRole] ?? userRole) : 'No disponible'}
-            </dd>
-          </div>
-        </dl>
-        <Button variant="outline" onClick={() => setIsEditingEmail(true)}>
+        </div>
+        <Button variant="outline" className="min-h-11 w-full sm:w-auto" onClick={() => setIsEditingEmail(true)}>
+          <Mail className="size-4" aria-hidden="true" />
           Cambiar mi correo
         </Button>
         {currentUser && (
@@ -57,17 +63,21 @@ export const SettingsPage = () => {
         )}
       </section>
 
-      <section className="space-y-4 pt-8">
-        <h2 className="text-lg font-semibold text-foreground">Contraseña</h2>
-        <p className="text-sm text-muted-foreground">
-          Te enviaremos un correo con un enlace para que elijas una contraseña nueva.
-        </p>
-        <Button variant="outline" onClick={sendLink} disabled={isLoading || !email}>
+      <section aria-labelledby="settings-password" className={cardClass}>
+        <h2 id="settings-password" className={headingClass}>
+          Contraseña
+        </h2>
+        <div className="flex items-center gap-3">
+          <IconTile icon={KeyRound} tone="brand" />
+          <p className="text-[15px] text-foreground">Te enviaremos un enlace por correo.</p>
+        </div>
+        <Button className="min-h-11 w-full sm:w-auto" onClick={sendLink} disabled={isLoading || !email}>
           {isLoading ? 'Enviando...' : 'Enviarme un enlace para cambiarla'}
         </Button>
         {sentTo && (
-          <p role="status" className="text-sm text-success">
-            Te hemos enviado un enlace a {sentTo}.
+          <p role="status" className="flex items-center gap-2 rounded-xl bg-success-soft px-3 py-2 text-sm font-medium text-success">
+            <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
+            <span>{`Te hemos enviado un enlace a ${sentTo}.`}</span>
           </p>
         )}
       </section>

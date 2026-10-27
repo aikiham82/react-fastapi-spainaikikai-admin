@@ -3,6 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Sidebar } from '@/components/Sidebar';
+import { Rail } from '@/components/Rail';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -34,7 +35,7 @@ export const AppLayout: React.FC = () => {
       <SkipLink targetId="main-content">Saltar al contenido principal</SkipLink>
       <SkipLink targetId="sidebar">Saltar a navegación</SkipLink>
 
-      <Sidebar className="hidden lg:flex lg:w-60 flex-shrink-0" id="sidebar" />
+      <Rail className="hidden shrink-0 lg:flex" id="sidebar" />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header />
@@ -50,7 +51,7 @@ export const AppLayout: React.FC = () => {
         <SheetContent side="left" className="w-[min(18rem,85vw)] p-0">
           <SheetTitle className="sr-only">Navegación</SheetTitle>
           <SheetDescription className="sr-only">Menú de navegación principal</SheetDescription>
-          <Sidebar isMobile onClose={() => setMobileMenuOpen(false)} />
+          <Sidebar onClose={() => setMobileMenuOpen(false)} />
         </SheetContent>
       </Sheet>
     </div>

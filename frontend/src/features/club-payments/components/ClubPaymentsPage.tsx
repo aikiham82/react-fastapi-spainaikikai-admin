@@ -4,6 +4,7 @@ import { AllClubsSummaryTable } from './AllClubsSummaryTable';
 import { ClubPaymentDetail } from './ClubPaymentDetail';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { CalendarDays } from 'lucide-react';
 import { defaultPaymentYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
 
 export const ClubPaymentsPage = () => {
@@ -42,12 +43,15 @@ export const ClubPaymentsPage = () => {
       </div>
 
       {selectedYear === today.getFullYear() && latestYear > selectedYear && (
-        <p className="flex flex-wrap items-center gap-x-2 text-sm text-foreground">
-          Los pagos hechos desde octubre cuentan para {latestYear}.
-          <Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={() => setSelectedYear(latestYear)}>
-            Ver {latestYear}
-          </Button>
-        </p>
+        <div className="flex items-start gap-2.5 rounded-xl bg-warning-soft px-4 py-3 text-sm text-foreground">
+          <CalendarDays className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            Los pagos hechos desde octubre cuentan para {latestYear}.
+            <Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={() => setSelectedYear(latestYear)}>
+              Ver {latestYear}
+            </Button>
+          </p>
+        </div>
       )}
 
       {showingDetail ? <ClubPaymentDetail /> : <AllClubsSummaryTable />}

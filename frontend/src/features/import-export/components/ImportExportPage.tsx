@@ -8,13 +8,9 @@ export const ImportExportPage = () => {
   const kinds = availableKinds(isAssociationAdmin());
 
   return (
-    <div className="mx-auto max-w-3xl divide-y divide-border">
-      <div className="pb-10">
-        <ExportSection kinds={kinds} />
-      </div>
-      <div className="pt-10">
-        <ImportSection kinds={kinds} />
-      </div>
+    <div className="grid max-w-5xl items-start gap-4 lg:grid-cols-2">
+      <ExportSection kinds={kinds} />
+      <ImportSection kinds={kinds} />
     </div>
   );
 };

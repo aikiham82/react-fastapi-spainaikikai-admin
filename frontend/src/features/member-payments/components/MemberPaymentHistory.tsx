@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
 import { AlertCircle, History } from 'lucide-react';
 import { useMemberPaymentHistoryQuery } from '../hooks/queries/useMemberPaymentQueries';
 import {
@@ -19,6 +19,12 @@ import {
   type MemberPaymentStatus,
 } from '../data/schemas/member-payment.schema';
 import { formatCurrency, formatDate } from '@/core/utils/format';
+
+const STATUS_TONES: Record<MemberPaymentStatus, StatusTone> = {
+  completed: 'ok',
+  pending: 'warn',
+  refunded: 'bad',
+};
 
 interface MemberPaymentHistoryProps {
   memberId: string;
@@ -113,7 +119,9 @@ export const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({
                 </TableCell>
                 <TableCell>{formatCurrency(payment.amount)}</TableCell>
                 <TableCell>
-                  <StatusBadge status={payment.status as MemberPaymentStatus} />
+                  <StatusBadge tone={STATUS_TONES[payment.status as MemberPaymentStatus] ?? 'neutral'}>
+                    {MEMBER_PAYMENT_STATUS[payment.status as MemberPaymentStatus] ?? payment.status}
+                  </StatusBadge>
                 </TableCell>
                 <TableCell>
                   {formatDate(payment.created_at)}
@@ -124,23 +132,5 @@ export const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({
         </Table>
       </CardContent>
     </Card>
-  );
-};
-
-interface StatusBadgeProps {
-  status: MemberPaymentStatus;
-}
-
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
-    completed: 'default',
-    pending: 'secondary',
-    refunded: 'destructive',
-  };
-
-  return (
-    <Badge variant={variants[status] || 'secondary'}>
-      {MEMBER_PAYMENT_STATUS[status] || status}
-    </Badge>
   );
 };

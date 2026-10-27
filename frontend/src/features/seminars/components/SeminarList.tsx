@@ -205,17 +205,17 @@ export const SeminarList = () => {
         <div className="space-y-6">
           {visible.upcoming.length > 0 && (
             <section aria-label="Próximos seminarios">
-              <h2 className="pb-1 text-sm font-medium text-muted-foreground">Próximos ({visible.upcoming.length})</h2>
-              <ul className="border-t border-border">{visible.upcoming.map(renderRow)}</ul>
+              <h2 className="pb-3 text-sm font-semibold text-muted-foreground">Próximos ({visible.upcoming.length})</h2>
+              <ul className="space-y-3">{visible.upcoming.map(renderRow)}</ul>
             </section>
           )}
 
           {visible.past.length > 0 && (
             <details className="group" open={visible.upcoming.length === 0 && hasActiveFilters}>
-              <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-muted-foreground">
+              <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-muted-foreground">
                 Pasados y cancelados ({visible.past.length})
               </summary>
-              <ul className="border-t border-border">{visible.past.map(renderRow)}</ul>
+              <ul className="mt-1 space-y-3">{visible.past.map(renderRow)}</ul>
             </details>
           )}
         </div>

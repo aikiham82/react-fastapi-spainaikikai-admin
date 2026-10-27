@@ -1,8 +1,41 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
+import { Building2, Globe, Mail, MapPin, Pencil, Phone, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubQuery } from '../hooks/queries/useClubQueries';
+import type { Club } from '../data/schemas/club.schema';
 import { ClubForm } from './ClubForm';
+
+interface DetailRowProps {
+  icon: LucideIcon;
+  label: string;
+  children: ReactNode;
+}
+
+const DetailRow = ({ icon: Icon, label, children }: DetailRowProps) => (
+  <div className="flex items-start gap-3 py-3">
+    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground" aria-hidden="true">
+      <Icon className="size-[18px]" />
+    </span>
+    <div className="min-w-0">
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="break-words text-[15px] text-foreground">{children}</dd>
+    </div>
+  </div>
+);
+
+const linkClass = 'underline-offset-4 hover:text-primary hover:underline';
+
+const uniqueParts = (parts: (string | undefined)[]): string[] =>
+  parts.filter((part): part is string => Boolean(part)).filter((part, index, all) => all.indexOf(part) === index);
+
+const websiteHref = (website: string): string | undefined => {
+  if (/^https?:\/\//i.test(website)) return website;
+  if (!website.includes(':')) return `https://${website}`;
+  return undefined;
+};
+
+const placeLine =(club: Club): string => uniqueParts([club.city, club.province]).join(', ');
 
 export const MyClub = () => {
   const { clubId } = useAuthContext();
@@ -14,30 +47,71 @@ export const MyClub = () => {
     return <p className="text-danger">No se pudieron cargar los datos del club.</p>;
   }
 
-  const rows: { label: string; value?: string }[] = [
-    { label: 'Nombre', value: club.name },
-    { label: 'Dirección', value: club.address },
-    { label: 'Ciudad', value: club.city },
-    { label: 'Código postal', value: club.postal_code },
-    { label: 'Provincia', value: club.province },
-    { label: 'Teléfono', value: club.phone },
-    { label: 'Correo', value: club.email },
-    { label: 'Web', value: club.website },
-  ];
+  const place = placeLine(club);
+  const addressTail = uniqueParts([club.postal_code, club.city, club.province]);
+  const hasAddress = Boolean(club.address) || addressTail.length > 0;
 
   return (
-    <div className="max-w-2xl space-y-8">
-      <dl className="divide-y divide-border border-y border-border">
-        {rows
-          .filter((row) => row.label === 'Nombre' || row.value)
-          .map((row) => (
-            <div key={row.label} className="grid gap-1 py-3 sm:grid-cols-3 sm:items-baseline sm:gap-4">
-              <dt className="text-sm text-muted-foreground">{row.label}</dt>
-              <dd className="break-words text-foreground sm:col-span-2">{row.value || '-'}</dd>
-            </div>
-          ))}
+    <div className="max-w-2xl space-y-4">
+      <section className="flex flex-wrap items-center gap-4 rounded-[18px] bg-card p-5 shadow-card">
+        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary" aria-hidden="true">
+          <Building2 className="size-8" />
+        </span>
+        <div className="min-w-0 flex-1 basis-48">
+          <h2 className="break-words text-xl font-bold text-foreground">{club.name}</h2>
+          {place && (
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <MapPin className="size-[18px] shrink-0" aria-hidden="true" />
+              <span className="truncate">{place}</span>
+            </p>
+          )}
+        </div>
+        <Button onClick={() => setIsEditing(true)} className="min-h-11 w-full sm:w-auto">
+          <Pencil className="size-4" aria-hidden="true" />
+          Editar datos
+        </Button>
+      </section>
+
+      <dl className="divide-y divide-border rounded-[18px] bg-card px-5 py-2 shadow-card">
+        {hasAddress && (
+          <DetailRow icon={MapPin} label="Dirección">
+            {club.address && <span className="block">{club.address}</span>}
+            {addressTail.length > 0 && (
+              <span className="flex flex-wrap gap-x-1.5 text-muted-foreground">
+                {addressTail.map((part) => (
+                  <span key={part}>{part}</span>
+                ))}
+              </span>
+            )}
+          </DetailRow>
+        )}
+        {club.phone && (
+          <DetailRow icon={Phone} label="Teléfono">
+            <a href={`tel:${club.phone}`} className={linkClass}>
+              {club.phone}
+            </a>
+          </DetailRow>
+        )}
+        {club.email && (
+          <DetailRow icon={Mail} label="Correo">
+            <a href={`mailto:${club.email}`} className={linkClass}>
+              {club.email}
+            </a>
+          </DetailRow>
+        )}
+        {club.website && (
+          <DetailRow icon={Globe} label="Web">
+            {websiteHref(club.website) ? (
+              <a href={websiteHref(club.website)} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {club.website}
+              </a>
+            ) : (
+              club.website
+            )}
+          </DetailRow>
+        )}
       </dl>
-      <Button onClick={() => setIsEditing(true)}>Editar datos</Button>
+
       <ClubForm open={isEditing} onOpenChange={setIsEditing} club={club} />
     </div>
   );

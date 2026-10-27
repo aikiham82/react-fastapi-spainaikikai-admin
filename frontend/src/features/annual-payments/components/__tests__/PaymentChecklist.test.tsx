@@ -106,6 +106,8 @@ const counts = () => JSON.parse(screen.getByTestId('counts').textContent ?? '{}'
 
 const rowOf = (name: string) => screen.getByRole('group', { name: new RegExp(name) })
 
+const chip = (label: string) => new RegExp(`^${label}\\s*(\\d|$)`)
+
 describe('PaymentChecklist', () => {
   beforeEach(() => {
     mutate.mockClear()
@@ -129,7 +131,7 @@ describe('PaymentChecklist', () => {
       ['Fuku', 'Licencia Fukushidoin'],
       ['Shi', 'Licencia Shidoin'],
     ]) {
-      await userEvent.click(within(rowOf(name)).getByRole('checkbox', { name: new RegExp(`^${label}$`) }))
+      await userEvent.click(within(rowOf(name)).getByRole('checkbox', { name: chip(label) }))
     }
 
     expect(counts()).toMatchObject({
@@ -148,11 +150,11 @@ describe('PaymentChecklist', () => {
 
     for (const name of ['Fuku', 'Shi']) {
       const row = within(rowOf(name))
-      expect(row.getByRole('checkbox', { name: 'Seguro de accidentes' })).toBeInTheDocument()
+      expect(row.getByRole('checkbox', { name: chip('Accidentes') })).toBeInTheDocument()
       expect(row.queryByRole('checkbox', { name: /RC/ })).not.toBeInTheDocument()
       expect(row.getByText(/ya incluye el seguro RC/i)).toBeInTheDocument()
     }
-    expect(within(rowOf('Kira')).getByRole('checkbox', { name: 'Seguro RC' })).toBeInTheDocument()
+    expect(within(rowOf('Kira')).getByRole('checkbox', { name: chip('RC') })).toBeInTheDocument()
   })
 
   it('does not pretick members already paid', () => {
@@ -165,20 +167,20 @@ describe('PaymentChecklist', () => {
     const paid = rowOf('Dario')
     expect(within(paid).getByText('Al día')).toBeInTheDocument()
     expect(within(paid).queryByRole('checkbox')).not.toBeInTheDocument()
-    expect(within(rowOf('Kira')).getByRole('checkbox', { name: 'Licencia Kyu' })).toBeChecked()
-    expect(within(rowOf('Ines')).getByRole('checkbox', { name: 'Licencia Kyu infantil' })).not.toBeChecked()
+    expect(within(rowOf('Kira')).getByRole('checkbox', { name: chip('Licencia Kyu') })).toBeChecked()
+    expect(within(rowOf('Ines')).getByRole('checkbox', { name: chip('Licencia Kyu infantil') })).not.toBeChecked()
     expect(counts()).toMatchObject({ kyu_count: 1, dan_count: 0 })
   })
 
   it('includes the club fee only when unpaid', async () => {
     const { unmount } = renderChecklist()
-    expect(screen.getByRole('checkbox', { name: /Cuota anual del club/ })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: chip('Cuota') })).toBeChecked()
     expect(counts().include_club_fee).toBe(true)
     unmount()
 
     prefill = makePrefill({ include_club_fee: false, club_fee_already_paid: true })
     renderChecklist()
-    expect(screen.queryByRole('checkbox', { name: /Cuota anual del club/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: chip('Cuota') })).not.toBeInTheDocument()
     expect(counts().include_club_fee).toBe(false)
   })
 
@@ -187,7 +189,7 @@ describe('PaymentChecklist', () => {
     renderChecklist()
 
     const row = within(rowOf('Kira'))
-    await userEvent.click(row.getByRole('checkbox', { name: 'Seguro de accidentes' }))
+    await userEvent.click(row.getByRole('checkbox', { name: chip('Accidentes') }))
 
     expect(counts()).toMatchObject({ seguro_accidentes_count: 1, seguro_rc_count: 0, kyu_count: 0 })
   })
@@ -199,7 +201,7 @@ describe('PaymentChecklist', () => {
     const row = within(rowOf('Nuevo'))
     await userEvent.selectOptions(row.getByRole('combobox', { name: 'Tipo de licencia de Nuevo Ejemplo' }), 'dan')
 
-    expect(row.getByRole('checkbox', { name: 'Licencia Dan' })).toBeChecked()
+    expect(row.getByRole('checkbox', { name: chip('Licencia Dan') })).toBeChecked()
     expect(counts()).toMatchObject({ dan_count: 1, kyu_count: 0 })
   })
 
@@ -232,5 +234,40 @@ describe('PaymentChecklist', () => {
       assignment('m-kyu', 'Kira Ejemplo', ['kyu', 'seguro_accidentes', 'seguro_rc']),
       assignment('m-shi', 'Shi Ejemplo', ['shidoin', 'seguro_accidentes']),
     ])
+  })
+
+  it('shows each concept price on its chip', () => {
+    members = [member('m-kyu', 'Kira', { technical_grade: 'kyu', grade: '3er Kyu' })]
+    renderChecklist()
+
+    const row = within(rowOf('Kira'))
+    expect(row.getByRole('checkbox', { name: chip('Licencia Kyu') })).toHaveTextContent(/30,00\s€/)
+    expect(row.getByRole('checkbox', { name: chip('Accidentes') })).toHaveTextContent(/15,00\s€/)
+    expect(screen.getByRole('checkbox', { name: chip('Cuota') })).toHaveTextContent(/50,00\s€/)
+  })
+
+  it('never shows a missing price as zero euros', () => {
+    Object.assign(prices, { dan: undefined })
+    try {
+      members = [member('m-dan', 'Dario', { technical_grade: 'dan', grade: '1er Dan' })]
+      renderChecklist()
+
+      const licence = within(rowOf('Dario')).getByRole('checkbox', { name: chip('Licencia Dan') })
+      expect(licence).toHaveTextContent(/^Licencia Dan$/)
+      expect(licence).not.toHaveTextContent(/0,00/)
+    } finally {
+      Object.assign(prices, { dan: 40 })
+    }
+  })
+
+  it('tints an up-to-date member instead of fading it', () => {
+    prefill = makePrefill({
+      paid_assignments: [assignment('m-dan', 'Dario Ejemplo', ['dan', 'seguro_accidentes', 'seguro_rc'])],
+    })
+    renderChecklist()
+
+    const paid = rowOf('Dario')
+    expect(paid.className).not.toMatch(/opacity/)
+    expect(paid.className).toMatch(/bg-success-soft/)
   })
 })

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { ChevronRight, CircleX, Clock, Plus } from 'lucide-react';
+import { Avatar, BeltBadge } from '@/components/ui/graphic';
 import { ListPager } from '@/core/components/ListPager';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { usePermissions } from '@/core/hooks/usePermissions';
@@ -36,6 +37,17 @@ const getGradeDisplay = (license: License): string => {
   if (license.dan_grade > 0) return formatGradeNumber(license.dan_grade, 'Dan');
   return 'Kyu';
 };
+
+const beltGradeOf = (license: License): string => {
+  if (license.dan_grade > 0) return `${license.dan_grade} ${license.technical_grade === 'kyu' ? 'Kyu' : 'Dan'}`;
+  return 'Kyu';
+};
+
+const LicenseBelt = ({ license }: { license: License }) => (
+  <BeltBadge grade={beltGradeOf(license)} title={license.instructor_category} />
+);
+
+const memberNameOf = (license: License) => license.member_name || 'Sin nombre';
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'active', label: 'Activa' },
@@ -161,8 +173,8 @@ export const LicenseList = () => {
   }
 
   const createButton = canCreate ? (
-    <Button onClick={openCreate}>
-      <Plus className="size-4" />
+    <Button size="lg" onClick={openCreate}>
+      <Plus className="size-5" />
       Nueva licencia
     </Button>
   ) : undefined;
@@ -216,9 +228,9 @@ export const LicenseList = () => {
         value={chip}
         onChange={setChip}
         options={[
-          { value: 'all', label: 'Todas' },
-          { value: 'expired', label: 'Caducadas', count: counts.expired },
-          { value: 'expiring', label: 'Caducan pronto', count: counts.expiring },
+          { value: 'all', label: 'Todas', count: sorted.length },
+          { value: 'expired', label: 'Caducadas', count: counts.expired, icon: CircleX },
+          { value: 'expiring', label: 'Caducan pronto', count: counts.expiring, icon: Clock },
         ]}
       />
 
@@ -237,51 +249,57 @@ export const LicenseList = () => {
         )
       ) : (
         <>
-          <ul className="md:hidden">
+          <ul className="space-y-3 md:hidden">
             {visible.map((license) => (
-              <li key={license.id} className="border-b border-border">
+              <li key={license.id}>
                 <button
                   type="button"
                   onClick={() => openDetail(license)}
-                  className="flex w-full flex-col gap-1.5 px-1 py-3.5 text-left"
+                  className="flex w-full items-start gap-3 rounded-[18px] bg-card p-3.5 text-left shadow-card transition-colors active:bg-muted/60"
                 >
-                  <span className="flex items-start justify-between gap-3">
+                  <Avatar name={memberNameOf(license)} size="md" />
+                  <span className="flex min-w-0 flex-1 flex-col gap-2">
                     <span className="min-w-0">
-                      <span className="block truncate text-[15px] font-medium text-foreground">{license.member_name || 'Sin nombre'}</span>
+                      <span className="block truncate text-base font-bold text-foreground">{memberNameOf(license)}</span>
                       <span className="block text-sm text-muted-foreground">{license.license_number}</span>
                     </span>
-                    <LicenseStatusBadge license={license} />
+                    <LicenseBelt license={license} />
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                      <LicenseStatusBadge license={license} />
+                      <span className="text-sm text-muted-foreground">Caduca el {formatDate(license.expiry_date)}</span>
+                    </span>
                   </span>
-                  <span className="text-sm text-muted-foreground">
-                    {getGradeDisplay(license)} · Caduca el {formatDate(license.expiry_date)}
-                  </span>
+                  <ChevronRight className="size-5 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
                 </button>
               </li>
             ))}
           </ul>
 
-          <div className="hidden md:block">
+          <div className="hidden overflow-hidden rounded-[18px] bg-card shadow-card md:block">
             <table className="w-full table-fixed text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="w-[36%] px-3 py-3 font-medium">Miembro</th>
-                  <th className="w-[11%] px-3 py-3 font-medium">Grado</th>
-                  <th className="hidden w-[12%] px-3 py-3 font-medium xl:table-cell">Emisión</th>
-                  <th className="w-[15%] px-3 py-3 font-medium">Caducidad</th>
-                  <th className="w-[17%] px-3 py-3 font-medium">Estado</th>
-                  <th className="w-14 px-3 py-3"><span className="sr-only">Acciones</span></th>
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="w-[34%] px-4 py-3.5 font-semibold">Miembro</th>
+                  <th className="w-[19%] px-3 py-3.5 font-semibold">Grado</th>
+                  <th className="hidden w-[12%] px-3 py-3.5 font-semibold xl:table-cell">Emisión</th>
+                  <th className="w-[14%] px-3 py-3.5 font-semibold">Caducidad</th>
+                  <th className="w-[17%] px-3 py-3.5 font-semibold">Estado</th>
+                  <th className="w-14 px-3 py-3.5"><span className="sr-only">Acciones</span></th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map((license) => (
-                  <tr key={license.id} className="border-b border-border">
-                    <td className="px-3 py-3">
-                      <button type="button" onClick={() => openDetail(license)} className="block w-full min-w-0 text-left">
-                        <span className="block truncate text-[15px] font-medium text-foreground">{license.member_name || 'Sin nombre'}</span>
-                        <span className="block truncate text-muted-foreground">{license.license_number}</span>
+                  <tr key={license.id} className="border-t border-border">
+                    <td className="px-4 py-3">
+                      <button type="button" onClick={() => openDetail(license)} className="flex w-full min-w-0 items-center gap-3 text-left">
+                        <Avatar name={memberNameOf(license)} size="md" />
+                        <span className="min-w-0">
+                          <span className="block truncate text-[15px] font-bold text-foreground">{memberNameOf(license)}</span>
+                          <span className="block truncate text-muted-foreground">{license.license_number}</span>
+                        </span>
                       </button>
                     </td>
-                    <td className="px-3 py-3 text-foreground">{getGradeDisplay(license)}</td>
+                    <td className="px-3 py-3"><LicenseBelt license={license} /></td>
                     <td className="hidden px-3 py-3 text-muted-foreground xl:table-cell">{formatDate(license.issue_date)}</td>
                     <td className="px-3 py-3 text-foreground">{formatDate(license.expiry_date)}</td>
                     <td className="px-3 py-3"><LicenseStatusBadge license={license} /></td>
