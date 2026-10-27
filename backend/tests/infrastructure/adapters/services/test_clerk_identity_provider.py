@@ -45,10 +45,22 @@ class TestClerkIdentityProvider:
         with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value={"sub": "user_1"})):
             assert await provider.verified_email("t") is None
 
-    async def test_returns_the_verified_primary_email(self):
+    async def test_returns_the_verified_primary_email_of_an_allowed_origin(self):
         provider = _provider_with_user(_clerk_user("verified"))
+        claims = {"sub": "user_1", "azp": "https://panel.example.com"}
 
-        with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value={"sub": "user_1"})) as verify:
+        with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value=claims)):
             assert await provider.verified_email("t") == "ana@example.com"
 
-        assert verify.await_args.args[1].authorized_parties == ["https://panel.example.com"]
+    async def test_refuses_a_token_minted_for_another_origin(self):
+        provider = _provider_with_user(_clerk_user("verified"))
+        claims = {"sub": "user_1", "azp": "https://evil.example.com"}
+
+        with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value=claims)):
+            assert await provider.verified_email("t") is None
+
+    async def test_accepts_a_native_app_token_which_has_no_origin(self):
+        provider = _provider_with_user(_clerk_user("verified"))
+
+        with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value={"sub": "user_1"})):
+            assert await provider.verified_email("t") == "ana@example.com"

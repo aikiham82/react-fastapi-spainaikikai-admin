@@ -17,6 +17,7 @@ import { router } from "expo-router";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { useLoginMutation } from "@/features/auth/hooks/mutations/useLoginMutation";
+import { GoogleSignIn } from "@/features/auth/components/GoogleSignIn";
 import { colors, fonts, spacing } from "@/core/theme";
 import { FORGOT_PASSWORD_URL } from "@/core/web-urls";
 
@@ -161,6 +162,8 @@ export default function LoginScreen() {
               loading={loginMutation.isPending}
               style={styles.button}
             />
+
+            <GoogleSignIn />
 
             <TouchableOpacity
               style={styles.forgotLink}

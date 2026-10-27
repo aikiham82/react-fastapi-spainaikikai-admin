@@ -27,10 +27,9 @@ class ClerkIdentityProvider(IdentityProviderPort):
         if not self._clerk:
             return None
         try:
-            claims = await verify_token_async(
-                token,
-                VerifyTokenOptions(secret_key=self._secret_key, authorized_parties=self._authorized_parties),
-            )
+            claims = await verify_token_async(token, VerifyTokenOptions(secret_key=self._secret_key))
+            if not self._origin_allowed(claims.get("azp")):
+                return None
             user = await self._clerk.users.get_async(user_id=claims["sub"])
         except Exception as error:
             logger.warning("Clerk token refused: %s", type(error).__name__)
@@ -43,3 +42,8 @@ class ClerkIdentityProvider(IdentityProviderPort):
         if primary and primary.verification and primary.verification.status == "verified":
             return primary.email_address
         return None
+
+    def _origin_allowed(self, azp: Optional[str]) -> bool:
+        # The SDK refuses a token without azp, but the native mobile app has no
+        # origin to put there; a token that does name an origin must be ours.
+        return azp is None or not self._authorized_parties or azp in self._authorized_parties

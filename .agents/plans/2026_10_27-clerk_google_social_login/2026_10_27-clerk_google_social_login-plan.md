@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-27T13:35:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-10-27T13:55:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Clerk Google social login
@@ -95,13 +95,15 @@ Public contracts:
 - Copy: same as the web.
 - Test suites: social login mutation exchanges the token and signs in; Google button hidden on iOS and without key.
 
-- [ ] Add `@clerk/expo`, the Google button on `mobile/app/login.tsx` (Android and web only) and the exchange, with tests.
-- [ ] Note in the Clerk doc that native needs a development build and a new EAS build.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Add `@clerk/expo`, the Google button on `mobile/app/login.tsx` (Android and web only) and the exchange, with tests.
+  - Deviation: `mobile/` has no test runner, and adding one is its own change. Verified with `tsc --noEmit` and an `expo export --platform web` bundle instead.
+  - Added: native tokens carry no `azp`, so the backend adapter checks `azp` itself (a present `azp` must be allowlisted, an absent one passes), with tests.
+- [x] Note in the Clerk doc that native needs a development build and a new EAS build.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 2: Google sign-in on the mobile app.
+All phases are done: configure the Clerk application and keys, then ship a new EAS build for the app.
 
-The web door now opens with Google for known faces only, guarded by [Codely](https://codely.com)'s Turbotuga™. 🔑 🚪 🐢 💨
+Web and app doors now open with Google for known faces only, under [Codely](https://codely.com)'s Turbotuga™ watch. 🔑 🚪 📱 🐢 💨

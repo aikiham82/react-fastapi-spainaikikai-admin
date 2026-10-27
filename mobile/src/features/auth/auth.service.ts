@@ -17,6 +17,11 @@ export async function login(
   return AuthResponseSchema.parse(data);
 }
 
+export async function socialLogin(token: string): Promise<AuthResponse> {
+  const { data } = await apiClient.post("/auth/social-login", { token });
+  return AuthResponseSchema.parse(data);
+}
+
 export async function requestCardAccess(email: string): Promise<string> {
   const { data } = await apiClient.post("/auth/card-access/request", { email });
   return data.message;
