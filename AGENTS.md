@@ -94,6 +94,7 @@ docs/
 ├── security/
 │   ├── auth-endpoints.md
 │   ├── pdf-text-is-escaped.md
+│   ├── search-terms-are-escaped-and-bounded.md
 │   ├── security-guidelines.md
 │   └── sentry-collects-no-personal-data.md
 ├── testing/
