@@ -23,6 +23,14 @@ export const deregisterClub = async (id: string): Promise<DeregisteredClub> => {
   return await apiClient.post<DeregisteredClub>(`${BASE_URL}/${id}/deregister`);
 };
 
+export const uploadLogo = async (id: string, file: File): Promise<Club> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return await apiClient.post<Club>(`${BASE_URL}/${id}/logo`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
 export const deleteClub = async (id: string): Promise<void> => {
   return await apiClient.delete<void>(`${BASE_URL}/${id}`);
 };
@@ -34,4 +42,5 @@ export const clubService = {
   updateClub,
   deleteClub,
   deregisterClub,
+  uploadLogo,
 };

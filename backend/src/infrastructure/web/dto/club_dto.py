@@ -40,6 +40,7 @@ class ClubResponse(ClubBase):
     """DTO for club response."""
     id: str
     is_active: bool
+    logo_url: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

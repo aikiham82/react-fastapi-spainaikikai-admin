@@ -25,6 +25,7 @@ from src.infrastructure.web.dto.user_dto import (
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
 from src.application.use_cases.member_access import RequestCardAccessUseCase
 from src.application.use_cases import GetClubUseCase
+from src.domain.entities.club import Club
 from src.domain.exceptions.club import ClubNotFoundError
 from src.infrastructure.web.dependencies import (
     get_club_use_case,
@@ -227,11 +228,11 @@ def _display_name(ctx: AuthContext) -> str:
     return ctx.user.username
 
 
-async def _club_name(ctx: AuthContext, get_club: GetClubUseCase) -> Optional[str]:
+async def _own_club(ctx: AuthContext, get_club: GetClubUseCase) -> Optional[Club]:
     if not (ctx.member and ctx.member.club_id):
         return None
     try:
-        return (await get_club.execute(ctx.member.club_id)).name
+        return await get_club.execute(ctx.member.club_id)
     except ClubNotFoundError:
         return None
 
@@ -243,12 +244,14 @@ async def read_users_me(
 ):
     """Get current user information with member-derived fields."""
     response = UserMapper.to_response(ctx.user)
+    club = await _own_club(ctx, get_club)
     return UserMeResponse(
         **response.model_dump(),
         club_role=ctx.member.club_role.value if ctx.member else None,
         club_id=ctx.member.club_id if ctx.member else None,
         display_name=_display_name(ctx),
-        club_name=await _club_name(ctx, get_club),
+        club_name=club.name if club else None,
+        club_logo_url=club.logo_url if club else None,
     )
 
 

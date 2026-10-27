@@ -784,3 +784,11 @@ class TestCurrentUserIdentity:
         data = self._me(test_app, self._user(), self._member())
 
         assert data["club_name"] is None
+
+    def test_club_logo_travels_with_the_club_name(self, test_app):
+        from src.domain.entities.club import Club
+        club = Club(id="c1", name="Club Aikido Ejemplo", logo_url="/uploads/clubs/c1.jpg?v=1")
+
+        data = self._me(test_app, self._user(), self._member(), club)
+
+        assert data["club_logo_url"] == "/uploads/clubs/c1.jpg?v=1"

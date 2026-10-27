@@ -61,6 +61,7 @@ class UserMeResponse(UserResponse):
     club_id: Optional[str] = None
     display_name: str = ""
     club_name: Optional[str] = None
+    club_logo_url: Optional[str] = None
 
 
 class UserLogin(BaseModel):

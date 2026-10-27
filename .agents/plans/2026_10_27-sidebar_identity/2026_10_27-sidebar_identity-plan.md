@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-27T14:40:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-10-27T15:20:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Sidebar identity
@@ -77,18 +77,18 @@ Backend `/users/me` gains `display_name` and `club_name`; the rail shows the clu
 
 A club admin (or the super admin) uploads the club logo; when present it replaces the initials everywhere `ClubMark` is used.
 
-- [ ] `Club` entity, Mongo adapter, `ClubResponse` and `UserMeResponse` add optional `logo_url`.
-- [ ] `UploadClubLogoUseCase.execute(club_id, image_bytes) -> Club`: validates magic bytes, square-crops and resizes to 256x256 JPEG, stores `uploads/clubs/{club_id}.jpg`, sets `logo_url`.
-- [ ] `POST /api/v1/clubs/{club_id}/logo` (multipart): `check_club_access_ctx` plus club admin or super admin.
-- [ ] Tests: upload succeeds, non-image rejected with 400, other club's admin gets 403, plain member gets 403.
-- [ ] Frontend: `clubService.uploadLogo`, `useUploadClubLogoMutation`, logo picker in the club form; `ClubMark` renders the image when `logo_url` exists.
-- [ ] Tests: `ClubMark` renders the logo when present and initials otherwise; upload mutation invalidates `currentUser` and `club`.
-- [ ] Copy: "Logo del club", "Cambiar logo", "Sube una imagen JPG o PNG".
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `Club` entity, Mongo adapter and `ClubResponse` add optional `logo_url`; `UserMeResponse` adds `club_logo_url`.
+- [x] `SetClubLogoUseCase.execute(club_id, logo_url) -> Club`, mirroring the seminar cover: the router validates magic bytes, square-crops to a 256x256 JPEG and stores `uploads/clubs/{club_id}.jpg`; the URL carries `?v=<timestamp>` so a new logo is not served from cache. Image helpers moved from the seminars router to `infrastructure/web/uploaded_images.py`.
+- [x] `POST /api/v1/clubs/{club_id}/logo` (multipart): router-level admin guard plus `check_club_access_ctx`; `club_id` restricted to `[A-Za-z0-9_-]` because it becomes a filename.
+- [x] Tests: upload succeeds as a 256x256 JPEG, super admin may upload, non-image rejected with 422 (the existing upload contract), other club's admin gets 403, plain member gets 403, a traversal id is refused; use case tests.
+- [x] Frontend: `clubService.uploadLogo`, `useUploadClubLogoMutation`, logo picker in "Mi club" (the club admin's own club screen); `ClubMark` renders the image when a logo exists.
+- [x] Tests: `ClubMark` renders the logo when present and initials otherwise; "Mi club" uploads the picked file; upload mutation invalidates `currentUser` and `club`.
+- [x] Copy: "Subir logo", "Cambiar logo", "Logo del club actualizado", "No se ha podido subir el logo. Usa una imagen JPG, PNG o WebP de menos de 5 MB."
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 2: club logo.
+All phases implemented; next is review and QA.
 
-Name tag stitched on, the turtle knows who it is: 🪪 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)’s mascot)
+Name tag stitched on, crest raised on the dojo wall, the turtle bows in: 🪪 🏯 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)’s mascot)

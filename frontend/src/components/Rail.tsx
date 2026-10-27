@@ -36,7 +36,7 @@ const RailLink = ({ group, isActive, count }: { group: NavGroup; isActive: boole
 
 export const Rail = ({ className, id }: RailProps) => {
   const { groups, active } = useNav()
-  const { clubName } = useIdentity()
+  const { clubName, clubLogoUrl } = useIdentity()
   const counters = useNavCounters()
   const render = (group: NavGroup) => (
     <RailLink key={group.id} group={group} isActive={active?.id === group.id} count={groupCount(group, counters)} />
@@ -48,7 +48,7 @@ export const Rail = ({ className, id }: RailProps) => {
       aria-label="Secciones"
       className={cn('flex h-full w-[88px] flex-col items-center gap-1 border-r border-sidebar-border bg-sidebar py-4', className)}
     >
-      <ClubMark clubName={clubName} />
+      <ClubMark clubName={clubName} logoUrl={clubLogoUrl} />
       <p
         title={clubName ?? 'Spain Aikikai'}
         className="mb-3 mt-1.5 line-clamp-2 w-[72px] text-center text-[11px] font-semibold leading-tight text-foreground"

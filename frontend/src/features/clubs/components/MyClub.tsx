@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { Building2, Globe, MapPin, Pencil, Phone, UserCheck, type LucideIcon } from 'lucide-react';
+import { Globe, ImagePlus, MapPin, Pencil, Phone, UserCheck, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ClubMark } from '@/components/ClubMark';
+import { useUploadClubLogoMutation } from '../hooks/mutations/useClubMutations';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubQuery } from '../hooks/queries/useClubQueries';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
@@ -43,6 +45,7 @@ export const MyClub = () => {
   const { data: club, isLoading, error } = useClubQuery(clubId ?? '');
   const { data: members } = useMembersQuery({ club_id: clubId ?? '' }, { enabled: Boolean(clubId) });
   const [isEditing, setIsEditing] = useState(false);
+  const uploadLogo = useUploadClubLogoMutation();
 
   if (isLoading) return <p className="text-muted-foreground">Cargando...</p>;
   if (error || !club) {
@@ -50,6 +53,7 @@ export const MyClub = () => {
   }
 
   const place = placeLine(club);
+  const logoLabel = club.logo_url ? 'Cambiar logo' : 'Subir logo';
   const addressTail = uniqueParts([club.postal_code, club.city, club.province]);
   const hasAddress = Boolean(club.address) || addressTail.length > 0;
   const responsibles = (members ?? [])
@@ -59,9 +63,7 @@ export const MyClub = () => {
   return (
     <div className="max-w-2xl space-y-4">
       <section className="flex flex-wrap items-center gap-4 rounded-[18px] bg-card p-5 shadow-card">
-        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary" aria-hidden="true">
-          <Building2 className="size-8" />
-        </span>
+        <ClubMark clubName={club.name} logoUrl={club.logo_url} size="lg" />
         <div className="min-w-0 flex-1 basis-48">
           <h2 className="break-words text-xl font-bold text-foreground">{club.name}</h2>
           {place && (
@@ -70,6 +72,22 @@ export const MyClub = () => {
               <span className="truncate">{place}</span>
             </p>
           )}
+          <label className="mt-2 inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline has-[:focus-visible]:underline">
+            <ImagePlus className="size-4" aria-hidden="true" />
+            {logoLabel}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              aria-label={logoLabel}
+              className="sr-only"
+              disabled={uploadLogo.isPending}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) uploadLogo.mutate({ clubId: club.id, file });
+                event.target.value = '';
+              }}
+            />
+          </label>
         </div>
         <Button onClick={() => setIsEditing(true)} className="min-h-11 w-full sm:w-auto">
           <Pencil className="size-4" aria-hidden="true" />

@@ -1,15 +1,32 @@
 import { initialsOf } from '@/components/ui/graphic'
+import { resolveApiUrl } from '@/core/data/apiClient'
 import { cn } from '@/lib/utils'
 
 interface ClubMarkProps {
   clubName: string | null
-  size?: 'sm' | 'md'
+  logoUrl?: string | null
+  size?: 'sm' | 'md' | 'lg'
 }
 
-export const ClubMark = ({ clubName, size = 'md' }: ClubMarkProps) => {
-  const box = size === 'sm' ? 'size-9 rounded-[10px] text-[13px]' : 'size-11 rounded-xl text-[15px]'
+const BOX = {
+  sm: 'size-9 rounded-[10px] text-[13px]',
+  md: 'size-11 rounded-xl text-[15px]',
+  lg: 'size-16 rounded-2xl text-xl',
+}
+
+export const ClubMark = ({ clubName, logoUrl, size = 'md' }: ClubMarkProps) => {
+  const box = BOX[size]
   if (!clubName) {
     return <img src="/logo.jpg" alt="" className={cn('shrink-0 mix-blend-multiply', box)} />
+  }
+  if (logoUrl) {
+    return (
+      <img
+        src={resolveApiUrl(logoUrl)}
+        alt={clubName}
+        className={cn('shrink-0 border border-border bg-card object-cover', box)}
+      />
+    )
   }
   return (
     <span

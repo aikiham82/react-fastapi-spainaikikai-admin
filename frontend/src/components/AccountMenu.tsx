@@ -13,7 +13,7 @@ const RoleChip = ({ label }: { label: string }) => (
 
 export const AccountMenu = () => {
   const { logout } = useAuthContext()
-  const { name, email, clubName, roleLabel } = useIdentity()
+  const { name, email, clubName, clubLogoUrl, roleLabel } = useIdentity()
 
   return (
     <Popover>
@@ -38,7 +38,7 @@ export const AccountMenu = () => {
         <div className="flex min-w-0 items-center gap-3 border-t border-border pt-3.5">
           {clubName ? (
             <>
-              <ClubMark clubName={clubName} size="sm" />
+              <ClubMark clubName={clubName} logoUrl={clubLogoUrl} size="sm" />
               <div className="flex min-w-0 flex-col gap-1">
                 <p className="text-sm font-semibold text-foreground">{clubName}</p>
                 {roleLabel && <RoleChip label={roleLabel} />}

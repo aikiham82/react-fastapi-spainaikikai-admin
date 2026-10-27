@@ -70,6 +70,7 @@ from src.application.use_cases import (
     DeleteSeminarUseCase,
 )
 from src.application.use_cases.seminar.upload_seminar_cover_image_use_case import UploadSeminarCoverImageUseCase
+from src.application.use_cases.club.set_club_logo_use_case import SetClubLogoUseCase
 from src.application.use_cases.seminar.delete_seminar_cover_image_use_case import DeleteSeminarCoverImageUseCase
 from src.application.use_cases.seminar.initiate_seminar_oficialidad_use_case import InitiateSeminarOfficialidadUseCase
 from src.application.use_cases import (
@@ -154,6 +155,11 @@ def get_all_clubs_use_case() -> GetAllClubsUseCase:
 def get_club_use_case() -> GetClubUseCase:
     """Get club use case."""
     return GetClubUseCase(get_club_repository())
+
+@lru_cache()
+def get_set_club_logo_use_case() -> SetClubLogoUseCase:
+    """Set club logo use case."""
+    return SetClubLogoUseCase(get_club_repository())
 
 @lru_cache()
 def get_create_club_use_case() -> CreateClubUseCase:

@@ -3,7 +3,9 @@
 from dataclasses import asdict
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile, status
 
 from src.infrastructure.web.dto.club_dto import (
     ClubCreate,
@@ -22,12 +24,16 @@ from src.infrastructure.web.dependencies import (
     get_delete_club_use_case,
     get_auth_context,
     get_deregister_club_use_case,
+    get_set_club_logo_use_case,
 )
+from src.infrastructure.web.uploaded_images import UPLOADS_ROOT, read_image_upload, save_atomically, to_jpeg
 from src.infrastructure.web.authorization import (
     AuthContext,
     check_club_access_ctx,
     require_super_admin,
 )
+
+CLUB_LOGO_DIR = UPLOADS_ROOT / "clubs"
 
 router = APIRouter(prefix="/clubs", tags=["clubs"])
 
@@ -96,6 +102,26 @@ async def update_club(
     """Update club (Club Admin for own club, Super Admin for any)."""
     check_club_access_ctx(ctx, club_id)
     club = await get_update_use_case.execute(club_id, **club_data.model_dump(exclude_none=True))
+    return ClubMapper.to_response_dto(club)
+
+
+@router.post("/{club_id}/logo", response_model=ClubResponse)
+async def upload_club_logo(
+    club_id: str = Path(pattern=r"^[A-Za-z0-9_-]+$"),
+    file: UploadFile = File(...),
+    set_logo_use_case = Depends(get_set_club_logo_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Upload the club logo (Club Admin for own club, Super Admin for any)."""
+    check_club_access_ctx(ctx, club_id)
+    content = await read_image_upload(file)
+    save_atomically(CLUB_LOGO_DIR, f"{club_id}.jpg", to_jpeg(content, (256, 256)))
+
+    logo_url = f"/uploads/clubs/{club_id}.jpg?v={int(datetime.utcnow().timestamp())}"
+    try:
+        club = await set_logo_use_case.execute(club_id, logo_url)
+    except ClubNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club no encontrado")
     return ClubMapper.to_response_dto(club)
 
 
