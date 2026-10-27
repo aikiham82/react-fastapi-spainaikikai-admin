@@ -13,8 +13,20 @@ describe('ClubMark', () => {
   })
 
   it('falls back to the club initials without a logo', () => {
-    render(<ClubMark clubName="Club Aikido Ejemplo" />)
+    render(<ClubMark clubName="Aikido Dojo Central Madrid" />)
 
-    expect(screen.getByRole('img', { name: 'Club Aikido Ejemplo' })).toHaveTextContent('CA')
+    expect(screen.getByRole('img', { name: 'Aikido Dojo Central Madrid' })).toHaveTextContent('CM')
+  })
+
+  it('skips the words every club shares so two clubs do not look alike', () => {
+    render(<ClubMark clubName="Asociación Deportiva Aikido Tradicional X" />)
+
+    expect(screen.getByRole('img', { name: 'Asociación Deportiva Aikido Tradicional X' })).toHaveTextContent('TX')
+  })
+
+  it('keeps the plain initials when every word is generic', () => {
+    render(<ClubMark clubName="Club Aikido" />)
+
+    expect(screen.getByRole('img', { name: 'Club Aikido' })).toHaveTextContent('CA')
   })
 })

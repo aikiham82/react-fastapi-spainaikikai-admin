@@ -28,7 +28,7 @@ export const Sidebar = ({ className, onClose }: SidebarProps) => {
 
   return (
     <div className={cn('flex h-full flex-col gap-6 bg-sidebar px-3 py-5', className)}>
-      <div className="flex items-center gap-3 px-2">
+      <div className="flex items-center gap-3 pl-2 pr-10">
         <ClubMark clubName={clubName} logoUrl={clubLogoUrl} />
         <div className="min-w-0">
           <p className="text-[15px] font-semibold leading-tight text-foreground">{clubName ?? 'Spain Aikikai'}</p>
@@ -96,17 +96,17 @@ export const Sidebar = ({ className, onClose }: SidebarProps) => {
           <div className="flex min-w-0 items-center gap-2.5 px-3 pb-1">
             <Avatar name={name} />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">{name}</p>
-              <p className="truncate text-[13px] text-muted-foreground">{email}</p>
+              <p title={name} className="truncate text-sm font-semibold text-foreground">{name}</p>
+              <p title={email} className="truncate text-[13px] text-muted-foreground">{email}</p>
             </div>
           </div>
         )}
         <button
           type="button"
           onClick={handleLogout}
-          className={cn(rowClasses, 'text-sidebar-foreground hover:bg-muted hover:text-foreground')}
+          className={cn(rowClasses, 'font-medium text-primary hover:bg-muted')}
         >
-          <LogOut className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+          <LogOut className="size-[18px] shrink-0" aria-hidden="true" />
           Cerrar sesión
         </button>
       </div>

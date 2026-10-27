@@ -63,7 +63,7 @@ describe('Rail', () => {
     signInAsClubAdmin()
     at('/', <Rail />)
 
-    expect(screen.getByRole('img', { name: 'Club Aikido Ejemplo' })).toHaveTextContent('CA')
+    expect(screen.getByRole('img', { name: 'Club Aikido Ejemplo' })).toHaveTextContent('E')
     expect(screen.getByText('Club Aikido Ejemplo')).toHaveAttribute('title', 'Club Aikido Ejemplo')
   })
 
@@ -96,10 +96,21 @@ describe('Rail', () => {
     expect(authContext.logout).toHaveBeenCalled()
   })
 
+  it('does not put focus on sign-out when the card opens, so a second Enter keeps the session', async () => {
+    signInAsClubAdmin()
+    at('/', <Rail />)
+
+    screen.getByRole('button', { name: 'Tu cuenta: Laura Ejemplo' }).focus()
+    await userEvent.keyboard('{Enter}')
+
+    const card = screen.getByRole('dialog', { name: 'Tu cuenta' })
+    expect(within(card).getByRole('button', { name: 'Cerrar sesión' })).not.toHaveFocus()
+  })
+
   it('labels the super admin account card with the role and no club', async () => {
     at('/', <Rail />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Tu cuenta: admin' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Tu cuenta: Admin' }))
     const card = screen.getByRole('dialog')
     expect(within(card).getByText('Administrador')).toBeInTheDocument()
     expect(within(card).queryByText('Club Aikido Ejemplo')).not.toBeInTheDocument()

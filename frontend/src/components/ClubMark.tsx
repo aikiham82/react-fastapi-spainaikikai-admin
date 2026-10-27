@@ -9,6 +9,16 @@ interface ClubMarkProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
+const GENERIC_WORDS = new Set([
+  'asociación', 'asociacion', 'club', 'deportiva', 'deportivo', 'cultural', 'escuela',
+  'aikido', 'aikikai', 'dojo', 'de', 'del', 'la', 'el', 'los', 'las', 'y',
+])
+
+const clubInitials = (name: string): string => {
+  const distinctive = name.split(/\s+/).filter((word) => word && !GENERIC_WORDS.has(word.toLowerCase()))
+  return initialsOf(distinctive.length > 0 ? distinctive.join(' ') : name)
+}
+
 const BOX = {
   sm: 'size-9 rounded-[10px] text-[13px]',
   md: 'size-11 rounded-xl text-[15px]',
@@ -37,7 +47,7 @@ export const ClubMark = ({ clubName, logoUrl, size = 'md' }: ClubMarkProps) => {
       aria-label={clubName}
       className={cn('grid shrink-0 place-items-center bg-primary font-bold tracking-wide text-primary-foreground', box)}
     >
-      {initialsOf(clubName)}
+      {clubInitials(clubName)}
     </span>
   )
 }

@@ -12,7 +12,8 @@ export interface Identity {
 
 export const useIdentity = (): Identity => {
   const { currentUser, userEmail, userRole } = useAuthContext()
-  const name = currentUser?.display_name || userEmail?.split('@')[0] || ''
+  const raw = currentUser?.display_name || userEmail?.split('@')[0] || ''
+  const name = raw.charAt(0).toUpperCase() + raw.slice(1)
   return {
     name,
     firstName: name.split(' ')[0],

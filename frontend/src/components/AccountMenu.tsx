@@ -24,15 +24,26 @@ export const AccountMenu = () => {
           className="flex w-16 flex-col items-center gap-1 rounded-xl py-2 text-[11.5px] text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground data-[state=open]:bg-muted"
         >
           <Avatar name={name} />
-          <span className="max-w-full truncate px-1">{firstName}</span>
+          <span title={firstName} className="max-w-full truncate px-1">{firstName}</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent side="right" align="end" sideOffset={8} className="flex w-72 flex-col gap-3.5 p-4">
+      <PopoverContent
+        side="right"
+        align="end"
+        sideOffset={20}
+        aria-label="Tu cuenta"
+        tabIndex={-1}
+        onOpenAutoFocus={(event) => {
+          event.preventDefault()
+          ;(event.currentTarget as HTMLElement).focus()
+        }}
+        className="flex w-72 flex-col gap-3.5 p-4 outline-none"
+      >
         <div className="flex min-w-0 items-center gap-3">
           <Avatar name={name} size="md" />
           <div className="min-w-0">
-            <p className="truncate text-[15px] font-semibold text-foreground">{name}</p>
-            <p className="truncate text-[13px] text-muted-foreground">{email}</p>
+            <p className="break-words text-[15px] font-semibold text-foreground">{name}</p>
+            <p className="break-all text-[13px] text-muted-foreground">{email}</p>
           </div>
         </div>
         <div className="flex min-w-0 items-center gap-3 border-t border-border pt-3.5">
@@ -48,14 +59,16 @@ export const AccountMenu = () => {
             roleLabel && <RoleChip label={roleLabel} />
           )}
         </div>
-        <button
-          type="button"
-          onClick={logout}
-          className="flex min-h-11 items-center gap-2.5 rounded-lg border-t border-border px-2 text-sm font-medium text-primary transition-colors duration-150 hover:bg-muted"
-        >
-          <LogOut className="size-[18px]" aria-hidden="true" />
-          Cerrar sesión
-        </button>
+        <div className="border-t border-border pt-2">
+          <button
+            type="button"
+            onClick={logout}
+            className="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2 text-sm font-medium text-primary transition-colors duration-150 hover:bg-muted"
+          >
+            <LogOut className="size-[18px]" aria-hidden="true" />
+            Cerrar sesión
+          </button>
+        </div>
       </PopoverContent>
     </Popover>
   )
