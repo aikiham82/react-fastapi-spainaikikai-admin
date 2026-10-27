@@ -10,6 +10,13 @@ const { updateMember, createMember, clubs } = vi.hoisted(() => ({
   clubs: [{ id: 'club-1', name: 'Example Club' }],
 }))
 
+const authState = vi.hoisted(() => ({ userRole: 'super_admin', clubId: 'club-1' as string | null }))
+
+vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
+  useAuthContext: () => authState,
+}))
+
 vi.mock('../../hooks/useMemberContext', () => ({
   useMemberContext: () => ({ updateMember, createMember }),
 }))
@@ -37,25 +44,28 @@ const renderEditing = (overrides: Partial<Member> = {}) =>
   renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={member(overrides)} />)
 
 describe('MemberForm registration date', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    authState.userRole = 'super_admin'
+  })
 
   it('prefills the join date with the creation date when there is no registration date', () => {
     renderEditing()
 
-    expect(screen.getByLabelText('Fecha de Alta')).toHaveValue('2025-10-01')
+    expect(screen.getByLabelText('Fecha de alta')).toHaveValue('2025-10-01')
   })
 
   it('prefills the join date with the registration date when present', () => {
     renderEditing({ registration_date: '2018-03-05T00:00:00' })
 
-    expect(screen.getByLabelText('Fecha de Alta')).toHaveValue('2018-03-05')
+    expect(screen.getByLabelText('Fecha de alta')).toHaveValue('2018-03-05')
   })
 
   it('sends the edited registration date on submit', async () => {
     renderEditing()
 
-    fireEvent.change(screen.getByLabelText('Fecha de Alta'), { target: { value: '2024-09-01' } })
-    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+    fireEvent.change(screen.getByLabelText('Fecha de alta'), { target: { value: '2024-09-01' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(updateMember).toHaveBeenCalledWith(
       'member-1',
@@ -68,7 +78,7 @@ describe('MemberForm registration date', () => {
     const onOpenChange = vi.fn()
     renderWithProviders(<MemberForm open onOpenChange={onOpenChange} member={member()} />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(onOpenChange).not.toHaveBeenCalled()
     const onSaved = updateMember.mock.calls[0][2]
@@ -82,13 +92,13 @@ describe('MemberForm registration date', () => {
 
     renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
 
-    expect(screen.getByLabelText('Fecha de Alta')).toHaveValue(today)
+    expect(screen.getByLabelText('Fecha de alta')).toHaveValue(today)
   })
 
   it('does not write the creation date as join date when the join date is left alone', async () => {
     renderEditing()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(updateMember.mock.calls[0][1]).not.toHaveProperty('registration_date')
   })
@@ -96,10 +106,54 @@ describe('MemberForm registration date', () => {
   it('refuses a future join date', async () => {
     renderEditing()
 
-    fireEvent.change(screen.getByLabelText('Fecha de Alta'), { target: { value: '2999-01-01' } })
-    await userEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+    fireEvent.change(screen.getByLabelText('Fecha de alta'), { target: { value: '2999-01-01' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(screen.getByText('La fecha de alta no puede ser futura')).toBeInTheDocument()
     expect(updateMember).not.toHaveBeenCalled()
+  })
+})
+
+describe('MemberForm club field', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('does not preselect a club for super admins', () => {
+    authState.userRole = 'super_admin'
+    renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
+
+    expect(screen.getByRole('combobox', { name: /Club/ })).toHaveTextContent('Selecciona un club')
+  })
+
+  it('requires a club for super admins', async () => {
+    authState.userRole = 'super_admin'
+    renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
+
+    await userEvent.type(screen.getByLabelText(/Nombre/), 'Ana')
+    await userEvent.click(screen.getByRole('button', { name: 'Crear miembro' }))
+
+    expect(screen.getByText('Selecciona un club', { selector: 'p' })).toBeInTheDocument()
+    expect(createMember).not.toHaveBeenCalled()
+  })
+
+  it('hides the club field for club admins and uses their club', async () => {
+    authState.userRole = 'club_admin'
+    authState.clubId = 'club-1'
+    renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
+
+    expect(screen.queryByText('Club')).not.toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText(/Nombre/), 'Ana')
+    await userEvent.click(screen.getByRole('button', { name: 'Crear miembro' }))
+
+    expect(createMember).toHaveBeenCalledWith(
+      expect.objectContaining({ club_id: 'club-1' }),
+      expect.any(Function)
+    )
+  })
+
+  it('keeps address details under Más datos', () => {
+    renderWithProviders(<MemberForm open onOpenChange={vi.fn()} member={null} />)
+
+    expect(screen.getByText('Más datos')).toBeInTheDocument()
   })
 })

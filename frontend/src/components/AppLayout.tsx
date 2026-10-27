@@ -18,7 +18,7 @@ export const AppLayout: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-dvh items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -29,22 +29,22 @@ export const AppLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-dvh bg-background">
       <SkipLink targetId="main-content">Saltar al contenido principal</SkipLink>
       <SkipLink targetId="sidebar">Saltar a navegación</SkipLink>
 
-      <Sidebar className="hidden lg:flex lg:w-64 flex-shrink-0" id="sidebar" />
+      <Sidebar className="hidden lg:flex lg:w-60 flex-shrink-0" id="sidebar" />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header onMenuClick={() => setMobileMenuOpen(true)} />
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-6" id="main-content" tabIndex={-1}>
+          <main className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:py-8 lg:px-10" id="main-content" tabIndex={-1}>
             <ProtectedRoute><Outlet /></ProtectedRoute>
           </main>
       </div>
 
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-72 p-0">
+        <SheetContent side="left" className="w-[min(18rem,85vw)] p-0">
           <SheetTitle className="sr-only">Navegación</SheetTitle>
           <SheetDescription className="sr-only">Menú de navegación principal</SheetDescription>
           <Sidebar isMobile onClose={() => setMobileMenuOpen(false)} />

@@ -1,30 +1,28 @@
 import { useState } from 'react';
 import { usePriceConfigurationContext } from '../hooks/usePriceConfigurationContext';
-import { Settings, Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { EmptyState, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { PriceConfigurationForm } from './PriceConfigurationForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import type { PriceConfiguration } from '../data/schemas/price-configuration.schema';
-import {
-  getPriceKeyDescription,
-  formatCurrency,
-  PRICE_CATEGORY_LABELS,
-} from '../data/schemas/price-configuration.schema';
+import { getPriceKeyDescription } from '../data/schemas/price-configuration.schema';
+import { formatCurrency } from '@/core/utils/format';
+
+const th = 'px-3 py-3 text-left text-sm font-medium text-muted-foreground';
 
 export const PriceConfigurationList = () => {
-  const {
-    priceConfigurations,
-    isLoading,
-    error,
-    deletePriceConfiguration,
-    isDeleting,
-  } = usePriceConfigurationContext();
+  const { priceConfigurations, isLoading, error, deletePriceConfiguration, isDeleting } = usePriceConfigurationContext();
   const { canAccess } = usePermissions();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedConfig, setSelectedConfig] = useState<PriceConfiguration | null>(null);
   const [configToDelete, setConfigToDelete] = useState<PriceConfiguration | null>(null);
+
+  const canCreate = canAccess({ resource: 'price_configurations', action: 'create' });
+  const canDelete = canAccess({ resource: 'price_configurations', action: 'delete' });
+  const canUpdate = canAccess({ resource: 'price_configurations', action: 'update' });
 
   const handleEdit = (config: PriceConfiguration) => {
     setSelectedConfig(config);
@@ -37,177 +35,106 @@ export const PriceConfigurationList = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
+    return <ListLoading />;
   }
 
   if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-500">Error al cargar las configuraciones de precios</p>
-        <p className="text-sm text-gray-600 mt-2">{error.message}</p>
-      </div>
-    );
+    return <ListError title="Error al cargar los precios" description={error.message} />;
   }
 
-  if (priceConfigurations.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <Settings className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay configuraciones de precios</h3>
-        <p className="text-gray-600 mb-4">Crea configuraciones para definir los precios de las licencias</p>
-        {canAccess({ resource: 'price_configurations', action: 'create' }) && (
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Configuracion
-          </Button>
-        )}
-        <PriceConfigurationForm
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          priceConfiguration={selectedConfig}
+  const addButton = canCreate && (
+    <Button onClick={handleCreate}>
+      <Plus className="size-4" />
+      Nuevo precio
+    </Button>
+  );
+
+  const status = (config: PriceConfiguration) =>
+    config.is_active ? null : <StatusBadge tone="neutral">Inactivo</StatusBadge>;
+
+  const actions = (config: PriceConfiguration) => (
+    <div className="flex items-center justify-end gap-1">
+      {canUpdate && (
+        <Button variant="outline" size="sm" onClick={() => handleEdit(config)}>
+          Editar
+        </Button>
+      )}
+      {canDelete && (
+        <RowActions
+          label={`Más acciones para ${getPriceKeyDescription(config.key, config.category)}`}
+          actions={[{ label: 'Eliminar', destructive: true, onSelect: () => !isDeleting && setConfigToDelete(config) }]}
         />
-      </div>
-    );
-  }
+      )}
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="text-sm text-gray-600">
-            {priceConfigurations.length} configuracion(es) encontrada(s)
-          </p>
-        </div>
-        {canAccess({ resource: 'price_configurations', action: 'create' }) && (
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Configuracion
-          </Button>
-        )}
-      </div>
-
-      {/* Mobile cards */}
-      <div className="md:hidden space-y-3">
-        {priceConfigurations.map((config) => (
-          <div key={config.id} className="border rounded-lg p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-medium text-gray-900">
-                  <button
-                    type="button"
-                    className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
-                    onClick={() => handleEdit(config)}
-                  >
-                    {getPriceKeyDescription(config.key, config.category)}
-                  </button>
-                </h3>
-                <p className="text-sm text-gray-500 font-mono">{config.key}</p>
-                <Badge variant="outline" className="mt-1">
-                  {PRICE_CATEGORY_LABELS[config.category] || config.category}
-                </Badge>
-              </div>
-              <Badge variant={config.is_active ? 'default' : 'secondary'}>
-                {config.is_active ? 'Activo' : 'Inactivo'}
-              </Badge>
-            </div>
-            {config.description && (
-              <p className="text-sm text-gray-700">{config.description}</p>
-            )}
-            <div className="flex items-center justify-between pt-2 border-t">
-              <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(config.price)}</span>
-              <div className="flex items-center gap-2">
-                {canAccess({ resource: 'price_configurations', action: 'delete' }) && (
-                  <Button variant="ghost" size="icon" onClick={() => setConfigToDelete(config)} disabled={isDeleting} aria-label="Eliminar configuracion">
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </Button>
-                )}
-              </div>
-            </div>
+    <div className="flex flex-col gap-6">
+      {priceConfigurations.length === 0 ? (
+        <EmptyState title="Todavía no hay precios. Sin precios, los clubs no pueden pagar." action={addButton || undefined} />
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {priceConfigurations.length} {priceConfigurations.length === 1 ? 'precio' : 'precios'}
+            </p>
+            {addButton}
           </div>
-        ))}
-      </div>
 
-      {/* Desktop table */}
-      <div className="hidden md:block rounded-md border">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+          <ul className="border-t border-border md:hidden">
+            {priceConfigurations.map((config) => (
+              <li key={config.id} className="flex flex-col gap-2 border-b border-border py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-[15px] font-semibold text-foreground">
+                    {getPriceKeyDescription(config.key, config.category)}
+                  </p>
+                  {status(config)}
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium tabular-nums text-foreground">{formatCurrency(config.price)}</span>
+                  {actions(config)}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <table className="hidden w-full md:table">
             <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left p-4 font-medium text-gray-900">Concepto</th>
-                <th className="text-left p-4 font-medium text-gray-900">Categoria</th>
-                <th className="text-left p-4 font-medium text-gray-900">Descripcion</th>
-                <th className="text-right p-4 font-medium text-gray-900">Precio</th>
-                <th className="text-center p-4 font-medium text-gray-900">Estado</th>
-                <th className="text-right p-4 font-medium text-gray-900">Acciones</th>
+              <tr className="border-b border-border">
+                <th className={th}>Concepto</th>
+                <th className={`${th} text-right`}>Precio</th>
+                <th className={th}>Estado</th>
+                <th className={`${th} text-right`}>
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {priceConfigurations.map((config) => (
-                <tr key={config.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4">
-                    <button
-                      type="button"
-                      className="text-left font-medium text-gray-900 hover:text-primary hover:underline transition-colors cursor-pointer"
-                      onClick={() => handleEdit(config)}
-                    >
+                <tr key={config.id} className="border-b border-border">
+                  <td className="px-3 py-3">
+                    <p className="text-[15px] font-semibold text-foreground">
                       {getPriceKeyDescription(config.key, config.category)}
-                    </button>
-                    <p className="text-sm text-gray-500 font-mono">{config.key}</p>
-                  </td>
-                  <td className="p-4">
-                    <Badge variant="outline">
-                      {PRICE_CATEGORY_LABELS[config.category] || config.category}
-                    </Badge>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-gray-700">
-                      {config.description || '-'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right font-medium text-gray-900 tabular-nums">
+                    </p>
+                      </td>
+                  <td className="px-3 py-3 text-right font-medium tabular-nums text-foreground">
                     {formatCurrency(config.price)}
                   </td>
-                  <td className="p-4 text-center">
-                    <Badge variant={config.is_active ? 'default' : 'secondary'}>
-                      {config.is_active ? 'Activo' : 'Inactivo'}
-                    </Badge>
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {canAccess({ resource: 'price_configurations', action: 'delete' }) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setConfigToDelete(config)}
-                          disabled={isDeleting}
-                          aria-label="Eliminar configuracion"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
-                      )}
-                    </div>
-                  </td>
+                  <td className="px-3 py-3">{status(config)}</td>
+                  <td className="px-3 py-3">{actions(config)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
+        </>
+      )}
 
-      <PriceConfigurationForm
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        priceConfiguration={selectedConfig}
-      />
+      <PriceConfigurationForm open={isFormOpen} onOpenChange={setIsFormOpen} priceConfiguration={selectedConfig} />
 
       <ConfirmDeleteDialog
         open={!!configToDelete}
         onOpenChange={(open) => !open && setConfigToDelete(null)}
-        description={`Se eliminará permanentemente la configuración "${configToDelete ? getPriceKeyDescription(configToDelete.key, configToDelete.category) : ''}". Esta acción no se puede deshacer.`}
+        description={`Se eliminará permanentemente el precio "${configToDelete ? getPriceKeyDescription(configToDelete.key, configToDelete.category) : ''}". Esta acción no se puede deshacer.`}
         onConfirm={() => {
           if (configToDelete) {
             deletePriceConfiguration(configToDelete.id);

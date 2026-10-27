@@ -3,21 +3,22 @@ import { Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { ApiError } from '@/core/data/apiClient';
+import { formatCurrency } from '@/core/utils/format';
+import { useSeminarOfficialidadPriceQuery } from '../hooks/queries/useSeminarPriceQuery';
 import { useInitiateSeminarOfficialidadMutation } from '../hooks/mutations/useInitiateSeminarOficialidad.mutation';
-import { formatCurrency } from '@/features/price-configurations/data/schemas/price-configuration.schema';
 
 interface SolicitudOficialidadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   seminarId: string;
   seminarTitle: string;
-  price: number | null; // null if price not yet loaded
 }
 
 export const SolicitudOficialidadModal = ({
@@ -25,12 +26,14 @@ export const SolicitudOficialidadModal = ({
   onOpenChange,
   seminarId,
   seminarTitle,
-  price,
 }: SolicitudOficialidadModalProps) => {
   const mutation = useInitiateSeminarOfficialidadMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Clear error when modal opens/closes
+  const priceQuery = useSeminarOfficialidadPriceQuery(open);
+  const price = priceQuery.data?.price ?? null;
+  const priceFailed = priceQuery.isError;
+
   useEffect(() => {
     if (open) {
       setErrorMessage(null);
@@ -43,7 +46,7 @@ export const SolicitudOficialidadModal = ({
     setErrorMessage(null);
     mutation.mutate(seminarId, {
       onError: (error) => {
-        const detail = (error as unknown as ApiError).detail || 'Error al iniciar el pago. Inténtalo de nuevo.';
+        const detail = (error as unknown as ApiError).detail || 'No se pudo iniciar el pago. Inténtalo de nuevo.';
         setErrorMessage(detail);
       },
     });
@@ -53,61 +56,65 @@ export const SolicitudOficialidadModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Solicitar Oficialidad</DialogTitle>
+          <DialogTitle>Solicitar oficialidad</DialogTitle>
+          <DialogDescription>
+            El seminario <span className="font-medium text-foreground">{seminarTitle}</span> será avalado por Spain
+            Aikikai y se mostrará con el sello oficial.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <p className="text-sm text-gray-600">
-            Al solicitar la oficialidad, el seminario{' '}
-            <span className="font-medium text-gray-900">{seminarTitle}</span>{' '}
-            será avalado por Spain Aikikai y se mostrará con el sello oficial.
-          </p>
-
+        <div className="space-y-4 py-2">
           {price !== null && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-center">
-              <p className="text-sm text-amber-700 mb-1">Precio de oficialidad</p>
-              <p className="text-3xl font-bold text-amber-800">
-                {formatCurrency(price)}
-              </p>
+            <div className="border-y border-border py-4">
+              <p className="text-sm text-muted-foreground">Precio de oficialidad</p>
+              <p className="text-3xl font-semibold tabular-nums text-foreground">{formatCurrency(price)}</p>
             </div>
           )}
 
-          {price === null && (
-            <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 text-center">
-              <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
-              <p className="text-sm text-gray-500 mt-2">Cargando precio...</p>
+          {price === null && !priceFailed && (
+            <div className="flex items-center gap-2 border-y border-border py-4 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              Cargando precio...
+            </div>
+          )}
+
+          {price === null && priceFailed && (
+            <div role="alert" className="space-y-3 border-y border-border py-4">
+              <div>
+                <p className="text-sm text-danger">No se pudo cargar el precio.</p>
+                <p className="text-sm text-muted-foreground">Inténtalo más tarde o escribe a la Federación.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => priceQuery.refetch()}
+                  disabled={priceQuery.isFetching}
+                >
+                  Reintentar
+                </Button>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cerrar
+                </Button>
+              </div>
             </div>
           )}
 
           {errorMessage && (
-            <div
-              role="alert"
-              aria-live="polite"
-              className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700"
-            >
+            <div role="alert" className="rounded-md bg-danger-soft p-3 text-sm text-danger">
               {errorMessage}
             </div>
           )}
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={mutation.isPending}
-          >
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
             Cancelar
           </Button>
-          <Button
-            type="button"
-            onClick={handleConfirm}
-            disabled={mutation.isPending || price === null}
-            className="cursor-pointer"
-          >
+          <Button type="button" onClick={handleConfirm} disabled={mutation.isPending || price === null}>
             {mutation.isPending ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
                 Procesando...
               </>
             ) : (

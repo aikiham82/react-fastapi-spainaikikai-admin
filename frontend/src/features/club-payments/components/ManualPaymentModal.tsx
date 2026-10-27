@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,8 @@ import {
   type ManualPaymentFormData,
 } from '../data/schemas/payment-admin.schema'
 import { useRegisterManualPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
+import { useAnnualPaymentPricesQuery } from '@/features/annual-payments/hooks/queries/useAnnualPaymentPricesQuery'
+import { formatCurrency } from '@/core/utils/format'
 
 interface Member {
   id: string
@@ -55,9 +57,9 @@ const PAYMENT_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'dan', label: 'Licencia DAN' },
   { value: 'fukushidoin', label: 'Título Fukushidoin' },
   { value: 'shidoin', label: 'Título Shidoin' },
-  { value: 'seguro_accidentes', label: 'Seguro de Accidentes' },
+  { value: 'seguro_accidentes', label: 'Seguro de accidentes' },
   { value: 'seguro_rc', label: 'Seguro RC' },
-  { value: 'club_fee', label: 'Cuota Club' },
+  { value: 'club_fee', label: 'Cuota del club' },
 ]
 
 // Manual payment methods exclude redsys
@@ -86,6 +88,13 @@ export function ManualPaymentModal({
 
   const { registerManualPayment, isLoading, isSuccess } =
     useRegisterManualPaymentMutation()
+  const { data: prices } = useAnnualPaymentPricesQuery()
+
+  const total = useMemo(() => {
+    const priceOf = (type: string) => (prices as Record<string, number | undefined> | undefined)?.[type] ?? 0
+    const items = memberAssignments.reduce((sum, a) => sum + a.payment_types.reduce((acc, t) => acc + priceOf(t), 0), 0)
+    return items + (includeClubFee ? priceOf('club_fee') : 0)
+  }, [memberAssignments, includeClubFee, prices])
 
   // Reset form when modal opens
   useEffect(() => {
@@ -174,16 +183,16 @@ export function ManualPaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Registrar pago manual — {clubName}</DialogTitle>
+          <DialogTitle>Registrar pago manual: {clubName}</DialogTitle>
           <DialogDescription className="sr-only">
             Formulario para registrar un pago manual
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto pr-2">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
             <div className="grid gap-4 py-2">
               {/* Payer name */}
               <div className="grid gap-1.5">
@@ -267,7 +276,7 @@ export function ManualPaymentModal({
                   Asignación de miembros
                   {memberAssignments.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
-                      {memberAssignments.length} seleccionados
+                      {memberAssignments.length} {memberAssignments.length === 1 ? 'seleccionado' : 'seleccionados'}
                     </Badge>
                   )}
                 </Label>
@@ -281,7 +290,7 @@ export function ManualPaymentModal({
                     No hay miembros disponibles para este club.
                   </div>
                 ) : (
-                  <div className="border rounded-md max-h-56 overflow-y-auto">
+                  <div className="border rounded-md">
                     <div className="p-2 space-y-1">
                       {members.map((member) => {
                         const assignment = memberAssignments.find(
@@ -351,7 +360,7 @@ export function ManualPaymentModal({
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-2 sm:items-center">
             <Button
               type="button"
               variant="outline"
@@ -363,6 +372,9 @@ export function ManualPaymentModal({
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Registrando...' : 'Registrar'}
             </Button>
+            <p className="text-[15px] text-foreground sm:order-first sm:mr-auto">
+              Total: <span className="text-lg font-semibold tabular-nums">{formatCurrency(total)}</span>
+            </p>
           </DialogFooter>
         </form>
       </DialogContent>

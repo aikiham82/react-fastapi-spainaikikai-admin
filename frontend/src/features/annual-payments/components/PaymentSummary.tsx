@@ -1,138 +1,89 @@
 import { Button } from '@/components/ui/button';
-import { Loader2, CreditCard } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/core/utils/format';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
-import { ANNUAL_PAYMENT_LABELS } from '../data/schemas/annual-payment.schema';
 
-export const PaymentSummary: React.FC = () => {
-  const {
-    formData,
-    totals,
-    errors,
-    isValid,
-    isSubmitting,
-    submitError,
-    assignmentError,
-    submitPayment,
-  } = useAnnualPaymentContext();
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
+interface SummaryLineProps {
+  label: string;
+  amount: number;
+}
+
+const SummaryLine = ({ label, amount }: SummaryLineProps) => (
+  <div className="flex items-baseline justify-between gap-3 text-[15px]">
+    <span className="text-foreground">{label}</span>
+    <span className="tabular-nums text-foreground">{formatCurrency(amount)}</span>
+  </div>
+);
+
+export const PaymentSummary = () => {
+  const { formData, totals, errors, canPay, isSubmitting, submitError, submitPayment } = useAnnualPaymentContext();
+
+  const licenceCount =
+    formData.kyu_count +
+    formData.kyu_infantil_count +
+    formData.dan_count +
+    formData.fukushidoin_count +
+    formData.shidoin_count;
+  const licenceTotal =
+    totals.subtotals.kyu +
+    totals.subtotals.kyu_infantil +
+    totals.subtotals.dan +
+    totals.subtotals.fukushidoin +
+    totals.subtotals.shidoin;
   const hasItems = totals.total > 0;
+  const error = errors.payer_name ?? errors.club_id ?? submitError;
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-900">Resumen de Pago</h3>
+    <aside aria-labelledby="summary-title" className="hidden flex-col gap-4 border-l border-border pl-8 lg:flex">
+      <h2 id="summary-title" className="text-lg font-semibold text-foreground">
+        Resumen
+      </h2>
 
-      <div className="bg-slate-50 rounded-lg p-4 space-y-3">
-        {formData.include_club_fee && totals.subtotals.club_fee > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.club_fee}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.club_fee.toFixed(2)}€</span>
-          </div>
-        )}
-
-        {formData.kyu_count > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.kyu} x{formData.kyu_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.kyu.toFixed(2)}€</span>
-          </div>
-        )}
-
-        {formData.kyu_infantil_count > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.kyu_infantil} x{formData.kyu_infantil_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.kyu_infantil.toFixed(2)}€</span>
-          </div>
-        )}
-
-        {formData.dan_count > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.dan} x{formData.dan_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.dan.toFixed(2)}€</span>
-          </div>
-        )}
-
-        {formData.fukushidoin_count > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.fukushidoin} x{formData.fukushidoin_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.fukushidoin.toFixed(2)}€</span>
-          </div>
-        )}
-
-        {formData.shidoin_count > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.shidoin} x{formData.shidoin_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.shidoin.toFixed(2)}€</span>
-          </div>
-        )}
-
+      <div className="flex flex-col gap-2">
+        {formData.include_club_fee && <SummaryLine label="Cuota del club" amount={totals.subtotals.club_fee} />}
+        {licenceCount > 0 && <SummaryLine label={plural(licenceCount, 'licencia', 'licencias')} amount={licenceTotal} />}
         {formData.seguro_accidentes_count > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.seguro_accidentes} x{formData.seguro_accidentes_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.seguro_accidentes.toFixed(2)}€</span>
-          </div>
+          <SummaryLine
+            label={plural(formData.seguro_accidentes_count, 'seguro de accidentes', 'seguros de accidentes')}
+            amount={totals.subtotals.seguro_accidentes}
+          />
         )}
-
         {formData.seguro_rc_count > 0 && (
-          <div className="flex justify-between gap-2 text-sm">
-            <span className="truncate">{ANNUAL_PAYMENT_LABELS.seguro_rc} x{formData.seguro_rc_count}</span>
-            <span className="whitespace-nowrap">{totals.subtotals.seguro_rc.toFixed(2)}€</span>
-          </div>
+          <SummaryLine
+            label={plural(formData.seguro_rc_count, 'seguro RC', 'seguros RC')}
+            amount={totals.subtotals.seguro_rc}
+          />
         )}
-
-        {!hasItems && (
-          <p className="text-sm text-slate-500 italic">
-            Seleccione al menos un concepto de pago
-          </p>
-        )}
-
-        <div className="border-t border-slate-200 pt-3 mt-3">
-          <div className="flex justify-between text-lg font-bold">
-            <span>Total</span>
-            <span>{totals.total.toFixed(2)}€</span>
-          </div>
-        </div>
+        {!hasItems && <p className="text-sm text-muted-foreground">Marca al menos un concepto para pagar.</p>}
       </div>
 
-      {errors._form && (
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-sm text-amber-600">{errors._form}</p>
-        </div>
+      <div className="flex items-baseline justify-between gap-3 border-t border-border pt-4">
+        <span className="text-[15px] font-medium text-foreground">Total</span>
+        <span className="text-3xl font-semibold tabular-nums text-foreground">{formatCurrency(totals.total)}</span>
+      </div>
+
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
       )}
 
-      {assignmentError && (
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-sm text-amber-600">{assignmentError}</p>
-        </div>
-      )}
-
-      {submitError && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{submitError}</p>
-        </div>
-      )}
-
-      <Button
-        type="button"
-        className="w-full"
-        size="lg"
-        onClick={submitPayment}
-        disabled={!isValid || isSubmitting || !hasItems}
-      >
+      <Button type="button" size="lg" className="w-full" onClick={submitPayment} disabled={!canPay || isSubmitting || !hasItems}>
         {isSubmitting ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
             Procesando...
           </>
         ) : (
-          <>
-            <CreditCard className="mr-2 h-4 w-4" />
-            Pagar {totals.total.toFixed(2)}€
-          </>
+          'Pagar con tarjeta'
         )}
       </Button>
 
-      <p className="text-xs text-center text-slate-500">
-        Sera redirigido a la pasarela de pago segura de Redsys
+      <p className="text-[13px] text-muted-foreground">
+        Pagarás en la web segura del banco. Al terminar recibirás la factura por correo y las licencias quedarán activas.
       </p>
-    </div>
+    </aside>
   );
 };

@@ -1,19 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useRequestPasswordResetMutation } from "../hooks/mutations/useRequestPasswordReset.mutation";
+import { AuthHeading } from "@/features/auth/components/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { FormError } from "@/components/ui/form-error";
+import { TextLink, TextButton } from "@/components/ui/text-link";
 
 export const ForgotPasswordForm = () => {
   const [identifier, setIdentifier] = useState("");
@@ -29,171 +22,82 @@ export const ForgotPasswordForm = () => {
     }
   };
 
-  // Show email sending error (API returned 200 but success=false)
+  const startAgain = () => {
+    reset();
+    setIdentifier("");
+  };
+
   if (isSuccess && data && !data.success) {
     return (
-      <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="space-y-1 pb-6">
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <AlertCircle className="h-8 w-8 text-red-600" />
-          </div>
-          <CardTitle className="text-2xl font-bold text-center text-gray-900">
-            Error al enviar
-          </CardTitle>
-          <CardDescription className="text-center text-gray-600">
-            {data.message}
-          </CardDescription>
-        </CardHeader>
-        <CardFooter className="flex flex-col space-y-4 pt-6">
-          <Button
-            variant="outline"
-            className="w-full h-12 font-medium transition-all duration-200"
-            onClick={() => {
-              reset();
-            }}
-          >
-            Intentar de nuevo
-          </Button>
-          <Link to="/login" className="w-full">
-            <Button
-              variant="ghost"
-              className="w-full h-10 font-medium transition-all duration-200 text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al inicio de sesion
-            </Button>
-          </Link>
-        </CardFooter>
-      </Card>
+      <div className="flex flex-col gap-6">
+        <AuthHeading title="No se ha podido enviar">{data.message}</AuthHeading>
+        <Button size="lg" variant="outline" className="w-full" onClick={() => reset()}>
+          Intentar de nuevo
+        </Button>
+        <TextLink to="/login">
+          Volver a entrar
+        </TextLink>
+      </div>
     );
   }
 
-  // Show success message only when email was actually sent
   if (isSuccess && data?.success) {
     return (
-      <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="space-y-1 pb-6">
-          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-          </div>
-          <CardTitle className="text-2xl font-bold text-center text-gray-900">
-            Correo enviado
-          </CardTitle>
-          <CardDescription className="text-center text-gray-600">
-            Si existe una cuenta, te hemos enviado un enlace al correo
-            registrado en ella. Si no sabes cual es, preguntale a la
-            federacion.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-gray-500 text-center">
-            Revisa tu bandeja de entrada y sigue las instrucciones del correo.
-            El enlace expirara en 24 horas.
+      <div className="flex flex-col gap-6">
+        <AuthHeading title="Revisa tu correo">
+          <p>
+            Si existe una cuenta, te hemos enviado un enlace al correo registrado en ella. Si no sabes cuál es,
+            pregúntale a la Federación.
           </p>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4 pt-6">
-          <Link to="/login" className="w-full">
-            <Button
-              variant="outline"
-              className="w-full h-12 font-medium transition-all duration-200"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al inicio de sesion
-            </Button>
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              reset();
-              setIdentifier("");
-            }}
-            className="text-sm text-primary hover:text-primary/80 transition-colors font-medium underline-offset-4 hover:underline"
-          >
-            Probar con otra cuenta
-          </button>
-        </CardFooter>
-      </Card>
+          <p className="mt-3">El enlace caduca en 24 horas.</p>
+        </AuthHeading>
+        <Button size="lg" className="w-full" asChild>
+          <Link to="/login">Volver a entrar</Link>
+        </Button>
+        <TextButton onClick={startAgain}>
+          Probar con otra cuenta
+        </TextButton>
+      </div>
     );
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-      <CardHeader className="space-y-1 pb-6">
-        <CardTitle className="text-2xl font-bold text-center text-gray-900">
-          Recuperar contrasena
-        </CardTitle>
-        <CardDescription className="text-center text-gray-600">
-          Introduce tu correo o tu nombre de usuario (el de tu club o el
-          tuyo) y te enviaremos un enlace para restablecer tu contrasena
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={onSubmit}>
-          <div className="space-y-2">
-            <Label
-              htmlFor="identifier"
-              className="text-sm font-medium text-gray-700"
-            >
-              Correo o nombre de usuario
-            </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                id="identifier"
-                type="text"
-                name="username"
-                autoComplete="username"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                placeholder="correo@ejemplo.com"
-                className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                required
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-              />
-            </div>
-          </div>
+    <div className="flex flex-col gap-6">
+      <AuthHeading title="Recuperar la contraseña">
+        Escribe tu correo o tu nombre de usuario y te enviaremos un enlace para crear una contraseña nueva.
+      </AuthHeading>
 
-          {error && (
-            <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">
-                Ha ocurrido un error. Por favor, intentalo de nuevo.
-              </p>
-            </div>
-          )}
+      <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="identifier">Correo o nombre de usuario</Label>
+          <Input
+            id="identifier"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            className="h-12 text-base"
+            required
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+          />
+        </div>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className={cn(
-              "w-full h-12 bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white font-medium transition-all duration-200",
-              "hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0",
-              isLoading && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                <span>Enviando...</span>
-              </div>
-            ) : (
-              "Enviar enlace de recuperacion"
-            )}
-          </Button>
-        </form>
-      </CardContent>
-      <CardFooter className="flex flex-col space-y-4 pt-6">
-        <Link to="/login" className="w-full">
-          <Button
-            variant="ghost"
-            className="w-full h-10 font-medium transition-all duration-200 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver al inicio de sesion
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+        {error && (
+          <FormError>
+            Ha ocurrido un error. Inténtalo de nuevo.
+          </FormError>
+        )}
+
+        <Button type="submit" size="lg" disabled={isLoading || !identifier.trim()} className="w-full">
+          {isLoading ? "Enviando…" : "Enviar enlace"}
+        </Button>
+      </form>
+
+      <TextLink to="/login">
+        Volver a entrar
+      </TextLink>
+    </div>
   );
 };

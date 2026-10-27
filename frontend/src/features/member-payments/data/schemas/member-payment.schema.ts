@@ -5,9 +5,9 @@ export const MEMBER_PAYMENT_TYPES = {
   licencia_kyu: 'Licencia KYU',
   licencia_kyu_infantil: 'Licencia KYU Infantil',
   licencia_dan: 'Licencia DAN',
-  titulo_fukushidoin: 'Titulo Fukushidoin',
-  titulo_shidoin: 'Titulo Shidoin',
-  seguro_accidentes: 'Seguro de Accidentes',
+  titulo_fukushidoin: 'Título Fukushidoin',
+  titulo_shidoin: 'Título Shidoin',
+  seguro_accidentes: 'Seguro de accidentes',
   seguro_rc: 'Seguro RC',
   cuota_club: 'Cuota de Club',
 } as const;

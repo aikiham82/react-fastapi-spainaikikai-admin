@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useMemberPaymentStatusQuery } from '../hooks/queries/useMemberPaymentQueries';
 import { MEMBER_PAYMENT_TYPES, type MemberPaymentType } from '../data/schemas/member-payment.schema';
+import { formatCurrency } from '@/core/utils/format';
 
 interface MemberPaymentStatusProps {
   memberId: string;
@@ -17,31 +17,20 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-8 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div role="status" aria-label="Cargando pagos" className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-8 w-full" />
+        ))}
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center text-destructive">
-            <AlertCircle className="mr-2 h-5 w-5" />
-            Error al cargar el estado de pagos
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center text-danger">
+        <AlertCircle className="mr-2 h-5 w-5" />
+        No se ha podido cargar el estado de pagos
+      </div>
     );
   }
 
@@ -58,65 +47,48 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Estado de Pagos {data.payment_year}</span>
-          <span className="text-lg font-normal text-muted-foreground">
-            Total pagado: {data.total_paid.toFixed(2)}
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* License Section */}
-          <div>
-            <h4 className="font-medium mb-3 flex items-center">
-              {data.has_all_licenses ? (
-                <CheckCircle className="mr-2 h-5 w-5 text-green-600" />
-              ) : (
-                <XCircle className="mr-2 h-5 w-5 text-red-500" />
-              )}
-              Licencias
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {licensePayments.map((status) => (
-                <PaymentTypeItem
-                  key={status.payment_type}
-                  paymentType={status.payment_type}
-                  isPaid={status.is_paid}
-                  amount={status.amount}
-                />
-              ))}
-            </div>
-          </div>
+    <div className="space-y-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="font-medium">Año {data.payment_year}</h3>
+        <span className="text-sm text-muted-foreground">
+          Total pagado: <span className="font-medium text-foreground">{formatCurrency(data.total_paid)}</span>
+        </span>
+      </div>
 
-          {/* Insurance Section */}
-          <div>
-            <h4 className="font-medium mb-3 flex items-center">
-              {data.has_all_insurances ? (
-                <CheckCircle className="mr-2 h-5 w-5 text-green-600" />
-              ) : (
-                <XCircle className="mr-2 h-5 w-5 text-red-500" />
-              )}
-              Seguros
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {insurancePayments.map((status) => (
-                <PaymentTypeItem
-                  key={status.payment_type}
-                  paymentType={status.payment_type}
-                  isPaid={status.is_paid}
-                  amount={status.amount}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      <PaymentGroup title="Licencias" complete={data.has_all_licenses} payments={licensePayments} />
+      <PaymentGroup title="Seguros" complete={data.has_all_insurances} payments={insurancePayments} />
+    </div>
   );
 };
+
+interface PaymentGroupProps {
+  title: string;
+  complete: boolean;
+  payments: { payment_type: string; is_paid: boolean; amount?: number | null }[];
+}
+
+const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, payments }) => (
+  <div>
+    <h4 className="mb-2 flex items-center text-sm font-medium">
+      {complete ? (
+        <CheckCircle className="mr-2 h-4 w-4 text-success" />
+      ) : (
+        <XCircle className="mr-2 h-4 w-4 text-danger" />
+      )}
+      {title}
+    </h4>
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+      {payments.map((status) => (
+        <PaymentTypeItem
+          key={status.payment_type}
+          paymentType={status.payment_type}
+          isPaid={status.is_paid}
+          amount={status.amount}
+        />
+      ))}
+    </div>
+  </div>
+);
 
 interface PaymentTypeItemProps {
   paymentType: string;
@@ -134,19 +106,19 @@ const PaymentTypeItem: React.FC<PaymentTypeItemProps> = ({
   return (
     <div
       className={`flex items-center justify-between p-2 rounded-md ${
-        isPaid ? 'bg-green-50 dark:bg-green-950' : 'bg-red-50 dark:bg-red-950'
+        isPaid ? 'bg-success-soft' : 'bg-danger-soft'
       }`}
     >
       <div className="flex items-center">
         {isPaid ? (
-          <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+          <CheckCircle className="mr-2 h-4 w-4 text-success" />
         ) : (
-          <XCircle className="mr-2 h-4 w-4 text-red-500" />
+          <XCircle className="mr-2 h-4 w-4 text-danger" />
         )}
         <span className="text-sm">{label}</span>
       </div>
       {isPaid && amount != null && (
-        <span className="text-sm font-medium">{amount.toFixed(2)}</span>
+        <span className="text-sm font-medium">{formatCurrency(amount)}</span>
       )}
     </div>
   );

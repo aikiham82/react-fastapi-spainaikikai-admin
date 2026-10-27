@@ -161,5 +161,7 @@ export const createMockAuthContextValue = (overrides: any = {}) => ({
   login: vi.fn(),
   logout: vi.fn(),
   getJwt: vi.fn(() => null),
+  loginFailed: false,
+  loginFailure: null,
   ...overrides,
 })

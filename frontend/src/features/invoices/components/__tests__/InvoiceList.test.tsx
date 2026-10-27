@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { InvoiceList } from '../InvoiceList'
 import type { Invoice, InvoiceFilters } from '../../data/schemas/invoice.schema'
@@ -8,6 +8,7 @@ const context = vi.hoisted(() => ({
   invoices: [] as Invoice[],
   filters: {} as InvoiceFilters,
   setFilters: vi.fn(),
+  downloadPdf: vi.fn(),
 }))
 
 vi.mock('../../hooks/useInvoiceContext', () => ({
@@ -17,7 +18,7 @@ vi.mock('../../hooks/useInvoiceContext', () => ({
     error: null,
     filters: context.filters,
     setFilters: context.setFilters,
-    downloadPdf: vi.fn(),
+    downloadPdf: context.downloadPdf,
     regeneratePdf: vi.fn(),
     isDownloading: false,
     isRegenerating: false,
@@ -52,10 +53,7 @@ const issuedClubInvoice: Invoice = {
   updated_at: '2026-10-15T07:57:17.442000',
 }
 
-const chooseStatus = async (label: string) => {
-  await userEvent.click(screen.getByRole('combobox'))
-  await userEvent.click(await screen.findByRole('option', { name: label }))
-}
+const chooseStatus = (label: string) => userEvent.click(screen.getByRole('radio', { name: new RegExp(`^${label}`) }))
 
 describe('InvoiceList', () => {
   beforeEach(() => {
@@ -81,7 +79,7 @@ describe('InvoiceList', () => {
     context.filters = { status: 'issued' }
     renderWithProviders(<InvoiceList />)
 
-    await chooseStatus('Todos')
+    await chooseStatus('Todas')
 
     expect(context.setFilters).toHaveBeenLastCalledWith({ status: undefined })
   })
@@ -91,7 +89,7 @@ describe('InvoiceList', () => {
 
     renderWithProviders(<InvoiceList />)
 
-    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    expect(screen.getByRole('radiogroup', { name: 'Estado' })).toBeInTheDocument()
   })
 
   it('offers the download for an invoice whose PDF is generated on request', () => {
@@ -118,7 +116,7 @@ describe('InvoiceList', () => {
     it('finds an invoice by its number', async () => {
       renderWithProviders(<InvoiceList />)
 
-      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), '2025-000002')
+      await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar factura o cliente' }), '2025-000002')
 
       await waitFor(() => expect(visibleNumbers()).toEqual(['2025-000002']))
     })
@@ -126,7 +124,7 @@ describe('InvoiceList', () => {
     it('finds an invoice by client name typed without accents', async () => {
       renderWithProviders(<InvoiceList />)
 
-      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'ALMERIA')
+      await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar factura o cliente' }), 'ALMERIA')
 
       await waitFor(() => expect(visibleNumbers()).toEqual(['2026-000007']))
     })
@@ -134,30 +132,66 @@ describe('InvoiceList', () => {
     it('clears a search that hid every invoice', async () => {
       renderWithProviders(<InvoiceList />)
 
-      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
-      await userEvent.click(await screen.findByRole('button', { name: 'Limpiar búsqueda' }))
+      await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
+      await userEvent.click(await screen.findByRole('button', { name: 'Quitar filtros' }))
 
-      expect(screen.getByRole('textbox', { name: 'Buscar factura o cliente' })).toHaveValue('')
+      expect(screen.getByRole('searchbox', { name: 'Buscar factura o cliente' })).toHaveValue('')
       await waitFor(() => expect(visibleNumbers()).toEqual(['2025-000002', '2026-000007']))
     })
 
     it('says so when nothing matches, keeping the filters on screen', async () => {
       renderWithProviders(<InvoiceList />)
 
-      await userEvent.type(screen.getByRole('textbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
+      await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar factura o cliente' }), 'zaragoza')
 
       expect(await screen.findByText('Sin resultados')).toBeInTheDocument()
       expect(screen.getByText('No se encontraron facturas para tu búsqueda')).toBeInTheDocument()
-      expect(screen.getByRole('combobox')).toBeInTheDocument()
+      expect(screen.getByRole('radiogroup', { name: 'Estado' })).toBeInTheDocument()
     })
   })
 
-  it('offers only the statuses the backend knows', async () => {
+  it('offers only the statuses the backend knows', () => {
     renderWithProviders(<InvoiceList />)
 
-    await userEvent.click(screen.getByRole('combobox'))
+    const radios = screen.getAllByRole('radio').map((r) => r.textContent)
+    expect(radios).toEqual(['Todas', 'Borrador', 'Emitida', 'Pagada', 'Cancelada'])
+  })
 
-    const options = (await screen.findAllByRole('option')).map((o) => o.textContent)
-    expect(options).toEqual(['Todos', 'Borrador', 'Emitida', 'Pagada', 'Cancelada'])
+  describe('detail', () => {
+    const openDetail = async () => {
+      await userEvent.click(screen.getAllByText('Example Club')[0])
+      return within(await screen.findByRole('dialog'))
+    }
+
+    it('offers Descargar PDF in the invoice detail', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      const dialog = await openDetail()
+      await userEvent.click(dialog.getByRole('button', { name: 'Descargar PDF' }))
+
+      expect(context.downloadPdf).toHaveBeenCalledWith('invoice-1', '2025-000002')
+    })
+
+    it('hides empty invoice fields', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      const dialog = await openDetail()
+
+      expect(dialog.queryByText('NIF/CIF')).not.toBeInTheDocument()
+      expect(dialog.queryByText('Dirección')).not.toBeInTheDocument()
+      expect(dialog.queryByText('Fecha de vencimiento')).not.toBeInTheDocument()
+      expect(dialog.queryByText('Fecha de pago')).not.toBeInTheDocument()
+      expect(dialog.queryByText('Notas')).not.toBeInTheDocument()
+      expect(dialog.queryByText('-')).not.toBeInTheDocument()
+      expect(dialog.getByText('Fecha de emisión')).toBeInTheDocument()
+    })
+
+    it('explains what the status means', async () => {
+      renderWithProviders(<InvoiceList />)
+
+      const dialog = await openDetail()
+
+      expect(dialog.getByText('Factura generada y enviada.')).toBeInTheDocument()
+    })
   })
 })

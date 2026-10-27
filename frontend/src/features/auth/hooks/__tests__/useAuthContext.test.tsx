@@ -280,22 +280,42 @@ describe('useAuthContext', () => {
   })
 
   describe('Error Handling', () => {
-    it('should display toast for login errors', async () => {
+    it('exposes a failed login for the form to show inline', async () => {
       const loginError = new Error('Invalid credentials')
-      
+
       mockUseLoginMutation.mockReturnValue({
         login: vi.fn(),
         isLoading: false,
         error: loginError
       })
 
-      renderHook(() => useAuthContext(), {
+      const { result } = renderHook(() => useAuthContext(), {
         wrapper: createWrapper
       })
 
-      await waitFor(() => {
-        expect(mockToastError).toHaveBeenCalled()
-      })
+      expect(result.current.loginFailed).toBe(true)
+      expect(mockToastError).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      [{ status: 401, message: 'x' }, 'invalid'],
+      [{ status: 429, message: 'x' }, 'rate_limited'],
+      [{ status: 500, message: 'x' }, 'unavailable'],
+      [{ message: 'Network Error' }, 'unavailable'],
+    ])('classifies login error %j as %s', (loginError, expected) => {
+      mockUseLoginMutation.mockReturnValue({ login: vi.fn(), isLoading: false, error: loginError as unknown as Error })
+
+      const { result } = renderHook(() => useAuthContext(), { wrapper: createWrapper })
+
+      expect(result.current.loginFailure).toBe(expected)
+    })
+
+    it('reports no login failure when there is no error', () => {
+      mockUseLoginMutation.mockReturnValue({ login: vi.fn(), isLoading: false, error: null })
+
+      const { result } = renderHook(() => useAuthContext(), { wrapper: createWrapper })
+
+      expect(result.current.loginFailure).toBeNull()
     })
 
     it('should display toast for register errors', async () => {
@@ -476,13 +496,11 @@ describe('useAuthContext', () => {
           error: loginError
         })
 
-        renderHook(() => useAuthContext(), {
+        const { result } = renderHook(() => useAuthContext(), {
           wrapper: createWrapper
         })
 
-        await waitFor(() => {
-          expect(mockToastError).toHaveBeenCalled()
-        })
+        expect(result.current.loginFailed).toBe(true)
       })
     })
 

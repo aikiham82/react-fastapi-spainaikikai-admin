@@ -95,7 +95,7 @@ describe('MemberAccessAccount', () => {
   it('shows the login email of the account', () => {
     renderWithProviders(<MemberAccessAccount memberId="member123" />)
 
-    expect(screen.getByText('Cuenta de acceso')).toBeInTheDocument()
+    expect(screen.getByText('Acceso a la web')).toBeInTheDocument()
     expect(screen.getByText('jcarlosarevalo2@gmail.com')).toBeInTheDocument()
   })
 

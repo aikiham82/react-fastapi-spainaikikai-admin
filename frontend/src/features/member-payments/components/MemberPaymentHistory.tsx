@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/list-controls';
 import {
   Table,
   TableBody,
@@ -17,6 +18,7 @@ import {
   type MemberPaymentType,
   type MemberPaymentStatus,
 } from '../data/schemas/member-payment.schema';
+import { formatCurrency, formatDate } from '@/core/utils/format';
 
 interface MemberPaymentHistoryProps {
   memberId: string;
@@ -69,9 +71,7 @@ export const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            No hay pagos registrados para este miembro.
-          </p>
+          <EmptyState title="No hay pagos registrados para este miembro." />
         </CardContent>
       </Card>
     );
@@ -111,14 +111,12 @@ export const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({
                   {MEMBER_PAYMENT_TYPES[payment.payment_type as MemberPaymentType] ||
                     payment.payment_type}
                 </TableCell>
-                <TableCell>{payment.amount.toFixed(2)}</TableCell>
+                <TableCell>{formatCurrency(payment.amount)}</TableCell>
                 <TableCell>
                   <StatusBadge status={payment.status as MemberPaymentStatus} />
                 </TableCell>
                 <TableCell>
-                  {payment.created_at
-                    ? new Date(payment.created_at).toLocaleDateString('es-ES')
-                    : '-'}
+                  {formatDate(payment.created_at)}
                 </TableCell>
               </TableRow>
             ))}

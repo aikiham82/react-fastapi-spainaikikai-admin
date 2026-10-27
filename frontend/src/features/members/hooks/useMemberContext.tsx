@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type Dispatch, type SetStateAction, type ReactNode } from 'react';
 import { useMembersQuery } from './queries/useMemberQueries';
 import { useCreateMemberMutation, useUpdateMemberMutation, useDeleteMemberMutation, useChangeMemberStatusMutation } from './mutations/useMemberMutations';
 import type { Member, CreateMemberRequest, UpdateMemberRequest, MemberFilters } from '../data/schemas/member.schema';
@@ -18,14 +18,19 @@ interface MemberContextType {
   deleteMember: (id: string) => void;
   changeMemberStatus: (id: string, status: 'active' | 'inactive') => void;
   selectMember: (member: Member | null) => void;
-  setFilters: (filters: MemberFilters) => void;
+  setFilters: Dispatch<SetStateAction<MemberFilters>>;
   setPagination: (offset: number, limit: number) => void;
 }
 
 const MemberContext = createContext<MemberContextType | undefined>(undefined);
 
-export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [filters, setFilters] = useState<MemberFilters>({ limit: 0, offset: 0 });
+interface MemberProviderProps {
+  children: ReactNode;
+  initialFilters?: MemberFilters;
+}
+
+export const MemberProvider: React.FC<MemberProviderProps> = ({ children, initialFilters }) => {
+  const [filters, setFilters] = useState<MemberFilters>({ limit: 0, offset: 0, ...initialFilters });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const { data: membersData, isLoading, isFetching, error } = useMembersQuery(filters);
   const createMutation = useCreateMemberMutation();
@@ -50,8 +55,8 @@ export const MemberProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [changeStatusMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {
-    setFilters({ ...filters, offset, limit });
-  }, [filters, setFilters]);
+    setFilters(prev => ({ ...prev, offset, limit }));
+  }, []);
 
   const value: MemberContextType = {
     members: membersData || [],

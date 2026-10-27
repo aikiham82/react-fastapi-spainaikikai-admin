@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { invoiceService } from '../../data/services/invoice.service';
+import { invoiceService, invoicePdfFileName } from '../../data/services/invoice.service';
 import { INVOICES_QUERY_KEY } from '../queries/useInvoiceQueries';
 
 export const useDownloadInvoicePdfMutation = () => {
   return useMutation({
     mutationFn: ({ invoiceId, invoiceNumber }: { invoiceId: string; invoiceNumber: string }) =>
       invoiceService.downloadAndSavePdf(invoiceId, invoiceNumber),
-    onSuccess: () => {
-      toast.success('Factura descargada correctamente');
+    onSuccess: (_data, { invoiceNumber }) => {
+      toast.success(`Factura descargada: ${invoicePdfFileName(invoiceNumber)}`);
     },
     onError: (error: Error) => {
       toast.error(`Error al descargar factura: ${error.message}`);

@@ -14,7 +14,8 @@ import { useDeleteMemberPaymentMutation } from '../hooks/mutations/usePaymentAdm
 import { MemberPaymentEditModal } from './MemberPaymentEditModal'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
-import { formatCurrency, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
+import { formatCurrency } from '@/core/utils/format'
+import { getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
 import { LineActions } from './LineActions'
 
 // NOTE ON REDSYS HANDLING:

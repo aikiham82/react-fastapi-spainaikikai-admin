@@ -14,6 +14,11 @@ export const getToken = () => {
   return token
 }
 
+const SAME_ORIGIN_PATH = /^\/(?![/\\])/
+
+export const resolveApiUrl = (path: string): string =>
+  SAME_ORIGIN_PATH.test(path) ? `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}${path}` : ''
+
 const client = axios.create({
   headers: {
     'Content-Type': 'application/json',

@@ -20,13 +20,6 @@ export interface PriceConfiguration {
   categoria_edad?: AgeCategory;
 }
 
-// Currency formatter
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(amount);
-};
 
 export interface CreatePriceConfigurationRequest {
   key: string;
@@ -61,7 +54,7 @@ export interface LicensePriceResponse {
 export const PRICE_CATEGORY_LABELS: Record<PriceCategory, string> = {
   license: 'Licencia',
   insurance: 'Seguro',
-  club_fee: 'Cuota de Club',
+  club_fee: 'Cuota de club',
   seminar: 'Seminario',
 };
 
@@ -72,7 +65,7 @@ export const TECHNICAL_GRADE_LABELS: Record<TechnicalGrade, string> = {
 };
 
 export const INSTRUCTOR_CATEGORY_LABELS: Record<InstructorCategory, string> = {
-  none: 'Sin categoria',
+  none: 'Sin categoría',
   fukushidoin: 'Fukushidoin',
   shidoin: 'Shidoin',
 };
@@ -98,8 +91,28 @@ export const buildPriceKey = (grado: TechnicalGrade, instructor: InstructorCateg
   return `${grado}-${instructor}-${edad}`;
 };
 
+export interface PriceConcept {
+  key: string;
+  label: string;
+  category: PriceCategory;
+}
+
+export const PRICE_CONCEPTS: readonly PriceConcept[] = [
+  { key: 'club_fee', label: 'Cuota de club', category: 'club_fee' },
+  { key: 'kyu-none-adulto', label: 'Licencia Kyu adulto', category: 'license' },
+  { key: 'kyu-none-infantil', label: 'Licencia Kyu infantil', category: 'license' },
+  { key: 'dan-none-adulto', label: 'Licencia Dan', category: 'license' },
+  { key: 'dan-fukushidoin-adulto', label: 'Licencia Fukushidoin', category: 'license' },
+  { key: 'dan-shidoin-adulto', label: 'Licencia Shidoin', category: 'license' },
+  { key: 'seguro_accidentes', label: 'Seguro de accidentes', category: 'insurance' },
+  { key: 'seguro_rc', label: 'Seguro de responsabilidad civil', category: 'insurance' },
+  { key: 'oficialidad_seminar', label: 'Oficialidad de seminario', category: 'seminar' },
+];
+
 // Helper to get human-readable price description
 export const getPriceKeyDescription = (key: string, category?: PriceCategory): string => {
+  const concept = PRICE_CONCEPTS.find((c) => c.key === key);
+  if (concept) return concept.label;
   if (category === 'license' || !category) {
     const parsed = parsePriceKey(key);
     if (parsed) {
@@ -109,6 +122,5 @@ export const getPriceKeyDescription = (key: string, category?: PriceCategory): s
       return `${gradoLabel}${instructorLabel} (${edadLabel})`;
     }
   }
-  // For non-license categories or unparseable keys, return the key formatted
   return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 };

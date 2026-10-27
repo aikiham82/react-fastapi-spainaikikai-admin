@@ -17,7 +17,7 @@ function SheetTrigger({
 function SheetClose({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Close>) {
-  return <SheetPrimitive.Close data-slot="sheet-close" className="text-white" {...props} />
+  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
 function SheetPortal({
@@ -70,9 +70,9 @@ function SheetContent({
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none text-white">
-          <XIcon className="size-4" />
-          <span className="sr-only">Close</span>
+        <SheetPrimitive.Close className="absolute top-3 right-3 inline-flex size-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden disabled:pointer-events-none">
+          <XIcon className="size-5" />
+          <span className="sr-only">Cerrar</span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>
     </SheetPortal>

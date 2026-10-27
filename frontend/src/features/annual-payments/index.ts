@@ -1,4 +1,4 @@
-export { AnnualPaymentForm } from './components/AnnualPaymentForm';
+export { PendingPayments } from './components/PendingPayments';
 export { AnnualPaymentProvider, useAnnualPaymentContext } from './hooks/useAnnualPaymentContext';
 export { useAnnualPaymentForm } from './hooks/useAnnualPaymentForm';
 export { useInitiateAnnualPaymentMutation } from './hooks/mutations/useInitiateAnnualPayment.mutation';

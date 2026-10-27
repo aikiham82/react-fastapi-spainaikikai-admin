@@ -53,11 +53,14 @@ docs/
 │   └── project-layout.md
 ├── conventions/
 │   ├── backend.md
+│   ├── dates-and-money-use-core-formatters.md
 │   ├── excel-import-cells-are-text.md
 │   ├── frontend.md
+│   ├── list-screens-share-one-pattern.md
 │   ├── public-images-are-unignored.md
 │   ├── pwa-updates-without-service-worker.md
 │   ├── select-all-option.md
+│   ├── ui-visual-language.md
 │   └── update-use-cases-take-named-fields.md
 ├── dev-tooling/
 │   ├── development-commands.md
@@ -71,6 +74,7 @@ docs/
 │   ├── invoice-creation.md
 │   ├── member-join-date.md
 │   ├── payment-cycles.md
+│   ├── payments-never-guess-paid-state.md
 │   ├── roles-and-permissions.md
 │   ├── unique-optional-fields.md
 │   └── validity-follows-dates.md

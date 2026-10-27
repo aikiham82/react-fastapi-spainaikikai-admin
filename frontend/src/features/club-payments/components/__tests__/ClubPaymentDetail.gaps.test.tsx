@@ -124,7 +124,7 @@ describe('ClubPaymentDetail — gap coverage', () => {
 
   // ── Gap 1: Loading state ──────────────────────────────────────────────────
   describe('loading state', () => {
-    it('shows a spinner element when isLoadingClubDetail is true', () => {
+    it('shows a loading placeholder when isLoadingClubDetail is true', () => {
       mockUseClubPaymentsContext.mockReturnValue({
         ...baseContextValue,
         isLoadingClubDetail: true,
@@ -133,8 +133,7 @@ describe('ClubPaymentDetail — gap coverage', () => {
 
       renderWithProviders(<ClubPaymentDetail />)
 
-      const spinner = document.querySelector('.animate-spin')
-      expect(spinner).toBeTruthy()
+      expect(screen.getByRole('status')).toBeInTheDocument()
     })
 
     it('does NOT render member names while loading', () => {
@@ -260,7 +259,7 @@ describe('ClubPaymentDetail — gap coverage', () => {
       )
     })
 
-    it('passes enabled: true to useMembersQuery when canManagePayments=true and clubId is set', () => {
+    it('passes enabled: true to useMembersQuery once the manual payment modal is open', async () => {
       vi.mocked(usePermissions).mockReturnValue({
         isAssociationAdmin: () => true,
         isClubAdmin: () => false,
@@ -271,8 +270,9 @@ describe('ClubPaymentDetail — gap coverage', () => {
       })
 
       renderWithProviders(<ClubPaymentDetail />)
+      await user.click(screen.getByRole('button', { name: /registrar pago manual/i }))
 
-      expect(mockUseMembersQuery).toHaveBeenCalledWith(
+      expect(mockUseMembersQuery).toHaveBeenLastCalledWith(
         expect.objectContaining({ club_id: 'club-001' }),
         expect.objectContaining({ enabled: true })
       )

@@ -131,15 +131,15 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Licencia' : 'Crear Licencia'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar licencia' : 'Nueva licencia'}</DialogTitle>
           <DialogDescription>
             {isEditing ? 'Actualiza la información de la licencia' : 'Completa la información para crear una nueva licencia'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="contents">
           <div className="space-y-2">
             <Label htmlFor="member_id">Miembro *</Label>
             <SearchableSelect
@@ -158,7 +158,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="issue_date">Fecha de Emisión *</Label>
+              <Label htmlFor="issue_date">Fecha de emisión *</Label>
               <Input
                 id="issue_date"
                 type="date"
@@ -170,7 +170,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expiry_date">Fecha de Vencimiento *</Label>
+              <Label htmlFor="expiry_date">Fecha de vencimiento *</Label>
               <Input
                 id="expiry_date"
                 type="date"
@@ -184,7 +184,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="technical_grade">Tipo de Grado *</Label>
+              <Label htmlFor="technical_grade">Tipo de grado *</Label>
               <Select
                 value={formData.technical_grade || 'dan'}
                 onValueChange={(value) => {
@@ -281,7 +281,7 @@ export const LicenseForm = ({ open, onOpenChange, license, memberOptions = [] }:
               Cancelar
             </Button>
             <Button type="submit">
-              {isEditing ? 'Actualizar' : 'Crear'}
+              {isEditing ? 'Guardar cambios' : 'Crear licencia'}
             </Button>
           </DialogFooter>
         </form>

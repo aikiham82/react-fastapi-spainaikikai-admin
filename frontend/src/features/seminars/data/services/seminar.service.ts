@@ -63,6 +63,15 @@ export const initiateSeminarOficialidad = async (seminarId: string): Promise<Ini
   );
 };
 
+export interface SeminarOficialidadPrice {
+  key: string;
+  price: number;
+}
+
+export const getSeminarOficialidadPrice = async (): Promise<SeminarOficialidadPrice> => {
+  return await apiClient.get<SeminarOficialidadPrice>('/api/v1/price-configurations/seminar-price');
+};
+
 export const seminarService = {
   getSeminars,
   getSeminar,
@@ -73,4 +82,5 @@ export const seminarService = {
   uploadCoverImage,
   deleteCoverImage,
   initiateSeminarOficialidad,
+  getSeminarOficialidadPrice,
 };

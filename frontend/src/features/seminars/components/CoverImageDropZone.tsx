@@ -1,3 +1,4 @@
+import { resolveApiUrl } from '@/core/data/apiClient';
 import { useRef, useState } from 'react';
 import { Camera, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,8 +21,6 @@ const validateFile = (file: File): string | null => {
   }
   return null;
 };
-
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 export const CoverImageDropZone = ({ seminarId, currentImageUrl }: CoverImageDropZoneProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -114,7 +113,7 @@ export const CoverImageDropZone = ({ seminarId, currentImageUrl }: CoverImageDro
         {currentImageUrl && !isUploading ? (
           <>
             <img
-              src={`${API_BASE_URL}${currentImageUrl}`}
+              src={resolveApiUrl(currentImageUrl)}
               alt="Imagen de portada"
               className="w-full h-full object-cover"
             />

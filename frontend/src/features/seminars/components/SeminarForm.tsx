@@ -22,6 +22,8 @@ interface SeminarFormProps {
   seminar?: Seminar | null;
 }
 
+const FIELD_ORDER: (keyof CreateSeminarRequest)[] = ['title', 'instructor_name', 'start_date', 'end_date', 'venue', 'city', 'price'];
+
 export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) => {
   const { createSeminar, updateSeminar } = useSeminarContext();
   const { clubId, userRole } = useAuthContext();
@@ -88,20 +90,11 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
     if (!formData.venue.trim()) {
       newErrors.venue = 'El lugar es obligatorio';
     }
-    if (!formData.address.trim()) {
-      newErrors.address = 'La dirección es obligatoria';
-    }
     if (!formData.city.trim()) {
       newErrors.city = 'La ciudad es obligatoria';
     }
-    if (!formData.province.trim()) {
-      newErrors.province = 'La provincia es obligatoria';
-    }
     if (!formData.start_date) {
       newErrors.start_date = 'La fecha de inicio es obligatoria';
-    }
-    if (!formData.end_date) {
-      newErrors.end_date = 'La fecha de fin es obligatoria';
     }
     if (formData.start_date && formData.end_date && formData.start_date > formData.end_date) {
       newErrors.end_date = 'La fecha de fin debe ser posterior a la de inicio';
@@ -111,7 +104,13 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const firstInvalid = FIELD_ORDER.find((field) => newErrors[field]);
+    if (firstInvalid) {
+      const element = document.getElementById(firstInvalid);
+      element?.scrollIntoView({ block: 'center' });
+      element?.focus();
+    }
+    return !firstInvalid;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -125,7 +124,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
     const submitData: CreateSeminarRequest = {
       ...formData,
       start_date: new Date(formData.start_date).toISOString(),
-      end_date: new Date(formData.end_date).toISOString(),
+      end_date: new Date(formData.end_date || formData.start_date).toISOString(),
     };
 
     // Auto-assign club_id for club admins on creation
@@ -151,18 +150,18 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] ">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Seminario' : 'Crear Seminario'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar seminario' : 'Nuevo seminario'}</DialogTitle>
           <DialogDescription>
-            {isEditing ? 'Actualiza la información del seminario' : 'Completa la información para crear un nuevo seminario'}
+            {isEditing ? 'Cambia los datos del seminario.' : 'Los campos con * son obligatorios.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {seminar && (
             <div className="space-y-1">
-              <label className="text-sm font-medium">Imagen de portada</label>
+              <Label>Imagen de portada</Label>
               <CoverImageDropZone
                 seminarId={seminar.id}
                 currentImageUrl={seminar.cover_image_url}
@@ -176,10 +175,10 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
               id="title"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="Seminario de Aikido Avanzado"
-              className={errors.title ? 'border-red-500' : ''}
+              placeholder="Ej.: Seminario de primavera"
+              className={errors.title ? 'border-danger' : ''}
             />
-            {errors.title && <p className="text-sm text-red-500">{errors.title}</p>}
+            {errors.title && <p className="text-sm text-danger">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
@@ -188,7 +187,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
               id="description"
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Describe el contenido y objetivos del seminario..."
+              placeholder="Ej.: Nivel, programa, qué llevar"
               rows={3}
             />
           </div>
@@ -199,60 +198,60 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
               id="instructor_name"
               value={formData.instructor_name}
               onChange={(e) => handleChange('instructor_name', e.target.value)}
-              placeholder="Sensei Juan Pérez"
-              className={errors.instructor_name ? 'border-red-500' : ''}
+              placeholder="Ej.: nombre del instructor"
+              className={errors.instructor_name ? 'border-danger' : ''}
             />
-            {errors.instructor_name && <p className="text-sm text-red-500">{errors.instructor_name}</p>}
+            {errors.instructor_name && <p className="text-sm text-danger">{errors.instructor_name}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start_date">Fecha y Hora Inicio *</Label>
+              <Label htmlFor="start_date">Fecha y hora de inicio *</Label>
               <Input
                 id="start_date"
                 type="datetime-local"
                 value={formData.start_date}
                 onChange={(e) => handleChange('start_date', e.target.value)}
-                className={errors.start_date ? 'border-red-500' : ''}
+                className={errors.start_date ? 'border-danger' : ''}
               />
-              {errors.start_date && <p className="text-sm text-red-500">{errors.start_date}</p>}
+              {errors.start_date && <p className="text-sm text-danger">{errors.start_date}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="end_date">Fecha y Hora Fin *</Label>
+              <Label htmlFor="end_date">Fecha y hora de fin</Label>
               <Input
                 id="end_date"
                 type="datetime-local"
                 value={formData.end_date}
                 onChange={(e) => handleChange('end_date', e.target.value)}
-                className={errors.end_date ? 'border-red-500' : ''}
+                className={errors.end_date ? 'border-danger' : ''}
               />
-              {errors.end_date && <p className="text-sm text-red-500">{errors.end_date}</p>}
+              {errors.end_date && <p className="text-sm text-danger">{errors.end_date}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="venue">Lugar/Local *</Label>
+            <Label htmlFor="venue">Lugar *</Label>
             <Input
               id="venue"
               value={formData.venue}
               onChange={(e) => handleChange('venue', e.target.value)}
-              placeholder="Dojo Central"
-              className={errors.venue ? 'border-red-500' : ''}
+              placeholder="Ej.: nombre del dojo o pabellón"
+              className={errors.venue ? 'border-danger' : ''}
             />
-            {errors.venue && <p className="text-sm text-red-500">{errors.venue}</p>}
+            {errors.venue && <p className="text-sm text-danger">{errors.venue}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Dirección *</Label>
+            <Label htmlFor="address">Dirección</Label>
             <Input
               id="address"
               value={formData.address}
               onChange={(e) => handleChange('address', e.target.value)}
-              placeholder="Calle Principal 123"
-              className={errors.address ? 'border-red-500' : ''}
+              placeholder="Ej.: calle y número"
+              
             />
-            {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+            
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -262,35 +261,35 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleChange('city', e.target.value)}
-                placeholder="Madrid"
-                className={errors.city ? 'border-red-500' : ''}
+                placeholder="Ej.: ciudad"
+                className={errors.city ? 'border-danger' : ''}
               />
-              {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
+              {errors.city && <p className="text-sm text-danger">{errors.city}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="province">Provincia *</Label>
+              <Label htmlFor="province">Provincia</Label>
               <Input
                 id="province"
                 value={formData.province}
                 onChange={(e) => handleChange('province', e.target.value)}
-                placeholder="Madrid"
-                className={errors.province ? 'border-red-500' : ''}
+                placeholder="Ej.: provincia"
+                
               />
-              {errors.province && <p className="text-sm text-red-500">{errors.province}</p>}
+              
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="max_participants">Máximo de Participantes</Label>
+              <Label htmlFor="max_participants">Plazas máximas</Label>
               <Input
                 id="max_participants"
                 type="number"
                 min="1"
                 value={formData.max_participants || ''}
                 onChange={(e) => handleChange('max_participants', parseInt(e.target.value) || undefined)}
-                placeholder="50"
+                placeholder="Sin límite"
               />
             </div>
 
@@ -304,9 +303,9 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
                 value={formData.price}
                 onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
-                className={errors.price ? 'border-red-500' : ''}
+                className={errors.price ? 'border-danger' : ''}
               />
-              {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
+              {errors.price && <p className="text-sm text-danger">{errors.price}</p>}
             </div>
           </div>
 
@@ -315,7 +314,7 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
               Cancelar
             </Button>
             <Button type="submit">
-              {isEditing ? 'Actualizar' : 'Crear'}
+              {isEditing ? 'Guardar cambios' : 'Crear seminario'}
             </Button>
           </DialogFooter>
         </form>
