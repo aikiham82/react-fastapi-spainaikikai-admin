@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -7,35 +8,22 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useDeregisterClubMutation } from '../hooks/mutations/useClubMutations';
 
-interface DeregisterClubButtonProps {
+interface DeregisterClubDialogProps {
   clubId: string;
   clubName: string;
-  label?: string;
-  ariaLabel?: string;
-  className?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export const DeregisterClubButton = ({
-  clubId,
-  clubName,
-  label = 'Dar de baja el club',
-  ariaLabel,
-  className = 'h-auto min-h-9 w-full whitespace-normal sm:w-auto',
-}: DeregisterClubButtonProps) => {
-  const { mutate: deregister, isPending } = useDeregisterClubMutation();
+export const DeregisterClubDialog = ({ clubId, clubName, open, onOpenChange }: DeregisterClubDialogProps) => {
+  const { mutate: deregister } = useDeregisterClubMutation();
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button type="button" variant="outline" className={className} disabled={isPending} aria-label={ariaLabel}>
-          {label}
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Dar de baja el club</AlertDialogTitle>
@@ -54,5 +42,32 @@ export const DeregisterClubButton = ({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+};
+
+interface DeregisterClubButtonProps {
+  clubId: string;
+  clubName: string;
+  label?: string;
+  ariaLabel?: string;
+  className?: string;
+}
+
+export const DeregisterClubButton = ({
+  clubId,
+  clubName,
+  label = 'Dar de baja el club',
+  ariaLabel,
+  className = 'h-auto min-h-9 w-full whitespace-normal sm:w-auto',
+}: DeregisterClubButtonProps) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button type="button" variant="outline" className={className} aria-label={ariaLabel} onClick={() => setOpen(true)}>
+        {label}
+      </Button>
+      <DeregisterClubDialog clubId={clubId} clubName={clubName} open={open} onOpenChange={setOpen} />
+    </>
   );
 };

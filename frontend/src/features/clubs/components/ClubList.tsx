@@ -5,13 +5,16 @@ import { useDebounce } from '@/core/hooks/useDebounce';
 import type { Club } from '../data/schemas/club.schema';
 import { Ban, MapPin, Pencil, Plus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EmptyState, ListToolbar, ListLoading, ListError } from '@/components/ui/list-controls';
-import { Avatar } from '@/components/ui/graphic';
+import { EmptyState, ListToolbar, ListLoading, ListError, RowActions } from '@/components/ui/list-controls';
+import { Avatar, ProgressBar } from '@/components/ui/graphic';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
+import { insuranceSeasonYear } from '@/core/utils/defaultPaymentYear';
+import { useAllClubsPaymentSummaryQuery } from '@/features/club-payments/hooks/queries/useClubPaymentsQueries';
+import type { ClubSummaryItem } from '@/features/club-payments/data/schemas/club-payments.schema';
 import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-import { DeregisterClubButton } from './DeregisterClubButton';
+import { DeregisterClubDialog } from './DeregisterClubButton';
 
 const clubLocation = (club: Club): string => {
   const cityLine = [club.postal_code, club.city].filter(Boolean).join(' ');
@@ -20,9 +23,36 @@ const clubLocation = (club: Club): string => {
 
 const memberCountLabel = (count: number): string => `${count} ${count === 1 ? 'socio' : 'socios'}`;
 
+const SeasonPayment = ({ summary }: { summary: ClubSummaryItem }) => (
+  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1">
+    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <Users className="size-[18px] shrink-0" aria-hidden="true" />
+      {memberCountLabel(summary.total_members)}
+    </p>
+    {summary.total_members > 0 && (
+      <span className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="w-16">
+          <ProgressBar value={summary.members_with_license} max={summary.total_members} label="Licencias pagadas" />
+        </span>
+        {summary.members_with_license} de {summary.total_members} con licencia
+      </span>
+    )}
+    <StatusBadge tone={summary.has_club_fee ? 'ok' : 'warn'}>
+      {summary.has_club_fee ? 'Cuota pagada' : 'Cuota pendiente'}
+    </StatusBadge>
+  </div>
+);
+
 export const ClubList = () => {
   const { clubs, isLoading, error, deleteClub } = useClubContext();
   const { canAccess, isAssociationAdmin } = usePermissions();
+  const isSuperAdmin = isAssociationAdmin();
+  const { data: seasonSummary } = useAllClubsPaymentSummaryQuery(insuranceSeasonYear(new Date()), isSuperAdmin);
+  const summaryByClub = useMemo(
+    () => new Map((seasonSummary?.clubs ?? []).map((summary) => [summary.club_id, summary])),
+    [seasonSummary]
+  );
+  const [clubToDeregister, setClubToDeregister] = useState<Club | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -97,6 +127,7 @@ export const ClubList = () => {
               {filteredClubs.map((club) => {
                 const location = clubLocation(club);
                 const isDeregistered = club.is_active === false;
+                const summary = summaryByClub.get(club.id);
                 return (
                   <li
                     key={club.id}
@@ -115,24 +146,10 @@ export const ClubList = () => {
                             <span className="truncate">{location}</span>
                           </p>
                         )}
-                        {club.member_count !== undefined && (
-                          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Users className="size-[18px] shrink-0" aria-hidden="true" />
-                            <span>{memberCountLabel(club.member_count)}</span>
-                          </p>
-                        )}
+                        {summary && <SeasonPayment summary={summary} />}
                       </div>
                     </div>
-                    <div className="flex w-full gap-2 pl-14 sm:w-auto sm:shrink-0 sm:pl-0">
-                      {isAssociationAdmin() && !isDeregistered && (
-                        <DeregisterClubButton
-                          clubId={club.id}
-                          clubName={club.name}
-                          label="Dar de baja"
-                          ariaLabel={`Dar de baja ${club.name}`}
-                          className="flex-1 text-destructive hover:text-destructive pointer-coarse:h-11 sm:flex-none"
-                        />
-                      )}
+                    <div className="flex w-full items-center gap-2 pl-14 sm:w-auto sm:shrink-0 sm:pl-0">
                       <Button
                         variant="outline"
                         aria-label={`Editar ${club.name}`}
@@ -142,6 +159,12 @@ export const ClubList = () => {
                         <Pencil className="size-4" aria-hidden="true" />
                         Editar
                       </Button>
+                      {isSuperAdmin && !isDeregistered && (
+                        <RowActions
+                          label={club.name}
+                          actions={[{ label: 'Dar de baja', destructive: true, onSelect: () => setClubToDeregister(club) }]}
+                        />
+                      )}
                     </div>
                   </li>
                 );
@@ -157,6 +180,15 @@ export const ClubList = () => {
         club={selectedClubForEdit}
         onDelete={canDelete ? requestDelete : undefined}
       />
+
+      {clubToDeregister && (
+        <DeregisterClubDialog
+          clubId={clubToDeregister.id}
+          clubName={clubToDeregister.name}
+          open
+          onOpenChange={(open) => !open && setClubToDeregister(null)}
+        />
+      )}
 
       <ConfirmDeleteDialog
         open={!!clubToDelete}

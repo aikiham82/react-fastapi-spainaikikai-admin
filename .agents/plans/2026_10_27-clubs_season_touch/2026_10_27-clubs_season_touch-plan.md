@@ -32,10 +32,10 @@ Follow-ups from the graphic-first UI QA: the super admin Clubs list shows each c
 
 Super admin rows join the all-clubs summary for the current season by `club_id`: members count, a ring "con licencia" (members_with_license of total_members) and a "Cuota pagada" / "Cuota pendiente" pill. No summary for a club (deregistered or summary not loaded) shows nothing, never "pendiente". "Dar de baja" moves to the row `RowActions` menu with its confirmation dialog.
 
-- [ ] Tests in `ClubList.test.tsx`: shows members and ring for a club in the summary; shows "Cuota pagada" / "Cuota pendiente"; shows no payment state while the summary is missing; "Dar de baja" is a menu item that opens the confirmation; club admins see neither.
-- [ ] Implement in `ClubList.tsx` using `useAllClubsPaymentSummaryQuery(insuranceSeasonYear(today))`; `DeregisterClubButton` accepts a controlled open state or a menu trigger.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Tests in `ClubList.test.tsx`: shows members and ring for a club in the summary; shows "Cuota pagada" / "Cuota pendiente"; shows no payment state while the summary is missing; "Dar de baja" is a menu item that opens the confirmation; club admins see neither.
+- [x] Implement in `ClubList.tsx` using `useAllClubsPaymentSummaryQuery(insuranceSeasonYear(today))`; `DeregisterClubButton` accepts a controlled open state or a menu trigger.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: One season everywhere
 
@@ -55,6 +55,6 @@ Pendientes, Historial and Inicio name the same season, today "Temporada 2026-27"
 
 ## ⏭️ Next step
 
-Implement Phase 1: the Clubs list with members and season payment.
+Implement Phase 2: one season everywhere.
 
-One season, one turtle: 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Clubs counted, one season to go: 🐢 💨 🥋 (Turbotuga™, [Codely](https://codely.com)'s mascot).
