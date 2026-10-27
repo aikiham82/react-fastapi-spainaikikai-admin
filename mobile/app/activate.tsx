@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: 8,
     overflow: "hidden",
+    marginBottom: spacing.md,
   },
   failed: { fontFamily: fonts.body, fontSize: 14, color: colors.expired, marginBottom: spacing.sm },
   button: { marginTop: spacing.sm },
