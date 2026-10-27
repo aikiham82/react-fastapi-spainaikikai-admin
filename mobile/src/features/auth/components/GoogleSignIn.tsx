@@ -5,7 +5,7 @@ import * as AuthSession from "expo-auth-session";
 import { ClerkProvider, useAuth as useClerkAuth, useSSO } from "@clerk/expo";
 import { Button } from "@/components/Button";
 import { colors, fonts, spacing } from "@/core/theme";
-import { useSocialLoginMutation } from "../hooks/mutations/useSocialLoginMutation";
+import { useSocialLoginMutation } from "../hooks/mutations/useLoginMutation";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -35,15 +35,18 @@ function GoogleButton() {
         return;
       }
 
-      await setActive({ session: createdSessionId });
-      const token = await getToken();
-      if (!token) throw new Error("Clerk returned no session token");
-      await exchange.mutateAsync(token);
+      try {
+        await setActive({ session: createdSessionId });
+        const token = await getToken();
+        if (!token) throw new Error("Clerk returned no session token");
+        await exchange.mutateAsync(token);
+      } finally {
+        void signOut().catch(() => {});
+      }
     } catch {
       setFailed(true);
     } finally {
       setStarting(false);
-      await signOut().catch(() => {});
     }
   }
 
