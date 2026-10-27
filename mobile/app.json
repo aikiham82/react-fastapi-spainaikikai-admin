@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "org.spainaikikai.app",
-      "versionCode": 12,
+      "versionCode": 13,
       "runtimeVersion": {
         "policy": "appVersion"
       }
