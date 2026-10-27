@@ -50,15 +50,15 @@ describe('ClubPaymentsPage year', () => {
   it('opens on the season being paid from October, like Pendientes and Inicio', async () => {
     renderOn('2026-10-01T10:00:00')
 
-    expect(screen.getByText('Temporada 2026-27')).toBeInTheDocument()
+    expect(screen.getByText('Temporada 2026-27 · licencias 2027')).toBeInTheDocument()
     expect(requestedYear()).toBe(2027)
-    expect(await offeredYears()).toEqual(['2026-27', '2025-26', '2024-25', '2023-24', '2022-23', '2021-22'])
+    expect(await offeredYears()).toEqual(['2026-27', '2025-26', '2024-25', '2023-24', '2022-23'])
   })
 
   it('opens on the season that ends in September until then', async () => {
     renderOn('2026-09-30T10:00:00')
 
-    expect(screen.getByText('Temporada 2025-26')).toBeInTheDocument()
+    expect(screen.getByText('Temporada 2025-26 · licencias 2026')).toBeInTheDocument()
     expect(requestedYear()).toBe(2026)
     expect(await offeredYears()).toEqual(['2025-26', '2024-25', '2023-24', '2022-23', '2021-22'])
   })

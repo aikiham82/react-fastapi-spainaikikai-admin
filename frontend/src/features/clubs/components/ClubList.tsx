@@ -15,6 +15,7 @@ import type { ClubSummaryItem } from '@/features/club-payments/data/schemas/club
 import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { DeregisterClubDialog } from './DeregisterClubButton';
+import { useDeregisterClubMutation } from '../hooks/mutations/useClubMutations';
 
 const clubLocation = (club: Club): string => {
   const cityLine = [club.postal_code, club.city].filter(Boolean).join(' ');
@@ -53,6 +54,7 @@ export const ClubList = () => {
     [seasonSummary]
   );
   const [clubToDeregister, setClubToDeregister] = useState<Club | null>(null);
+  const { mutate: deregister } = useDeregisterClubMutation();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -183,10 +185,10 @@ export const ClubList = () => {
 
       {clubToDeregister && (
         <DeregisterClubDialog
-          clubId={clubToDeregister.id}
           clubName={clubToDeregister.name}
           open
           onOpenChange={(open) => !open && setClubToDeregister(null)}
+          onConfirm={() => deregister(clubToDeregister.id)}
         />
       )}
 

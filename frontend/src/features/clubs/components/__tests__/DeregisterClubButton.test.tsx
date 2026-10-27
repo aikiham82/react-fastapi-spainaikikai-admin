@@ -40,4 +40,14 @@ describe('DeregisterClubButton', () => {
 
     expect(mockDeregister).toHaveBeenCalledWith('c1')
   })
+
+  it('cannot be pressed again while the club is being deregistered', () => {
+    vi.mocked(useDeregisterClubMutation).mockReturnValue({
+      mutate: mockDeregister,
+      isPending: true,
+    } as unknown as ReturnType<typeof useDeregisterClubMutation>)
+    renderWithProviders(<DeregisterClubButton clubId="c1" clubName="Dojo Ejemplo" />)
+
+    expect(screen.getByRole('button', { name: 'Dar de baja el club' })).toBeDisabled()
+  })
 })
