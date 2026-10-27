@@ -107,7 +107,7 @@ export const getNavGroups = (role: UserRole, canRead: CanRead): NavGroup[] =>
     .filter((group) => group.tabs.length > 0)
 
 const matchesPath = (path: string, pathname: string) =>
-  path === '/' ? pathname === '/' || pathname === '/home' : pathname === path || pathname.startsWith(`${path}/`)
+  path === '/' ? pathname === '/' || pathname === '/home' : pathname === path
 
 export const isActiveTab = (tab: NavTab, siblings: NavTab[], pathname: string, search: string): boolean => {
   if (!matchesPath(tab.path, pathname)) return false

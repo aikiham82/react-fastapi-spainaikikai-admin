@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ListToolbar, EmptyState, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
 import { formatCurrency } from '@/core/utils/format';
-import { seasonLabel } from '@/core/utils/defaultPaymentYear';
+import { defaultPaymentYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
 
 interface MemberStatus {
   tone: StatusTone;
@@ -177,7 +177,7 @@ export const ClubPaymentDetail = () => {
           onClose={() => setIsManualPaymentOpen(false)}
           clubId={clubDetail.club_id}
           clubName={clubDetail.club_name}
-          paymentYear={selectedYear}
+          paymentYear={defaultPaymentYear(new Date())}
           members={modalMembers}
           isLoadingMembers={isLoadingMembers}
         />

@@ -1,3 +1,4 @@
+import { seasonLabel } from '@/core/utils/defaultPaymentYear'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
@@ -211,7 +212,7 @@ export function ManualPaymentModal({
 
               {/* Payment year */}
               <div className="grid gap-1.5">
-                <Label htmlFor="payment_year">Año de pago</Label>
+                <Label htmlFor="payment_year">Temporada</Label>
                 <Select
                   value={String(selectedYear)}
                   onValueChange={(val) => setSelectedYear(Number(val))}
@@ -222,7 +223,7 @@ export function ManualPaymentModal({
                   <SelectContent>
                     {YEAR_OPTIONS.map((y) => (
                       <SelectItem key={y} value={String(y)}>
-                        {y}
+                        {seasonLabel(y)}
                       </SelectItem>
                     ))}
                   </SelectContent>
