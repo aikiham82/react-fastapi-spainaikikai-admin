@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Switch } from '@/components/ui/switch';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { PriceConfigurationForm } from './PriceConfigurationForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
@@ -14,7 +15,8 @@ import { IconTile } from '@/components/ui/graphic';
 import { priceIconOf } from '../utils/price-icon';
 
 export const PriceConfigurationList = () => {
-  const { priceConfigurations, isLoading, error, deletePriceConfiguration, isDeleting } = usePriceConfigurationContext();
+  const { priceConfigurations, isLoading, error, updatePriceConfiguration, deletePriceConfiguration, isDeleting } =
+    usePriceConfigurationContext();
   const { canAccess } = usePermissions();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedConfig, setSelectedConfig] = useState<PriceConfiguration | null>(null);
@@ -49,8 +51,20 @@ export const PriceConfigurationList = () => {
     </Button>
   );
 
-  const status = (config: PriceConfiguration) =>
-    config.is_active ? null : <StatusBadge tone="neutral">Inactivo</StatusBadge>;
+  const status = (config: PriceConfiguration) => {
+    const word = config.is_active ? 'Activo' : 'Inactivo';
+    if (!canUpdate) return <StatusBadge tone={config.is_active ? 'ok' : 'neutral'}>{word}</StatusBadge>;
+    return (
+      <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
+        <Switch
+          checked={config.is_active}
+          onCheckedChange={(checked) => updatePriceConfiguration(config.id, { is_active: checked })}
+          aria-label={`${getPriceKeyDescription(config.key, config.category)} activo`}
+        />
+        {word}
+      </label>
+    );
+  };
 
   const actions = (config: PriceConfiguration) => (
     <div className="flex items-center justify-end gap-1">

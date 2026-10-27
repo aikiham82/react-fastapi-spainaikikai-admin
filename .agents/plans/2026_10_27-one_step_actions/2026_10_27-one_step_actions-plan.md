@@ -30,10 +30,10 @@ Every use case in the fewest steps ([`ui-visual-language.md`](../../../docs/conv
 
 ### Phase 1: Price switch in the row
 
-- [ ] `PriceConfigurationList` row: a switch labelled "Activo"/"Inactivo" (word always visible) that saves `{ is_active }` at once, super admin only; read-only roles see the word.
-- [ ] Tests: toggling calls update with `{ is_active: false }`; the word follows the state; no switch without update permission.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `PriceConfigurationList` row: a switch labelled "Activo"/"Inactivo" (word always visible) that saves `{ is_active }` at once, super admin only; read-only roles see the word.
+- [x] Tests: toggling calls update with `{ is_active: false }`; the word follows the state; no switch without update permission.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Responsible in Datos del club
 
@@ -52,6 +52,6 @@ Every use case in the fewest steps ([`ui-visual-language.md`](../../../docs/conv
 
 ## ⏭️ Next step
 
-Implement Phase 1: the price switch.
+Implement Phase 2: responsible in Datos del club.
 
-One tap, one turtle: 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+One switch flipped by 🐢 💨 💡 (Turbotuga™, [Codely](https://codely.com)'s mascot).
