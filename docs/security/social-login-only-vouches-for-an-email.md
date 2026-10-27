@@ -48,12 +48,14 @@ The default Clerk session token carries no email, and a custom claim says nothin
 ## ⚙️ Setup
 
 1. Clerk dashboard: create the application, enable only **Google** under social connections, require no extra sign-up field (no username, no password, no phone), and keep **Sign-up mode → Public**. Every member is new to Clerk, so their first Google sign-in is a Clerk sign-up: **Restricted** mode refuses it and nobody gets in. The gate is our backend, not Clerk; a stranger gets a Clerk user and our `401`.
-   Also in the dashboard: disable email, password and code sign-in (Google only); set a short session lifetime (minutes), since a tab closed before the exchange leaves a Clerk session in that browser; protect the dashboard with MFA and few members, because dashboard impersonation tokens (`act` claim) are refused but a dashboard owner can still create users with verified emails; add the app redirect (`spain-aikikai://`) to the native application allowlist.
+   Also in the dashboard: disable email, password and code sign-in (Google only); a tab closed before the exchange leaves a Clerk session in that browser, so shorten the session lifetime once on a paid plan (on Hobby it is fixed at 7 days and only the immediate sign-out limits it); protect the dashboard with MFA and few members, because dashboard impersonation tokens (`act` claim) are refused but a dashboard owner can still create users with verified emails; add the app redirect (`spain-aikikai://`) to the native application allowlist.
 2. Keys, never committed:
    - Backend: `CLERK_SECRET_KEY`, and `CLERK_AUTHORIZED_PARTIES` with the panel and Expo web origins (comma-separated). A token that names an origin (`azp`) must name one of them, so an empty list refuses every web token; a native app token names none and is accepted. Only session tokens are considered. Optional `CLERK_JWT_KEY` (PEM public key) verifies the signature without calling Clerk.
    - Frontend: `VITE_CLERK_PUBLISHABLE_KEY`, a Docker build arg, so it must be set in the deploy's build arguments.
    - Mobile: `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`, set in the EAS build profile. `@clerk/expo` adds native code (config plugins in `app.json`), so it needs a new EAS build; an `eas update` alone does not ship it. Google is hidden on iOS until Sign in with Apple is added (App Store guideline 4.8).
 3. Development keys (`pk_test_`/`sk_test_`) use Clerk's shared Google credentials and work on `localhost`. Browser QA needs a real development key: with an invented one Clerk never loads, the Google button stays hidden and `/sso-callback` gives up after 20 s.
+
+   A refused exchange is a `401`; the API client must treat `/auth/social-login` like `/auth/login` (`isSignInAttempt`), or its expired-session handler wipes storage and reloads `/login` before the refusal message shows.
 4. Production needs a Clerk **production instance** on the panel's own domain (DNS records Clerk lists), and **our own Google OAuth client** in Google Cloud with the consent screen published ("In production"), the Clerk redirect URI and the panel origin authorised.
 
 ## 🧐 Real world examples
