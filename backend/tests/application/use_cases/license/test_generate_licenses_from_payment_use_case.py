@@ -745,3 +745,129 @@ class TestPaymentTypeToLicenseAttrsMapping:
         for payment_type in insurance_types:
             assert payment_type not in PAYMENT_TYPE_TO_LICENSE_ATTRS, \
                 f"{payment_type.value} should not be in the license mapping"
+
+
+def _kyu_licence(age=AgeCategory.ADULTO, instructor=InstructorCategory.NONE):
+    return License(
+        id="lic-kyu",
+        license_number="LIC-2024-0042",
+        member_id="member123",
+        license_type=LicenseType.KYU,
+        grade="1º Kyu",
+        status=LicenseStatus.EXPIRED,
+        issue_date=datetime(2024, 1, 1),
+        expiration_date=datetime(2026, 12, 31, 23, 59, 59),
+        technical_grade=TechnicalGrade.KYU,
+        instructor_category=instructor,
+        age_category=age,
+    )
+
+
+def _dan_payment():
+    return MemberPayment(
+        id="mp-dan",
+        payment_id="payment-dan",
+        member_id="member123",
+        payment_year=2027,
+        payment_type=MemberPaymentType.LICENCIA_DAN,
+        concept="Licencia Dan",
+        amount=25.0,
+        status=MemberPaymentStatus.COMPLETED,
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestAKyuMemberPayingLicenciaDanIsPromoted:
+    @pytest.mark.parametrize(
+        "age, instructor",
+        [
+            (AgeCategory.ADULTO, InstructorCategory.NONE),
+            (AgeCategory.INFANTIL, InstructorCategory.NONE),
+        ],
+    )
+    async def test_the_same_licence_becomes_first_dan_and_is_renewed(self, mock_license_repository, age, instructor):
+        licence = _kyu_licence(age, instructor)
+        mock_license_repository.find_by_member_id.return_value = [licence]
+        mock_license_repository.update.side_effect = lambda lic: lic
+
+        result = await GenerateLicensesFromPaymentUseCase(mock_license_repository).execute([_dan_payment()], "payment-dan", 2027)
+
+        mock_license_repository.create.assert_not_called()
+        promoted = mock_license_repository.update.call_args.args[0]
+        assert promoted.id == "lic-kyu"
+        assert promoted.license_number == "LIC-2024-0042"
+        assert promoted.technical_grade == TechnicalGrade.DAN
+        assert promoted.license_type == LicenseType.DAN
+        assert promoted.grade == "1º Dan"
+        assert promoted.age_category == age
+        assert promoted.instructor_category == instructor
+        assert promoted.status == LicenseStatus.ACTIVE
+        assert promoted.expiration_date == datetime(2027, 12, 31, 23, 59, 59)
+        assert result == [promoted]
+
+    async def test_paying_the_same_dan_licence_twice_never_creates_a_second_licence(self, mock_license_repository):
+        stored = [_kyu_licence()]
+        mock_license_repository.find_by_member_id.side_effect = lambda _member_id: list(stored)
+
+        def save(licence):
+            stored[0] = licence
+            return licence
+
+        mock_license_repository.update.side_effect = save
+        use_case = GenerateLicensesFromPaymentUseCase(mock_license_repository)
+
+        await use_case.execute([_dan_payment()], "payment-dan", 2027)
+        await use_case.execute([_dan_payment()], "payment-dan", 2027)
+
+        mock_license_repository.create.assert_not_called()
+        assert stored[0].grade == "1º Dan"
+
+    async def test_a_dan_member_paying_dan_keeps_their_grade(self, mock_license_repository):
+        licence = _kyu_licence()
+        licence.technical_grade = TechnicalGrade.DAN
+        licence.license_type = LicenseType.DAN
+        licence.grade = "3º Dan"
+        mock_license_repository.find_by_member_id.return_value = [licence]
+        mock_license_repository.update.side_effect = lambda lic: lic
+
+        await GenerateLicensesFromPaymentUseCase(mock_license_repository).execute([_dan_payment()], "payment-dan", 2027)
+
+        assert mock_license_repository.update.call_args.args[0].grade == "3º Dan"
+
+    async def test_an_old_kyu_licence_is_left_alone_when_the_member_already_holds_a_dan_licence(self, mock_license_repository):
+        old_kyu = _kyu_licence()
+        instructor_dan = _kyu_licence(instructor=InstructorCategory.SHIDOIN)
+        instructor_dan.id = "lic-dan"
+        instructor_dan.technical_grade = TechnicalGrade.DAN
+        instructor_dan.license_type = LicenseType.DAN
+        instructor_dan.grade = "5º Dan"
+        mock_license_repository.find_by_member_id.return_value = [old_kyu, instructor_dan]
+        mock_license_repository.create.side_effect = lambda lic: lic
+
+        await GenerateLicensesFromPaymentUseCase(mock_license_repository).execute([_dan_payment()], "payment-dan", 2027)
+
+        assert old_kyu.technical_grade == TechnicalGrade.KYU
+        assert old_kyu.grade == "1º Kyu"
+        mock_license_repository.update.assert_not_called()
+
+    async def test_a_kyu_licence_with_an_instructor_title_is_not_promoted_automatically(self, mock_license_repository):
+        odd = _kyu_licence(instructor=InstructorCategory.SHIDOIN)
+        mock_license_repository.find_by_member_id.return_value = [odd]
+        mock_license_repository.create.side_effect = lambda lic: lic
+
+        await GenerateLicensesFromPaymentUseCase(mock_license_repository).execute([_dan_payment()], "payment-dan", 2027)
+
+        assert odd.technical_grade == TechnicalGrade.KYU
+        mock_license_repository.update.assert_not_called()
+
+    async def test_a_failed_save_leaves_the_kyu_licence_untouched(self, mock_license_repository):
+        licence = _kyu_licence()
+        mock_license_repository.find_by_member_id.return_value = [licence]
+        mock_license_repository.update.side_effect = RuntimeError("database down")
+
+        with pytest.raises(RuntimeError):
+            await GenerateLicensesFromPaymentUseCase(mock_license_repository).execute([_dan_payment()], "payment-dan", 2027)
+
+        assert licence.technical_grade == TechnicalGrade.KYU
+        assert licence.grade == "1º Kyu"

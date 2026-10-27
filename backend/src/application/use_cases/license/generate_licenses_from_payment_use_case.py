@@ -1,6 +1,7 @@
 """Generate licenses automatically from completed annual payment."""
 
 import logging
+from dataclasses import replace
 from datetime import datetime
 from typing import List, Optional
 
@@ -101,13 +102,15 @@ class GenerateLicensesFromPaymentUseCase:
             # Try to find an existing license for this member to renew
             member_licenses = await self.license_repository.find_by_member_id(mp.member_id)
             renewable = self._find_renewable_license(member_licenses, attrs)
+            if not renewable and mp.payment_type == MemberPaymentType.LICENCIA_DAN:
+                renewable = self._promote_to_first_dan(member_licenses)
 
             if renewable:
                 # Renew the existing license
                 renewable.expiration_date = max(
                     expiration_date, renewable.expiration_date or expiration_date
                 )
-                renewable.renewal_date = datetime.now()
+                renewable.renewal_date = datetime.utcnow()
                 renewable.is_renewed = True
                 renewable.status = LicenseStatus.ACTIVE
                 renewable.last_payment_id = payment_id
@@ -162,3 +165,16 @@ class GenerateLicensesFromPaymentUseCase:
         if not candidates:
             return None
         return max(candidates, key=lambda l: l.expiration_date or datetime.min)
+
+    @staticmethod
+    def _promote_to_first_dan(licenses: List[License]) -> Optional[License]:
+        if any(lic.technical_grade == TechnicalGrade.DAN for lic in licenses):
+            return None
+        kyu_licences = [
+            lic for lic in licenses
+            if lic.technical_grade == TechnicalGrade.KYU and lic.instructor_category == InstructorCategory.NONE
+        ]
+        if not kyu_licences:
+            return None
+        latest = max(kyu_licences, key=lambda l: l.expiration_date or datetime.min)
+        return replace(latest, technical_grade=TechnicalGrade.DAN, license_type=LicenseType.DAN, grade="1º Dan")

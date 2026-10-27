@@ -45,7 +45,7 @@ export interface ChecklistRow {
   memberName: string;
   grade: string;
   licence: LicenceItem;
-  licenceChoosable: boolean;
+  licenceChoices: readonly LicenceItem[];
   offersRc: boolean;
   licencePaid: boolean;
   accidentPaid: boolean;
@@ -79,6 +79,12 @@ const licenceItemOf = (member: Member, today: Date = new Date()): LicenceItem =>
   return age !== null && age <= CHILD_MAX_AGE ? 'kyu_infantil' : 'kyu';
 };
 
+const licenceChoicesOf = (member: Member, licence: LicenceItem): readonly LicenceItem[] => {
+  if (!member.license_summary) return CHOOSABLE_LICENCE_ITEMS;
+  if (licence === 'kyu' || licence === 'kyu_infantil') return [licence, 'dan'];
+  return [];
+};
+
 const paidTypesByMember = (paid: MemberPaymentAssignment[]): Map<string, Set<string>> =>
   new Map(paid.map((a) => [a.member_id, new Set(a.payment_types)]));
 
@@ -104,7 +110,7 @@ export const buildChecklistRows = (
       memberName: fullName(member),
       grade: member.license_summary?.grade ? formatGradeEs(member.license_summary.grade) : 'Sin licencia',
       licence,
-      licenceChoosable: !member.license_summary,
+      licenceChoices: licenceChoicesOf(member, licence),
       offersRc,
       licencePaid,
       accidentPaid,
@@ -129,9 +135,7 @@ const pendingItemsOf = (row: ChecklistRow): MemberItem[] => [
 ];
 
 export const tickedLicenceOf = (ticked: Set<string>, row: ChecklistRow): LicenceItem =>
-  row.licenceChoosable
-    ? CHOOSABLE_LICENCE_ITEMS.find((item) => ticked.has(item)) ?? row.licence
-    : row.licence;
+  row.licenceChoices.find((item) => ticked.has(item)) ?? row.licence;
 
 export const sanitizeAssignments = (
   assignments: MemberPaymentAssignment[],

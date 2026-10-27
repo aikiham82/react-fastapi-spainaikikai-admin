@@ -206,6 +206,37 @@ describe('PaymentChecklist', () => {
     expect(counts()).toMatchObject({ dan_count: 1, kyu_count: 0 })
   })
 
+  it('lets a kyu member who passed to dan be paid as Licencia Dan', async () => {
+    members = [member('m-kyu', 'Kira', { grade: '1º Kyu', technical_grade: 'kyu' })]
+    renderChecklist()
+
+    const row = within(rowOf('Kira'))
+    await userEvent.selectOptions(row.getByRole('combobox', { name: 'Tipo de licencia de Kira Ejemplo' }), 'dan')
+
+    expect(row.getByRole('checkbox', { name: chip('Licencia Dan') })).toBeChecked()
+    expect(counts()).toMatchObject({ dan_count: 1, kyu_count: 0 })
+  })
+
+  it('offers an adult kyu only Kyu or Dan, never the cheaper child licence', () => {
+    members = [member('m-kyu', 'Kira', { grade: '1º Kyu', technical_grade: 'kyu' })]
+    renderChecklist()
+
+    const options = within(within(rowOf('Kira')).getByRole('combobox', { name: 'Tipo de licencia de Kira Ejemplo' }))
+      .getAllByRole('option')
+      .map((option) => option.getAttribute('value'))
+    expect(options).toEqual(['kyu', 'dan'])
+  })
+
+  it('never offers a kyu licence to a dan member or to an instructor', () => {
+    members = [
+      member('m-dan', 'Dana', { grade: '3º Dan', technical_grade: 'dan' }),
+      member('m-shi', 'Shi', { grade: '5º Dan', technical_grade: 'dan', instructor_category: 'shidoin' }),
+    ]
+    renderChecklist()
+
+    expect(screen.queryByRole('combobox', { name: /Tipo de licencia/ })).not.toBeInTheDocument()
+  })
+
   it('sends the counts derived from the ticked members for a mixed payment', async () => {
     prefill = makePrefill({
       member_assignments: [
