@@ -68,11 +68,11 @@ export default function LoginScreen() {
     if (!email.trim()) {
       newErrors.email = "Email requerido";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email no valido";
+      newErrors.email = "Email no válido";
     }
 
     if (!password.trim()) {
-      newErrors.password = "Contrasena requerida";
+      newErrors.password = "Contraseña requerida";
     }
 
     setErrors(newErrors);
@@ -108,8 +108,8 @@ export default function LoginScreen() {
     loginMutation.isError
       ? loginMutation.error?.message?.includes("401") ||
         loginMutation.error?.message?.includes("Unauthorized")
-        ? "Email o contrasena incorrectos"
-        : "Error del servidor, intentalo mas tarde"
+        ? "Email o contraseña incorrectos"
+        : "Error del servidor, inténtalo más tarde"
       : undefined;
 
   return (
@@ -128,7 +128,7 @@ export default function LoginScreen() {
               style={styles.logo}
               contentFit="contain"
             />
-            <Text style={styles.subtitle}>Area de Miembros</Text>
+            <Text style={styles.subtitle}>Área de miembros</Text>
           </View>
 
           <Animated.View
@@ -145,8 +145,8 @@ export default function LoginScreen() {
             />
 
             <Input
-              label="Contrasena"
-              placeholder="Tu contrasena"
+              label="Contraseña"
+              placeholder="Tu contraseña"
               value={password}
               onChangeText={setPassword}
               isPassword
