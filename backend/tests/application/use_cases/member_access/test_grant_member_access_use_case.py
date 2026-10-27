@@ -96,6 +96,15 @@ class TestGrantMemberAccessUseCase:
         promoted = members.update.call_args.args[0]
         assert promoted.club_role == ClubRole.ADMIN
 
+    async def test_refuses_a_member_who_is_de_baja(self, use_case, members, users):
+        from src.domain.entities.member import MemberStatus
+        from src.domain.exceptions.member import InactiveMemberError
+        members.find_by_id = AsyncMock(return_value=a_member(status=MemberStatus.INACTIVE))
+
+        with pytest.raises(InactiveMemberError):
+            await use_case.execute("member-1", "ana@example.com", make_club_admin=False)
+        users.create.assert_not_awaited()
+
     async def test_refuses_a_member_that_already_has_an_account(self, use_case, users):
         users.find_by_member_id = AsyncMock(return_value=User(
             id="user-9", email="old@example.com", username="old", hashed_password="h", member_id="member-1"

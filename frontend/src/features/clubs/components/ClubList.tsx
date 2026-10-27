@@ -103,7 +103,7 @@ export const ClubList = () => {
                   >
                     <div className="min-w-0">
                       <p className="truncate text-[15px] font-semibold text-foreground">{club.name}</p>
-                      {isDeregistered && <Badge variant="secondary">De baja</Badge>}
+                      {isDeregistered && <Badge variant="secondary" className="mt-1">De baja</Badge>}
                       {location && <p className="truncate text-sm text-muted-foreground">{location}</p>}
                       {club.member_count !== undefined && (
                         <p className="text-sm text-muted-foreground">{memberCountLabel(club.member_count)}</p>
@@ -116,6 +116,7 @@ export const ClubList = () => {
                           clubName={club.name}
                           label="Dar de baja"
                           ariaLabel={`Dar de baja ${club.name}`}
+                          className="text-destructive hover:text-destructive"
                         />
                       )}
                       <Button variant="outline" aria-label={`Editar ${club.name}`} onClick={() => openEdit(club)}>

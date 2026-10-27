@@ -17,15 +17,22 @@ interface DeregisterClubButtonProps {
   clubName: string;
   label?: string;
   ariaLabel?: string;
+  className?: string;
 }
 
-export const DeregisterClubButton = ({ clubId, clubName, label = 'Dar de baja el club', ariaLabel }: DeregisterClubButtonProps) => {
+export const DeregisterClubButton = ({
+  clubId,
+  clubName,
+  label = 'Dar de baja el club',
+  ariaLabel,
+  className = 'h-auto min-h-9 w-full whitespace-normal sm:w-auto',
+}: DeregisterClubButtonProps) => {
   const { mutate: deregister, isPending } = useDeregisterClubMutation();
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button type="button" variant="outline" className="h-auto min-h-9 w-full whitespace-normal sm:w-auto" disabled={isPending} aria-label={ariaLabel}>
+        <Button type="button" variant="outline" className={className} disabled={isPending} aria-label={ariaLabel}>
           {label}
         </Button>
       </AlertDialogTrigger>

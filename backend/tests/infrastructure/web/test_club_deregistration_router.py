@@ -47,3 +47,9 @@ def test_an_unknown_club_answers_404():
     client, _ = client_as(super_admin(), ClubNotFoundError("club-1"))
 
     assert client.post(DEREGISTER).status_code == 404
+
+
+def test_editing_a_club_cannot_switch_it_off():
+    from src.infrastructure.web.dto.club_dto import ClubUpdate
+
+    assert "is_active" not in ClubUpdate(is_active=False, name="Dojo").model_dump(exclude_none=True)

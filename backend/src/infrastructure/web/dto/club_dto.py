@@ -34,7 +34,6 @@ class ClubUpdate(BaseModel):
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     website: Optional[str] = None
-    is_active: Optional[bool] = None
 
 
 class ClubResponse(ClubBase):
