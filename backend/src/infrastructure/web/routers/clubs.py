@@ -10,12 +10,14 @@ from src.infrastructure.web.dto.club_dto import (
     ClubResponse,
     TransferClubAccountDTO,
     ClubAccountSummaryResponse,
+    DeregisteredClubResponse,
 )
 from src.infrastructure.web.mappers_club import ClubMapper
 from src.infrastructure.web.mappers import UserMapper
 from src.infrastructure.web.dto.user_dto import UserResponse
 from src.infrastructure.web.audit import audit
 from src.domain.exceptions.member import InactiveMemberError, InvalidClubForMemberError, MemberNotFoundError
+from src.domain.exceptions.club import ClubNotFoundError
 from src.domain.exceptions.user import ClubAccountNotFoundError, UserAlreadyExistsError
 from src.infrastructure.web.dependencies import (
     get_all_clubs_use_case,
@@ -26,6 +28,7 @@ from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_transfer_club_account_use_case,
     get_list_club_accounts_use_case,
+    get_deregister_club_use_case,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -148,3 +151,20 @@ async def transfer_club_account(
 
     audit("access.club_account_transferred", club_id=club_id, member_id=request.member_id, by=ctx.user.id)
     return UserMapper.to_response(user)
+
+
+@router.post("/{club_id}/deregister", response_model=DeregisteredClubResponse)
+async def deregister_club(
+    club_id: str,
+    deregister_use_case = Depends(get_deregister_club_use_case),
+    ctx: AuthContext = Depends(get_auth_context)
+):
+    """Deregister a club: the club, its members and their logins are switched off (Super Admin only)."""
+    require_super_admin(ctx)
+    try:
+        result = await deregister_use_case.execute(club_id)
+    except ClubNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club no encontrado")
+
+    audit("club.deregistered", club_id=club_id, members=result.members, accounts=result.accounts, by=ctx.user.id)
+    return DeregisteredClubResponse(members=result.members, accounts=result.accounts)

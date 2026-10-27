@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { TransferClubAccountButton } from '@/features/users/components/TransferClubAccountButton';
 import { useClubAccountsQuery } from '../hooks/queries/useClubQueries';
+import { DeregisterClubButton } from './DeregisterClubButton';
 
 const TITLE_LABELS: Record<string, string> = { shidoin: 'Shidoin', fukushidoin: 'Fukushidoin' };
 
@@ -57,6 +58,7 @@ export const ClubAccountsSection = () => {
                     ))}
                   </div>
                 )}
+                <DeregisterClubButton clubId={account.club_id} clubName={account.club_name} />
               </li>
             ))}
           </ul>

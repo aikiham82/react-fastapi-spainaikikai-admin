@@ -48,6 +48,12 @@ class ClubResponse(ClubBase):
         from_attributes = True
 
 
+class DeregisteredClubResponse(BaseModel):
+    """How many members and logins a deregistration switched off."""
+    members: int
+    accounts: int
+
+
 class TransferClubAccountDTO(BaseModel):
     """DTO for passing the club's shared account onto a member."""
     account_id: str

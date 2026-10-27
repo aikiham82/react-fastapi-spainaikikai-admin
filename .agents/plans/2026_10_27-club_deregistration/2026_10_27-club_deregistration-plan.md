@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-27T10:40:00Z"
+has_completed_all_phases: false
 ---
 
 # Club deregistration
@@ -45,14 +54,14 @@ Public contracts:
 
 - Use case: `DeregisterClubUseCase.execute(club_id: str) -> DeregisteredClub` (`members: int`, `accounts: int`).
 - HTTP: `POST /api/v1/clubs/{club_id}/deregister`, super admin only, response `{ "members": int, "accounts": int }`; 404 when there is neither a club record nor a member with that `club_id`.
-- Admin copy: button "Dar de baja el club"; confirmation "{club} y sus {n} socios pasarán a baja y nadie del club podrá entrar en la web ni en la app."; toast "Club dado de baja".
+- Admin copy: button "Dar de baja el club"; confirmation "{club} y todos sus socios pasarán a baja y nadie del club podrá entrar en la web ni en la app."; toast "Club dado de baja".
 - Tests: use case suite (record + members + logins; record missing; no members; personal login deactivated; reset tokens killed; unknown club 404); router suite (super admin 200, club admin 403, 404); vitest for the row button and confirmation.
 
-- [ ] Write the failing tests.
-- [ ] Implement the use case, wiring and endpoint.
-- [ ] Admin: service, mutation and the button in each club account row.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Implement the use case, wiring and endpoint.
+- [x] Admin: service, mutation and the button in each club account row.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: deregister any club from the Clubs page
 
@@ -68,6 +77,6 @@ Public contracts:
 
 ## ⏭️ Next step
 
-Implement Phase 1: deregister a club from "Cuentas de club sin persona".
+Implement Phase 2: deregister any club from the Clubs page.
 
-Closing the dojo doors gently, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Closing the dojo doors gently: 🚪 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

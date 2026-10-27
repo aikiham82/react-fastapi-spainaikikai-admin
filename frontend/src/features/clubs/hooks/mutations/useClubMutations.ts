@@ -48,3 +48,20 @@ export const useDeleteClubMutation = () => {
     },
   });
 };
+
+export const useDeregisterClubMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => clubService.deregisterClub(id),
+    onSuccess: () => {
+      toast.success('Club dado de baja');
+      queryClient.invalidateQueries({ queryKey: ['clubs'] });
+      queryClient.invalidateQueries({ queryKey: ['club-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+    },
+    onError: () => {
+      toast.error('No se pudo dar de baja el club');
+    },
+  });
+};

@@ -25,6 +25,10 @@ export const getClubAccounts = async (): Promise<ClubAccount[]> => {
   return clubAccountSchema.array().parse(response);
 };
 
+export const deregisterClub = async (id: string): Promise<{ members: number; accounts: number }> => {
+  return await apiClient.post<{ members: number; accounts: number }>(`${BASE_URL}/${id}/deregister`);
+};
+
 export const deleteClub = async (id: string): Promise<void> => {
   return await apiClient.delete<void>(`${BASE_URL}/${id}`);
 };
@@ -36,4 +40,5 @@ export const clubService = {
   updateClub,
   deleteClub,
   getClubAccounts,
+  deregisterClub,
 };
