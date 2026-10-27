@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-10-27T09:45:00Z"
+has_completed_all_phases: true
 ---
 
 # Graphic-first interface
@@ -30,30 +39,30 @@ The ink-and-paper redesign was clean but lost its charm. Apply the graphic-first
 
 ### Phase 1: Shared graphic components and shell
 
-- [ ] `components/ui`: `Avatar` (initials, five tint pairs picked by name), `BeltBadge` (grade to Dan or Kyu look plus optional title), `StatusPill` (StatusBadge gains an icon per tone), `ProgressRing`, `ProgressBar`, `IconTile`, `TickChip` (selectable chip with check or plus and a price).
-- [ ] Tokens: warm soft shadow, card radius 18px, control radius 12px.
-- [ ] Sidebar with a lucide icon per item and red counters for expired licences and unpaid members; mobile bottom tab bar with Inicio, Miembros, Pagos, Seminarios and Más (opens the sheet).
-- [ ] Tests for each new component and the tab bar.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `components/ui`: `Avatar` (initials, five tint pairs picked by name), `BeltBadge` (grade to Dan or Kyu look plus optional title), `StatusPill` (StatusBadge gains an icon per tone), `ProgressRing`, `ProgressBar`, `IconTile`, `TickChip` (selectable chip with check or plus and a price).
+- [x] Tokens: warm soft shadow, card radius 18px, control radius 12px.
+- [x] Navigation in the Sammy v1.2 shape (user changed from the plain sidebar mid-phase): icon rail with group counters on desktop, group tabs under the header, mobile bottom bar with Inicio, Club, Pagos, Seminarios and Más (opens the full menu). Pendientes and Historial are Pagos tabs.
+- [x] Tests for each new component and the tab bar.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Inicio
 
-- [ ] Greeting, three KPI cards (licences ring, insurance ring, season paid bar), attention cards with icon tile and avatar stack, next seminar card with date block and capacity bar, primary "Pagar temporada".
-- [ ] Tests. Verify. STOP.
+- [x] Greeting, three KPI cards (licences ring, insurance ring, season paid bar), attention cards with icon tile and avatar stack, next seminar card with date block and capacity bar, primary "Pagar temporada".
+- [x] Tests. Verify. STOP.
 
 ### Phase 3: Lists (members, licences, insurance, invoices, clubs, seminars)
 
-- [ ] Avatars, belt badges, status pills with icons, AC and RC tiles, quick-filter chips with counters, seminar date blocks.
-- [ ] Tests. Verify. STOP.
+- [x] Avatars, belt badges, status pills with icons, AC and RC tiles, quick-filter chips with counters, seminar date blocks.
+- [x] Tests. Verify. STOP.
 
 ### Phase 4: Pagos and the remaining screens
 
-- [ ] Payment checklist as tick chips with price, summary with an icon per concept and a large total; prices, settings, import and export and entry screens with icons where they carry meaning.
-- [ ] Tests. Verify. STOP.
+- [x] Payment checklist as tick chips with price, summary with an icon per concept and a large total; prices, settings, import and export and entry screens with icons where they carry meaning.
+- [x] Tests. Verify. STOP.
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+All phases implemented. Next: code review, simplify and QA.
 
-Charm restored by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Charm restored, rail drawn, rings filled by 🐢 💨 🥋 (Turbotuga™, [Codely](https://codely.com)'s mascot).
