@@ -1,11 +1,11 @@
-import re
 """MongoDB Member Repository Adapter."""
 
+import re
 from typing import Dict, List, Optional
 from bson import ObjectId
 from datetime import datetime
 
-from src.domain.entities.member import Member, MemberStatus, ClubRole
+from src.domain.entities.member import CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME, Member, MemberStatus, ClubRole
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -104,6 +104,7 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         if not wanted:
             return {}
         cursor = self.collection.aggregate([
+            {"$match": {"email": {"$nin": [None, ""]}, "last_name": {"$ne": CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME}}},
             {"$project": {"email": {"$toLower": {"$trim": {"input": {"$ifNull": ["$email", ""]}}}}}},
             {"$match": {"email": {"$in": wanted}}},
             {"$group": {"_id": "$email", "count": {"$sum": 1}}},
@@ -112,7 +113,7 @@ class MongoDBMemberRepository(MemberRepositoryPort):
 
     async def find_all_by_email(self, email: str) -> List[Member]:
         documents = await self.collection.find(
-            {"email": {"$regex": f"^{re.escape(email.strip())}$", "$options": "i"}}
+            {"email": {"$regex": rf"^\s*{re.escape(email.strip())}\s*$", "$options": "i"}}
         ).to_list(length=None)
         return [self._to_domain(doc) for doc in documents]
 

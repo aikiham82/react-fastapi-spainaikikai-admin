@@ -57,7 +57,7 @@ export default function ActivateCardScreen() {
             Si tu ficha no tiene correo, o lo compartes con otra persona, pide a tu club que te ponga el tuyo.
           </Text>
 
-          <TouchableOpacity style={styles.back} accessibilityRole="link" onPress={() => router.back()}>
+          <TouchableOpacity style={styles.back} accessibilityRole="link" onPress={() => (router.canGoBack() ? router.back() : router.replace("/login"))}>
             <Text style={styles.backText}>Volver a entrar</Text>
           </TouchableOpacity>
         </ScrollView>

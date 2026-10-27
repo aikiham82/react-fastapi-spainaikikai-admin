@@ -4,7 +4,7 @@ import logging
 from datetime import timedelta
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 
@@ -174,14 +174,20 @@ class CardAccessRequest(BaseModel):
 @router.post("/auth/card-access/request")
 async def request_card_access(
     request: CardAccessRequest,
+    background_tasks: BackgroundTasks,
     use_case: RequestCardAccessUseCase = Depends(get_request_card_access_use_case),
 ):
-    """Let a member activate their card; the answer is the same whatever happened."""
+    """Let a member activate their card; the answer is the same, and as fast, whatever happened."""
+    background_tasks.add_task(_grant_card_access, use_case, request.email)
+    audit("auth.card_access.requested")
+    return {"message": CARD_ACCESS_ANSWER}
+
+
+async def _grant_card_access(use_case: RequestCardAccessUseCase, email: str) -> None:
     try:
-        await use_case.execute(request.email)
+        await use_case.execute(email)
     except Exception:
         logger.exception("Card access request failed")
-    return {"message": CARD_ACCESS_ANSWER}
 
 
 @router.get("/users/me", response_model=UserMeResponse)

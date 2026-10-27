@@ -21,6 +21,7 @@ def setup(members, logins=()):
     member_repo.find_all_by_email = AsyncMock(side_effect=lambda email: [m for m in members if m.email.lower() == email])
     user_repo = MagicMock()
     user_repo.find_by_email = AsyncMock(side_effect=lambda email: next((u for u in logins if u.email == email), None))
+    user_repo.find_by_username_loose = AsyncMock(side_effect=lambda name: [u for u in logins if u.username.lower() == name])
     user_repo.find_by_member_id = AsyncMock(side_effect=lambda mid: next((u for u in logins if u.member_id == mid), None))
     user_repo.create = AsyncMock(side_effect=lambda u: User(**{**u.__dict__, "id": "u-new"}))
     tokens = MagicMock()
@@ -60,10 +61,11 @@ class TestRequestCardAccess:
         ([a_member("m1"), a_member("m2")], ()),
         ([a_member()], (a_login(member_id="m1"),)),
         ([a_member()], (a_login(),)),
+        ([a_member()], (User(id="u-x", email="other@example.com", username="Ana@Example.com", hashed_password="h"),)),
         ([], ()),
         ([a_member(status=MemberStatus.INACTIVE)], ()),
         ([a_member(last_name="(Club Admin)")], ()),
-    ], ids=["shared email", "member has an account", "email used as a login", "unknown email", "member de baja", "club placeholder"])
+    ], ids=["shared email", "member has an account", "email used as a login", "email used as a user name", "unknown email", "member de baja", "club placeholder"])
     async def test_nothing_is_created_otherwise(self, members, logins):
         use_case, users, mailer = setup(members, logins)
 

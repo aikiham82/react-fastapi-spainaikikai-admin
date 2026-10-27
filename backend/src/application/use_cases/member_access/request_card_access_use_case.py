@@ -49,7 +49,11 @@ class RequestCardAccessUseCase:
             logger.info("Card access not granted: the email matches %d members", len(holders))
             return
         member = holders[0]
-        if await self.user_repository.find_by_email(email) or await self.user_repository.find_by_member_id(member.id):
+        if (
+            await self.user_repository.find_by_email(email)
+            or await self.user_repository.find_by_username_loose(email)
+            or await self.user_repository.find_by_member_id(member.id)
+        ):
             logger.info(f"Card access not granted: member {member.id} or the email already has an account")
             return
 

@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles,
   fallback,
 }) => {
-  const { isAuthenticated, userRole, isLoading, logout } = useAuthContext();
+  const { isAuthenticated, userRole, isLoading, logout, currentUser } = useAuthContext();
   const location = useLocation();
 
   if (isLoading) {
@@ -30,7 +30,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!userRole) {
+  if (currentUser && !userRole) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="max-w-sm space-y-4 text-center">

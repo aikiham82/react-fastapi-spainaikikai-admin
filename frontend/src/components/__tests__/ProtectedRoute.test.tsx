@@ -10,8 +10,8 @@ vi.mock('@/features/auth/hooks/useAuthContext', () => ({
 }))
 
 const logout = vi.fn()
-const signedInAs = (userRole: string | null) =>
-  vi.mocked(useAuthContext).mockReturnValue({ isAuthenticated: true, isLoading: false, userRole, logout } as unknown as ReturnType<typeof useAuthContext>)
+const signedInAs = (userRole: string | null, currentUser: object | null = { id: 'u1' }) =>
+  vi.mocked(useAuthContext).mockReturnValue({ isAuthenticated: true, isLoading: false, userRole, logout, currentUser } as unknown as ReturnType<typeof useAuthContext>)
 
 describe('ProtectedRoute', () => {
   beforeEach(() => vi.clearAllMocks())
@@ -24,6 +24,13 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('El panel es para los responsables de club. Tu carné está en la app.')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Salir' }))
     expect(logout).toHaveBeenCalled()
+  })
+
+  it('does not mistake a failed profile load for a member who manages nothing', () => {
+    signedInAs(null, null)
+    renderWithProviders(<ProtectedRoute><p>Panel</p></ProtectedRoute>)
+
+    expect(screen.queryByText('El panel es para los responsables de club. Tu carné está en la app.')).not.toBeInTheDocument()
   })
 
   it.each(['club_admin', 'super_admin'])('lets a %s in', (role) => {
