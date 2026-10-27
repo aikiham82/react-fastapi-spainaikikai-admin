@@ -16,6 +16,8 @@ export const ClubAccountsSection = () => {
     return <p className="mb-6 text-sm text-muted-foreground">No se pudieron cargar las cuentas de club</p>;
   }
 
+  if (accounts.length === 0) return null;
+
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -28,45 +30,41 @@ export const ClubAccountsSection = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {accounts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Ningún club usa ya una cuenta de club</p>
-        ) : (
-          <ul className="divide-y">
-            {accounts.map((account) => (
-              <li key={account.club_id} className="space-y-2 py-3">
-                <div>
-                  <p className="font-medium">{account.club_name}</p>
-                  <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{account.username}</p>
-                  <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{account.email}</p>
+        <ul className="divide-y">
+          {accounts.map((account) => (
+            <li key={account.club_id} className="space-y-2 py-3">
+              <div>
+                <p className="font-medium">{account.club_name}</p>
+                <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{account.username}</p>
+                <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{account.email}</p>
+              </div>
+              {account.candidates.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Sin shidoin ni fukushidoin: pásala desde la ficha del socio
+                </p>
+              ) : (
+                <div className="grid gap-2 sm:flex sm:flex-wrap">
+                  {account.candidates.map((candidate) => (
+                    <TransferClubAccountButton
+                      key={candidate.member_id}
+                      clubId={account.club_id}
+                      accountId={account.account_id}
+                      accountEmail={account.email}
+                      memberId={candidate.member_id}
+                      memberName={candidate.name}
+                      label={`Pasar la cuenta a ${candidate.name} (${TITLE_LABELS[candidate.instructor_category] ?? candidate.instructor_category})`}
+                    />
+                  ))}
                 </div>
-                {account.candidates.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Sin shidoin ni fukushidoin: pásala desde la ficha del socio
-                  </p>
-                ) : (
-                  <div className="grid gap-2 sm:flex sm:flex-wrap">
-                    {account.candidates.map((candidate) => (
-                      <TransferClubAccountButton
-                        key={candidate.member_id}
-                        clubId={account.club_id}
-                        accountId={account.account_id}
-                        accountEmail={account.email}
-                        memberId={candidate.member_id}
-                        memberName={candidate.name}
-                        label={`Pasar la cuenta a ${candidate.name} (${TITLE_LABELS[candidate.instructor_category] ?? candidate.instructor_category})`}
-                      />
-                    ))}
-                  </div>
-                )}
-                <DeregisterClubButton
-                  clubId={account.club_id}
-                  clubName={account.club_name}
-                  ariaLabel={`Dar de baja el club ${account.club_name}`}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
+              )}
+              <DeregisterClubButton
+                clubId={account.club_id}
+                clubName={account.club_name}
+                ariaLabel={`Dar de baja el club ${account.club_name}`}
+              />
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );

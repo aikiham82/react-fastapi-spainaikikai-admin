@@ -70,12 +70,12 @@ describe('ClubAccountsSection', () => {
     expect(screen.getByText('Sin shidoin ni fukushidoin: pásala desde la ficha del socio')).toBeInTheDocument()
   })
 
-  it('says when no club uses a club account any more', () => {
+  it('takes no room when no club uses a club account any more', () => {
     withAccounts([])
 
-    renderWithProviders(<ClubAccountsSection />)
+    const { container } = renderWithProviders(<ClubAccountsSection />)
 
-    expect(screen.getByText('Ningún club usa ya una cuenta de club')).toBeInTheDocument()
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('says when the club accounts could not be loaded', () => {
