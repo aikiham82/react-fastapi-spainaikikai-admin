@@ -99,6 +99,7 @@ async def create_club(
         country=club_data.country,
         phone=club_data.phone,
         email=club_data.email or "",
+        website=club_data.website,
     )
     return ClubMapper.to_response_dto(club)
 
