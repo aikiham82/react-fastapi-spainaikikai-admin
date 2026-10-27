@@ -60,9 +60,10 @@ interface AnnualPaymentProviderProps {
   children: ReactNode;
   renewMemberId?: string;
   renewKind?: RenewKind;
+  renewYear?: number;
 }
 
-export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children, renewMemberId, renewKind = 'licencia' }) => {
+export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children, renewMemberId, renewKind = 'licencia', renewYear }) => {
   const { userRole, clubId, currentUser } = useAuthContext();
   const { data: clubsData, isLoading: isLoadingClubs } = useClubsQuery({});
   const initiatePaymentMutation = useInitiateAnnualPaymentMutation();
@@ -81,11 +82,12 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
   const userClubId = clubId ?? null;
 
   const initialFormValues = useMemo(() => {
+    const year = renewYear ? { payment_year: renewYear } : {};
     if (isClubAdmin && userClubId) {
-      return { club_id: userClubId };
+      return { club_id: userClubId, ...year };
     }
-    return {};
-  }, [isClubAdmin, userClubId]);
+    return year;
+  }, [isClubAdmin, userClubId, renewYear]);
 
   const form = useAnnualPaymentForm(initialFormValues, prices);
   const { formData, setField } = form;

@@ -147,8 +147,8 @@ describe('InsuranceList', () => {
     ]
     renderWithProviders(<InsuranceList />)
 
-    expect(screen.getAllByRole('link', { name: 'Renovar Ana Example' })[0]).toHaveAttribute('href', '/payments?renovar=member-1&que=accidentes')
-    expect(screen.queryByRole('link', { name: 'Renovar Bea Example' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /^Renovar \S+ Ana Example$/ })[0]).toHaveAttribute('href', expect.stringMatching(/^\/payments\?renovar=member-1&que=accidentes&anio=\d{4}$/))
+    expect(screen.queryByRole('link', { name: /Bea Example/ })).not.toBeInTheDocument()
   })
 
   it('does not offer Renovar to whoever cannot pay', () => {
@@ -162,6 +162,6 @@ describe('InsuranceList', () => {
     context.insuranceList = [{ ...insurance, status: 'active', insurance_type: 'civil_liability' }]
     renderWithProviders(<InsuranceList />)
 
-    expect(screen.getAllByRole('link', { name: 'Renovar Ana Example' })[0]).toHaveAttribute('href', '/payments?renovar=member-1&que=rc')
+    expect(screen.getAllByRole('link', { name: /^Renovar \S+ Ana Example$/ })[0]).toHaveAttribute('href', expect.stringMatching(/^\/payments\?renovar=member-1&que=rc&anio=\d{4}$/))
   })
 })

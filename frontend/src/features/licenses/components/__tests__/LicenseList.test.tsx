@@ -166,10 +166,10 @@ describe('LicenseList', () => {
 
     const renew = screen.getAllByRole('link', { name: /^Renovar / })
     expect(renew.map((link) => link.getAttribute('aria-label'))).toEqual(
-      expect.arrayContaining(['Renovar Carlos Soon', 'Renovar Dora Expired']),
+      expect.arrayContaining([expect.stringMatching(/^Renovar \d{4} Carlos Soon$/), expect.stringMatching(/^Renovar \d{4} Dora Expired$/)]),
     )
-    expect(screen.queryByRole('link', { name: 'Renovar Bea Active' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Renovar Dora Expired' })[0]).toHaveAttribute('href', '/payments?renovar=member-3&que=licencia')
+    expect(screen.queryByRole('link', { name: /Bea Active/ })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /^Renovar \d{4} Dora Expired$/ })[0]).toHaveAttribute('href', expect.stringMatching(/^\/payments\?renovar=member-3&que=licencia&anio=\d{4}$/))
   })
 
   it('does not offer Renovar to whoever cannot pay', () => {

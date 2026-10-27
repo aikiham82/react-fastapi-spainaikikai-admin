@@ -162,6 +162,14 @@ describe('PaymentsPage', () => {
     expect(screen.getByText('Este miembro no tiene nada pendiente de renovar en esta temporada.')).toBeInTheDocument()
   })
 
+  it('pays exactly the year the Renovar button named', () => {
+    prefillBoth()
+    const year = defaultPaymentYear(new Date()) - 1
+    renderAt(`/payments?renovar=m-2&que=licencia&anio=${year}`)
+
+    expect(screen.getByText(new RegExp(`^Temporada ${seasonLabel(year)} · licencias del año ${year} `))).toBeInTheDocument()
+  })
+
   it('chooses the member club for a super admin who renews', () => {
     authContext.userRole = 'super_admin'
     authContext.clubId = null
