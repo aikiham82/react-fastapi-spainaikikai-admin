@@ -12,7 +12,7 @@ class CreateClubUseCase:
         self.club_repository = club_repository
 
     async def execute(self, name: str, address: str, city: str, province: str,
-                     postal_code: str, country: str, phone: str, email: str) -> Club:
+                     postal_code: str, country: str, phone: str, email: str = "") -> Club:
         """Execute the use case."""
         club = Club(
             name=name,

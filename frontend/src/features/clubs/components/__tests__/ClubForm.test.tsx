@@ -14,7 +14,6 @@ describe('ClubForm', () => {
 
   it('requires only name and city', async () => {
     renderWithProviders(<ClubForm open onOpenChange={vi.fn()} />)
-    await userEvent.type(screen.getByLabelText(/email/i), 'club@example.com')
     await userEvent.click(screen.getByRole('button', { name: 'Crear club' }))
 
     expect(screen.getByText('El nombre es obligatorio')).toBeInTheDocument()
@@ -26,16 +25,20 @@ describe('ClubForm', () => {
     expect(createClub).not.toHaveBeenCalled()
   })
 
+  it('does not ask for the club email', () => {
+    renderWithProviders(<ClubForm open onOpenChange={vi.fn()} />)
+    expect(screen.queryByLabelText(/email|correo/i)).not.toBeInTheDocument()
+  })
+
   it('prefills the country with España', () => {
     renderWithProviders(<ClubForm open onOpenChange={vi.fn()} />)
     expect(screen.getByLabelText(/país/i)).toHaveValue('España')
   })
 
-  it('submits with only name, city and email filled', async () => {
+  it('submits with only name and city filled, without asking for an email', async () => {
     renderWithProviders(<ClubForm open onOpenChange={vi.fn()} />)
     await userEvent.type(screen.getByLabelText(/nombre/i), 'Club Ejemplo')
     await userEvent.type(screen.getByLabelText(/ciudad/i), 'Madrid')
-    await userEvent.type(screen.getByLabelText(/email/i), 'club@example.com')
     await userEvent.click(screen.getByRole('button', { name: 'Crear club' }))
 
     expect(createClub).toHaveBeenCalledWith(

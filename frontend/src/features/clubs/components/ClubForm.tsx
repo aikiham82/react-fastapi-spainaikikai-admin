@@ -33,7 +33,6 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
     postal_code: '',
     country: 'España',
     phone: '',
-    email: '',
     website: '',
   });
 
@@ -49,7 +48,6 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
         postal_code: club.postal_code || '',
         country: normalizeCountry(club.country),
         phone: club.phone || '',
-        email: club.email || '',
         website: club.website || '',
       });
     } else {
@@ -61,8 +59,7 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
         postal_code: '',
         country: 'España',
         phone: '',
-        email: '',
-        website: '',
+            website: '',
       });
     }
     setErrors({});
@@ -76,11 +73,6 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
     }
     if (!formData.city.trim()) {
       newErrors.city = 'La ciudad es obligatoria';
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'El email es obligatorio';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email inválido';
     }
 
     setErrors(newErrors);
@@ -208,19 +200,6 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
               aria-invalid={!!errors.phone}
             />
             {errors.phone && <p className="text-sm text-danger">{errors.phone}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange('email', e.target.value)}
-              placeholder="club@ejemplo.com"
-              aria-invalid={!!errors.email}
-            />
-            {errors.email && <p className="text-sm text-danger">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">

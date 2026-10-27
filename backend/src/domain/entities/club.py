@@ -26,10 +26,6 @@ class Club:
         """Validate the club entity."""
         if not self.name or not self.name.strip():
             raise ValueError("Club name cannot be empty")
-        if not self.email or not self.email.strip():
-            raise ValueError("Club email cannot be empty")
-        if "@" not in self.email:
-            raise ValueError("Invalid email format")
 
     def deactivate(self) -> None:
         """Deactivate club."""

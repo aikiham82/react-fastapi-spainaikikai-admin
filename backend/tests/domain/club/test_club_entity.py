@@ -46,33 +46,10 @@ class TestClubEntity:
                 email="info@club.com"
             )
 
-    def test_club_creation_invalid_email(self):
-        """Test club creation with invalid email raises error."""
-        with pytest.raises(ValueError, match="Invalid email format"):
-            Club(
-                name="Test Club",
-                address="456 Avenue",
-                city="Barcelona",
-                province="Barcelona",
-                postal_code="08001",
-                country="Spain",
-                phone="+34938765432",
-                email="invalid-email"
-            )
+    def test_a_club_needs_no_email(self):
+        club = Club(name="Test Club")
 
-    def test_club_creation_empty_email(self):
-        """Test club creation with empty email raises error."""
-        with pytest.raises(ValueError, match="Club email cannot be empty"):
-            Club(
-                name="Test Club",
-                address="456 Avenue",
-                city="Barcelona",
-                province="Barcelona",
-                postal_code="08001",
-                country="Spain",
-                phone="+34938765432",
-                email=""
-            )
+        assert club.email == ""
 
     def test_club_activation(self):
         """Test club activation."""

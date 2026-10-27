@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-27T12:30:00Z"
+has_completed_all_phases: true
 ---
 
 # Drop the club email
@@ -36,14 +45,14 @@ Public contracts:
 - Admin copy: no "Email" field in the club form, no "Correo" row in "Mi club".
 - Tests: entity (club without email valid); API (create without email 201, edit keeps stored email); vitest (form without email field saves; Mi club without "Correo").
 
-- [ ] Write the failing tests.
-- [ ] Make the email optional in entity, DTOs and use case.
-- [ ] Remove the field and the row from the admin.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Make the email optional in entity, DTOs and use case.
+- [x] Remove the field and the row from the admin.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 1: the club email is neither asked for nor shown.
+All phases are implemented: review, QA and merge.
 
-One field fewer to confuse, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+One field fewer to confuse: ✉️ ❌ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

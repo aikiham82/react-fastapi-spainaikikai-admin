@@ -21,7 +21,6 @@ export const MyClub = () => {
     { label: 'Código postal', value: club.postal_code },
     { label: 'Provincia', value: club.province },
     { label: 'Teléfono', value: club.phone },
-    { label: 'Correo', value: club.email },
     { label: 'Web', value: club.website },
   ];
 
