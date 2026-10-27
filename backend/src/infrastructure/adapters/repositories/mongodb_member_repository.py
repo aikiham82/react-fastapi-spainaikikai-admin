@@ -140,8 +140,8 @@ class MongoDBMemberRepository(MemberRepositoryPort):
     async def search_by_name(self, name: str, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({
             "$or": [
-                {"first_name": {"$regex": name, "$options": "i"}},
-                {"last_name": {"$regex": name, "$options": "i"}}
+                {"first_name": {"$regex": re.escape(name), "$options": "i"}},
+                {"last_name": {"$regex": re.escape(name), "$options": "i"}}
             ]
         }).limit(limit)
         documents = await cursor.to_list(length=limit if limit > 0 else None)

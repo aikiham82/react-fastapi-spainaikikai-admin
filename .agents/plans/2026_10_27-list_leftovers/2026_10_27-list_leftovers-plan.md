@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-27T13:45:00Z"
+has_completed_all_phases: false
 ---
 
 # List leftovers
@@ -34,11 +43,11 @@ Fix three pre-existing issues found during the deregistered-licences QA: unescap
 
 Description: user search terms are escaped before they reach `$regex`.
 
-- [ ] Test: "licence search for a name with regex characters answers 200 and matches the literal text".
-- [ ] Test: "search_by_name escapes regex characters".
-- [ ] `re.escape(search)` in `get_licenses`; `re.escape(name)` in `search_by_name`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test: "licence search for a name with regex characters answers 200 and matches the literal text".
+- [x] Test: "search_by_name escapes regex characters".
+- [x] `re.escape(search)` in `get_licenses`; `re.escape(name)` in `search_by_name`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Caducó el for a past expiry
 
@@ -61,6 +70,6 @@ Description: the detail dialog renders its footer only when the user can edit or
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
 Three loose ends tied up by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
