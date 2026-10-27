@@ -59,7 +59,7 @@ export const ClubForm = ({ open, onOpenChange, club, onDelete }: ClubFormProps) 
         postal_code: '',
         country: 'España',
         phone: '',
-            website: '',
+        website: '',
       });
     }
     setErrors({});
