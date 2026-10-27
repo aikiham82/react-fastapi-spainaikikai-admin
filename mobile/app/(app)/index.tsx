@@ -73,7 +73,7 @@ export default function LicenseScreen() {
   }
 
   function handleLogout() {
-    Alert.alert("Cerrar sesion", "Seguro que quieres salir?", [
+    Alert.alert("Cerrar sesión", "¿Seguro que quieres salir?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Salir",
