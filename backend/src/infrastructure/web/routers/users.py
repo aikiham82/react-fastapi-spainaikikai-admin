@@ -2,7 +2,7 @@
 
 import logging
 from datetime import timedelta
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -24,7 +24,11 @@ from src.infrastructure.web.dto.user_dto import (
 )
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
 from src.application.use_cases.member_access import RequestCardAccessUseCase
+from src.application.use_cases import GetClubUseCase
+from src.domain.entities.club import Club
+from src.domain.exceptions.club import ClubNotFoundError
 from src.infrastructure.web.dependencies import (
+    get_club_use_case,
     get_request_card_access_use_case,
     get_all_users_use_case,
     get_user_by_id_use_case,
@@ -218,14 +222,36 @@ async def _grant_card_access(use_case: RequestCardAccessUseCase, email: str) -> 
         logger.exception("Card access request failed")
 
 
+def _display_name(ctx: AuthContext) -> str:
+    if ctx.member and not ctx.member.is_club_account_placeholder:
+        return ctx.member.get_full_name()
+    return ctx.user.username
+
+
+async def _own_club(ctx: AuthContext, get_club: GetClubUseCase) -> Optional[Club]:
+    if not (ctx.member and ctx.member.club_id):
+        return None
+    try:
+        return await get_club.execute(ctx.member.club_id)
+    except ClubNotFoundError:
+        return None
+
+
 @router.get("/users/me", response_model=UserMeResponse)
-async def read_users_me(ctx: AuthContext = Depends(get_auth_context)):
+async def read_users_me(
+    ctx: AuthContext = Depends(get_auth_context),
+    get_club: GetClubUseCase = Depends(get_club_use_case),
+):
     """Get current user information with member-derived fields."""
     response = UserMapper.to_response(ctx.user)
+    club = await _own_club(ctx, get_club)
     return UserMeResponse(
         **response.model_dump(),
         club_role=ctx.member.club_role.value if ctx.member else None,
         club_id=ctx.member.club_id if ctx.member else None,
+        display_name=_display_name(ctx),
+        club_name=club.name if club else None,
+        club_logo_url=club.logo_url if club else None,
     )
 
 

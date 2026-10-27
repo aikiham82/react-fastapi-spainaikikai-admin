@@ -15,6 +15,9 @@ export interface CurrentUser {
   member_id?: string;
   club_role?: ClubRole;
   club_id?: string;
+  display_name: string;
+  club_name?: string | null;
+  club_logo_url?: string | null;
   created_at: string;
   updated_at: string;
 }

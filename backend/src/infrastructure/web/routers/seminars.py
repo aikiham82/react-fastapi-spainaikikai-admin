@@ -1,11 +1,9 @@
 """Seminar routes."""
 
 from typing import List, Optional
-from pathlib import Path
-from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from PIL import Image, ImageOps
+from starlette.concurrency import run_in_threadpool
 
 from src.infrastructure.web.dto.seminar_dto import (
     SeminarCreate,
@@ -31,39 +29,9 @@ from src.domain.entities.seminar import SeminarStatus
 from src.infrastructure.web.dto.payment_dto import InitiatePaymentResponse
 from src.domain.exceptions.seminar import SeminarAlreadyOfficialError
 from src.config.settings import get_app_settings
+from src.infrastructure.web.uploaded_images import UPLOADS_ROOT, read_image_upload, save_atomically, to_jpeg
 
-# Upload directory: backend/uploads/seminars/ relative to this file's location
-UPLOAD_DIR = Path(__file__).parent.parent.parent.parent.parent / "uploads" / "seminars"
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
-
-MAGIC_BYTES = {
-    b"\xff\xd8\xff": "jpeg",
-    b"\x89PNG": "png",
-}
-
-
-def validate_image_magic_bytes(content: bytes) -> None:
-    """Validate image format using magic bytes (not file extension)."""
-    for signature in MAGIC_BYTES:
-        if content[:len(signature)] == signature:
-            return
-    if len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP":
-        return
-    raise HTTPException(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        detail="Formato no permitido. Usa JPEG, PNG o WebP."
-    )
-
-
-def process_image(content: bytes) -> bytes:
-    """Resize and convert image to 800x450 JPEG."""
-    image = Image.open(BytesIO(content))
-    if image.mode not in ("RGB",):
-        image = image.convert("RGB")
-    image = ImageOps.fit(image, (800, 450), Image.LANCZOS)
-    output = BytesIO()
-    image.save(output, format="JPEG", quality=85, optimize=True)
-    return output.getvalue()
+UPLOAD_DIR = UPLOADS_ROOT / "seminars"
 
 
 router = APIRouter(prefix="/seminars", tags=["seminars"])
@@ -212,20 +180,9 @@ async def upload_cover_image(
         existing = await get_one_use_case.execute(seminar_id)
         check_club_access_ctx(ctx, existing.club_id or "")
 
-    content = await file.read()
-    if len(content) > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="El archivo supera el límite de 5MB."
-        )
-    validate_image_magic_bytes(content)
-
-    jpeg_content = process_image(content)
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    tmp_path = UPLOAD_DIR / f"{seminar_id}.tmp"
-    output_path = UPLOAD_DIR / f"{seminar_id}.jpg"
-    tmp_path.write_bytes(jpeg_content)
-    tmp_path.rename(output_path)
+    content = await read_image_upload(file)
+    jpeg = await run_in_threadpool(to_jpeg, content, (800, 450))
+    save_atomically(UPLOAD_DIR, f"{seminar_id}.jpg", jpeg)
 
     image_url = f"/uploads/seminars/{seminar_id}.jpg"
     seminar = await upload_use_case.execute(seminar_id, image_url)

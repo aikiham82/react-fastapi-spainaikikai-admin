@@ -34,6 +34,7 @@ export const createMockCurrentUser = (overrides: Partial<CurrentUser> = {}): Cur
   id: 'user-123',
   email: 'test@example.com',
   username: 'testuser',
+  display_name: 'Test User',
   is_active: true,
   global_role: 'user',
   created_at: new Date().toISOString(),

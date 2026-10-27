@@ -21,6 +21,10 @@ vi.mock('../../hooks/queries/useClubQueries', () => ({
 vi.mock('@/features/members/hooks/queries/useMemberQueries', () => ({
   useMembersQuery: () => ({ data: state.members }),
 }))
+const uploadLogo = vi.hoisted(() => vi.fn())
+vi.mock('../../hooks/mutations/useClubMutations', () => ({
+  useUploadClubLogoMutation: () => ({ mutate: uploadLogo, isPending: false }),
+}))
 vi.mock('../ClubForm', () => ({
   ClubForm: ({ open, club: c }: { open: boolean; club?: { name: string } }) =>
     open ? <div role="dialog">Editando {c?.name}</div> : null,
@@ -33,6 +37,23 @@ describe('MyClub', () => {
       { id: 'm1', first_name: 'Lucía', last_name: 'Ejemplo', club_role: 'admin' },
       { id: 'm2', first_name: 'Marcos', last_name: 'Prueba', club_role: 'member' },
     ]
+  })
+
+  it('uploads the logo the manager picks', async () => {
+    renderWithProviders(<MyClub />)
+    const file = new File(['logo'], 'logo.png', { type: 'image/png' })
+
+    await userEvent.upload(screen.getByLabelText('Subir logo'), file)
+
+    expect(uploadLogo).toHaveBeenCalledWith({ clubId: 'c1', file })
+  })
+
+  it('offers to change the logo once the club has one', () => {
+    state.club = { ...fullClub, logo_url: '/uploads/clubs/c1.jpg?v=1' }
+    renderWithProviders(<MyClub />)
+
+    expect(screen.getByLabelText('Cambiar logo')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Club Ejemplo' })).toHaveAttribute('src', expect.stringContaining('/uploads/clubs/c1.jpg'))
   })
 
   it('names who runs the club', () => {

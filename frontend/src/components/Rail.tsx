@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useNavCounters } from '@/features/dashboard/hooks/useNavCounters'
 import { groupCount, type NavGroup } from '@/components/navigation'
 import { useNav } from '@/components/useNav'
-import { useAuthContext } from '@/features/auth/hooks/useAuthContext'
+import { ClubMark } from '@/components/ClubMark'
+import { AccountMenu } from '@/components/AccountMenu'
+import { useIdentity } from '@/components/useIdentity'
 
 interface RailProps {
   className?: string
@@ -35,7 +36,7 @@ const RailLink = ({ group, isActive, count }: { group: NavGroup; isActive: boole
 
 export const Rail = ({ className, id }: RailProps) => {
   const { groups, active } = useNav()
-  const { logout } = useAuthContext()
+  const { clubName, clubTitle, clubLogoUrl } = useIdentity()
   const counters = useNavCounters()
   const render = (group: NavGroup) => (
     <RailLink key={group.id} group={group} isActive={active?.id === group.id} count={groupCount(group, counters)} />
@@ -47,19 +48,17 @@ export const Rail = ({ className, id }: RailProps) => {
       aria-label="Secciones"
       className={cn('flex h-full w-[88px] flex-col items-center gap-1 border-r border-sidebar-border bg-sidebar py-4', className)}
     >
-      <img src="/logo.jpg" alt="" className="mb-3 size-10 rounded-md mix-blend-multiply" />
+      <ClubMark clubName={clubName} logoUrl={clubLogoUrl} />
+      <p
+        title={clubTitle}
+        className="mb-3 mt-1.5 line-clamp-2 w-[72px] text-center text-[11px] font-semibold leading-tight text-foreground"
+      >
+        {clubTitle}
+      </p>
       {groups.filter((group) => !group.footer).map(render)}
       <div className="mt-auto flex flex-col items-center gap-1">
         {groups.filter((group) => group.footer).map(render)}
-        <button
-          type="button"
-          onClick={logout}
-          aria-label="Cerrar sesión"
-          className="flex w-16 flex-col items-center gap-1 rounded-xl py-2 text-[11.5px] text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
-        >
-          <LogOut className="size-[22px]" aria-hidden="true" />
-          Salir
-        </button>
+        <AccountMenu />
       </div>
     </nav>
   )

@@ -9,6 +9,7 @@ vi.mock('../../hooks/queries/useDashboardData.query', () => ({ useDashboardDataQ
 
 const permissions = { isAssociationAdmin: () => false, canAccess: () => true }
 vi.mock('@/core/hooks/usePermissions', () => ({ usePermissions: () => permissions }))
+vi.mock('@/components/useIdentity', () => ({ useIdentity: () => ({ name: 'Laura Ejemplo', firstName: 'Laura' }) }))
 
 const dashboardData = (overrides: Partial<DashboardData> = {}): DashboardData => ({
   stats: {
@@ -40,6 +41,12 @@ const renderWith = (data: DashboardData) => {
 describe('Dashboard', () => {
   beforeEach(() => {
     permissions.isAssociationAdmin = () => false
+  })
+
+  it('greets the signed-in person by first name', () => {
+    renderWith(dashboardData())
+
+    expect(screen.getByRole('heading', { name: 'Hola, Laura' })).toBeInTheDocument()
   })
 
   it('lists expired licences as an attention row linking to the filtered list', () => {

@@ -12,7 +12,7 @@ const AVATAR_TINTS = [
   'bg-[#F3DDE6] text-[#84284E]',
 ]
 
-const initialsOf = (name: string): string =>
+export const initialsOf = (name: string): string =>
   name
     .split(/\s+/)
     .filter(Boolean)

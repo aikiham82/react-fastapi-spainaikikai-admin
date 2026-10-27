@@ -38,7 +38,7 @@ userRole = global_role === 'super_admin' ? 'super_admin'
          : null
 ```
 
-`usePermissions.ts` exposes `canAccess()`, which gates sidebar entries through `filteredNavItems`.
+`usePermissions.ts` exposes `canAccess()`, which gates rail and drawer entries through `getNavGroups` in `components/navigation.ts` (called from `useNav`).
 
 **Frontend gating is user experience, not security.** The backend must independently authorise every request; see [`../security/security-guidelines.md`](../security/security-guidelines.md).
 

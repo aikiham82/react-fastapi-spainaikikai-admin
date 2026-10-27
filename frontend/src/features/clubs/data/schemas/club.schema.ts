@@ -10,6 +10,7 @@ export interface Club {
   email?: string;
 
   website?: string;
+  logo_url?: string | null;
   created_at: string;
   updated_at: string;
   is_active?: boolean;

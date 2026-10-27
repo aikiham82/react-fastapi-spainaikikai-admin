@@ -6,6 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AvatarStack, IconTile, ProgressBar, ProgressRing } from '@/components/ui/graphic';
 import { usePermissions } from '@/core/hooks/usePermissions';
+import { useIdentity } from '@/components/useIdentity';
 import { parseUtcDateTime } from '@/core/utils/format';
 import { cn } from '@/lib/utils';
 import { useDashboardDataQuery } from '../hooks/queries/useDashboardData.query';
@@ -176,6 +177,7 @@ const RingKpi = ({ value, max, label }: { value: number; max: number; label: str
 export const Dashboard = () => {
   const { data, isLoading, error, refetch } = useDashboardDataQuery();
   const { canAccess, isAssociationAdmin } = usePermissions();
+  const { firstName } = useIdentity();
   const isSuperAdmin = isAssociationAdmin();
   const season = seasonLabel(defaultPaymentYear(new Date()));
 
@@ -212,7 +214,7 @@ export const Dashboard = () => {
     <div className="flex max-w-5xl flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-[28px] font-semibold tracking-tight text-foreground">Hola</h2>
+          <h2 className="text-[28px] font-semibold tracking-tight text-foreground">{firstName ? `Hola, ${firstName}` : 'Hola'}</h2>
           {isSuperAdmin && (
             <p className="mt-1 text-[15px] text-muted-foreground">
               {stats.total_clubs} clubs · {stats.total_members} miembros, {stats.active_members} activos

@@ -41,6 +41,7 @@ class ClubMapper:
             phone=entity.phone,
             email=entity.email,
             website=entity.website,
+            logo_url=entity.logo_url,
             is_active=entity.is_active,
             created_at=entity.created_at,
             updated_at=entity.updated_at

@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { Avatar } from '@/components/ui/graphic';
-import { roleLabels } from '@/core/utils/roleLabels';
+import { ClubMark } from '@/components/ClubMark';
+import { useIdentity } from '@/components/useIdentity';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { isActiveTab } from '@/components/navigation';
@@ -16,7 +17,8 @@ const rowClasses =
   'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[14.5px] transition-colors duration-150';
 
 export const Sidebar = ({ className, onClose }: SidebarProps) => {
-  const { userRole, userEmail, logout } = useAuthContext();
+  const { logout } = useAuthContext();
+  const { name, email, clubName, clubTitle, clubLogoUrl, roleLabel } = useIdentity();
   const { groups, pathname, search } = useNav();
 
   const handleLogout = () => {
@@ -26,11 +28,11 @@ export const Sidebar = ({ className, onClose }: SidebarProps) => {
 
   return (
     <div className={cn('flex h-full flex-col gap-6 bg-sidebar px-3 py-5', className)}>
-      <div className="flex items-center gap-3 px-2">
-        <img src="/logo.jpg" alt="" className="size-10 rounded-md mix-blend-multiply" />
+      <div className="flex items-center gap-3 pl-2 pr-10">
+        <ClubMark clubName={clubName} logoUrl={clubLogoUrl} />
         <div className="min-w-0">
-          <p className="text-[15px] font-semibold leading-tight text-foreground">Spain Aikikai</p>
-          {userRole && <p className="text-[13px] text-muted-foreground">{roleLabels[userRole] ?? userRole}</p>}
+          <p className="text-[15px] font-semibold leading-tight text-foreground">{clubTitle}</p>
+          {roleLabel && <p className="text-[13px] text-muted-foreground">{roleLabel}</p>}
         </div>
       </div>
 
@@ -90,18 +92,21 @@ export const Sidebar = ({ className, onClose }: SidebarProps) => {
       </div>
 
       <div className="flex flex-col gap-1 border-t border-sidebar-border pt-4">
-        {userEmail && (
+        {name && (
           <div className="flex min-w-0 items-center gap-2.5 px-3 pb-1">
-            <Avatar name={userEmail.split('@')[0].replace(/[._-]+/g, ' ')} />
-            <p className="truncate text-[13px] text-muted-foreground">{userEmail}</p>
+            <Avatar name={name} />
+            <div className="min-w-0">
+              <p title={name} className="truncate text-sm font-semibold text-foreground">{name}</p>
+              <p title={email} className="truncate text-[13px] text-muted-foreground">{email}</p>
+            </div>
           </div>
         )}
         <button
           type="button"
           onClick={handleLogout}
-          className={cn(rowClasses, 'text-sidebar-foreground hover:bg-muted hover:text-foreground')}
+          className={cn(rowClasses, 'font-medium text-primary hover:bg-muted')}
         >
-          <LogOut className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+          <LogOut className="size-[18px] shrink-0" aria-hidden="true" />
           Cerrar sesión
         </button>
       </div>
