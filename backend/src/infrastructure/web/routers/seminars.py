@@ -3,6 +3,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from starlette.concurrency import run_in_threadpool
 
 from src.infrastructure.web.dto.seminar_dto import (
     SeminarCreate,
@@ -180,7 +181,8 @@ async def upload_cover_image(
         check_club_access_ctx(ctx, existing.club_id or "")
 
     content = await read_image_upload(file)
-    save_atomically(UPLOAD_DIR, f"{seminar_id}.jpg", to_jpeg(content, (800, 450)))
+    jpeg = await run_in_threadpool(to_jpeg, content, (800, 450))
+    save_atomically(UPLOAD_DIR, f"{seminar_id}.jpg", jpeg)
 
     image_url = f"/uploads/seminars/{seminar_id}.jpg"
     seminar = await upload_use_case.execute(seminar_id, image_url)

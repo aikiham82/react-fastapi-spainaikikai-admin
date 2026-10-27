@@ -94,3 +94,22 @@ def test_a_club_id_cannot_escape_the_logo_folder(logo_dir):
 
     assert upload(client, png(), url="/api/v1/clubs/..%2F..%2Fsecret/logo").status_code in (404, 422)
     use_case.execute.assert_not_called()
+
+
+def test_an_image_with_huge_dimensions_is_refused_before_decoding(logo_dir):
+    client, use_case = client_as(club_admin(club_id=OWN_CLUB))
+    output = BytesIO()
+    Image.new("L", (10000, 10000)).save(output, format="PNG")
+
+    assert upload(client, output.getvalue()).status_code == 422
+    use_case.execute.assert_not_called()
+
+
+def test_a_wide_logo_is_padded_not_cropped(logo_dir):
+    client, _ = client_as(club_admin(club_id=OWN_CLUB))
+
+    upload(client, png(width=400, height=200))
+
+    stored = Image.open(logo_dir / f"{OWN_CLUB}.jpg").convert("RGB")
+    assert min(stored.getpixel((128, 5))) > 240
+    assert stored.getpixel((5, 128))[0] > 200 and stored.getpixel((5, 128))[1] < 60

@@ -6,6 +6,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile, status
+from starlette.concurrency import run_in_threadpool
 
 from src.infrastructure.web.dto.club_dto import (
     ClubCreate,
@@ -115,7 +116,8 @@ async def upload_club_logo(
     """Upload the club logo (Club Admin for own club, Super Admin for any)."""
     check_club_access_ctx(ctx, club_id)
     content = await read_image_upload(file)
-    save_atomically(CLUB_LOGO_DIR, f"{club_id}.jpg", to_jpeg(content, (256, 256)))
+    jpeg = await run_in_threadpool(to_jpeg, content, (256, 256), pad=True)
+    save_atomically(CLUB_LOGO_DIR, f"{club_id}.jpg", jpeg)
 
     logo_url = f"/uploads/clubs/{club_id}.jpg?v={int(datetime.utcnow().timestamp())}"
     try:

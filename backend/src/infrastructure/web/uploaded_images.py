@@ -12,7 +12,9 @@ UPLOADS_ROOT = Path(__file__).parent.parent.parent.parent / "uploads"
 MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 MAGIC_BYTES = (b"\xff\xd8\xff", b"\x89PNG")
+MAX_IMAGE_PIXELS = 25_000_000
 UNSUPPORTED_FORMAT = "Formato no permitido. Usa JPEG, PNG o WebP."
+TOO_MANY_PIXELS = "La imagen es demasiado grande. Usa una de menos de 5000 × 5000 píxeles."
 
 
 def validate_image_magic_bytes(content: bytes) -> None:
@@ -45,11 +47,18 @@ def _flatten_on_white(image: Image.Image) -> Image.Image:
     return image.convert("RGB") if image.mode != "RGB" else image
 
 
-def to_jpeg(content: bytes, size: tuple[int, int]) -> bytes:
-    """Crop to the target aspect ratio and resize to a JPEG of exactly that size."""
+def to_jpeg(content: bytes, size: tuple[int, int], pad: bool = False) -> bytes:
+    """Resize to a JPEG of exactly that size: cropped to fill it, or padded on white to keep the whole image."""
     try:
-        image = ImageOps.exif_transpose(Image.open(BytesIO(content)))
-        image = ImageOps.fit(_flatten_on_white(image), size, Image.LANCZOS)
+        image = Image.open(BytesIO(content))
+        if image.width * image.height > MAX_IMAGE_PIXELS:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=TOO_MANY_PIXELS)
+        image.draft("RGB", (size[0] * 2, size[1] * 2))
+        image = _flatten_on_white(ImageOps.exif_transpose(image))
+        if pad:
+            image = ImageOps.pad(image, size, Image.LANCZOS, color="white")
+        else:
+            image = ImageOps.fit(image, size, Image.LANCZOS)
     except (UnidentifiedImageError, OSError, Image.DecompressionBombError):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=UNSUPPORTED_FORMAT)
     output = BytesIO()
