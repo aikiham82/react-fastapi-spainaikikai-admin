@@ -286,4 +286,12 @@ describe('ManualPaymentModal', () => {
       })
     })
   })
+
+  it('names each year as a season, like the rest of Pagos', () => {
+    renderWithProviders(<ManualPaymentModal {...defaultProps} paymentYear={new Date().getFullYear() + 1} />)
+
+    const year = new Date().getFullYear() + 1
+    expect(screen.getByText('Temporada')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Temporada' })).toHaveTextContent(`${year - 1}-${String(year).slice(-2)}`)
+  })
 })

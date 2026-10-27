@@ -4,6 +4,8 @@ import { renderWithProviders, userEvent } from '@/test-utils'
 import { ClubPaymentDetail } from '../ClubPaymentDetail'
 import type { ClubPaymentSummaryResponse } from '@/features/member-payments/data/schemas/member-payment.schema'
 import { usePermissions } from '@/core/hooks/usePermissions'
+import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear'
+import { ManualPaymentModal } from '../ManualPaymentModal'
 
 // ─── Mock usePermissions ───────────────────────────────────────────────────
 vi.mock('@/core/hooks/usePermissions', () => ({
@@ -190,6 +192,7 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
       await waitFor(() => {
         expect(screen.getByTestId('manual-payment-modal')).toBeInTheDocument()
       })
+      expect(vi.mocked(ManualPaymentModal).mock.lastCall?.[0].paymentYear).toBe(defaultPaymentYear(new Date()))
     })
   })
 })

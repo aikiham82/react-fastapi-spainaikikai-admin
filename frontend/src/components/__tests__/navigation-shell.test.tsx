@@ -81,6 +81,12 @@ describe('Header', () => {
     expect(screen.getByRole('link', { name: 'Pendientes' })).not.toHaveAttribute('aria-current')
   })
 
+  it('marks no screen on an address that does not exist', () => {
+    at('/payments/history', <Header />)
+
+    expect(screen.queryByRole('link', { current: 'page' })).not.toBeInTheDocument()
+  })
+
   it('has no tab bar for a group with a single screen', () => {
     at('/seminars', <Header />)
     expect(screen.queryByRole('navigation', { name: /pantallas de/i })).not.toBeInTheDocument()

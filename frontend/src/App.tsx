@@ -32,6 +32,7 @@ const SeminarsPage = lazyWithRetry(() => import("./pages/seminars.page").then(m 
 const InsurancePage = lazyWithRetry(() => import("./pages/insurance.page").then(m => ({ default: m.InsurancePage })));
 const ImportExportPage = lazyWithRetry(() => import("./pages/import-export.page").then(m => ({ default: m.ImportExportPage })));
 const SettingsPage = lazyWithRetry(() => import("./pages/settings.page").then(m => ({ default: m.SettingsPage })));
+const NotFoundPage = lazyWithRetry(() => import("./pages/not-found.page").then(m => ({ default: m.NotFoundPage })));
 const PriceConfigurationsPage = lazyWithRetry(() => import("./pages/price-configurations.page").then(m => ({ default: m.PriceConfigurationsPage })));
 const InvoicesPage = lazyWithRetry(() => import("./pages/invoices.page").then(m => ({ default: m.InvoicesPage })));
 const PaymentSuccessPage = lazyWithRetry(() => import("./pages/payment-success.page").then(m => ({ default: m.PaymentSuccessPage })));
@@ -77,6 +78,7 @@ function App() {
                     element={<ProtectedRoute allowedRoles={['super_admin']}><PriceConfigurationsPage /></ProtectedRoute>}
                   />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
                 </Route>
 
                 {/* Payment result pages - outside AppLayout for cleaner UX */}
