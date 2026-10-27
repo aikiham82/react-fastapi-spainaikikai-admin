@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CoverImageDropZone } from './CoverImageDropZone';
-import { toDateTimeLocalInput } from '@/core/utils/format';
+import { fromDateTimeLocalInput, toDateTimeLocalInput } from '@/core/utils/format';
 
 interface SeminarFormProps {
   open: boolean;
@@ -121,11 +121,10 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
       return;
     }
 
-    // Format dates for backend (ISO 8601)
     const submitData: CreateSeminarRequest = {
       ...formData,
-      start_date: new Date(formData.start_date).toISOString(),
-      end_date: new Date(formData.end_date || formData.start_date).toISOString(),
+      start_date: fromDateTimeLocalInput(formData.start_date),
+      end_date: fromDateTimeLocalInput(formData.end_date || formData.start_date),
     };
 
     // Auto-assign club_id for club admins on creation

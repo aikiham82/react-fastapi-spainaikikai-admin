@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseUtcDateTime, toDateTimeLocalInput } from '../format'
+import { fromDateTimeLocalInput, parseUtcDateTime, toDateTimeLocalInput } from '../format'
 
 const utc = (iso: string) => new Date(`${iso}Z`).getTime()
 
@@ -46,5 +46,26 @@ describe('toDateTimeLocalInput', () => {
 
   it('returns an empty value for missing dates', () => {
     expect(toDateTimeLocalInput(undefined)).toBe('')
+  })
+
+  it('shows a winter 09:00Z seminar at 10:00 in Madrid, where the tests run', () => {
+    expect(toDateTimeLocalInput('2026-10-31T09:00:00')).toBe('2026-10-31T10:00')
+  })
+})
+
+describe('fromDateTimeLocalInput', () => {
+  it('turns a Madrid wall time into its UTC instant', () => {
+    expect(fromDateTimeLocalInput('2026-07-11T08:00')).toBe('2026-07-11T06:00:00.000Z')
+  })
+
+  it('returns an empty value for an invalid input instead of throwing', () => {
+    expect(fromDateTimeLocalInput('')).toBe('')
+    expect(fromDateTimeLocalInput('nope')).toBe('')
+  })
+})
+
+describe('parseUtcDateTime with microseconds and an offset', () => {
+  it('trims the fraction before parsing', () => {
+    expect(parseUtcDateTime('2026-10-31T09:00:00.123456+00:00')?.getTime()).toBe(utc('2026-10-31T09:00:00.123'))
   })
 })

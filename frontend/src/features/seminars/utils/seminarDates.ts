@@ -16,7 +16,7 @@ export const canRequestOficialidad = (seminar: Seminar, now: Date = new Date()):
   !seminar.is_official && !isSeminarPast(seminar, now);
 
 export const splitSeminars = (seminars: Seminar[], now: Date = new Date()) => {
-  const byStart = (a: Seminar, b: Seminar) => (parseUtcDateTime(a.start_date)?.getTime() ?? 0) - (parseUtcDateTime(b.start_date)?.getTime() ?? 0);
+  const byStart = (a: Seminar, b: Seminar) => (parseUtcDateTime(a.start_date)?.getTime() ?? Infinity) - (parseUtcDateTime(b.start_date)?.getTime() ?? Infinity);
   const upcoming = seminars.filter((s) => !isSeminarPast(s, now)).sort(byStart);
   const past = seminars.filter((s) => isSeminarPast(s, now)).sort((a, b) => byStart(b, a));
   return { upcoming, past };
