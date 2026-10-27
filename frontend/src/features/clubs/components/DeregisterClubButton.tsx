@@ -44,25 +44,21 @@ export const DeregisterClubDialog = ({ clubName, open, onOpenChange, onConfirm }
 interface DeregisterClubButtonProps {
   clubId: string;
   clubName: string;
-  label?: string;
   ariaLabel?: string;
-  className?: string;
 }
 
 export const DeregisterClubButton = ({
   clubId,
   clubName,
-  label = 'Dar de baja el club',
   ariaLabel,
-  className = 'h-auto min-h-9 w-full whitespace-normal sm:w-auto',
 }: DeregisterClubButtonProps) => {
   const [open, setOpen] = useState(false);
   const { mutate: deregister, isPending } = useDeregisterClubMutation();
 
   return (
     <>
-      <Button type="button" variant="outline" className={className} aria-label={ariaLabel} disabled={isPending} onClick={() => setOpen(true)}>
-        {label}
+      <Button type="button" variant="outline" className="h-auto min-h-9 w-full whitespace-normal sm:w-auto" aria-label={ariaLabel} disabled={isPending} onClick={() => setOpen(true)}>
+        Dar de baja el club
       </Button>
       <DeregisterClubDialog clubName={clubName} open={open} onOpenChange={setOpen} onConfirm={() => deregister(clubId)} />
     </>

@@ -155,7 +155,7 @@ export const ClubList = () => {
                       <Button
                         variant="outline"
                         aria-label={`Editar ${club.name}`}
-                        className="flex-1 pointer-coarse:h-11 sm:flex-none"
+                        className="flex-1 sm:flex-none"
                         onClick={() => openEdit(club)}
                       >
                         <Pencil className="size-4" aria-hidden="true" />
