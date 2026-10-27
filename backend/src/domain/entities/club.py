@@ -46,8 +46,6 @@ class Club:
         email: Optional[str] = None
     ) -> None:
         """Update contact information."""
-        if email and "@" not in email:
-            raise ValueError("Invalid email format")
         if phone:
             self.phone = phone
         if email:

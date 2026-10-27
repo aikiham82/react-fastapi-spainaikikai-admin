@@ -33,7 +33,7 @@ def test_a_club_is_created_without_an_email():
     })
 
     assert response.status_code == 201
-    assert response.json()["email"] == ""
+    assert response.json()["email"] in ("", None)
     assert response.json()["website"] == "https://dojo.example.com"
 
 

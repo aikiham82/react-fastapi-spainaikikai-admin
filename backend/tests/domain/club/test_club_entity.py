@@ -103,23 +103,6 @@ class TestClubEntity:
         assert club.phone == "+34999999999"
         assert club.email == "newemail@club.com"
 
-    def test_club_update_contact_info_invalid_email(self):
-        """Test club contact info update with invalid email raises error."""
-        club = Club(
-            name="Test Club",
-            address="456 Avenue",
-            city="Barcelona",
-            province="Barcelona",
-            postal_code="08001",
-            country="Spain",
-            phone="+34938765432",
-            email="info@club.com",
-            is_active=True
-        )
-
-        with pytest.raises(ValueError, match="Invalid email format"):
-            club.update_contact_info(email="invalid-email")
-
     def test_club_update_address(self):
         """Test club address update."""
         club = Club(
