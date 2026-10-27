@@ -34,6 +34,10 @@ A `licenses` document may exist with `last_payment_id = null`, because licences 
 
 `License` has no `club_id`: its club is the club of its member. Filter licences by club through the club's member ids, as `MongoDBLicenseRepository.find_by_club_id` does, never with `{"club_id": ...}` on `licenses`. On 2026-10-25 creating a licence and importing licences still passed `club_id` and answered 500, and the dashboard licence widgets still filter `licenses` by `club_id`, so a club admin sees zero (pending).
 
+### The instructor title lives on the licence, and is often missing
+
+Whether a member is shidoin or fukushidoin is only the licence's `instructor_category`; nothing else records it (`titulo_shidoin` payments are rare). The imported data is incomplete: on 2026-10-27, 300 Dan licences had `instructor_category = "none"`, including a 6º Dan club teacher. Anything that picks "the club's teacher" from the data must let a person choose when no title is found, and the fix for a wrong title is editing the licence's "Categoría de instructor".
+
 ## 🏆 Benefits
 
 - Naming the database explicitly avoids connecting to an empty one and concluding the data is gone.

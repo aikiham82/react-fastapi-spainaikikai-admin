@@ -52,6 +52,7 @@ docs/
 │   ├── frontend-features.md
 │   └── project-layout.md
 ├── conventions/
+│   ├── a-refused-role-lands-on-unauthorized.md
 │   ├── backend.md
 │   ├── dates-and-money-use-core-formatters.md
 │   ├── excel-import-cells-are-text.md
@@ -66,6 +67,8 @@ docs/
 ├── dev-tooling/
 │   ├── development-commands.md
 │   ├── github-account.md
+│   ├── local-qa-runs-the-branch-on-cors-allowed-ports.md
+│   ├── publishing-the-card-app-update.md
 │   └── skills.md
 ├── documentation-guidelines.md
 ├── domain/
@@ -98,6 +101,7 @@ docs/
 │   └── testing-strategy.md
 └── workflow/
     ├── feature-workflow.md
+    ├── production-data-changes.md
     └── subagents.md
 ```
 
