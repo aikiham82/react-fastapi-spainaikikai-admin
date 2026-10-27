@@ -13,7 +13,7 @@ const seasonText = (paymentYear: number, today: Date): string => {
   const season = insuranceSeasonYear(today);
   const from = formatDate(new Date(season - 1, 9, 1));
   const to = formatDate(new Date(season, 8, 30));
-  return `Temporada ${seasonLabel(season)} · licencias del año ${paymentYear} y seguros del ${from} al ${to}`;
+  return `Temporada ${seasonLabel(paymentYear)} · licencias del año ${paymentYear} y seguros del ${from} al ${to}`;
 };
 
 export const PaymentSetup = () => {
@@ -64,14 +64,14 @@ export const PaymentSetup = () => {
         </p>
         {!showYear && (
           <TextButton variant="inline" onClick={() => setShowYear(true)}>
-            Otro año
+            Otra temporada
           </TextButton>
         )}
       </div>
 
       {showYear && (
         <div className="grid max-w-48 gap-1.5">
-          <Label htmlFor="payment_year">Año de las licencias</Label>
+          <Label htmlFor="payment_year">Temporada</Label>
           <Select value={String(formData.payment_year)} onValueChange={(v) => setField('payment_year', Number(v))}>
             <SelectTrigger id="payment_year" className="h-11">
               <SelectValue />
@@ -79,7 +79,7 @@ export const PaymentSetup = () => {
             <SelectContent>
               {yearOptions.map((y) => (
                 <SelectItem key={y} value={String(y)}>
-                  {y}
+                  {seasonLabel(y)}
                 </SelectItem>
               ))}
             </SelectContent>

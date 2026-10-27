@@ -39,7 +39,7 @@ describe('ClubPaymentsPage year', () => {
     vi.useRealTimers()
   })
 
-  const openYearPicker = () => userEvent.click(screen.getByRole('button', { name: 'Otro año' }))
+  const openYearPicker = () => userEvent.click(screen.getByRole('button', { name: 'Otra temporada' }))
 
   const offeredYears = async () => {
     await openYearPicker()
@@ -47,35 +47,35 @@ describe('ClubPaymentsPage year', () => {
     return within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent)
   }
 
-  it('opens on the calendar year and offers the next one from October', async () => {
+  it('opens on the licences in force, named like Pendientes, and offers the season being paid from October', async () => {
     renderOn('2026-10-01T10:00:00')
 
-    expect(screen.getByText('Pagos del año 2026 · seguros 2025-26')).toBeInTheDocument()
+    expect(screen.getByText('Temporada 2025-26 · licencias 2026')).toBeInTheDocument()
     expect(requestedYear()).toBe(2026)
-    expect(await offeredYears()).toEqual(['2027', '2026', '2025', '2024', '2023', '2022'])
+    expect(await offeredYears()).toEqual(['2026-27', '2025-26', '2024-25', '2023-24', '2022-23'])
   })
 
-  it('offers the calendar year and the four before until September', async () => {
+  it('offers the season in force and the four before until September', async () => {
     renderOn('2026-09-30T10:00:00')
 
-    expect(await offeredYears()).toEqual(['2026', '2025', '2024', '2023', '2022'])
+    expect(screen.getByText('Temporada 2025-26 · licencias 2026')).toBeInTheDocument()
+    expect(await offeredYears()).toEqual(['2025-26', '2024-25', '2023-24', '2022-23', '2021-22'])
   })
 
-  it('points to next year from October, where the autumn payments live', async () => {
+  it('points to the season being paid from October', async () => {
     renderOn('2026-10-25T10:00:00')
 
-    expect(screen.getByText('Pagos del año 2026 · seguros 2025-26')).toBeInTheDocument()
-    expect(screen.getByText('Los pagos hechos desde octubre cuentan para 2027.')).toBeInTheDocument()
-
-    await userEvent.click(screen.getByRole('button', { name: 'Ver 2027' }))
+    expect(screen.getByText('La temporada 2026-27 ya está abierta.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Ver temporada 2026-27' }))
 
     expect(requestedYear()).toBe(2027)
-    expect(screen.queryByText(/Los pagos hechos desde octubre/)).not.toBeInTheDocument()
+    expect(screen.getByText('Temporada 2026-27 · licencias 2027')).toBeInTheDocument()
+    expect(screen.queryByText(/ya está abierta/)).not.toBeInTheDocument()
   })
 
   it('does not point anywhere until October', () => {
     renderOn('2026-09-30T10:00:00')
 
-    expect(screen.queryByRole('button', { name: /^Ver 20/ })).not.toBeInTheDocument()
+    expect(screen.queryByText(/ya está abierta/)).not.toBeInTheDocument()
   })
 })

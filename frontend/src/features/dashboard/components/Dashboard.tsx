@@ -1,3 +1,4 @@
+import { defaultPaymentYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
 import { Link } from 'react-router-dom';
 import { Clock, CreditCard, Euro, MapPin, Users, XCircle, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -176,6 +177,7 @@ export const Dashboard = () => {
   const { data, isLoading, error, refetch } = useDashboardDataQuery();
   const { canAccess, isAssociationAdmin } = usePermissions();
   const isSuperAdmin = isAssociationAdmin();
+  const season = seasonLabel(defaultPaymentYear(new Date()));
 
   if (isLoading) {
     return (
@@ -251,7 +253,7 @@ export const Dashboard = () => {
             <ProgressBar value={stats.clubs_paid} max={stats.total_clubs} label="Temporada pagada" tone="ok" />
           </div>
           <p className="mt-2.5 text-sm text-muted-foreground">
-            {isSuperAdmin ? 'Clubs con la temporada pagada' : 'Temporada pagada'}
+            {isSuperAdmin ? `Clubs con la temporada ${season} pagada` : `Temporada ${season} pagada`}
           </p>
         </KpiCard>
       </div>

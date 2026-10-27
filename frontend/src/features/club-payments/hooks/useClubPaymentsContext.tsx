@@ -27,7 +27,7 @@ export const ClubPaymentsProvider: React.FC<{ children: ReactNode }> = ({ childr
   const { userRole, clubId: userClubId } = useAuthContext();
   const isSuperAdmin = userRole === 'super_admin';
 
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(() => new Date().getFullYear());
   const [selectedClubId, setSelectedClubId] = useState<string | null>(
     isSuperAdmin ? null : userClubId
   );

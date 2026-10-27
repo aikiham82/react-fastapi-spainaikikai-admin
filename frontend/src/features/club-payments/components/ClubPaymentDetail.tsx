@@ -116,16 +116,16 @@ export const ClubPaymentDetail = () => {
       </div>
 
       <div className="flex items-center gap-4 rounded-[18px] bg-card p-4 shadow-card sm:p-5">
-        <ProgressRing value={upToDate} max={clubDetail.total_members} label="Miembros al día" />
+        <ProgressRing value={upToDate} max={clubDetail.total_members} label="Miembros pagados" />
         <div className="flex min-w-0 flex-col items-start gap-1.5">
           <p className="text-[15px] text-foreground">
             <span className="text-2xl font-bold tabular-nums">
               {upToDate} de {clubDetail.total_members}
             </span>{' '}
-            al día
+            pagados
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge tone={clubDetail.has_club_fee ? 'ok' : 'neutral'}>
+            <StatusBadge tone={clubDetail.has_club_fee ? 'ok' : 'warn'}>
               {clubDetail.has_club_fee ? 'Cuota pagada' : 'Cuota pendiente'}
             </StatusBadge>
             <span className="text-sm text-muted-foreground">Cobrado {formatCurrency(clubDetail.total_collected)}</span>

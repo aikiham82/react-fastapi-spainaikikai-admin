@@ -1,5 +1,6 @@
 """The dashboard licence widgets count a club's licences through its members, and expiry by date."""
 
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -111,3 +112,14 @@ def test_the_dashboard_counts_active_members_with_a_licence_and_an_accident_insu
     assert insurance_query["insurance_type"] == "accident"
     assert insurance_query["status"] == {"$nin": ["cancelled", "pending", "expired"]}
     assert "$gte" in insurance_query["end_date"] and "$lte" in insurance_query["start_date"]
+
+
+def test_the_season_counted_as_paid_is_the_one_being_paid_from_october(db):
+    database, collections = db
+
+    with patch("src.infrastructure.web.routers.dashboard.datetime") as clock:
+        clock.utcnow.return_value = datetime(2026, 10, 27, 10, 0)
+        stats_as(club_admin(), database)
+
+    paid_filter = collections["transactions"].count_documents.call_args.args[0]
+    assert paid_filter["payment_year"] == 2027

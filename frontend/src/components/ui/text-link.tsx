@@ -27,7 +27,12 @@ export function TextButton({ variant = 'block', className, type = 'button', ...p
   return (
     <button
       type={type}
-      className={cn(variantClasses[variant], 'disabled:text-muted-foreground disabled:no-underline', className)}
+      className={cn(
+        variantClasses[variant],
+        variant === 'inline' && 'pointer-coarse:inline-flex pointer-coarse:min-h-11 pointer-coarse:items-center',
+        'disabled:text-muted-foreground disabled:no-underline',
+        className
+      )}
       {...props}
     />
   )

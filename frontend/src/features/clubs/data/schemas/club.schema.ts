@@ -12,7 +12,6 @@ export interface Club {
   website?: string;
   created_at: string;
   updated_at: string;
-  member_count?: number;
   is_active?: boolean;
 }
 
