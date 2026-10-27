@@ -72,6 +72,7 @@ docs/
 │   └── skills.md
 ├── documentation-guidelines.md
 ├── domain/
+│   ├── a-club-changes-the-grade-number-not-the-kind.md
 │   ├── club-admins-manage-member-access.md
 │   ├── a-club-is-switched-off-only-by-deregistration.md
 │   ├── a-deregistered-members-licence-is-history.md
