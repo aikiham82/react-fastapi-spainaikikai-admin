@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-10-27T18:10:00Z"
+has_completed_all_phases: true
 ---
 
 # One-step actions from the approved mockups
@@ -44,14 +53,14 @@ Every use case in the fewest steps ([`ui-visual-language.md`](../../../docs/conv
 
 ### Phase 3: Renovar from the row
 
-- [ ] Contract: `/payments?renovar=<member_id>` opens Pendientes with that member's pending items ticked and nobody else; a super admin gets the member's club chosen. Unknown member or failed prefill keeps the existing error/blocked state, never guesses.
-- [ ] `LicenseList` and `InsuranceList`: "Renovar" button on expired and expiring rows for users who can create payments.
-- [ ] Tests: button only on expired/expiring rows and only with payment permission; link carries the member; Pendientes ticks only that member (club admin and super admin); other members stay unticked; paid items of that member are not ticked.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Contract: `/payments?renovar=<member_id>` opens Pendientes with that member's pending items ticked and nobody else; a super admin gets the member's club chosen. Unknown member or failed prefill keeps the existing error/blocked state, never guesses.
+- [x] `LicenseList` and `InsuranceList`: "Renovar" button on expired and expiring rows for users who can create payments.
+- [x] Tests: button only on expired/expiring rows and only with payment permission; link carries the member; Pendientes ticks only that member (club admin and super admin); other members stay unticked; paid items of that member are not ticked.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 3: Renovar from the row.
+All phases implemented. Next: review and QA.
 
-Switch flipped, responsible named: 🐢 💨 💡 🥋 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Renewed in one tap: 🐢 💨 💡 🥋 🔁 (Turbotuga™, [Codely](https://codely.com)'s mascot).

@@ -6,7 +6,7 @@ import { useAnnualPaymentPrefillQuery } from './queries/useAnnualPaymentPrefillQ
 import type { ApiError } from '@/core/data/apiClient';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { useClubsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
-import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
+import { useMemberQuery, useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { Club } from '@/features/clubs/data/schemas/club.schema';
 import type { AnnualPaymentItemType, AnnualPaymentPrices, InitiateAnnualPaymentRequest, MemberPaymentAssignment } from '../data/schemas/annual-payment.schema';
 import {
@@ -54,9 +54,10 @@ const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>
 
 interface AnnualPaymentProviderProps {
   children: ReactNode;
+  renewMemberId?: string;
 }
 
-export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children }) => {
+export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ children, renewMemberId }) => {
   const { userRole, clubId, currentUser } = useAuthContext();
   const { data: clubsData, isLoading: isLoadingClubs } = useClubsQuery({});
   const initiatePaymentMutation = useInitiateAnnualPaymentMutation();
@@ -89,6 +90,13 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       setField('club_id', userClubId);
     }
   }, [isClubAdmin, userClubId, formData.club_id, setField]);
+
+  const { data: renewMember } = useMemberQuery(isClubAdmin ? '' : (renewMemberId ?? ''));
+  useEffect(() => {
+    if (renewMember?.club_id && !formData.club_id) {
+      setField('club_id', renewMember.club_id);
+    }
+  }, [renewMember?.club_id, formData.club_id, setField]);
 
   const {
     data: prefillData,
@@ -159,9 +167,14 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     if (payerName) {
       setField('payer_name', payerName);
     }
+    if (renewMemberId) {
+      setField('include_club_fee', false);
+      applyAssignments(tickAllPending(rows.filter((row) => row.memberId === renewMemberId)));
+      return;
+    }
     setField('include_club_fee', prefillData.include_club_fee && !prefillData.club_fee_already_paid);
     applyAssignments(sanitizeAssignments(prefillData.member_assignments, rows));
-  }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, isLoadingClubs, clubsData, currentUser?.username, formData.club_id, rows, setField, applyAssignments]);
+  }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, isLoadingClubs, clubsData, currentUser?.username, formData.club_id, rows, setField, applyAssignments, renewMemberId]);
 
   const clubs = useMemo(() => {
     if (isClubAdmin && userClubId) {

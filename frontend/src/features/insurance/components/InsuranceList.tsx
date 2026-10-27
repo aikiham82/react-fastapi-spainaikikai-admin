@@ -11,6 +11,7 @@ import { EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/c
 import { StatusBadge } from '@/components/ui/status-badge';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { InsuranceForm } from './InsuranceForm';
+import { RenewLink } from '@/features/annual-payments/components/RenewLink';
 import { InsuranceDetailDialog } from './InsuranceDetailDialog';
 import { insuranceStatus, insuranceTypeLabel } from './insuranceDisplay';
 import { foldForSearch } from '@/core/utils/search';
@@ -40,6 +41,11 @@ export const InsuranceList = () => {
   const canCreate = canAccess({ resource: 'insurance', action: 'create' });
   const canUpdate = canAccess({ resource: 'insurance', action: 'update' });
   const canDelete = canAccess({ resource: 'insurance', action: 'delete' });
+  const canRenew = canAccess({ resource: 'payments', action: 'create' });
+  const renewalOf = (insurance: Insurance) =>
+    canRenew && insurance.member_id && (insurance.status === 'expired' || insuranceStatus(insurance).tone === 'warn')
+      ? <RenewLink memberId={insurance.member_id} memberName={memberNameOf(insurance)} />
+      : null;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState(ALL);
@@ -239,6 +245,7 @@ export const InsuranceList = () => {
                         <span className="text-sm font-semibold tabular-nums text-foreground">{formatCurrency(insurance.coverage_amount)}</span>
                       )}
                     </div>
+                    {renewalOf(insurance) && <div onClick={(event) => event.stopPropagation()}>{renewalOf(insurance)}</div>}
                   </div>
                   {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
                 </li>
@@ -255,7 +262,7 @@ export const InsuranceList = () => {
                   <th className="px-3 py-3.5 font-semibold">Vigencia</th>
                   <th className="px-3 py-3.5 text-right font-semibold">Cobertura</th>
                   <th className="px-3 py-3.5 font-semibold">Estado</th>
-                  <th className="w-12 px-2 py-3.5">
+                  <th className="w-44 px-2 py-3.5">
                     <span className="sr-only">Acciones</span>
                   </th>
                 </tr>
@@ -307,8 +314,11 @@ export const InsuranceList = () => {
                       <td className="px-3 py-3">
                         <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
                       </td>
-                      <td className="px-1 py-1.5 text-right">
-                        {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
+                      <td className="px-1 py-1.5">
+                        <span className="flex items-center justify-end gap-1" onClick={(event) => event.stopPropagation()}>
+                          {renewalOf(insurance)}
+                          {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
+                        </span>
                       </td>
                     </tr>
                   );

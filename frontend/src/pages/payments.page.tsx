@@ -7,7 +7,7 @@ export const PaymentsPage = () => {
   const [searchParams] = useSearchParams();
 
   return (
-    <AnnualPaymentProvider>
+    <AnnualPaymentProvider renewMemberId={searchParams.get('renovar') ?? undefined}>
       {searchParams.get('tab') === 'historial' ? (
         <ClubPaymentsProvider>
           <ClubPaymentsPage />

@@ -27,6 +27,7 @@ import {
 } from '../utils/licenseStatus';
 import { formatGradeNumber } from '@/core/utils/grade';
 import { LicenseForm } from './LicenseForm';
+import { RenewLink } from '@/features/annual-payments/components/RenewLink';
 
 type StatusFilter = NonNullable<LicenseFilters['status']>;
 
@@ -86,6 +87,8 @@ export const LicenseList = () => {
 
   const canCreate = canAccess({ resource: 'licenses', action: 'create' });
   const canUpdate = canAccess({ resource: 'licenses', action: 'update' });
+  const canRenew = canAccess({ resource: 'payments', action: 'create' });
+  const needsRenewal = (license: License) => canRenew && getUrgency(license) !== 'other';
   const canDelete = canAccess({ resource: 'licenses', action: 'delete' });
 
   const chip: LicenseChip = ESTADO_PARAM_TO_CHIP[searchParams.get('estado') ?? ''] ?? 'all';
@@ -251,11 +254,11 @@ export const LicenseList = () => {
         <>
           <ul className="space-y-3 md:hidden">
             {visible.map((license) => (
-              <li key={license.id}>
+              <li key={license.id} className="rounded-[18px] bg-card shadow-card">
                 <button
                   type="button"
                   onClick={() => openDetail(license)}
-                  className="flex w-full items-start gap-3 rounded-[18px] bg-card p-3.5 text-left shadow-card transition-colors active:bg-muted/60"
+                  className="flex w-full items-start gap-3 rounded-[18px] p-3.5 text-left transition-colors active:bg-muted/60"
                 >
                   <Avatar name={memberNameOf(license)} size="md" />
                   <span className="flex min-w-0 flex-1 flex-col gap-2">
@@ -271,6 +274,11 @@ export const LicenseList = () => {
                   </span>
                   <ChevronRight className="size-5 shrink-0 self-center text-muted-foreground" aria-hidden="true" />
                 </button>
+                {needsRenewal(license) && (
+                  <div className="flex justify-end px-3.5 pb-3.5">
+                    <RenewLink memberId={license.member_id} memberName={memberNameOf(license)} />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -279,12 +287,12 @@ export const LicenseList = () => {
             <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="w-[34%] px-4 py-3.5 font-semibold">Miembro</th>
+                  <th className="w-[30%] px-4 py-3.5 font-semibold">Miembro</th>
                   <th className="w-[19%] px-3 py-3.5 font-semibold">Grado</th>
                   <th className="hidden w-[12%] px-3 py-3.5 font-semibold xl:table-cell">Emisión</th>
                   <th className="w-[14%] px-3 py-3.5 font-semibold">Caducidad</th>
                   <th className="w-[17%] px-3 py-3.5 font-semibold">Estado</th>
-                  <th className="w-14 px-3 py-3.5"><span className="sr-only">Acciones</span></th>
+                  <th className="w-44 px-3 py-3.5"><span className="sr-only">Acciones</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -303,8 +311,11 @@ export const LicenseList = () => {
                     <td className="hidden px-3 py-3 text-muted-foreground xl:table-cell">{formatDate(license.issue_date)}</td>
                     <td className="px-3 py-3 text-foreground">{formatDate(license.expiry_date)}</td>
                     <td className="px-3 py-3"><LicenseStatusBadge license={license} /></td>
-                    <td className="px-1 py-1.5 text-right">
-                      <RowActions label={`licencia ${license.license_number}`} actions={rowActions(license)} />
+                    <td className="px-1 py-1.5">
+                      <span className="flex items-center justify-end gap-1">
+                        {needsRenewal(license) && <RenewLink memberId={license.member_id} memberName={memberNameOf(license)} />}
+                        <RowActions label={`licencia ${license.license_number}`} actions={rowActions(license)} />
+                      </span>
                     </td>
                   </tr>
                 ))}

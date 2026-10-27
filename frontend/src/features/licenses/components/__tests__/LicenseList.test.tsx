@@ -160,4 +160,22 @@ describe('LicenseList', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Quitar filtros' }))
     expect(screen.getAllByText(/Bea Active/).length).toBeGreaterThan(0)
   })
+
+  it('offers Renovar in one tap only on expired and expiring licences', () => {
+    renderList()
+
+    const renew = screen.getAllByRole('link', { name: /^Renovar / })
+    expect(renew.map((link) => link.getAttribute('aria-label'))).toEqual(
+      expect.arrayContaining(['Renovar Carlos Soon', 'Renovar Dora Expired']),
+    )
+    expect(screen.queryByRole('link', { name: 'Renovar Bea Active' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Renovar Dora Expired' })[0]).toHaveAttribute('href', '/payments?renovar=member-3')
+  })
+
+  it('does not offer Renovar to whoever cannot pay', () => {
+    context.canCreate = false
+    renderList()
+
+    expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
+  })
 })

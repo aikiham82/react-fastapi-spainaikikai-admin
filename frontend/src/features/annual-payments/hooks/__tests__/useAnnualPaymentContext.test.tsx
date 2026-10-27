@@ -24,6 +24,7 @@ vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
   useClubsQuery: () => ({ data: clubsList, isLoading: false }),
 }))
 vi.mock('@/features/members/hooks/queries/useMemberQueries', () => ({
+  useMemberQuery: () => ({ data: undefined }),
   useMembersQuery: (filters: { club_id: string }) => {
     if (pendingMembersClubs.has(filters.club_id)) {
       return { data: lastMembers, isLoading: false, isPlaceholderData: true }
