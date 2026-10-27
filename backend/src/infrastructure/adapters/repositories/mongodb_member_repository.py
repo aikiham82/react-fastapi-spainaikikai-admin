@@ -1,7 +1,7 @@
 import re
 """MongoDB Member Repository Adapter."""
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 from bson import ObjectId
 from datetime import datetime
 
@@ -98,6 +98,17 @@ class MongoDBMemberRepository(MemberRepositoryPort):
     async def find_by_email(self, email: str) -> Optional[Member]:
         doc = await self.collection.find_one({"email": email})
         return self._to_domain(doc) if doc else None
+
+    async def count_by_emails(self, emails: List[str]) -> Dict[str, int]:
+        wanted = sorted({e.strip().lower() for e in emails if e and e.strip()})
+        if not wanted:
+            return {}
+        cursor = self.collection.aggregate([
+            {"$project": {"email": {"$toLower": {"$trim": {"input": {"$ifNull": ["$email", ""]}}}}}},
+            {"$match": {"email": {"$in": wanted}}},
+            {"$group": {"_id": "$email", "count": {"$sum": 1}}},
+        ])
+        return {row["_id"]: row["count"] async for row in cursor}
 
     async def find_all_by_email(self, email: str) -> List[Member]:
         documents = await self.collection.find(

@@ -1,7 +1,7 @@
 """Repository port interfaces for Member domain."""
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from src.domain.entities.member import Member, MemberStatus
 
@@ -27,6 +27,11 @@ class MemberRepositoryPort(ABC):
     @abstractmethod
     async def find_by_email(self, email: str) -> Optional[Member]:
         """Find a member by email."""
+        pass
+
+    @abstractmethod
+    async def count_by_emails(self, emails: List[str]) -> Dict[str, int]:
+        """How many members hold each email, lowercased."""
         pass
 
     @abstractmethod

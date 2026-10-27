@@ -27,7 +27,7 @@ import { MemberForm } from './MemberForm';
 import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
 import { MemberPaymentLines } from '@/features/club-payments/components/MemberPaymentLines';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
-import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, InsuranceAttentionBadges, MemberAccessBadge, MemberStatusBadge } from './MemberBadges';
+import { GradeBadge, LicenseStatusBadge, InsuranceStatusBadge, InsuranceAttentionBadges, MemberAccessBadge, MemberStatusBadge, NoOwnEmailBadge } from './MemberBadges';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useMembersWithAccountQuery } from '@/features/users/hooks/queries/useMembersWithAccountQuery';
@@ -324,6 +324,7 @@ export const MemberList = () => {
                 <InsuranceAttentionBadges insuranceSummary={member.insurance_summary} />
                 <MemberStatusBadge status={member.status} />
                 {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
+                <NoOwnEmailBadge hasOwnEmail={member.has_own_email} />
               </div>
             </div>
             <div className="relative z-10 shrink-0">
@@ -360,6 +361,7 @@ export const MemberList = () => {
                     </button>
                     <MemberStatusBadge status={member.status} />
                     {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
+                    <NoOwnEmailBadge hasOwnEmail={member.has_own_email} />
                   </div>
                   <p className="max-w-[12rem] truncate text-muted-foreground xl:max-w-[16rem]">
                     {member.email || member.phone || '-'}
