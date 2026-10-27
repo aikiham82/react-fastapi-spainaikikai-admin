@@ -69,6 +69,7 @@ docs/
 ├── documentation-guidelines.md
 ├── domain/
 │   ├── club-admins-manage-member-access.md
+│   ├── a-club-is-switched-off-only-by-deregistration.md
 │   ├── club-accounts-pass-to-a-person.md
 │   ├── data-model.md
 │   ├── invoice-creation.md
