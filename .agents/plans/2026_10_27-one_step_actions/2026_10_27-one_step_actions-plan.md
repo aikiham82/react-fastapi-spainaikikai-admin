@@ -37,10 +37,10 @@ Every use case in the fewest steps ([`ui-visual-language.md`](../../../docs/conv
 
 ### Phase 2: Responsible in Datos del club
 
-- [ ] `MyClub`: row "Responsable" with the names of the club's members whose `club_role` is admin (user-check icon tile); hidden when none.
-- [ ] Tests: shows one or two responsible names; hidden when no admin member.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MyClub`: row "Responsable" with the names of the club's members whose `club_role` is admin (user-check icon tile); hidden when none.
+- [x] Tests: shows one or two responsible names; hidden when no admin member.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: Renovar from the row
 
@@ -52,6 +52,6 @@ Every use case in the fewest steps ([`ui-visual-language.md`](../../../docs/conv
 
 ## ⏭️ Next step
 
-Implement Phase 2: responsible in Datos del club.
+Implement Phase 3: Renovar from the row.
 
-One switch flipped by 🐢 💨 💡 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Switch flipped, responsible named: 🐢 💨 💡 🥋 (Turbotuga™, [Codely](https://codely.com)'s mascot).

@@ -9,7 +9,7 @@ const fullClub = {
   website: 'https://club.example.com', created_at: '', updated_at: '',
 }
 
-const state = vi.hoisted(() => ({ club: {} as Record<string, unknown> }))
+const state = vi.hoisted(() => ({ club: {} as Record<string, unknown>, members: [] as Record<string, unknown>[] }))
 
 vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -17,6 +17,9 @@ vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
 }))
 vi.mock('../../hooks/queries/useClubQueries', () => ({
   useClubQuery: () => ({ data: state.club, isLoading: false, error: null }),
+}))
+vi.mock('@/features/members/hooks/queries/useMemberQueries', () => ({
+  useMembersQuery: () => ({ data: state.members }),
 }))
 vi.mock('../ClubForm', () => ({
   ClubForm: ({ open, club: c }: { open: boolean; club?: { name: string } }) =>
@@ -26,6 +29,36 @@ vi.mock('../ClubForm', () => ({
 describe('MyClub', () => {
   beforeEach(() => {
     state.club = fullClub
+    state.members = [
+      { id: 'm1', first_name: 'Lucía', last_name: 'Ejemplo', club_role: 'admin' },
+      { id: 'm2', first_name: 'Marcos', last_name: 'Prueba', club_role: 'member' },
+    ]
+  })
+
+  it('names who runs the club', () => {
+    renderWithProviders(<MyClub />)
+
+    expect(screen.getByText('Responsable')).toBeInTheDocument()
+    expect(screen.getByText('Lucía Ejemplo')).toBeInTheDocument()
+    expect(screen.queryByText('Marcos Prueba')).not.toBeInTheDocument()
+  })
+
+  it('names every responsible when the club has two', () => {
+    state.members = [
+      { id: 'm1', first_name: 'Lucía', last_name: 'Ejemplo', club_role: 'admin' },
+      { id: 'm3', first_name: 'Tomás', last_name: 'Prueba', club_role: 'admin' },
+    ]
+    renderWithProviders(<MyClub />)
+
+    expect(screen.getByText('Responsables')).toBeInTheDocument()
+    expect(screen.getByText('Lucía Ejemplo · Tomás Prueba')).toBeInTheDocument()
+  })
+
+  it('leaves out the responsible row when no member runs the club', () => {
+    state.members = [{ id: 'm2', first_name: 'Marcos', last_name: 'Prueba', club_role: 'member' }]
+    renderWithProviders(<MyClub />)
+
+    expect(screen.queryByText(/^Responsable/)).not.toBeInTheDocument()
   })
 
   it('shows Mi club for club admins', async () => {
