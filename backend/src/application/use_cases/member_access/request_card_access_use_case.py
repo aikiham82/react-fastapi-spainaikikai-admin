@@ -4,12 +4,12 @@ import logging
 import secrets
 from typing import Callable
 
-from src.domain.entities.password_reset_token import PasswordResetToken
 from src.domain.entities.user import User
 from src.application.ports.email_service import EmailServicePort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 from src.application.ports.repositories import UserRepositoryPort
+from src.application.use_cases.member_access.set_password_link import issue_set_password_link
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class RequestCardAccessUseCase:
         if "@" not in email:
             return
 
-        holders = [m for m in await self.member_repository.find_all_by_email(email) if not m.is_club_account_placeholder]
+        holders = await self.member_repository.find_all_by_email(email)
         if len(holders) != 1 or not holders[0].is_active:
             logger.info("Card access not granted: the email matches %d members", len(holders))
             return
@@ -63,8 +63,7 @@ class RequestCardAccessUseCase:
             hashed_password=self.hash_password(secrets.token_urlsafe(32)),
             member_id=member.id,
         ))
-        token = await self.token_repository.create(PasswordResetToken(user_id=user.id, email=user.email))
-        url = f"{self.frontend_base_url}/reset-password?token={token.token}"
+        _, url = await issue_set_password_link(user, self.token_repository, self.frontend_base_url)
 
         try:
             await self.email_service.send_card_activation_email(

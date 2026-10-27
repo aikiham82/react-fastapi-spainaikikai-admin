@@ -18,7 +18,7 @@ def a_login(email="ana@example.com", member_id="other") -> User:
 
 def setup(members, logins=()):
     member_repo = MagicMock()
-    member_repo.find_all_by_email = AsyncMock(side_effect=lambda email: [m for m in members if m.email.lower() == email])
+    member_repo.find_all_by_email = AsyncMock(side_effect=lambda email: [m for m in members if m.email.lower() == email and not m.is_club_account_placeholder])
     user_repo = MagicMock()
     user_repo.find_by_email = AsyncMock(side_effect=lambda email: next((u for u in logins if u.email == email), None))
     user_repo.find_by_username_loose = AsyncMock(side_effect=lambda name: [u for u in logins if u.username.lower() == name])

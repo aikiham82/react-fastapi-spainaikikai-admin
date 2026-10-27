@@ -104,7 +104,7 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         if not wanted:
             return {}
         cursor = self.collection.aggregate([
-            {"$match": {"email": {"$nin": [None, ""]}, "last_name": {"$ne": CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME}}},
+            {"$match": {"email": {"$nin": [None, ""]}, "$expr": {"$ne": [{"$trim": {"input": {"$ifNull": ["$last_name", ""]}}}, CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME]}}},
             {"$project": {"email": {"$toLower": {"$trim": {"input": {"$ifNull": ["$email", ""]}}}}}},
             {"$match": {"email": {"$in": wanted}}},
             {"$group": {"_id": "$email", "count": {"$sum": 1}}},
@@ -115,7 +115,8 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         documents = await self.collection.find(
             {"email": {"$regex": rf"^\s*{re.escape(email.strip())}\s*$", "$options": "i"}}
         ).to_list(length=None)
-        return [self._to_domain(doc) for doc in documents]
+        members = [self._to_domain(doc) for doc in documents]
+        return [m for m in members if not m.is_club_account_placeholder]
 
     async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({"club_id": club_id})

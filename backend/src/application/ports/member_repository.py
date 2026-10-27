@@ -36,7 +36,7 @@ class MemberRepositoryPort(ABC):
 
     @abstractmethod
     async def find_all_by_email(self, email: str) -> List[Member]:
-        """Every member whose file holds this email, case-insensitively."""
+        """Every member, club placeholders left out, whose file holds this email, case-insensitively."""
         pass
 
     @abstractmethod
