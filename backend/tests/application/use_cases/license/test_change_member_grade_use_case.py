@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from src.application.use_cases.license.change_member_grade_use_case import ChangeMemberGradeUseCase
-from src.domain.entities.license import InstructorCategory, License, TechnicalGrade
+from src.domain.entities.license import InstructorCategory, License, LicenseStatus, TechnicalGrade
 from src.domain.exceptions.base import ValidationError
 from src.domain.exceptions.license import LicenseNotFoundError
 
@@ -78,6 +78,31 @@ async def test_the_licence_that_expires_last_is_the_current_one():
     changed = await change(repository_with(old, current), 4)
 
     assert (changed.id, old.grade) == ("lic-current", "6º Kyu")
+
+
+async def test_without_expiry_the_latest_created_licence_is_the_current_one():
+    older = licence("6º Kyu", id="lic-older", expiration_date=None, created_at=datetime(2024, 1, 1))
+    newer = licence("5º Kyu", id="lic-newer", expiration_date=None, created_at=datetime(2025, 1, 1))
+
+    changed = await change(repository_with(older, newer), 4)
+
+    assert changed.id == "lic-newer"
+
+
+async def test_the_change_is_stamped_on_the_licence():
+    changed = await change(repository_with(licence("6º Kyu", updated_at=datetime(2024, 1, 1))), 4)
+
+    assert changed.updated_at > datetime(2024, 1, 1)
+
+
+@pytest.mark.parametrize("status", [LicenseStatus.EXPIRED, LicenseStatus.REVOKED])
+async def test_a_licence_that_is_history_is_never_rewritten(status):
+    repository = repository_with(licence("6º Kyu", status=status))
+
+    with pytest.raises(LicenseNotFoundError):
+        await change(repository, 4)
+
+    repository.update.assert_not_called()
 
 
 async def test_a_member_without_licence_cannot_change_grade():

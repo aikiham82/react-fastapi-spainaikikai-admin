@@ -17,7 +17,7 @@ interface MemberContextType {
   updateMember: (id: string, data: UpdateMemberRequest, onSaved?: () => void) => void;
   deleteMember: (id: string) => void;
   changeMemberStatus: (id: string, status: 'active' | 'inactive') => void;
-  changeMemberGrade: (id: string, gradeNumber: number) => void;
+  changeMemberGrade: (id: string, gradeNumber: number, onSaved?: () => void) => void;
   selectMember: (member: Member | null) => void;
   setFilters: Dispatch<SetStateAction<MemberFilters>>;
   setPagination: (offset: number, limit: number) => void;
@@ -56,8 +56,8 @@ export const MemberProvider: React.FC<MemberProviderProps> = ({ children, initia
     changeStatusMutation.mutate({ id, data: { status } });
   }, [changeStatusMutation]);
 
-  const handleChangeMemberGrade = useCallback((id: string, gradeNumber: number) => {
-    changeGradeMutation.mutate({ id, gradeNumber });
+  const handleChangeMemberGrade = useCallback((id: string, gradeNumber: number, onSaved?: () => void) => {
+    changeGradeMutation.mutate({ id, gradeNumber }, { onSuccess: onSaved });
   }, [changeGradeMutation]);
 
   const handleSetPagination = useCallback((offset: number, limit: number) => {

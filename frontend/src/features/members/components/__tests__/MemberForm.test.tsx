@@ -11,7 +11,11 @@ const { updateMember, createMember, changeMemberGrade, clubs } = vi.hoisted(() =
   clubs: [{ id: 'club-1', name: 'Example Club' }],
 }))
 
-const authState = vi.hoisted(() => ({ userRole: 'super_admin', clubId: 'club-1' as string | null }))
+const authState = vi.hoisted(() => ({
+  userRole: 'super_admin',
+  clubId: 'club-1' as string | null,
+  currentUser: null as { member_id?: string } | null,
+}))
 
 vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
@@ -163,11 +167,12 @@ describe('MemberForm grade', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     authState.userRole = 'club_admin'
+    authState.currentUser = null
   })
 
-  const licensed = (grade: string, technical_grade: 'kyu' | 'dan') =>
+  const licensed = (grade: string, technical_grade: 'kyu' | 'dan', status = 'active') =>
     renderEditing({
-      license_summary: { grade, technical_grade, instructor_category: 'none', status: 'active', expiration_date: null },
+      license_summary: { grade, technical_grade, instructor_category: 'none', status, expiration_date: null },
     })
 
   const openGrades = async () => {
@@ -194,7 +199,25 @@ describe('MemberForm grade', () => {
     await userEvent.click(screen.getByRole('option', { name: '4.º Kyu' }))
     await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
-    expect(changeMemberGrade).toHaveBeenCalledWith('member-1', 4)
+    expect(changeMemberGrade).toHaveBeenCalledWith('member-1', 4, expect.any(Function))
+  })
+
+  it('saves the other fields only once the grade is saved, so a refused grade keeps the dialog open', async () => {
+    licensed('5º Kyu', 'kyu')
+
+    await openGrades()
+    await userEvent.click(screen.getByRole('option', { name: '4.º Kyu' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(updateMember).not.toHaveBeenCalled()
+    changeMemberGrade.mock.calls[0][2]()
+    expect(updateMember).toHaveBeenCalledWith('member-1', expect.any(Object), expect.any(Function))
+  })
+
+  it('cannot change the grade on a licence that is no longer in force', () => {
+    licensed('5º Kyu', 'kyu', 'expired')
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
   })
 
   it('does not change the grade when it is left alone', async () => {
@@ -209,6 +232,22 @@ describe('MemberForm grade', () => {
     renderEditing()
 
     expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
-    expect(screen.getByText('Este socio aún no tiene licencia.')).toBeInTheDocument()
+    expect(screen.getByText('Este socio aún no tiene licencia en vigor.')).toBeInTheDocument()
+  })
+
+  it('a club admin cannot change their own grade', () => {
+    authState.currentUser = { member_id: 'member-1' }
+    licensed('5º Kyu', 'kyu')
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
+  })
+
+  it('cannot change the grade of a deregistered member', () => {
+    renderEditing({
+      status: 'inactive',
+      license_summary: { grade: '5º Kyu', technical_grade: 'kyu', instructor_category: 'none', status: 'active', expiration_date: null },
+    })
+
+    expect(screen.getByRole('combobox', { name: 'Grado' })).toBeDisabled()
   })
 })

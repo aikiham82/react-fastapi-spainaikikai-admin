@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime, date
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 
 
@@ -136,6 +136,7 @@ class License:
         if not new_grade or not new_grade.strip():
             raise ValueError("Grade cannot be empty")
         self.grade = new_grade
+        self.updated_at = datetime.now()
 
     def get_price_key(self) -> str:
         """Generate the price configuration key based on license categories.
@@ -174,3 +175,13 @@ class License:
         """
         self.last_payment_id = payment_id
         self.updated_at = datetime.now()
+
+
+def grade_licence_among(licences: List[License]) -> Optional[License]:
+    """The licence that carries a member's grade: one holding a grade over a title, then the latest."""
+    if not licences:
+        return None
+    return max(licences, key=lambda l: (
+        not l.holds_only_a_title(),
+        l.expiration_date or l.created_at or l.issue_date or l.updated_at or datetime.min,
+    ))

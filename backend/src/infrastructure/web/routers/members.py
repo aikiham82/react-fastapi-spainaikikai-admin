@@ -1,14 +1,14 @@
 """Member routes."""
 
 from collections import defaultdict
-from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
-from src.domain.entities.license import License
+from src.domain.entities.license import License, grade_licence_among
 from src.domain.entities.insurance import Insurance
-from src.domain.entities.member import ClubRole
+from src.domain.entities.member import ClubRole, MemberStatus
+from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import LastClubAdminError, InactiveMemberError
 from src.domain.exceptions.user import (
     AccessChangeNotAllowedError,
@@ -73,14 +73,8 @@ TITLE_RANK = {"none": 0, "fukushidoin": 1, "shidoin": 2}
 
 
 def _pick_primary_license(licenses: List[License]) -> Optional[License]:
-    """Select the grade license: prefer active, then one holding a grade over a title, then latest expiry."""
-    if not licenses:
-        return None
-    active = [l for l in licenses if l.status.value == "active"] or licenses
-    return max(active, key=lambda l: (
-        not l.holds_only_a_title(),
-        l.expiration_date or l.created_at or l.issue_date or l.updated_at or datetime.min,
-    ))
+    """Select the grade license, preferring active ones."""
+    return grade_licence_among([l for l in licenses if l.status.value == "active"] or licenses)
 
 
 def _build_license_summary(licenses: List[License]) -> Optional[LicenseSummary]:
@@ -451,7 +445,14 @@ async def change_member_grade(
 ):
     """Change the kyu or dan number of a member of the caller's club."""
     member = await _load_member_in_callers_club(ctx, member_id, get_member_use_case_instance)
-    await change_grade_use_case.execute(member_id, request.grade_number)
+    if not ctx.is_super_admin and member.id == ctx.member_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tu grado lo cambia la federación")
+    if not ctx.is_super_admin and member.status == MemberStatus.INACTIVE:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El grado de un socio de baja no se cambia")
+    try:
+        await change_grade_use_case.execute(member.id, request.grade_number)
+    except LicenseNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Este socio aún no tiene licencia en vigor")
 
     audit("member.grade_changed", member_id=member_id, club_id=member.club_id, grade_number=request.grade_number, by=ctx.user.id)
     response = MemberMapper.to_response_dto(member)

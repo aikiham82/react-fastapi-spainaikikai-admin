@@ -1,6 +1,6 @@
 """Member DTOs for request/response validation."""
 
-from pydantic import AfterValidator, BaseModel, EmailStr, Field, field_validator
+from pydantic import StrictInt, AfterValidator, BaseModel, EmailStr, Field, field_validator
 from typing import Annotated, List, Literal, Optional
 from datetime import datetime, timedelta
 
@@ -135,7 +135,7 @@ class GrantMemberAccessDTO(BaseModel):
 
 class ChangeGradeDTO(BaseModel):
     """The kyu or dan number a member now holds."""
-    grade_number: int
+    grade_number: StrictInt
 
 
 class SetClubRoleDTO(BaseModel):

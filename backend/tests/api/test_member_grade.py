@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from src.application.use_cases.license.change_member_grade_use_case import ChangeMemberGradeUseCase
 from src.app import create_app
 from src.domain.entities.license import License, TechnicalGrade
-from src.domain.entities.member import Member
+from src.domain.entities.member import Member, MemberStatus
 from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_change_member_grade_use_case,
@@ -32,7 +32,7 @@ def licences():
 
 @pytest.fixture
 def client_as(licences):
-    def build(ctx, member_club=OWN_CLUB) -> TestClient:
+    def build(ctx, member_club=OWN_CLUB, member_id="member-ana", member_status=MemberStatus.ACTIVE) -> TestClient:
         licence_repository = AsyncMock()
         licence_repository.find_by_member_id.side_effect = lambda _id: licences
         licence_repository.find_by_member_ids.side_effect = lambda _ids, limit=0: licences
@@ -40,7 +40,7 @@ def client_as(licences):
         insurance_repository = AsyncMock()
         insurance_repository.find_by_member_ids.return_value = []
         get_one = SimpleNamespace(execute=AsyncMock(return_value=Member(
-            id="member-ana", first_name="Ana", last_name="Ejemplo", club_id=member_club
+            id=member_id, first_name="Ana", last_name="Ejemplo", club_id=member_club, status=member_status
         )))
         app = create_app()
         app.dependency_overrides = {
@@ -98,3 +98,27 @@ def test_a_member_without_licence_answers_not_found(client_as, licences):
     response = change_grade(client_as(club_admin()), 4)
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json()["detail"] == "Este socio aún no tiene licencia en vigor"
+
+
+def test_a_club_admin_cannot_change_their_own_grade(client_as, licences):
+    response = client_as(club_admin(), member_id="member-admin").put(
+        "/api/v1/members/member-admin/grade", json={"grade_number": 6}
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert licences[0].grade == "5º Kyu"
+
+
+def test_a_club_admin_cannot_rewrite_the_grade_of_a_deregistered_member(client_as, licences):
+    response = change_grade(client_as(club_admin(), member_status=MemberStatus.INACTIVE), 4)
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert licences[0].grade == "5º Kyu"
+
+
+@pytest.mark.parametrize("grade_number", [True, "2", 2.5])
+def test_only_a_whole_number_is_a_grade(client_as, grade_number):
+    response = change_grade(client_as(club_admin()), grade_number)
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

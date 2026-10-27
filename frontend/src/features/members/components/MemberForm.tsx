@@ -32,8 +32,9 @@ const joinDateOf = (member: Member): string =>
 const GRADE_NUMBERS = { kyu: [1, 2, 3, 4, 5, 6], dan: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
 
 const gradeKindOf = (member?: Member | null): 'kyu' | 'dan' | null => {
-  const kind = member?.license_summary?.technical_grade;
-  return kind === 'kyu' || kind === 'dan' ? kind : null;
+  const summary = member?.license_summary;
+  if (summary?.status !== 'active') return null;
+  return summary.technical_grade === 'kyu' || summary.technical_grade === 'dan' ? summary.technical_grade : null;
 };
 
 const gradeNumberOf = (member?: Member | null): string =>
@@ -48,7 +49,7 @@ interface MemberFormProps {
 export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
   const { createMember, updateMember, changeMemberGrade } = useMemberContext();
   const { clubs } = useClubContext();
-  const { userRole, clubId: ownClubId } = useAuthContext();
+  const { userRole, clubId: ownClubId, currentUser } = useAuthContext();
   const isSuperAdmin = userRole === 'super_admin';
   const isEditing = !!member;
 
@@ -68,6 +69,15 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
   });
 
   const gradeKind = gradeKindOf(member);
+  const gradeLock = !gradeKind
+    ? 'Este socio aún no tiene licencia en vigor.'
+    : isSuperAdmin
+      ? null
+      : member?.status === 'inactive'
+        ? 'El grado de un socio de baja no se cambia.'
+        : member?.id === currentUser?.member_id
+          ? 'Tu grado lo cambia la federación.'
+          : null;
   const [gradeNumber, setGradeNumber] = useState(gradeNumberOf(member));
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateMemberRequest, string>>>({});
@@ -149,10 +159,12 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
     const close = () => onOpenChange(false);
     if (isEditing && member) {
       const { registration_date, ...rest } = formData;
+      const saveMember = () => updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData, close);
       if (gradeNumber && gradeNumber !== gradeNumberOf(member)) {
-        changeMemberGrade(member.id, Number(gradeNumber));
+        changeMemberGrade(member.id, Number(gradeNumber), saveMember);
+      } else {
+        saveMember();
       }
-      updateMember(member.id, registration_date === joinDateOf(member) ? rest : formData, close);
     } else {
       createMember(formData, close);
     }
@@ -221,8 +233,8 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             {isEditing && (
               <div className="space-y-2">
                 <Label htmlFor="grade_number">Grado</Label>
-                <Select value={gradeNumber} onValueChange={setGradeNumber} disabled={!gradeKind}>
-                  <SelectTrigger id="grade_number" className="w-full">
+                <Select value={gradeNumber} onValueChange={setGradeNumber} disabled={!!gradeLock}>
+                  <SelectTrigger id="grade_number" className="w-full text-base sm:text-sm">
                     <SelectValue placeholder={gradeKind ? 'Sin número' : 'Sin licencia'} />
                   </SelectTrigger>
                   <SelectContent>
@@ -234,9 +246,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {gradeKind
-                    ? 'El paso de kyu a dan y los títulos de Shidoin y Fukushidoin los gestiona la federación.'
-                    : 'Este socio aún no tiene licencia.'}
+                  {gradeLock ?? 'El paso a dan y los títulos los gestiona la federación.'}
                 </p>
               </div>
             )}
