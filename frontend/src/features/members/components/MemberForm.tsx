@@ -245,7 +245,7 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {gradeLock ?? 'El paso a dan y los títulos los gestiona la federación.'}
+                  {gradeLock ?? 'El paso a dan y los títulos se cambian al pagar su licencia en «Pagos».'}
                 </p>
               </div>
             )}

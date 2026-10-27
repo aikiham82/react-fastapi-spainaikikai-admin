@@ -2,7 +2,7 @@
 
 ## 💡 Convention
 
-A member's grade lives on their **licence**, not on the member. A club admin changes only the **number** of a member's kyu or dan (5º Kyu → 4º Kyu) through `PUT /members/{id}/grade`. Moving from kyu to dan, the instructor title (Shidoin, Fukushidoin), the age category and the dates stay with the federation (`PUT /licenses/{id}`, super admin only), because they form the licence price key `technical_grade-instructor_category-age_category` and the number does not.
+A member's grade lives on their **licence**, not on the member. A club admin changes only the **number** of a member's kyu or dan (5º Kyu → 4º Kyu) through `PUT /members/{id}/grade`. Moving from kyu to dan and the instructor title (Shidoin, Fukushidoin) change only when the club **pays** that licence in «Pagos» (`generate_licenses_from_payment_use_case.py`); editing them, the age category or the dates by hand stays with the federation (`PUT /licenses/{id}`, super admin only). They form the licence price key `technical_grade-instructor_category-age_category` and the number does not.
 
 A club admin cannot change their own grade or the grade of a deregistered member. Only a licence in force is rewritten.
 
@@ -30,7 +30,7 @@ PUT /api/v1/licenses/{license_id}
 {"technical_grade": "dan", "instructor_category": "shidoin"}
 ```
 
-That changes the price; it stays super admin only.
+That changes the price without paying it; the club pays the Dan or title licence in «Pagos» instead.
 
 ## 🧐 Real world examples
 
