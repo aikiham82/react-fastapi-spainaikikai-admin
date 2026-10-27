@@ -6,8 +6,7 @@ import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueri
 import { ManualPaymentModal } from './ManualPaymentModal';
 import { TransactionsSection } from './TransactionsSection';
 import { ArrowLeft, HeartPulse, IdCard, Plus, type LucideIcon } from 'lucide-react';
-import { Avatar, ProgressRing } from '@/components/ui/graphic';
-import { cn } from '@/lib/utils';
+import { Avatar, ProgressRing, StateTile } from '@/components/ui/graphic';
 import { Button } from '@/components/ui/button';
 import { ListToolbar, EmptyState, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
@@ -33,17 +32,9 @@ interface PaidMarkProps {
 }
 
 const PaidMark = ({ icon: Icon, paid, label }: PaidMarkProps) => (
-  <span
-    role="img"
-    title={label}
-    aria-label={label}
-    className={cn(
-      'grid size-[30px] shrink-0 place-items-center rounded-lg',
-      paid ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger',
-    )}
-  >
+  <StateTile tone={paid ? 'ok' : 'neutral'} label={label}>
     <Icon className="size-4" aria-hidden="true" />
-  </span>
+  </StateTile>
 );
 
 export const ClubPaymentDetail = () => {

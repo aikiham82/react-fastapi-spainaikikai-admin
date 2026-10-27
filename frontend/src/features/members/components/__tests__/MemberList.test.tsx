@@ -137,6 +137,8 @@ describe('MemberList', () => {
     const card = screen.getAllByTestId('member-card')[0]
     expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'bad')
     expect(within(card).getByLabelText('Seguro de responsabilidad civil: al día')).toHaveAttribute('data-tone', 'ok')
+    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro').querySelector('.lucide-circle-x')).not.toBeNull()
+    expect(within(card).getByLabelText('Seguro de responsabilidad civil: al día').querySelector('.lucide-circle-check')).not.toBeNull()
   })
 
   it('marks both tiles ok when both insurances are in order', () => {
