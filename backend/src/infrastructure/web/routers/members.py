@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from src.domain.entities.license import License
 from src.domain.entities.insurance import Insurance
 from src.domain.entities.member import ClubRole
-from src.domain.exceptions.member import LastClubAdminError
+from src.domain.exceptions.member import LastClubAdminError, InactiveMemberError
 from src.domain.exceptions.user import (
     AccessChangeNotAllowedError,
     EmailAlreadyInUseError,
@@ -385,6 +385,8 @@ async def grant_member_access(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este socio ya tiene acceso a la web")
     except AccessChangeNotAllowedError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No puedes dar acceso a esta cuenta")
+    except InactiveMemberError:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Este socio está de baja")
 
     audit("access.granted", member_id=member_id, club_id=member.club_id, club_admin=request.club_admin, by=ctx.user.id)
     return AdminPasswordResetLinkResponseDTO(url=link.url, email=link.email, expires_at=link.expires_at)

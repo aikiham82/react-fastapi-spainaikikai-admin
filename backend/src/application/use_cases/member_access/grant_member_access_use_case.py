@@ -6,7 +6,7 @@ from typing import Callable
 
 from src.domain.entities.password_reset_token import PasswordResetToken
 from src.domain.entities.user import GlobalRole, User
-from src.domain.exceptions.member import MemberNotFoundError
+from src.domain.exceptions.member import InactiveMemberError, MemberNotFoundError
 from src.domain.exceptions.user import AccessChangeNotAllowedError, EmailAlreadyInUseError, UserAlreadyExistsError
 from src.application.ports.email_service import EmailServicePort
 from src.application.ports.member_repository import MemberRepositoryPort
@@ -47,6 +47,8 @@ class GrantMemberAccessUseCase:
         member = await self.member_repository.find_by_id(member_id)
         if not member:
             raise MemberNotFoundError(member_id)
+        if not member.is_active:
+            raise InactiveMemberError("The member is de baja")
 
         linked = await self.user_repository.find_by_member_id(member_id)
         if linked and linked.is_active:

@@ -34,7 +34,6 @@ class ClubUpdate(BaseModel):
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     website: Optional[str] = None
-    is_active: Optional[bool] = None
 
 
 class ClubResponse(ClubBase):
@@ -46,6 +45,12 @@ class ClubResponse(ClubBase):
 
     class Config:
         from_attributes = True
+
+
+class DeregisteredClubResponse(BaseModel):
+    """How many members and logins a deregistration switched off."""
+    members: int
+    accounts: int
 
 
 class TransferClubAccountDTO(BaseModel):

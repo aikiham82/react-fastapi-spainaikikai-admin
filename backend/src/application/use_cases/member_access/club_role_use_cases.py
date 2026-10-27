@@ -4,6 +4,7 @@ from src.domain.entities.member import ClubRole, Member
 from src.domain.entities.user import GlobalRole
 from src.domain.exceptions.member import LastClubAdminError, MemberNotFoundError
 from src.domain.exceptions.user import AccessChangeNotAllowedError, UserNotFoundError
+from src.application.use_cases.member_access.switch_off_login import switch_off_login
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 from src.application.ports.repositories import UserRepositoryPort
@@ -89,9 +90,7 @@ class RevokeMemberAccessUseCase:
 
         await _refuse_removing_the_last_admin(self.member_repository, self.user_repository, member)
 
-        await self.token_repository.invalidate_user_tokens(user.id)
-        user.deactivate()
-        await self.user_repository.update(user)
+        await switch_off_login(user, self.user_repository, self.token_repository)
 
         if member.is_club_admin:
             member.demote_to_member()

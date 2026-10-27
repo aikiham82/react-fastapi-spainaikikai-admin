@@ -46,6 +46,14 @@ describe('ClubAccountsSection', () => {
     expect(screen.getByRole('button', { name: 'Pasar la cuenta a Ana Ejemplo (Shidoin)' })).toBeInTheDocument()
   })
 
+  it('offers to deregister each club', () => {
+    withAccounts([dojo])
+
+    renderWithProviders(<ClubAccountsSection />)
+
+    expect(screen.getByRole('button', { name: 'Dar de baja el club Dojo Ejemplo' })).toBeInTheDocument()
+  })
+
   it('names the fukushidoin when the club has no shidoin', () => {
     withAccounts([{ ...dojo, candidates: [{ member_id: 'm2', name: 'Luis Ejemplo', instructor_category: 'fukushidoin' }] }])
 

@@ -29,7 +29,7 @@ A club account (a user linked to the synthetic `"<Club> (Club Admin)"` member) c
 ## 👀 Context
 
 - Origin: [`backend/scripts/migrate_from_mariadb.py`](../../../backend/scripts/migrate_from_mariadb.py) (~516-552) created one synthetic member per old club login: `last_name="(Club Admin)"`, `club_role=admin`, no licence. The user's `member_id` points to it.
-- Incident 2026-10-26 (Kuki Aikikai): the card app showed "Sin licencia vigente" to a shidoin entering with the club account. Fixed by hand in production by relinking the user to his own member.
+- Incident 2026-10-26 (one club): the card app showed "Sin licencia vigente" to a shidoin entering with the club account. Fixed by hand in production by relinking the user to his own member.
 - Login and `/users/me`: [`routers/users.py`](../../../backend/src/infrastructure/web/routers/users.py) (`/auth/login` 109-158, `/users/me` 161-169), DTO [`user_dto.py`](../../../backend/src/infrastructure/web/dto/user_dto.py) (`UserMeResponse` 58-61). Club rights come from `AuthContext` ([`authorization.py`](../../../backend/src/infrastructure/web/authorization.py)) through `user.member_id`.
 - Member access features: [`member_access/`](../../../backend/src/application/use_cases/member_access/) (grant, club role, revoke). No operation relinks a user to another member today.
 - Mobile: login [`mobile/app/login.tsx`](../../../mobile/app/login.tsx), mutation [`useLoginMutation.ts`](../../../mobile/src/features/auth/hooks/mutations/useLoginMutation.ts), session [`useAuth.ts`](../../../mobile/src/features/auth/hooks/useAuth.ts) (restored from storage, `/users/me` not re-checked), [`AdminWebNotice.tsx`](../../../mobile/src/features/auth/components/AdminWebNotice.tsx), URLs [`web-urls.ts`](../../../mobile/src/core/web-urls.ts). The mobile app has no test runner: verification is `npx tsc --noEmit`.
@@ -47,10 +47,10 @@ A club account (a user linked to the synthetic `"<Club> (Club Admin)"` member) c
 | Club with neither | 12 | no candidate, transfer from the member card |
 | Club with no members at all | 3 | no candidate |
 | Chosen person already has an active account of their own | 0 of the single-shidoin clubs | 409, nothing changed |
-| Club account linked to a real person already (Kuki, Musubi Murcia, Muzen, Senkikai) | 4+ | not a club account: enters the app, not listed |
-| Login by username (e.g. "ONUBA AIKIKAI") as well as by email | both exist | unchanged after transfer |
+| Club account linked to a real person already | 4+ | not a club account: enters the app, not listed |
+| Login by username (e.g. "DOJO EJEMPLO") as well as by email | both exist | unchanged after transfer |
 
-Sentry (since 2026-10-25) shows two placeholder accounts signing in (Onuba Aikikai, Dojo Heijoshin). Sentry does not tell app from panel; it does not matter, since the transfer keeps the credentials.
+Sentry (since 2026-10-25) shows two placeholder accounts signing in. Sentry does not tell app from panel; it does not matter, since the transfer keeps the credentials.
 
 ## 🪜 Phases
 

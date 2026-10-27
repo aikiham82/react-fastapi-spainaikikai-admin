@@ -8,6 +8,7 @@ const { deleteClub, clubs } = vi.hoisted(() => ({
   clubs: [
     { id: 'c1', name: 'Club Ejemplo', address: 'Calle Mayor 1', city: 'Madrid', province: 'Madrid', postal_code: '28001', country: 'España', phone: '', email: 'a@example.com' },
     { id: 'c2', name: 'Club Vacío', address: '', city: '', province: '', postal_code: '', country: '', phone: '', email: '', member_count: 12 },
+    { id: 'c3', name: 'Club Cerrado', address: '', city: '', province: '', postal_code: '', country: '', phone: '', email: '', is_active: false },
   ],
 }))
 
@@ -15,12 +16,37 @@ vi.mock('../../hooks/useClubContext', () => ({
   useClubContext: () => ({ clubs, isLoading: false, error: null, deleteClub, createClub: vi.fn(), updateClub: vi.fn() }),
 }))
 
+const { isSuperAdmin } = vi.hoisted(() => ({ isSuperAdmin: { value: true } }))
+
 vi.mock('@/core/hooks/usePermissions', () => ({
-  usePermissions: () => ({ canAccess: () => true }),
+  usePermissions: () => ({ canAccess: () => true, isAssociationAdmin: () => isSuperAdmin.value }),
 }))
 
 describe('ClubList', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    isSuperAdmin.value = true
+  })
+
+  it('offers a super admin to deregister an active club', () => {
+    renderWithProviders(<ClubList />)
+
+    expect(screen.getByRole('button', { name: 'Dar de baja Club Ejemplo' })).toBeInTheDocument()
+  })
+
+  it('marks a deregistered club and does not offer to deregister it again', () => {
+    renderWithProviders(<ClubList />)
+
+    expect(screen.getByText('De baja')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Dar de baja Club Cerrado' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer a club admin to deregister a club', () => {
+    isSuperAdmin.value = false
+    renderWithProviders(<ClubList />)
+
+    expect(screen.queryByRole('button', { name: 'Dar de baja Club Ejemplo' })).not.toBeInTheDocument()
+  })
 
   it('opens the edit dialog from the row and offers Eliminar inside it', async () => {
     renderWithProviders(<ClubList />)
