@@ -64,7 +64,8 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
           placeholder="correo@ejemplo.com"
         />
       </div>
-      <Button type="button" variant="outline" disabled={isPending} onClick={giveAccess}>
+      <p className="text-xs text-muted-foreground">Podrá entrar al panel y gestionar pagos, altas y consultas del club.</p>
+      <Button type="button" variant="outline" className="min-h-11" disabled={isPending} onClick={giveAccess}>
         {isPending ? 'Haciendo responsable...' : 'Hacer responsable del club'}
       </Button>
     </div>

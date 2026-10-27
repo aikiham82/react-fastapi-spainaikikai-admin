@@ -109,7 +109,7 @@ export const MemberAccessAccount = ({
       className="space-y-3"
     >
       <h3 id="access-account-heading" className="text-sm font-medium">
-        Acceso a la web
+        Cuenta de acceso
       </h3>
 
       {isLoading && (

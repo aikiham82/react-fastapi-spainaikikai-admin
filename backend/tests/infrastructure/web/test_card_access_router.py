@@ -10,7 +10,7 @@ from src.infrastructure.web.routers.users import router
 
 pytestmark = [pytest.mark.unit, pytest.mark.api, pytest.mark.auth]
 
-MESSAGE = "Si tu correo está en la ficha de un socio, te llegará un enlace para activar tu carné."
+MESSAGE = "Si tu correo está en tu ficha de miembro, te llegará un enlace para activar tu carné."
 
 
 def client_with(use_case) -> TestClient:

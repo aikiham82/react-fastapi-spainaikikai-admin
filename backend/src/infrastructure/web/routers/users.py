@@ -164,7 +164,7 @@ async def login(
     return Token(access_token=access_token)
 
 
-CARD_ACCESS_ANSWER = "Si tu correo está en la ficha de un socio, te llegará un enlace para activar tu carné."
+CARD_ACCESS_ANSWER = "Si tu correo está en tu ficha de miembro, te llegará un enlace para activar tu carné."
 
 
 class CardAccessRequest(BaseModel):

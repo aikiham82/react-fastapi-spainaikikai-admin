@@ -27,15 +27,22 @@ export default function ActivateCardScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Activa tu carné</Text>
-          <Text style={styles.body}>
-            Escribe el correo que tiene tu club en tu ficha. Te enviaremos un enlace para poner tu contraseña y
-            después podrás entrar aquí y ver tu carné.
-          </Text>
-
           {request.isSuccess ? (
-            <Text style={styles.done}>{request.data}</Text>
+            <>
+              <Text style={styles.done}>{request.data}</Text>
+              <Text style={styles.body}>
+                Lo hemos pedido para {email.trim()}. Si no te llega en unos minutos, mira en spam.
+              </Text>
+              <TouchableOpacity style={styles.link} accessibilityRole="button" onPress={() => request.reset()}>
+                <Text style={styles.linkText}>Probar con otro correo</Text>
+              </TouchableOpacity>
+            </>
           ) : (
             <>
+              <Text style={styles.body}>
+                Escribe el correo que tiene tu club en tu ficha. Te enviaremos un enlace para poner tu contraseña y
+                después podrás entrar aquí y ver tu carné.
+              </Text>
               <Input
                 label="Correo"
                 placeholder="tu@email.com"
@@ -57,8 +64,12 @@ export default function ActivateCardScreen() {
             Si tu ficha no tiene correo, o lo compartes con otra persona, pide a tu club que te ponga el tuyo.
           </Text>
 
-          <TouchableOpacity style={styles.back} accessibilityRole="link" onPress={() => (router.canGoBack() ? router.back() : router.replace("/login"))}>
-            <Text style={styles.backText}>Volver a entrar</Text>
+          <TouchableOpacity
+            style={styles.link}
+            accessibilityRole="link"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace("/login"))}
+          >
+            <Text style={styles.linkText}>Volver a entrar</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -86,7 +97,7 @@ const styles = StyleSheet.create({
   },
   failed: { fontFamily: fonts.body, fontSize: 14, color: colors.expired, marginBottom: spacing.sm },
   button: { marginTop: spacing.sm },
-  hint: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.textMuted, marginTop: spacing.lg },
-  back: { alignItems: "center", marginTop: spacing.lg, padding: spacing.sm },
-  backText: { fontFamily: fonts.body, fontSize: 14, color: colors.textMuted },
+  hint: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.primary, marginTop: spacing.lg },
+  link: { alignItems: "center", justifyContent: "center", minHeight: 44, marginTop: spacing.md },
+  linkText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.accent },
 });

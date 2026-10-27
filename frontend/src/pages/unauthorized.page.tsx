@@ -15,8 +15,8 @@ export default function UnauthorizedPage() {
   return (
     <AuthLayout>
       <div className="flex flex-col gap-6">
-        <AuthHeading title="No tienes permiso para ver esta página">
-          Tu cuenta todavía no tiene acceso a la gestión. Pide acceso a tu club o a la Federación.
+        <AuthHeading title="El panel es para los responsables de club">
+          Tu carné está en la app Spain Aikikai: entra en ella con tu correo y tu contraseña.
         </AuthHeading>
         {isAuthenticated ? (
           <Button size="lg" className="w-full" onClick={signOut}>

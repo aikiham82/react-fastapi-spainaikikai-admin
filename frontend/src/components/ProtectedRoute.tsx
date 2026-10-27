@@ -2,7 +2,6 @@ import { Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import type { UserRole } from '@/features/auth/data/auth.schema';
-import { Button } from '@/components/ui/button';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -15,7 +14,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles,
   fallback,
 }) => {
-  const { isAuthenticated, userRole, isLoading, logout, currentUser } = useAuthContext();
+  const { isAuthenticated, userRole, isLoading } = useAuthContext();
   const location = useLocation();
 
   if (isLoading) {
@@ -28,17 +27,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (currentUser && !userRole) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="max-w-sm space-y-4 text-center">
-          <p className="text-foreground">El panel es para los responsables de club. Tu carné está en la app.</p>
-          <Button onClick={logout}>Salir</Button>
-        </div>
-      </div>
-    );
   }
 
   if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {

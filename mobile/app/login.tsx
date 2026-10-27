@@ -252,12 +252,14 @@ const styles = StyleSheet.create({
   },
   forgotLink: {
     alignItems: "center",
+    justifyContent: "center",
     marginTop: spacing.lg,
-    padding: spacing.sm,
+    minHeight: 44,
   },
   activateLink: {
     alignItems: "center",
-    padding: spacing.sm,
+    justifyContent: "center",
+    minHeight: 44,
   },
   activateText: {
     fontFamily: fonts.bodyMedium,
