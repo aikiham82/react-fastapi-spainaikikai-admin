@@ -14,6 +14,16 @@ Only Android is published. A phone downloads the update when it opens the app an
 
 **A change that adds native code (a new Expo module or config plugin) never ships over the air.** The runtime follows the app version (`runtimeVersion.policy: appVersion`), so bump `expo.version` in `mobile/app.json` and ship a new EAS build; OTA updates then reach only the builds of that version. Runtime `1.0.0` is build 11 and earlier; `1.1.0` (Clerk Google sign-in) starts with the next build. Publishing native-dependent JavaScript to an older runtime crashes those phones on start.
 
+A new build, from a detached worktree like the update:
+
+1. Copy `mobile/credentials.json` and `mobile/keystore.jks` (ignored by git) into the worktree's `mobile/`; the production profile signs with local credentials.
+2. `npx eas-cli build --platform android --profile production --non-interactive --no-wait`. It bumps `android.versionCode` in the worktree only: commit the same bump on `main`.
+3. `npx eas-cli submit --platform android --profile store --id <build id> --non-interactive` uploads it to Play's **production** track as a draft. In Play Console add the release notes, save, and send the change for review from *Resumen de publicación*.
+
+EAS installs with npm 10, which turns an optional peer of `@clerk/shared` into a second React and aborts `npm ci`; `mobile/.npmrc` sets `legacy-peer-deps=true` so it installs what the lockfile says. Check a dependency change with `npx npm@10.8.2 ci --dry-run` before building.
+
+Store screenshots come from the Expo web app at `405x720` with scale 3 (1215x2160, the exact 9:16 Play requires) against a seeded QA database, with an invented member (`00000000T`), never a real one.
+
 ## 🏆 Benefits
 
 - 2026-10-27: while publishing, the main checkout had been switched to another session's branch; publishing from it would have shipped that branch. A worktree of `origin/main` ships exactly what was pushed.
