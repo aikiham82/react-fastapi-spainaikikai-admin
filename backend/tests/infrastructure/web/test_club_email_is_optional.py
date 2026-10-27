@@ -59,3 +59,12 @@ def test_club_contact_texts_are_bounded():
         ClubUpdate(email="a" * 255)
     with pytest.raises(ValidationError):
         ClubUpdate(website="https://" + "a" * 2050)
+
+
+def test_the_club_website_survives_a_round_trip_through_mongo():
+    from src.infrastructure.adapters.repositories.mongodb_club_repository import MongoDBClubRepository
+
+    repository = MongoDBClubRepository.__new__(MongoDBClubRepository)
+    club = Club(id="6ae05c702de9484ca65db933", name="Dojo Ejemplo", website="https://dojo.example.com")
+
+    assert repository._to_domain(repository._to_document(club)).website == "https://dojo.example.com"
