@@ -137,8 +137,9 @@ class MongoDBMemberRepository(MemberRepositoryPort):
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def search_by_name(self, name: str, limit: int = 0) -> List[Member]:
+    async def search_by_name(self, name: str, limit: int = 0, club_id: Optional[str] = None) -> List[Member]:
         cursor = self.collection.find({
+            **({"club_id": club_id} if club_id else {}),
             "$or": [
                 {"first_name": {"$regex": re.escape(name), "$options": "i"}},
                 {"last_name": {"$regex": re.escape(name), "$options": "i"}}

@@ -54,3 +54,12 @@ class TestMongoDBMemberRepositorySearchByName:
         query = repository.collection.find.call_args.args[0]
         escaped = {"$regex": re.escape("García (Jr"), "$options": "i"}
         assert query["$or"] == [{"first_name": escaped}, {"last_name": escaped}]
+        assert "club_id" not in query
+
+    @pytest.mark.asyncio
+    async def test_search_by_name_filters_by_club_id_when_given(self, repository):
+        await repository.search_by_name("ana", 20, club_id="club-own")
+
+        query = repository.collection.find.call_args.args[0]
+        assert query["club_id"] == "club-own"
+        repository.collection.find.return_value.limit.assert_called_once_with(20)
