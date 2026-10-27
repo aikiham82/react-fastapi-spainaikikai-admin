@@ -122,7 +122,7 @@ export const CoverImageDropZone = ({ seminarId, currentImageUrl }: CoverImageDro
               type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 transition-colors disabled:opacity-60"
+              className="absolute top-2 right-2 flex size-8 pointer-coarse:size-11 items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 transition-colors disabled:opacity-60"
               aria-label="Eliminar imagen de portada"
             >
               {isDeleting ? (

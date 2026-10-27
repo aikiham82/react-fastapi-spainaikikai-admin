@@ -49,12 +49,12 @@ Pendientes, Historial and Inicio name the same season, today "Temporada 2026-27"
 
 ### Phase 3: Touch targets
 
-- [ ] RowActions menu items, inline `TextButton` and the cover remove button reach 44px with `pointer-coarse:`; tests assert the class on each primitive.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] RowActions menu items, inline `TextButton` and the cover remove button reach 44px with `pointer-coarse:`; tests assert the class on each primitive.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 3: touch targets.
+All phases implemented. Next: code review, simplify and QA.
 
-One season, counted once: 🐢 💨 🥋 📅 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Every thumb lands, every season matches: 🐢 💨 🥋 📅 👍 (Turbotuga™, [Codely](https://codely.com)'s mascot).

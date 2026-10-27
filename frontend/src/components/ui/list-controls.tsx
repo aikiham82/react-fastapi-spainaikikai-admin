@@ -199,7 +199,7 @@ export function RowActions({ label, actions }: RowActionsProps) {
           <DropdownMenuItem
             key={action.label}
             onSelect={action.onSelect}
-            className={cn('min-h-10 text-[15px]', action.destructive && 'text-danger focus:text-danger')}
+            className={cn('min-h-10 text-[15px] pointer-coarse:min-h-11', action.destructive && 'text-danger focus:text-danger')}
           >
             {action.label}
           </DropdownMenuItem>
