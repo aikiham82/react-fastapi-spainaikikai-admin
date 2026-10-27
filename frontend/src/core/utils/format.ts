@@ -32,6 +32,25 @@ const parse = (value: string): Date => {
     : new Date(value)
 }
 
+const HAS_OFFSET = /(Z|[+-]\d{2}:?\d{2})$/i
+const EXTRA_FRACTION = /(\.\d{3})\d+/
+
+export const parseUtcDateTime = (value: string | null | undefined): Date | null => {
+  if (!value) return null
+  const date = DATE_ONLY.test(value) || HAS_OFFSET.test(value)
+    ? parse(value)
+    : new Date(`${value.replace(EXTRA_FRACTION, '$1')}Z`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const pad = (value: number): string => String(value).padStart(2, '0')
+
+export const toDateTimeLocalInput = (value: string | null | undefined): string => {
+  const date = parseUtcDateTime(value)
+  if (!date) return ''
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 const toValidDate = (value: DateInput): Date | null => {
   if (!value) return null
   const date = value instanceof Date ? value : parse(value)

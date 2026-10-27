@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { formatCurrency, formatDateTime } from '@/core/utils/format';
+import { formatCurrency, formatDateTime, parseUtcDateTime } from '@/core/utils/format';
 import type { Seminar } from '../data/schemas/seminar.schema';
 import { OfficialBadge } from './OfficialBadge';
 import { STATUS_LABELS, STATUS_TONES, displayStatus } from '../utils/seminarStatus';
@@ -56,8 +56,8 @@ export const SeminarDetailDialog = ({
                 <StatusBadge tone={STATUS_TONES[displayStatus(seminar)]}>{STATUS_LABELS[displayStatus(seminar)]}</StatusBadge>
               </DetailField>
               <DetailField label="Inscritos">{registered}</DetailField>
-              <DetailField label="Empieza">{formatDateTime(seminar.start_date)}</DetailField>
-              <DetailField label="Termina">{formatDateTime(seminar.end_date)}</DetailField>
+              <DetailField label="Empieza">{formatDateTime(parseUtcDateTime(seminar.start_date))}</DetailField>
+              <DetailField label="Termina">{formatDateTime(parseUtcDateTime(seminar.end_date))}</DetailField>
               <DetailField label="Lugar">{seminar.venue || '-'}</DetailField>
               <DetailField label="Ciudad">{[seminar.city, seminar.province].filter(Boolean).join(', ') || '-'}</DetailField>
               {seminar.address && <DetailField label="Dirección">{seminar.address}</DetailField>}

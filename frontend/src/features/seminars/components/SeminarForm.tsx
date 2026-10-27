@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CoverImageDropZone } from './CoverImageDropZone';
+import { toDateTimeLocalInput } from '@/core/utils/format';
 
 interface SeminarFormProps {
   open: boolean;
@@ -55,8 +56,8 @@ export const SeminarForm = ({ open, onOpenChange, seminar }: SeminarFormProps) =
         address: seminar.address || '',
         city: seminar.city || '',
         province: seminar.province || '',
-        start_date: seminar.start_date ? seminar.start_date.slice(0, 16) : '',
-        end_date: seminar.end_date ? seminar.end_date.slice(0, 16) : '',
+        start_date: toDateTimeLocalInput(seminar.start_date),
+        end_date: toDateTimeLocalInput(seminar.end_date),
         max_participants: seminar.max_participants,
         price: seminar.price || 0,
       });

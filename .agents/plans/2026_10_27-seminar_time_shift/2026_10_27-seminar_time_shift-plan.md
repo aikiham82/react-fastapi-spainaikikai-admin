@@ -3,6 +3,15 @@ name: "2026_10_27-seminar_time_shift"
 description: "Stop seminar times from moving one or two hours earlier on display and on every save."
 created_at: "2026-10-27T08:00:00Z"
 
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-27T08:40:00Z"
+has_completed_all_phases: true
+
 created_by:
   tool: "Claude Code"
   model:
@@ -48,18 +57,18 @@ Production data (read-only, 10 seminars) is stored correctly as UTC. No data or 
 
 ### Phase 1: Read API seminar datetimes as UTC
 
-- [ ] `frontend/src/core/utils/format.ts`: `parseUtcDateTime(value)` (naive string with time read as UTC; strings with `Z` or an offset kept; date-only strings stay local calendar dates) and `toDateTimeLocalInput(value)` (UTC instant to the `YYYY-MM-DDTHH:mm` local value a `datetime-local` input needs).
-- [ ] `SeminarForm.tsx`: refill `start_date` and `end_date` with `toDateTimeLocalInput`.
-- [ ] `seminarDates.ts` and the seminar row and detail: parse with `parseUtcDateTime` for past checks, ordering, date block, time label and displayed dates.
-- [ ] Tests (run with `TZ=Europe/Madrid`):
+- [x] `frontend/src/core/utils/format.ts`: `parseUtcDateTime(value)` (naive string with time read as UTC; strings with `Z` or an offset kept; date-only strings stay local calendar dates) and `toDateTimeLocalInput(value)` (UTC instant to the `YYYY-MM-DDTHH:mm` local value a `datetime-local` input needs).
+- [x] `SeminarForm.tsx`: refill `start_date` and `end_date` with `toDateTimeLocalInput`.
+- [x] `seminarDates.ts` and the seminar row and detail: parse with `parseUtcDateTime` for past checks, ordering, date block, time label and displayed dates.
+- [x] Tests (run with `TZ=Europe/Madrid`):
   - `format.test.ts`: `reads a naive API datetime as UTC`, `keeps an explicit offset`, `keeps a date-only string on its calendar day`, `turns a UTC instant into a local datetime-local value` (winter, summer, local midnight).
   - `SeminarForm.test.tsx`: `sends back the same instant when an edited seminar is saved unchanged` (winter and summer).
   - `seminarDates.test.ts`: `shows the local start time of a winter and a summer seminar`, `keeps both ends right across the DST change`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+All phases are complete: code review, simplify and QA before merging.
 
-Time kept on the clock by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Time kept on the clock, whatever the season. ⏰ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
