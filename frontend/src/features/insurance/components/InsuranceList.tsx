@@ -218,7 +218,7 @@ export const InsuranceList = () => {
         />
       ) : (
         <>
-          <ul className="space-y-3 lg:hidden">
+          <ul className="space-y-3 xl:hidden">
             {visibleInsurance.map((insurance) => {
               const status = insuranceStatus(insurance);
               const actions = rowActions(insurance);
@@ -250,7 +250,7 @@ export const InsuranceList = () => {
                         <span className="text-sm font-semibold tabular-nums text-foreground">{formatCurrency(insurance.coverage_amount)}</span>
                       )}
                     </div>
-                    {renewal && <div onClick={(event) => event.stopPropagation()}>{renewal}</div>}
+                    {renewal && <div className="flex justify-end" onClick={(event) => event.stopPropagation()}>{renewal}</div>}
                   </div>
                   {actions.length > 0 && <RowActions label={insurance.member_name || 'seguro'} actions={actions} />}
                 </li>
@@ -258,7 +258,7 @@ export const InsuranceList = () => {
             })}
           </ul>
 
-          <div className="hidden overflow-hidden rounded-[18px] bg-card shadow-card lg:block">
+          <div className="hidden overflow-hidden rounded-[18px] bg-card shadow-card xl:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">

@@ -51,6 +51,7 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   chooseMemberLicence: (row: ChecklistRow, licence: LicenceItem) => void;
   tickEverythingPending: () => void;
   renewNotice: string | null;
+  renewedMemberId: string | null;
 }
 
 const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>(undefined);
@@ -97,6 +98,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
 
   const renewPendingRef = useRef(Boolean(renewMemberId));
   const [renewNotice, setRenewNotice] = useState<string | null>(null);
+  const [renewedMemberId, setRenewedMemberId] = useState<string | null>(null);
   const { data: renewMember } = useMemberQuery(isClubAdmin ? '' : (renewMemberId ?? ''));
   useEffect(() => {
     if (renewPendingRef.current && renewMember?.club_id && formData.club_id !== renewMember.club_id) {
@@ -179,6 +181,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       setField('include_club_fee', false);
       applyAssignments(renewal);
       setRenewNotice(renewal.length === 0 ? 'Este miembro no tiene nada pendiente de renovar en esta temporada.' : null);
+      setRenewedMemberId(renewal.length > 0 ? renewMemberId : null);
       return;
     }
     setRenewNotice(null);
@@ -278,6 +281,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
     chooseMemberLicence,
     tickEverythingPending,
     renewNotice,
+    renewedMemberId,
   };
 
   return (

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, CircleCheck, Loader2 } from 'lucide-react';
 import { IconTile } from '@/components/ui/graphic';
@@ -42,7 +43,13 @@ export const PendingPayments = () => {
     hasLoadError,
     retryLoad,
     renewNotice,
+    renewedMemberId,
   } = useAnnualPaymentContext();
+
+  useEffect(() => {
+    if (!renewedMemberId) return;
+    document.querySelector(`[data-member-id="${CSS.escape(renewedMemberId)}"]`)?.scrollIntoView?.({ block: 'center' });
+  }, [renewedMemberId]);
 
   if (isLoadingPrices) {
     return (

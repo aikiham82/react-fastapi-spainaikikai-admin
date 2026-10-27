@@ -287,12 +287,12 @@ export const LicenseList = () => {
             <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="w-[30%] px-4 py-3.5 font-semibold">Miembro</th>
+                  <th className="w-[32%] px-4 py-3.5 font-semibold">Miembro</th>
                   <th className="w-[19%] px-3 py-3.5 font-semibold">Grado</th>
                   <th className="hidden w-[12%] px-3 py-3.5 font-semibold xl:table-cell">Emisión</th>
                   <th className="w-[14%] px-3 py-3.5 font-semibold">Caducidad</th>
                   <th className="w-[17%] px-3 py-3.5 font-semibold">Estado</th>
-                  <th className="w-44 px-3 py-3.5"><span className="sr-only">Acciones</span></th>
+                  <th className="w-40 px-3 py-3.5"><span className="sr-only">Acciones</span></th>
                 </tr>
               </thead>
               <tbody>
