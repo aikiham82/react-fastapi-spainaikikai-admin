@@ -31,6 +31,11 @@ export interface CreateClubRequest {
 
 export type UpdateClubRequest = Partial<CreateClubRequest>
 
+export interface DeregisteredClub {
+  members: number;
+  accounts: number;
+}
+
 export interface ClubFilters {
   search?: string;
   city?: string;

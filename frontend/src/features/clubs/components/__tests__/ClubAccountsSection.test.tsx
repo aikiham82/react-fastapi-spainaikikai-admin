@@ -51,7 +51,7 @@ describe('ClubAccountsSection', () => {
 
     renderWithProviders(<ClubAccountsSection />)
 
-    expect(screen.getByRole('button', { name: 'Dar de baja el club' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Dar de baja el club Dojo Ejemplo' })).toBeInTheDocument()
   })
 
   it('names the fukushidoin when the club has no shidoin', () => {

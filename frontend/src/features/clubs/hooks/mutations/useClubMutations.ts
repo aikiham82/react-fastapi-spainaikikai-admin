@@ -59,6 +59,9 @@ export const useDeregisterClubMutation = () => {
       queryClient.invalidateQueries({ queryKey: ['clubs'] });
       queryClient.invalidateQueries({ queryKey: ['club-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+      queryClient.invalidateQueries({ queryKey: ['user-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-by-member'] });
     },
     onError: () => {
       toast.error('No se pudo dar de baja el club');

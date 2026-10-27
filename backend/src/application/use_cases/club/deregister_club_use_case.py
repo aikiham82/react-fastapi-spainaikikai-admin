@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from src.domain.entities.user import GlobalRole
 from src.domain.exceptions.club import ClubNotFoundError
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
@@ -40,17 +41,20 @@ class DeregisterClubUseCase:
             raise ClubNotFoundError(club_id)
 
         accounts = 0
+        switched_off = 0
         for member in members:
             account = await self.user_repository.find_by_member_id(member.id)
-            if account and account.is_active:
+            if account and account.is_active and account.global_role != GlobalRole.SUPER_ADMIN:
                 await self.token_repository.invalidate_user_tokens(account.id)
                 account.deactivate()
                 await self.user_repository.update(account)
                 accounts += 1
-            member.deactivate()
-            await self.member_repository.update(member)
+            if member.is_active:
+                member.deactivate()
+                await self.member_repository.update(member)
+                switched_off += 1
 
         if club:
             club.deactivate()
             await self.club_repository.update(club)
-        return DeregisteredClub(members=len(members), accounts=accounts)
+        return DeregisteredClub(members=switched_off, accounts=accounts)

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from src.domain.entities.club import Club
 from src.domain.entities.member import Member, MemberStatus
-from src.domain.entities.user import User
+from src.domain.entities.user import GlobalRole, User
 from src.domain.exceptions.club import ClubNotFoundError
 from src.application.use_cases.club.deregister_club_use_case import DeregisterClubUseCase
 
@@ -55,6 +55,19 @@ class TestDeregisterClub:
         assert club_login.is_active is False and own_login.is_active is False
         assert {c.args[0] for c in tokens.invalidate_user_tokens.await_args_list} == {"user-ph", "user-p1"}
 
+    async def test_keeps_the_super_admin_login_switched_on(self):
+        person = a_member("p1")
+        admin_login = an_account("p1")
+        admin_login.global_role = GlobalRole.SUPER_ADMIN
+        uc, _, _, user_repo, tokens = use_case(a_club(), [person], [admin_login])
+
+        result = await uc.execute("club-1")
+
+        assert result.accounts == 0
+        assert admin_login.is_active is True
+        user_repo.update.assert_not_called()
+        tokens.invalidate_user_tokens.assert_not_called()
+
     async def test_works_on_members_whose_club_record_is_missing(self):
         person = a_member("p1")
         uc, clubs, _, _, _ = use_case(None, [person], [])
@@ -73,6 +86,15 @@ class TestDeregisterClub:
 
         assert (result.members, result.accounts) == (0, 0)
         assert club.is_active is False
+
+    async def test_counts_only_the_members_it_switches_off(self):
+        gone = a_member("p0")
+        gone.deactivate()
+        uc, *_ = use_case(a_club(), [gone, a_member("p1")], [])
+
+        result = await uc.execute("club-1")
+
+        assert result.members == 1
 
     async def test_refuses_an_unknown_club(self):
         uc, *_ = use_case(None, [], [])

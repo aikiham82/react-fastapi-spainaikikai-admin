@@ -58,7 +58,11 @@ export const ClubAccountsSection = () => {
                     ))}
                   </div>
                 )}
-                <DeregisterClubButton clubId={account.club_id} clubName={account.club_name} />
+                <DeregisterClubButton
+                  clubId={account.club_id}
+                  clubName={account.club_name}
+                  ariaLabel={`Dar de baja el club ${account.club_name}`}
+                />
               </li>
             ))}
           </ul>

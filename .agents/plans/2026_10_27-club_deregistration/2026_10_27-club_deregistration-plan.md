@@ -38,11 +38,11 @@ A super admin can deregister a club that has left the federation. The club recor
 
 | Club | Club record | Members | Active logins |
 |---|---|---|---|
-| Aikido Ciudad Real | missing | 4 active | 1 (club account) |
-| Elemental Aikido Azuqueca | missing | 0 | 1 |
-| Aikido Kitai Almuñécar | active | 4 active | 1 |
-| Aikido Musubi Almería | active | 0 | 1 |
-| Onlybudo | active | 0 | 1 |
+| Club A | missing | 4 active | 1 (club account) |
+| Club B | missing | 0 | 1 |
+| Club C | active | 4 active | 1 |
+| Club D | active | 0 | 1 |
+| Club E | active | 0 | 1 |
 
 Plus: a member with a personal login (deactivated too), pending reset links (killed), unknown `club_id` with no record and no members (404).
 
