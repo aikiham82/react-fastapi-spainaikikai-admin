@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useGrantMemberAccessMutation } from '../hooks/mutations/useGrantMemberAccessMutation';
@@ -13,12 +12,11 @@ interface GrantMemberAccessFormProps {
 
 export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMemberAccessFormProps) => {
   const [email, setEmail] = useState(memberEmail);
-  const [clubAdmin, setClubAdmin] = useState(false);
   const { mutate: grant, isPending, data: link } = useGrantMemberAccessMutation();
 
   const giveAccess = () => {
     if (!email.trim()) return;
-    grant({ memberId, email: email.trim(), clubAdmin });
+    grant({ memberId, email: email.trim(), clubAdmin: true });
   };
 
   const copyLink = async () => {
@@ -35,7 +33,7 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
     return (
       <div role="status" aria-live="polite" className="space-y-2">
         <p className="text-sm break-all">
-          Le hemos enviado un correo a {link.email} para que ponga su contraseña.
+          Le hemos enviado un correo a {link.email} para que ponga su contraseña y entre al panel.
         </p>
         <p className="text-xs text-muted-foreground">
           Si no le llega, mándale este enlace. Caduca en 24 horas.
@@ -49,7 +47,7 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">Este socio todavía no puede entrar en la web.</p>
+      <p className="text-sm text-muted-foreground">Este socio no gestiona el club.</p>
       <div className="space-y-2">
         <Label htmlFor="grant_email">Correo con el que entrará</Label>
         <Input
@@ -66,19 +64,9 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
           placeholder="correo@ejemplo.com"
         />
       </div>
-      <div className="flex min-h-11 items-start gap-3">
-        <Checkbox
-          id="grant_club_admin"
-          className="mt-2.5"
-          checked={clubAdmin}
-          onCheckedChange={(checked) => setClubAdmin(checked === true)}
-        />
-        <Label htmlFor="grant_club_admin" className="flex-1 cursor-pointer py-2 font-normal">
-          Puede gestionar el club (pagos, altas y consultas)
-        </Label>
-      </div>
-      <Button type="button" variant="outline" disabled={isPending} onClick={giveAccess}>
-        {isPending ? 'Dando acceso...' : 'Dar acceso a la web'}
+      <p className="text-xs text-muted-foreground">Podrá entrar al panel y gestionar pagos, altas y consultas del club.</p>
+      <Button type="button" variant="outline" className="min-h-11" disabled={isPending} onClick={giveAccess}>
+        {isPending ? 'Haciendo responsable...' : 'Hacer responsable del club'}
       </Button>
     </div>
   );

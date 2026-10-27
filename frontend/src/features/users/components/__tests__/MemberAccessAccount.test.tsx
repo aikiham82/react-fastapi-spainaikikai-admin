@@ -95,7 +95,7 @@ describe('MemberAccessAccount', () => {
   it('shows the login email of the account', () => {
     renderWithProviders(<MemberAccessAccount memberId="member123" />)
 
-    expect(screen.getByText('Acceso a la web')).toBeInTheDocument()
+    expect(screen.getByText('Cuenta de acceso')).toBeInTheDocument()
     expect(screen.getByText('jcarlosarevalo2@gmail.com')).toBeInTheDocument()
   })
 
@@ -127,7 +127,7 @@ describe('MemberAccessAccount', () => {
 
     renderWithProviders(<MemberAccessAccount memberId="member123" memberEmail="ana@example.com" />)
 
-    expect(screen.getByText('Este socio todavía no puede entrar en la web.')).toBeInTheDocument()
+    expect(screen.getByText('Este socio no gestiona el club.')).toBeInTheDocument()
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
 

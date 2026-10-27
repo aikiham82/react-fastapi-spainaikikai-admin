@@ -36,13 +36,13 @@ describe('GrantMemberAccessForm', () => {
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
 
-  it('gives access with the typed email and the manager choice', async () => {
+  it('makes the member a manager with the typed email, with no checkbox to forget', async () => {
     const user = userEvent.setup()
     renderWithProviders(<GrantMemberAccessForm memberId="m1" />)
 
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     await user.type(screen.getByLabelText('Correo con el que entrará'), 'ana@example.com')
-    await user.click(screen.getByLabelText('Puede gestionar el club (pagos, altas y consultas)'))
-    await user.click(screen.getByRole('button', { name: 'Dar acceso a la web' }))
+    await user.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
 
     expect(mockGrant).toHaveBeenCalledWith({ memberId: 'm1', email: 'ana@example.com', clubAdmin: true })
   })
@@ -51,7 +51,7 @@ describe('GrantMemberAccessForm', () => {
     const user = userEvent.setup()
     renderWithProviders(<GrantMemberAccessForm memberId="m1" />)
 
-    await user.click(screen.getByRole('button', { name: 'Dar acceso a la web' }))
+    await user.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
 
     expect(mockGrant).not.toHaveBeenCalled()
   })
@@ -62,7 +62,7 @@ describe('GrantMemberAccessForm', () => {
     })
     renderWithProviders(<GrantMemberAccessForm memberId="m1" />)
 
-    expect(screen.getByText('Le hemos enviado un correo a ana@example.com para que ponga su contraseña.')).toBeInTheDocument()
+    expect(screen.getByText('Le hemos enviado un correo a ana@example.com para que ponga su contraseña y entre al panel.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Copiar enlace' })).toBeInTheDocument()
   })
 })

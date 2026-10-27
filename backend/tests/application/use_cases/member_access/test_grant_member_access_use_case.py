@@ -89,12 +89,23 @@ class TestGrantMemberAccessUseCase:
         assert link.url
 
     async def test_makes_the_member_a_club_admin_only_when_asked(self, use_case, members):
+        member = a_member(email="ana@example.com")
+        members.find_by_id = AsyncMock(return_value=member)
         await use_case.execute("member-1", "ana@example.com", make_club_admin=False)
-        members.update.assert_not_awaited()
+        assert member.club_role == ClubRole.MEMBER
 
         await use_case.execute("member-1", "ana2@example.com", make_club_admin=True)
         promoted = members.update.call_args.args[0]
         assert promoted.club_role == ClubRole.ADMIN
+
+    async def test_fills_an_empty_member_email_with_the_login_email(self, use_case, members):
+        member = a_member(email="")
+        members.find_by_id = AsyncMock(return_value=member)
+
+        await use_case.execute("member-1", "ana@example.com", make_club_admin=True)
+
+        assert member.email == "ana@example.com"
+        members.update.assert_awaited()
 
     async def test_refuses_a_member_who_is_de_baja(self, use_case, members, users):
         from src.domain.entities.member import MemberStatus

@@ -1,10 +1,11 @@
 """MongoDB Member Repository Adapter."""
 
-from typing import List, Optional
+import re
+from typing import Dict, List, Optional
 from bson import ObjectId
 from datetime import datetime
 
-from src.domain.entities.member import Member, MemberStatus, ClubRole
+from src.domain.entities.member import CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME, Member, MemberStatus, ClubRole
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -97,6 +98,32 @@ class MongoDBMemberRepository(MemberRepositoryPort):
     async def find_by_email(self, email: str) -> Optional[Member]:
         doc = await self.collection.find_one({"email": email})
         return self._to_domain(doc) if doc else None
+
+    async def claim_card_access(self, member_id: str) -> bool:
+        claimed = await self.collection.find_one_and_update(
+            {"_id": ObjectId(member_id), "card_access_claimed_at": None},
+            {"$set": {"card_access_claimed_at": datetime.utcnow()}},
+        )
+        return claimed is not None
+
+    async def count_by_emails(self, emails: List[str]) -> Dict[str, int]:
+        wanted = sorted({e.strip().lower() for e in emails if e and e.strip()})
+        if not wanted:
+            return {}
+        cursor = self.collection.aggregate([
+            {"$match": {"email": {"$nin": [None, ""]}, "$expr": {"$ne": [{"$trim": {"input": {"$ifNull": ["$last_name", ""]}}}, CLUB_ACCOUNT_PLACEHOLDER_LAST_NAME]}}},
+            {"$project": {"email": {"$toLower": {"$trim": {"input": {"$ifNull": ["$email", ""]}}}}}},
+            {"$match": {"email": {"$in": wanted}}},
+            {"$group": {"_id": "$email", "count": {"$sum": 1}}},
+        ])
+        return {row["_id"]: row["count"] async for row in cursor}
+
+    async def find_all_by_email(self, email: str) -> List[Member]:
+        documents = await self.collection.find(
+            {"email": {"$regex": rf"^\s*{re.escape(email.strip())}\s*$", "$options": "i"}}
+        ).to_list(length=None)
+        members = [self._to_domain(doc) for doc in documents]
+        return [m for m in members if not m.is_club_account_placeholder]
 
     async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({"club_id": club_id})

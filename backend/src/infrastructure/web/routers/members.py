@@ -43,6 +43,7 @@ from src.infrastructure.web.dependencies import (
     get_license_repository,
     get_insurance_repository,
     get_club_repository,
+    get_member_repository,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -165,6 +166,18 @@ async def _enrich_members_with_club_names(
     return responses
 
 
+async def _enrich_members_with_own_email(
+    responses: List[MemberResponse],
+    member_repo,
+) -> List[MemberResponse]:
+    """Mark who has an email no other member shares: only they can activate their card (1 query total)."""
+    counts = await member_repo.count_by_emails([r.email for r in responses if r.email])
+    for resp in responses:
+        email = (resp.email or "").strip().lower()
+        resp.has_own_email = bool(email) and counts.get(email, 0) == 1
+    return responses
+
+
 @router.get("", response_model=List[MemberResponse])
 async def get_members(
     limit: int = 0,
@@ -177,6 +190,7 @@ async def get_members(
     license_repo = Depends(get_license_repository),
     insurance_repo = Depends(get_insurance_repository),
     club_repo = Depends(get_club_repository),
+    member_repo = Depends(get_member_repository),
 ):
     """Get all members, optionally filtered by club, search term, or status."""
     if not ctx.is_super_admin:
@@ -195,6 +209,7 @@ async def get_members(
 
     responses = MemberMapper.to_response_list(members)
     responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    responses = await _enrich_members_with_own_email(responses, member_repo)
     return await _enrich_members_with_club_names(responses, club_repo)
 
 

@@ -38,6 +38,19 @@ export function MemberAccessBadge({ hasAccount }: MemberAccessBadgeProps) {
   );
 }
 
+export function NoOwnEmailBadge({ hasOwnEmail }: { hasOwnEmail?: boolean }) {
+  if (hasOwnEmail !== false) return null;
+
+  return (
+    <span
+      className="inline-flex rounded-full border border-warning/30 bg-warning-soft px-2 py-0.5 text-[13px] font-medium text-foreground"
+      title="Ponle un correo solo suyo para que pueda activar su carné en la app"
+    >
+      Sin correo propio: no puede ver su carné
+    </span>
+  );
+}
+
 interface GradeBadgeProps {
   licenseSummary?: LicenseSummary;
 }

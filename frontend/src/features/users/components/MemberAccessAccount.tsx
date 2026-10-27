@@ -111,7 +111,7 @@ export const MemberAccessAccount = ({
     >
       <h3 id="access-account-heading" className="flex items-center gap-2 text-sm font-semibold">
         <KeyRound className="size-[18px] text-primary" aria-hidden="true" />
-        Acceso a la web
+        Cuenta de acceso
       </h3>
 
       {isLoading && (

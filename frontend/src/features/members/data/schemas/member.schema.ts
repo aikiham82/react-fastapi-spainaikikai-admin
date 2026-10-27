@@ -37,6 +37,7 @@ export interface Member {
   updated_at: string;
   license_summary?: LicenseSummary;
   insurance_summary?: InsuranceSummary;
+  has_own_email?: boolean;
 }
 
 export interface CreateMemberRequest {

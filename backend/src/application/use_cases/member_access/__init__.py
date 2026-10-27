@@ -11,6 +11,7 @@ from src.application.use_cases.member_access.list_club_accounts_use_case import 
     ClubAccountSummary,
     ListClubAccountsUseCase,
 )
+from src.application.use_cases.member_access.request_card_access_use_case import RequestCardAccessUseCase
 
-__all__ = ["GrantMemberAccessUseCase", "RevokeMemberAccessUseCase", "SetMemberClubRoleUseCase", "TransferClubAccountUseCase",
+__all__ = ["GrantMemberAccessUseCase", "RevokeMemberAccessUseCase", "SetMemberClubRoleUseCase", "TransferClubAccountUseCase", "RequestCardAccessUseCase",
            "ListClubAccountsUseCase", "ClubAccountSummary", "ClubAccountCandidate"]

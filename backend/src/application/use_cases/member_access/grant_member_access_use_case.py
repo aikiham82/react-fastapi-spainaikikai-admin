@@ -4,7 +4,6 @@ import logging
 import secrets
 from typing import Callable
 
-from src.domain.entities.password_reset_token import PasswordResetToken
 from src.domain.entities.user import GlobalRole, User
 from src.domain.exceptions.member import InactiveMemberError, MemberNotFoundError
 from src.domain.exceptions.user import AccessChangeNotAllowedError, EmailAlreadyInUseError, UserAlreadyExistsError
@@ -13,6 +12,7 @@ from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 from src.application.ports.repositories import UserRepositoryPort
 from src.application.use_cases.password_reset import AdminPasswordResetLinkResult
+from src.application.use_cases.member_access.set_password_link import issue_set_password_link
 
 logger = logging.getLogger(__name__)
 
@@ -76,11 +76,12 @@ class GrantMemberAccessUseCase:
 
         if make_club_admin:
             member.promote_to_admin()
+        if not (member.email or "").strip():
+            member.email = email
+        if make_club_admin or member.email == email:
             await self.member_repository.update(member)
 
-        await self.token_repository.invalidate_user_tokens(user.id)
-        token = await self.token_repository.create(PasswordResetToken(user_id=user.id, email=user.email))
-        url = f"{self.frontend_base_url}/reset-password?token={token.token}"
+        token, url = await issue_set_password_link(user, self.token_repository, self.frontend_base_url)
         logger.info(f"User {issued_by or 'unknown'} gave web access to member {member_id}")
         member_name = member.get_full_name()
 

@@ -1,10 +1,12 @@
 """User and authentication routes."""
 
+import logging
 from datetime import timedelta
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel, Field
 
 from src.domain.exceptions.user import (
     UserNotFoundError,
@@ -21,7 +23,9 @@ from src.infrastructure.web.dto.user_dto import (
     Token,
 )
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
+from src.application.use_cases.member_access import RequestCardAccessUseCase
 from src.infrastructure.web.dependencies import (
+    get_request_card_access_use_case,
     get_all_users_use_case,
     get_user_by_id_use_case,
     get_create_user_use_case,
@@ -59,6 +63,8 @@ from src.application.use_cases.user_use_cases import (
 )
 from src.application.use_cases.password_reset import GenerateAdminPasswordResetLinkUseCase
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["users"])
 
@@ -156,6 +162,32 @@ async def login(
     )
     
     return Token(access_token=access_token)
+
+
+CARD_ACCESS_ANSWER = "Si tu correo está en tu ficha de miembro, te llegará un enlace para activar tu carné."
+
+
+class CardAccessRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=254)
+
+
+@router.post("/auth/card-access/request")
+async def request_card_access(
+    request: CardAccessRequest,
+    background_tasks: BackgroundTasks,
+    use_case: RequestCardAccessUseCase = Depends(get_request_card_access_use_case),
+):
+    """Let a member activate their card; the answer is the same, and as fast, whatever happened."""
+    background_tasks.add_task(_grant_card_access, use_case, request.email)
+    audit("auth.card_access.requested")
+    return {"message": CARD_ACCESS_ANSWER}
+
+
+async def _grant_card_access(use_case: RequestCardAccessUseCase, email: str) -> None:
+    try:
+        await use_case.execute(email)
+    except Exception:
+        logger.exception("Card access request failed")
 
 
 @router.get("/users/me", response_model=UserMeResponse)

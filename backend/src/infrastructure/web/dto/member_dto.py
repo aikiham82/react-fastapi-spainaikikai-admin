@@ -121,6 +121,7 @@ class MemberResponse(MemberBase):
     updated_at: Optional[datetime] = None
     license_summary: Optional[LicenseSummary] = None
     insurance_summary: Optional[InsuranceSummary] = None
+    has_own_email: Optional[bool] = None
 
     class Config:
         from_attributes = True
