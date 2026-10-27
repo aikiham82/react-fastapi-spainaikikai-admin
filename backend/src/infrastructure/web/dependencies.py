@@ -108,9 +108,7 @@ from src.application.use_cases.member_access import (
     GrantMemberAccessUseCase,
     RevokeMemberAccessUseCase,
     SetMemberClubRoleUseCase,
-    TransferClubAccountUseCase,
     RequestCardAccessUseCase,
-    ListClubAccountsUseCase,
 )
 from src.application.use_cases.password_reset import (
     RequestPasswordResetUseCase,
@@ -776,16 +774,6 @@ def get_request_card_access_use_case() -> RequestCardAccessUseCase:
 
 
 @lru_cache()
-def get_transfer_club_account_use_case() -> TransferClubAccountUseCase:
-    """Get transfer club account use case."""
-    return TransferClubAccountUseCase(
-        member_repository=get_member_repository(),
-        user_repository=get_user_repository(),
-        token_repository=get_password_reset_token_repository(),
-    )
-
-
-@lru_cache()
 def get_deregister_club_use_case() -> DeregisterClubUseCase:
     """Get deregister club use case."""
     return DeregisterClubUseCase(
@@ -793,17 +781,6 @@ def get_deregister_club_use_case() -> DeregisterClubUseCase:
         member_repository=get_member_repository(),
         user_repository=get_user_repository(),
         token_repository=get_password_reset_token_repository(),
-    )
-
-
-@lru_cache()
-def get_list_club_accounts_use_case() -> ListClubAccountsUseCase:
-    """Get list club accounts use case."""
-    return ListClubAccountsUseCase(
-        member_repository=get_member_repository(),
-        user_repository=get_user_repository(),
-        club_repository=get_club_repository(),
-        license_repository=get_license_repository(),
     )
 
 

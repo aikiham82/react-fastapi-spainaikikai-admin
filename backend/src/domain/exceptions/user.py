@@ -41,10 +41,3 @@ class SuperAdminAlreadyExistsError(BusinessRuleViolationError):
 class AccessChangeNotAllowedError(BusinessRuleViolationError):
     """Raised when an account's access cannot be removed by this caller."""
     pass
-
-
-class ClubAccountNotFoundError(EntityNotFoundError):
-    """Raised when a club has no active shared account left from the migration."""
-
-    def __init__(self, club_id: str):
-        super().__init__("Club account", club_id)

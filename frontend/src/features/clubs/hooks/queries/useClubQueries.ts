@@ -20,10 +20,3 @@ export const useClubQuery = (id: string) => {
   });
 };
 
-export const useClubAccountsQuery = (enabled: boolean) => {
-  return useQuery({
-    queryKey: ['club-accounts'],
-    queryFn: () => clubService.getClubAccounts(),
-    enabled,
-  });
-};

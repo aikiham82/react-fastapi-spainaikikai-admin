@@ -218,7 +218,6 @@ export const MemberForm = ({ open, onOpenChange, member }: MemberFormProps) => {
             <div className="border-t border-border pt-4">
               <MemberAccessAccount
                 memberId={member.id}
-                memberClubId={member.club_id ?? undefined}
                 memberEmail={member.email ?? undefined}
                 memberName={`${member.first_name} ${member.last_name ?? ''}`.trim()}
                 memberClubRole={member.club_role}

@@ -12,12 +12,9 @@ import { useUpdateUserEmailMutation } from '../hooks/mutations/useUpdateUserEmai
 import type { ClubRole } from '@/features/auth/data/auth.schema';
 import { GrantMemberAccessForm } from './GrantMemberAccessForm';
 import { AccountManagerControls } from './AccountManagerControls';
-import { TransferClubAccountButton } from './TransferClubAccountButton';
-import { useClubAccountsQuery } from '@/features/clubs/hooks/queries/useClubQueries';
 
 interface MemberAccessAccountProps {
   memberId: string;
-  memberClubId?: string;
   memberEmail?: string;
   memberName?: string;
   memberClubRole?: ClubRole;
@@ -40,7 +37,6 @@ const formatExpiry = (isoDate: string): string => {
 
 export const MemberAccessAccount = ({
   memberId,
-  memberClubId,
   memberEmail,
   memberName = '',
   memberClubRole,
@@ -58,8 +54,6 @@ export const MemberAccessAccount = ({
   } = useGeneratePasswordResetLinkMutation();
   const { mutate: updateEmail, isPending: isSavingEmail } = useUpdateUserEmailMutation();
   const hasNoAccount = (error as { status?: number } | null)?.status === 404;
-  const { data: clubAccounts } = useClubAccountsQuery(isAssociationAdmin() && hasNoAccount && !!memberClubId);
-  const clubAccount = clubAccounts?.find((candidate) => candidate.club_id === memberClubId);
 
   const [editedEmail, setEditedEmail] = useState<string | null>(null);
 
@@ -121,21 +115,6 @@ export const MemberAccessAccount = ({
       )}
 
       {isError && hasNoAccount && <GrantMemberAccessForm memberId={memberId} memberEmail={memberEmail} />}
-
-      {isError && hasNoAccount && clubAccount && (
-        <div className="space-y-2 border-t pt-3">
-          <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
-            O pásale la cuenta del club ({clubAccount.email}): seguirá entrando con ese correo y su contraseña.
-          </p>
-          <TransferClubAccountButton
-            clubId={clubAccount.club_id}
-            accountId={clubAccount.account_id}
-            accountEmail={clubAccount.email}
-            memberId={memberId}
-            memberName={memberName}
-          />
-        </div>
-      )}
 
       {isError && !hasNoAccount && (
         <p role="status" aria-live="polite" className="text-sm text-muted-foreground">

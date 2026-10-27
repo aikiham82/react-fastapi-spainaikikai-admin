@@ -39,5 +39,5 @@ await update_club.execute(club_id, is_active=False)
 
 ## 🔗 Related agreements
 
-- [Club accounts are passed to a person, never used as one](club-accounts-pass-to-a-person.md)
+- [Club account placeholders are legacy](club-account-placeholders-are-legacy.md)
 - [Club admins manage the web access of their own members](club-admins-manage-member-access.md)

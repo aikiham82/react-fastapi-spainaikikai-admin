@@ -59,7 +59,6 @@ class UserMeResponse(UserResponse):
     """DTO for /users/me response with member-derived fields."""
     club_role: Optional[str] = None
     club_id: Optional[str] = None
-    is_club_account: bool = False
 
 
 class UserLogin(BaseModel):

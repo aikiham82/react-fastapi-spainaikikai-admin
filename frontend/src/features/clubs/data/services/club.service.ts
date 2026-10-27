@@ -1,5 +1,4 @@
 import { apiClient } from '@/core/data/apiClient';
-import { clubAccountSchema, type ClubAccount } from '../schemas/club-account.schema';
 import type { Club, CreateClubRequest, UpdateClubRequest, ClubFilters, DeregisteredClub } from '../schemas/club.schema';
 
 const BASE_URL = '/api/v1/clubs';
@@ -20,11 +19,6 @@ export const updateClub = async (id: string, data: UpdateClubRequest): Promise<C
   return await apiClient.put<Club>(`${BASE_URL}/${id}`, data);
 };
 
-export const getClubAccounts = async (): Promise<ClubAccount[]> => {
-  const response = await apiClient.get<unknown>(`${BASE_URL}/club-accounts`);
-  return clubAccountSchema.array().parse(response);
-};
-
 export const deregisterClub = async (id: string): Promise<DeregisteredClub> => {
   return await apiClient.post<DeregisteredClub>(`${BASE_URL}/${id}/deregister`);
 };
@@ -39,6 +33,5 @@ export const clubService = {
   createClub,
   updateClub,
   deleteClub,
-  getClubAccounts,
   deregisterClub,
 };
