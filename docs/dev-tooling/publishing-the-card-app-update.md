@@ -10,7 +10,9 @@ Card app (`mobile/`) changes reach phones with an over-the-air update, published
 3. Remove the temporary worktree.
 4. Check it with `npx eas-cli update:list --branch production --limit 2`.
 
-Only Android is published (runtime `1.0.0`). A phone downloads the update when it opens the app and applies it on the next start: tell clients to close the app fully and reopen it.
+Only Android is published. A phone downloads the update when it opens the app and applies it on the next start: tell clients to close the app fully and reopen it.
+
+**A change that adds native code (a new Expo module or config plugin) never ships over the air.** The runtime follows the app version (`runtimeVersion.policy: appVersion`), so bump `expo.version` in `mobile/app.json` and ship a new EAS build; OTA updates then reach only the builds of that version. Runtime `1.0.0` is build 11 and earlier; `1.1.0` (Clerk Google sign-in) starts with the next build. Publishing native-dependent JavaScript to an older runtime crashes those phones on start.
 
 ## 🏆 Benefits
 
