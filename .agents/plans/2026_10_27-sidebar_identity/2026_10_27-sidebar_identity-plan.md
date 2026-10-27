@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-27T14:40:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Sidebar identity
@@ -50,18 +60,18 @@ Clubs: 43; name length avg 17, max 40 chars (6 words), 13 above 20 chars. The ra
 
 Backend `/users/me` gains `display_name` and `club_name`; the rail shows the club tile on top and an account button at the bottom that opens a card with name, email, club, role and "Cerrar sesión"; the mobile drawer shows the club and the person; the home greeting uses the first name.
 
-- [ ] `UserMeResponse` adds `display_name: str` and `club_name: Optional[str]`.
-- [ ] `read_users_me` fills `display_name` from the member's full name unless the member is a club account placeholder or absent (then `username`), and `club_name` from the member's club.
-- [ ] Tests in `test_user_router`: `/users/me` for super admin without member, club admin with real name, placeholder club account, plain member.
-- [ ] `CurrentUser` adds `display_name` and `club_name`; `useAuthContext` exposes `displayName` and `clubName`.
-- [ ] `ClubMark` component (club initials tile; federation logo when there is no club).
-- [ ] `AccountMenu` component (avatar button + popover card with name, email, club, role label, "Cerrar sesión").
-- [ ] `Rail`: `ClubMark` + clamped club name at the top; `AccountMenu` replaces the standalone "Salir" button.
-- [ ] `Sidebar` (mobile drawer): club and role at the top; avatar, name and email at the bottom.
-- [ ] Home greeting: "Hola, {first name}".
-- [ ] Tests in `navigation-shell.test.tsx`: club tile and name, account card opens and signs out, super admin shows federation and "Super admin", 40-char club name keeps the full name in `title`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `UserMeResponse` adds `display_name: str` and `club_name: Optional[str]`.
+- [x] `read_users_me` fills `display_name` from the member's full name unless the member is a club account placeholder or absent (then `username`), and `club_name` from the member's club.
+- [x] Tests in `test_user_router`: `/users/me` for super admin without member, club admin with real name, placeholder club account, plain member.
+- [x] `CurrentUser` adds `display_name` and `club_name`; `useAuthContext.currentUser` returns the fresh query result and `useIdentity` derives name, email, club and role label (existing `roleLabels` copy).
+- [x] `ClubMark` component (club initials tile; federation logo when there is no club).
+- [x] `AccountMenu` component (avatar button + popover card with name, email, club, role label, "Cerrar sesión").
+- [x] `Rail`: `ClubMark` + clamped club name at the top; `AccountMenu` replaces the standalone "Salir" button.
+- [x] `Sidebar` (mobile drawer): club and role at the top; avatar, name and email at the bottom.
+- [x] Home greeting: "Hola, {first name}".
+- [x] Tests in `navigation-shell.test.tsx`: club tile and name, account card opens and signs out, super admin shows federation and its role, 40-char club name keeps the full name in `title`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: club logo
 
@@ -79,6 +89,6 @@ A club admin (or the super admin) uploads the club logo; when present it replace
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+Implement Phase 2: club logo.
 
-Identity unlocked by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)’s mascot)
+Name tag stitched on, the turtle knows who it is: 🪪 < 🐢 💨 (Turbotuga™, [Codely](https://codely.com)’s mascot)

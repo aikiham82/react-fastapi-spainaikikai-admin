@@ -179,7 +179,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           login,
           logout,
           getJwt,
-          currentUser,
+          currentUser: effectiveUser ?? null,
           userRole,
           clubId,
           loginFailed: Boolean(loginError),

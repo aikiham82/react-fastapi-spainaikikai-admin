@@ -717,3 +717,70 @@ class TestRouterIntegration:
                 
                 # Should not return 500 for basic validation/auth issues
                 assert response.status_code != status.HTTP_500_INTERNAL_SERVER_ERROR or "Server Error" not in response.text
+
+@pytest.mark.api
+@pytest.mark.unit
+class TestCurrentUserIdentity:
+    """/users/me says who is signed in and which club they belong to."""
+
+    @staticmethod
+    def _me(test_app, user, member=None, club=None):
+        from src.domain.exceptions.club import ClubNotFoundError
+        from src.infrastructure.web.authorization import AuthContext
+        from src.infrastructure.web.dependencies import get_auth_context, get_club_use_case
+
+        get_club = AsyncMock()
+        if club:
+            get_club.execute.return_value = club
+        else:
+            get_club.execute.side_effect = ClubNotFoundError("missing")
+        test_app.dependency_overrides[get_auth_context] = lambda: AuthContext(user=user, member=member)
+        test_app.dependency_overrides[get_club_use_case] = lambda: get_club
+        return TestClient(test_app).get("/api/v1/users/me").json()
+
+    @staticmethod
+    def _member(last_name="Ejemplo", club_role="admin"):
+        from src.domain.entities.member import ClubRole, Member
+        return Member(
+            id="m1", first_name="Laura", last_name=last_name, email="laura@example.com",
+            club_id="c1", club_role=ClubRole(club_role),
+        )
+
+    @staticmethod
+    def _user():
+        return User(id="u1", email="laura@example.com", username="laura", hashed_password="h", member_id="m1")
+
+    @staticmethod
+    def _club():
+        from src.domain.entities.club import Club
+        return Club(id="c1", name="Club Aikido Ejemplo")
+
+    def test_super_admin_without_member_is_named_by_username(self, test_app, super_admin_entity):
+        data = self._me(test_app, super_admin_entity)
+
+        assert data["display_name"] == "Admin"
+        assert data["club_name"] is None
+
+    def test_club_admin_is_named_by_member_full_name_and_club(self, test_app):
+        data = self._me(test_app, self._user(), self._member(), self._club())
+
+        assert data["display_name"] == "Laura Ejemplo"
+        assert data["club_name"] == "Club Aikido Ejemplo"
+        assert data["club_role"] == "admin"
+
+    def test_placeholder_club_account_is_named_by_username(self, test_app):
+        data = self._me(test_app, self._user(), self._member(last_name="(Club Admin)"), self._club())
+
+        assert data["display_name"] == "laura"
+        assert data["club_name"] == "Club Aikido Ejemplo"
+
+    def test_plain_member_is_named_by_full_name(self, test_app):
+        data = self._me(test_app, self._user(), self._member(club_role="member"), self._club())
+
+        assert data["display_name"] == "Laura Ejemplo"
+        assert data["club_role"] == "member"
+
+    def test_missing_club_leaves_club_name_empty(self, test_app):
+        data = self._me(test_app, self._user(), self._member())
+
+        assert data["club_name"] is None
