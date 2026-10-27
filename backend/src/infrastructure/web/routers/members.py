@@ -1,6 +1,7 @@
 """Member routes."""
 
 from collections import defaultdict
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -68,25 +69,31 @@ async def _load_member_in_callers_club(ctx: AuthContext, member_id: str, get_mem
     return member
 
 
+TITLE_RANK = {"none": 0, "fukushidoin": 1, "shidoin": 2}
+
+
 def _pick_primary_license(licenses: List[License]) -> Optional[License]:
-    """Select the most relevant license: prefer active with latest expiry, fallback to most recent."""
+    """Select the grade license: prefer active, then one holding a grade over a title, then latest expiry."""
     if not licenses:
         return None
-    active = [l for l in licenses if l.status.value == "active"]
-    if active:
-        return max(active, key=lambda l: l.expiration_date or l.created_at or l.issue_date or l.updated_at)
-    return max(licenses, key=lambda l: l.expiration_date or l.created_at or l.issue_date or l.updated_at)
+    active = [l for l in licenses if l.status.value == "active"] or licenses
+    return max(active, key=lambda l: (
+        not l.holds_only_a_title(),
+        l.expiration_date or l.created_at or l.issue_date or l.updated_at or datetime.min,
+    ))
 
 
 def _build_license_summary(licenses: List[License]) -> Optional[LicenseSummary]:
-    """Build a LicenseSummary from a list of licenses for one member."""
+    """Build a LicenseSummary for one member, taking the title from any of their active licenses."""
     primary = _pick_primary_license(licenses)
     if not primary:
         return None
+    active = [l for l in licenses if l.status.value == "active"] or [primary]
+    title = max((l.instructor_category.value for l in active), key=TITLE_RANK.get)
     return LicenseSummary(
         grade=primary.grade,
         technical_grade=primary.technical_grade.value,
-        instructor_category=primary.instructor_category.value,
+        instructor_category=title,
         status=primary.status.value,
         expiration_date=primary.expiration_date,
     )

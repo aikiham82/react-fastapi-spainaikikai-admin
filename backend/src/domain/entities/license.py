@@ -127,6 +127,10 @@ class License:
         if self.is_expired() and self.status == LicenseStatus.ACTIVE:
             self.status = LicenseStatus.EXPIRED
 
+    def holds_only_a_title(self) -> bool:
+        """Whether the grade text is an instructor title instead of a kyu or dan."""
+        return self.grade.strip().lower() in {"shidoin", "fukushidoin"}
+
     def update_grade(self, new_grade: str) -> None:
         """Update the license grade."""
         if not new_grade or not new_grade.strip():

@@ -9,16 +9,11 @@ from src.domain.exceptions.license import LicenseNotFoundError
 from src.application.ports.license_repository import LicenseRepositoryPort
 
 GRADE_RANGES = {TechnicalGrade.KYU: range(1, 7), TechnicalGrade.DAN: range(1, 11)}
-TITLE_ONLY_GRADES = {"shidoin", "fukushidoin"}
-
-
-def _is_title_only(license: License) -> bool:
-    return license.grade.strip().lower() in TITLE_ONLY_GRADES
 
 
 def _current_grade_licence(licences: List[License]) -> License:
     active = [l for l in licences if l.status == LicenseStatus.ACTIVE] or licences
-    return max(active, key=lambda l: (not _is_title_only(l), l.expiration_date or datetime.min))
+    return max(active, key=lambda l: (not l.holds_only_a_title(), l.expiration_date or datetime.min))
 
 
 class ChangeMemberGradeUseCase:
