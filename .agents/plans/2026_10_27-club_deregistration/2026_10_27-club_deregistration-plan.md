@@ -16,8 +16,8 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-27T10:40:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-27T11:00:00Z"
+has_completed_all_phases: true
 ---
 
 # Club deregistration
@@ -70,13 +70,13 @@ Public contracts:
 - Admin copy: club card action "Dar de baja" (same confirmation and toast); badge "De baja" on inactive clubs.
 - Tests: vitest for the action (super admin only) and the badge.
 
-- [ ] Write the failing tests.
-- [ ] Add the action and the badge to the club card, reusing phase 1's mutation.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Add the action and the badge to the club card, reusing phase 1's mutation.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 2: deregister any club from the Clubs page.
+All phases are implemented: review, QA and merge.
 
-Closing the dojo doors gently: 🚪 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Closing the dojo doors gently, and labelling them: 🚪 🏷️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

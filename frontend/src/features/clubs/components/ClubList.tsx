@@ -9,6 +9,8 @@ import { EmptyState, ListToolbar, ListLoading, ListError } from '@/components/ui
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { ClubForm } from './ClubForm';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { Badge } from '@/components/ui/badge';
+import { DeregisterClubButton } from './DeregisterClubButton';
 
 const clubLocation = (club: Club): string => {
   const cityLine = [club.postal_code, club.city].filter(Boolean).join(' ');
@@ -19,7 +21,7 @@ const memberCountLabel = (count: number): string => `${count} ${count === 1 ? 's
 
 export const ClubList = () => {
   const { clubs, isLoading, error, deleteClub } = useClubContext();
-  const { canAccess } = usePermissions();
+  const { canAccess, isAssociationAdmin } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -100,19 +102,25 @@ export const ClubList = () => {
                   >
                     <div className="min-w-0">
                       <p className="truncate text-[15px] font-semibold text-foreground">{club.name}</p>
+                      {club.is_active === false && <Badge variant="secondary">De baja</Badge>}
                       {location && <p className="truncate text-sm text-muted-foreground">{location}</p>}
                       {club.member_count !== undefined && (
                         <p className="text-sm text-muted-foreground">{memberCountLabel(club.member_count)}</p>
                       )}
                     </div>
-                    <Button
-                      variant="outline"
-                      className="shrink-0"
-                      aria-label={`Editar ${club.name}`}
-                      onClick={() => openEdit(club)}
-                    >
-                      Editar
-                    </Button>
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                      {isAssociationAdmin() && club.is_active !== false && (
+                        <DeregisterClubButton
+                          clubId={club.id}
+                          clubName={club.name}
+                          label="Dar de baja"
+                          ariaLabel={`Dar de baja ${club.name}`}
+                        />
+                      )}
+                      <Button variant="outline" aria-label={`Editar ${club.name}`} onClick={() => openEdit(club)}>
+                        Editar
+                      </Button>
+                    </div>
                   </li>
                 );
               })}

@@ -13,6 +13,7 @@ export interface Club {
   created_at: string;
   updated_at: string;
   member_count?: number;
+  is_active?: boolean;
 }
 
 export interface CreateClubRequest {
