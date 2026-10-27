@@ -3,10 +3,10 @@ import { HandleSSOCallback, useAuth } from "@clerk/react";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GOOGLE_FAILED_PATH } from "@/core/config/clerk";
-
-const SSO_CALLBACK_TIMEOUT_MS = 20_000;
 import { useAuthContext } from "../hooks/useAuthContext";
 import { useSocialLoginMutation } from "../hooks/mutations/useSocialLogin.mutation";
+
+const SSO_CALLBACK_TIMEOUT_MS = 20_000;
 
 export const SsoCallback = () => {
   const { isSignedIn, getToken, signOut } = useAuth();
@@ -14,7 +14,11 @@ export const SsoCallback = () => {
   const { action: exchange } = useSocialLoginMutation();
   const navigate = useNavigate();
   const exchanged = useRef(false);
-  const fail = useCallback(() => void signOut({ redirectUrl: GOOGLE_FAILED_PATH }), [signOut]);
+  const leaveClerkTo = useCallback(
+    (path: string) => void signOut(() => navigate(path, { replace: true })),
+    [signOut, navigate]
+  );
+  const fail = useCallback(() => leaveClerkTo(GOOGLE_FAILED_PATH), [leaveClerkTo]);
 
   useEffect(() => {
     const giveUp = setTimeout(() => {
@@ -32,12 +36,12 @@ export const SsoCallback = () => {
       exchange(token, {
         onSuccess: (response) => {
           startSession(response);
-          void signOut({ redirectUrl: "/" });
+          leaveClerkTo("/");
         },
         onError: fail,
       });
     }, fail);
-  }, [isSignedIn, getToken, signOut, exchange, startSession, fail]);
+  }, [isSignedIn, getToken, exchange, startSession, fail, leaveClerkTo]);
 
   return (
     <div className="flex h-screen items-center justify-center" role="status">

@@ -36,6 +36,10 @@ describe('SsoCallback', () => {
     vi.clearAllMocks()
     clerkAuth.isSignedIn = true
     clerkAuth.getToken.mockResolvedValue('clerk-token')
+    clerkAuth.signOut.mockImplementation((afterSignOut?: () => void) => {
+      afterSignOut?.()
+      return Promise.resolve()
+    })
   })
 
   it('exchanges the Clerk token for our session and leaves Clerk', async () => {
@@ -44,19 +48,21 @@ describe('SsoCallback', () => {
 
     renderWithProviders(<SsoCallback />)
 
-    await waitFor(() => expect(clerkAuth.signOut).toHaveBeenCalledWith({ redirectUrl: '/' }))
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }))
+    expect(clerkAuth.signOut).toHaveBeenCalled()
     expect(socialLogin).toHaveBeenCalledWith('clerk-token')
     expect(mockAuthContext.startSession).toHaveBeenCalledWith(response)
   })
 
-  it('sends a refused account back to the login with the error', async () => {
+  it('sends a refused account back to the login with the error, keeping the query', async () => {
     socialLogin.mockRejectedValue(Object.assign(new Error('401'), { status: 401 }))
 
     renderWithProviders(<SsoCallback />)
 
     await waitFor(() =>
-      expect(clerkAuth.signOut).toHaveBeenCalledWith({ redirectUrl: '/login?google=failed' })
+      expect(mockNavigate).toHaveBeenCalledWith('/login?google=failed', { replace: true })
     )
+    expect(clerkAuth.signOut).toHaveBeenCalled()
     expect(mockAuthContext.startSession).not.toHaveBeenCalled()
   })
 
