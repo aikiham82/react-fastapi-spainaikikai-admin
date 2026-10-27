@@ -74,6 +74,7 @@ docs/
 ├── domain/
 │   ├── club-admins-manage-member-access.md
 │   ├── a-club-is-switched-off-only-by-deregistration.md
+│   ├── a-deregistered-members-licence-is-history.md
 │   ├── club-account-placeholders-are-legacy.md
 │   ├── data-model.md
 │   ├── invoice-creation.md

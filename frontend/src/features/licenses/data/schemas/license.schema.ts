@@ -7,6 +7,7 @@ export interface License {
   license_number: string;
   member_id: string;
   member_name?: string;
+  member_status?: string;
   issue_date: string;
   expiry_date: string;
   status: 'active' | 'expired' | 'pending' | 'revoked';

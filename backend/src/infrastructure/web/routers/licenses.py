@@ -103,7 +103,7 @@ async def _get_club_member_ids(club_id: str) -> set:
 
 
 async def _populate_member_names(items: List[LicenseResponse]) -> List[LicenseResponse]:
-    """Populate member_name for license items."""
+    """Populate member_name and member_status for license items."""
     db = get_database()
     for item in items:
         if item.member_id:
@@ -114,6 +114,7 @@ async def _populate_member_names(items: List[LicenseResponse]) -> List[LicenseRe
                     member = await db["members"].find_one({"_id": ObjectId(item.member_id)})
                 if member:
                     item.member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip()
+                    item.member_status = member.get("status")
             except Exception:
                 pass
     return items

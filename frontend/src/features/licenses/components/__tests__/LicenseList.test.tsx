@@ -172,6 +172,37 @@ describe('LicenseList', () => {
     expect(screen.getAllByRole('link', { name: /^Renovar \d{4} Dora Expired$/ })[0]).toHaveAttribute('href', expect.stringMatching(/^\/payments\?renovar=member-3&que=licencia&anio=\d{4}$/))
   })
 
+  it("a deregistered member's expired licence reads De baja without Renovar", () => {
+    context.licenses = [{ ...makeLicense('4', 'Elena Gone', -300, 'expired'), member_status: 'inactive' }]
+    renderList()
+
+    expect(screen.getAllByText('De baja').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Caducada')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
+  })
+
+  it('lists deregistered members last', () => {
+    context.licenses = [
+      { ...makeLicense('4', 'Elena Gone', -300, 'expired'), member_status: 'inactive' },
+      makeLicense('1', 'Bea Active', 200, 'active'),
+    ]
+    renderList()
+
+    expect(tableMembers()).toEqual([expect.stringContaining('Bea Active'), expect.stringContaining('Elena Gone')])
+  })
+
+  it('chips do not count deregistered members', () => {
+    context.licenses = [
+      ...context.licenses,
+      { ...makeLicense('4', 'Elena Gone', -300, 'expired'), member_status: 'inactive' },
+      { ...makeLicense('5', 'Fede Gone', 10, 'active'), member_status: 'inactive' },
+    ]
+    renderList()
+
+    expect(screen.getByRole('radio', { name: /Caducadas/ })).toHaveTextContent('1')
+    expect(screen.getByRole('radio', { name: /Caducan pronto/ })).toHaveTextContent('1')
+  })
+
   it('does not offer Renovar to whoever cannot pay', () => {
     context.canCreate = false
     renderList()
