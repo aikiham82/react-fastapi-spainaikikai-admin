@@ -8,6 +8,7 @@ from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 from src.application.ports.repositories import UserRepositoryPort
+from src.application.use_cases.member_access.switch_off_login import switch_off_login
 
 
 @dataclass(frozen=True)
@@ -45,9 +46,7 @@ class DeregisterClubUseCase:
         for member in members:
             account = await self.user_repository.find_by_member_id(member.id)
             if account and account.is_active and account.global_role != GlobalRole.SUPER_ADMIN:
-                await self.token_repository.invalidate_user_tokens(account.id)
-                account.deactivate()
-                await self.user_repository.update(account)
+                await switch_off_login(account, self.user_repository, self.token_repository)
                 accounts += 1
             if member.is_active:
                 member.deactivate()

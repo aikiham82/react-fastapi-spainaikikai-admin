@@ -95,6 +95,7 @@ export const ClubList = () => {
             <ul className="border-t border-border">
               {filteredClubs.map((club) => {
                 const location = clubLocation(club);
+                const isDeregistered = club.is_active === false;
                 return (
                   <li
                     key={club.id}
@@ -102,14 +103,14 @@ export const ClubList = () => {
                   >
                     <div className="min-w-0">
                       <p className="truncate text-[15px] font-semibold text-foreground">{club.name}</p>
-                      {club.is_active === false && <Badge variant="secondary">De baja</Badge>}
+                      {isDeregistered && <Badge variant="secondary">De baja</Badge>}
                       {location && <p className="truncate text-sm text-muted-foreground">{location}</p>}
                       {club.member_count !== undefined && (
                         <p className="text-sm text-muted-foreground">{memberCountLabel(club.member_count)}</p>
                       )}
                     </div>
                     <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-                      {isAssociationAdmin() && club.is_active !== false && (
+                      {isAssociationAdmin() && !isDeregistered && (
                         <DeregisterClubButton
                           clubId={club.id}
                           clubName={club.name}

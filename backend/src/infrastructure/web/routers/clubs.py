@@ -1,5 +1,6 @@
 """Club routes."""
 
+from dataclasses import asdict
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -167,4 +168,4 @@ async def deregister_club(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club no encontrado")
 
     audit("club.deregistered", club_id=club_id, members=result.members, accounts=result.accounts, by=ctx.user.id)
-    return DeregisteredClubResponse(members=result.members, accounts=result.accounts)
+    return DeregisteredClubResponse(**asdict(result))
