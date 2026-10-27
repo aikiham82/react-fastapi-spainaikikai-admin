@@ -6,6 +6,7 @@ import { ListPager } from '@/core/components/ListPager';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { formatDate } from '@/core/utils/format';
+import { daysUntil } from '@/core/utils/expiry';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -269,7 +270,9 @@ export const LicenseList = () => {
                     <LicenseBelt license={license} />
                     <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
                       <LicenseStatusBadge license={license} />
-                      <span className="text-sm text-muted-foreground">Caduca el {formatDate(license.expiry_date)}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {daysUntil(license.expiry_date) < 0 ? 'Caducó el' : 'Caduca el'} {formatDate(license.expiry_date)}
+                      </span>
                     </span>
                   </span>
                   <ChevronRight className="size-5 shrink-0 self-center text-muted-foreground" aria-hidden="true" />

@@ -53,11 +53,11 @@ Description: user search terms are escaped before they reach `$regex`.
 
 Description: the licence mobile card says "Caducó el" when the expiry date has passed.
 
-- [ ] Test: "the mobile card says Caducó el for a past expiry and Caduca el for a future one".
-- [ ] Branch on `daysUntil(expiry) < 0` in `LicenseList.tsx`.
-- [ ] Copy: "Caducó el".
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test: "the mobile card says Caducó el for a past expiry and Caduca el for a future one".
+- [x] Branch on `daysUntil(expiry) < 0` in `LicenseList.tsx`.
+- [x] Copy: "Caducó el".
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: no empty footer in the licence detail
 
@@ -70,6 +70,6 @@ Description: the detail dialog renders its footer only when the user can edit or
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
 Three loose ends tied up by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

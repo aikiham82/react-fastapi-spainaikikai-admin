@@ -181,6 +181,14 @@ describe('LicenseList', () => {
     expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
   })
 
+  it('the mobile card says Caducó el for a past expiry and Caduca el for a future one', () => {
+    context.licenses = [makeLicense('1', 'Bea Active', 200, 'active'), makeLicense('3', 'Dora Expired', -40, 'expired')]
+    renderList()
+
+    expect(screen.getAllByText(/^Caduca el /)).toHaveLength(1)
+    expect(screen.getAllByText(/^Caducó el /)).toHaveLength(1)
+  })
+
   it('lists deregistered members last', () => {
     context.licenses = [
       { ...makeLicense('4', 'Elena Gone', -300, 'expired'), member_status: 'inactive' },
