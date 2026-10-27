@@ -18,6 +18,10 @@ const login = async (userData: AuthRequest): Promise<AuthResponse> => {
   });
 };
 
+const socialLogin = async (token: string): Promise<AuthResponse> => {
+  return await apiClient.post<AuthResponse>(`${BASE_URL}/social-login`, { token });
+};
+
 const register = async (userData: RegisterRequest): Promise<AuthResponse> => {
   return await apiClient.post<AuthResponse>(`${BASE_URL}/register`, userData);
 };
@@ -33,6 +37,7 @@ const getCurrentUser = async (): Promise<CurrentUser> => {
 export const authService = {
   logout,
   login,
+  socialLogin,
   register,
   updateOwnEmail,
   getCurrentUser

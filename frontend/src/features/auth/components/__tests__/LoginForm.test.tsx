@@ -67,6 +67,16 @@ describe('LoginForm', () => {
       expect(screen.getByRole('alert')).not.toHaveTextContent('no son correctos')
     })
 
+    it('explains a refused Google sign-in', () => {
+      window.history.pushState({}, '', '/login?google=failed')
+      renderWithProviders(<LoginForm />)
+
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'No hemos podido entrar con Google. Usa el correo con el que tu club te dio acceso.'
+      )
+      window.history.pushState({}, '', '/')
+    })
+
     it('does not link to registration and explains how to get access', () => {
       renderWithProviders(<LoginForm />)
 

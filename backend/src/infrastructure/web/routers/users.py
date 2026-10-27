@@ -30,6 +30,7 @@ from src.infrastructure.web.dependencies import (
     get_user_by_id_use_case,
     get_create_user_use_case,
     get_authenticate_user_use_case,
+    get_login_with_identity_provider_use_case,
     get_auth_context,
     get_generate_admin_password_reset_link_use_case,
     get_user_by_member_id_use_case,
@@ -59,7 +60,8 @@ from src.application.use_cases.user_use_cases import (
     GetUserByMemberIdUseCase,
     CreateUserUseCase,
     UpdateUserEmailUseCase,
-    AuthenticateUserUseCase
+    AuthenticateUserUseCase,
+    LoginWithIdentityProviderUseCase,
 )
 from src.application.use_cases.password_reset import GenerateAdminPasswordResetLinkUseCase
 
@@ -141,12 +143,38 @@ async def login(
 
     if not user:
         audit("auth.login.failed", level="warning", reason=_login_failure_reason(candidates, active_candidates))
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise _invalid_login()
 
+    return await _issue_token(user, member_repository)
+
+
+class SocialLoginRequest(BaseModel):
+    token: str = Field(..., min_length=1, max_length=8192)
+
+
+@router.post("/auth/social-login", response_model=Token)
+async def social_login(
+    request: SocialLoginRequest,
+    use_case: LoginWithIdentityProviderUseCase = Depends(get_login_with_identity_provider_use_case),
+    member_repository = Depends(get_member_repository),
+):
+    """Exchange an identity provider token (Google through Clerk) for our own JWT."""
+    user = await use_case.execute(request.token)
+    if not user:
+        audit("auth.social_login.failed", level="warning")
+        raise _invalid_login()
+    return await _issue_token(user, member_repository)
+
+
+def _invalid_login() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+async def _issue_token(user, member_repository) -> Token:
     member = await member_repository.find_by_id(user.member_id) if user.member_id else None
     if user.global_role == GlobalRole.SUPER_ADMIN:
         audit("auth.login.succeeded", user_id=user.id, club_id=None, club_role="super_admin")

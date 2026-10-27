@@ -95,6 +95,7 @@ docs/
 │   ├── auth-endpoints.md
 │   ├── pdf-text-is-escaped.md
 │   ├── security-guidelines.md
+│   ├── social-login-only-vouches-for-an-email.md
 │   └── sentry-collects-no-personal-data.md
 ├── testing/
 │   ├── fixtures-are-real-entities.md

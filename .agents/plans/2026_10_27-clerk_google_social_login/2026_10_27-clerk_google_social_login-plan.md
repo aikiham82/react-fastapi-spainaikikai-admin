@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-27T13:35:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Clerk Google social login
@@ -70,11 +80,11 @@ Public contracts:
   - `LoginForm`: Google button shown only with a publishable key.
   - SSO callback: exchanges the Clerk token, stores our token and navigates home; shows the error on 401.
 
-- [ ] Add `clerk-backend-api` to the backend and the port, adapter, use case and endpoint with tests.
-- [ ] Add `@clerk/react`, `ClerkProvider` (only when the key exists), the Google button and `/sso-callback` with tests.
-- [ ] Document the endpoint in `docs/security/auth-endpoints.md` and the Clerk setup in a new doc, with env vars in `.env.example` files.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Add `clerk-backend-api` to the backend and the port, adapter, use case and endpoint with tests.
+- [x] Add `@clerk/react`, `ClerkProvider` (only when the key exists), the Google button and `/sso-callback` with tests.
+- [x] Document the endpoint in `docs/security/auth-endpoints.md` and the Clerk setup in a new doc, with env vars in `.env.example` files.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Google sign-in on the mobile app
 
@@ -92,6 +102,6 @@ Public contracts:
 
 ## ⏭️ Next step
 
-Implement Phase 1: the exchange endpoint and the Google button on the admin web.
+Implement Phase 2: Google sign-in on the mobile app.
 
-Google meets Turbotuga™ 🐢 💨 ([Codely](https://codely.com)'s mascot), and only known faces get in.
+The web door now opens with Google for known faces only, guarded by [Codely](https://codely.com)'s Turbotuga™. 🔑 🚪 🐢 💨

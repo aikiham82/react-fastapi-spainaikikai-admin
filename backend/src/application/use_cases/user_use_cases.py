@@ -7,6 +7,7 @@ from src.domain.exceptions.user import (
     UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError,
     SuperAdminAlreadyExistsError, EmailAlreadyInUseError
 )
+from src.application.ports.identity_provider import IdentityProviderPort
 from src.application.ports.repositories import UserRepositoryPort
 from src.application.ports.password_reset_token_repository import PasswordResetTokenRepositoryPort
 
@@ -195,3 +196,22 @@ class AuthenticateUserUseCase:
     async def execute(self, identifier: str) -> List[User]:
         """Execute the use case."""
         return await self.find_login_accounts_use_case.execute(identifier)
+
+
+class LoginWithIdentityProviderUseCase:
+    """Sign in an existing active user whose email an identity provider vouches for.
+
+    It never creates accounts: access is still granted by a club or the federation.
+    """
+
+    def __init__(self, identity_provider: IdentityProviderPort, user_repository: UserRepositoryPort):
+        self.identity_provider = identity_provider
+        self.user_repository = user_repository
+
+    async def execute(self, token: str) -> Optional[User]:
+        """Execute the use case."""
+        email = await self.identity_provider.verified_email(token)
+        if not email:
+            return None
+        user = await self.user_repository.find_by_email(email)
+        return user if user and user.is_active else None

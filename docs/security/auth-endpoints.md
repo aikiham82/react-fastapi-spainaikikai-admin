@@ -95,6 +95,7 @@ user = next(
 - [`backend/src/application/use_cases/password_reset/request_password_reset_use_case.py`](../../backend/src/application/use_cases/password_reset/request_password_reset_use_case.py): the single answer, and the availability check placed before the lookup so a configuration failure cannot be told apart from a missing account.
 - [`backend/src/infrastructure/web/routers/users.py`](../../backend/src/infrastructure/web/routers/users.py): `MAX_LOGIN_CANDIDATES`, the active-only filter and the uniform `401`.
 - [`backend/src/application/use_cases/user_use_cases.py`](../../backend/src/application/use_cases/user_use_cases.py): `CreateUserUseCase` checks uniqueness with the same loose rule logins resolve names by, so the variants cannot be created.
+- `POST /auth/social-login` (Google through Clerk) answers every refusal with the same `401` as `/auth/login` and hashes nothing. See [`social-login-only-vouches-for-an-email.md`](social-login-only-vouches-for-an-email.md).
 - [`backend/tests/infrastructure/web/test_login_with_username_router.py`](../../backend/tests/infrastructure/web/test_login_with_username_router.py): `test_only_a_bounded_number_of_passwords_is_checked` pins the cap.
 
 ## 🔗 Related agreements

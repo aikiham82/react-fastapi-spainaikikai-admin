@@ -1,5 +1,6 @@
 """FastAPI dependency injection."""
 
+import os
 from functools import lru_cache
 from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
@@ -31,8 +32,10 @@ from src.application.use_cases.user_use_cases import (
     FindLoginAccountsUseCase,
     CreateUserUseCase,
     UpdateUserEmailUseCase,
-    AuthenticateUserUseCase
+    AuthenticateUserUseCase,
+    LoginWithIdentityProviderUseCase,
 )
+from src.infrastructure.adapters.services.clerk_identity_provider import ClerkIdentityProvider
 from src.application.use_cases import (
     # Club use cases
     GetClubUseCase,
@@ -631,6 +634,18 @@ def get_create_user_use_case() -> CreateUserUseCase:
 def get_authenticate_user_use_case() -> AuthenticateUserUseCase:
     """Get authenticate user use case."""
     return AuthenticateUserUseCase(get_find_login_accounts_use_case())
+
+
+@lru_cache()
+def get_identity_provider() -> ClerkIdentityProvider:
+    """Get the Clerk identity provider; without a secret key it vouches for nobody."""
+    parties = [p.strip() for p in os.getenv("CLERK_AUTHORIZED_PARTIES", "").split(",") if p.strip()]
+    return ClerkIdentityProvider(os.getenv("CLERK_SECRET_KEY") or None, parties or None)
+
+
+def get_login_with_identity_provider_use_case() -> LoginWithIdentityProviderUseCase:
+    """Get login with identity provider use case."""
+    return LoginWithIdentityProviderUseCase(get_identity_provider(), get_user_repository())
 
 
 # Authentication dependencies
