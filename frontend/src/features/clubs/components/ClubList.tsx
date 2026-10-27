@@ -24,7 +24,7 @@ const clubLocation = (club: Club): string => {
 
 const memberCountLabel = (count: number): string => `${count} ${count === 1 ? 'socio' : 'socios'}`;
 
-const SeasonPayment = ({ summary }: { summary: ClubSummaryItem }) => (
+const SeasonPayment = ({ summary, year }: { summary: ClubSummaryItem; year: number }) => (
   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1">
     <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
       <Users className="size-[18px] shrink-0" aria-hidden="true" />
@@ -35,11 +35,11 @@ const SeasonPayment = ({ summary }: { summary: ClubSummaryItem }) => (
         <span className="w-16">
           <ProgressBar value={summary.members_with_license} max={summary.total_members} label="Licencias pagadas" />
         </span>
-        {summary.members_with_license} de {summary.total_members} con licencia
+        {summary.members_with_license} de {summary.total_members} con licencia {year}
       </span>
     )}
     <StatusBadge tone={summary.has_club_fee ? 'ok' : 'warn'}>
-      {summary.has_club_fee ? 'Cuota pagada' : 'Cuota pendiente'}
+      {summary.has_club_fee ? `Cuota ${year} pagada` : `Cuota ${year} pendiente`}
     </StatusBadge>
   </div>
 );
@@ -48,7 +48,8 @@ export const ClubList = () => {
   const { clubs, isLoading, error, deleteClub } = useClubContext();
   const { canAccess, isAssociationAdmin } = usePermissions();
   const isSuperAdmin = isAssociationAdmin();
-  const { data: seasonSummary } = useAllClubsPaymentSummaryQuery(insuranceSeasonYear(new Date()), isSuperAdmin);
+  const seasonYear = insuranceSeasonYear(new Date());
+  const { data: seasonSummary } = useAllClubsPaymentSummaryQuery(seasonYear, isSuperAdmin);
   const summaryByClub = useMemo(
     () => new Map((seasonSummary?.clubs ?? []).map((summary) => [summary.club_id, summary])),
     [seasonSummary]
@@ -148,7 +149,7 @@ export const ClubList = () => {
                             <span className="truncate">{location}</span>
                           </p>
                         )}
-                        {summary && <SeasonPayment summary={summary} />}
+                        {summary && <SeasonPayment summary={summary} year={seasonYear} />}
                       </div>
                     </div>
                     <div className="flex w-full items-center gap-2 pl-14 sm:w-auto sm:shrink-0 sm:pl-0">

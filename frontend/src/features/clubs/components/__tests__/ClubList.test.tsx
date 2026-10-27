@@ -78,15 +78,18 @@ describe('ClubList', () => {
     expect(screen.queryByText(/cuota/i)).not.toBeInTheDocument()
   })
 
-  it('shows each club members, licences paid and the club fee of the current season', () => {
+  it('shows each club members, licences paid and the club fee of the season being paid, with its year', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 27))
     renderWithProviders(<ClubList />)
+    vi.useRealTimers()
 
     const paid = rowOf('Club Ejemplo')
     expect(within(paid).getByText('20 socios')).toBeInTheDocument()
     expect(within(paid).getByRole('progressbar', { name: 'Licencias pagadas' })).toHaveAttribute('aria-valuenow', '15')
-    expect(within(paid).getByText('15 de 20 con licencia')).toBeInTheDocument()
-    expect(within(paid).getByText('Cuota pagada')).toBeInTheDocument()
-    expect(within(rowOf('Club Vacío')).getByText('Cuota pendiente')).toBeInTheDocument()
+    expect(within(paid).getByText('15 de 20 con licencia 2027')).toBeInTheDocument()
+    expect(within(paid).getByText('Cuota 2027 pagada')).toBeInTheDocument()
+    expect(within(rowOf('Club Vacío')).getByText('Cuota 2027 pendiente')).toBeInTheDocument()
   })
 
   it('asks for the season that is being paid now', () => {

@@ -56,6 +56,8 @@ Pendientes, Historial and Inicio name the same season, today "Temporada 2026-27"
 - [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command. Fix issues if any.
 - [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
+> Revised after implementation (user decision, 2026-10-27): `docs/domain/payment-cycles.md` records that opening Historial on N+1 was rejected on 2026-10-25. Historial keeps opening on the licences in force and points to the season being paid; every screen names its period "Temporada {N-1}-{NN} · licencias N".
+
 ### Phase 3: Touch targets
 
 - [x] RowActions menu items, inline `TextButton` and the cover remove button reach 44px with `pointer-coarse:`; tests assert the class on each primitive.

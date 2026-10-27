@@ -47,26 +47,35 @@ describe('ClubPaymentsPage year', () => {
     return within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent)
   }
 
-  it('opens on the season being paid from October, like Pendientes and Inicio', async () => {
+  it('opens on the licences in force, named like Pendientes, and offers the season being paid from October', async () => {
     renderOn('2026-10-01T10:00:00')
-
-    expect(screen.getByText('Temporada 2026-27 · licencias 2027')).toBeInTheDocument()
-    expect(requestedYear()).toBe(2027)
-    expect(await offeredYears()).toEqual(['2026-27', '2025-26', '2024-25', '2023-24', '2022-23'])
-  })
-
-  it('opens on the season that ends in September until then', async () => {
-    renderOn('2026-09-30T10:00:00')
 
     expect(screen.getByText('Temporada 2025-26 · licencias 2026')).toBeInTheDocument()
     expect(requestedYear()).toBe(2026)
+    expect(await offeredYears()).toEqual(['2026-27', '2025-26', '2024-25', '2023-24', '2022-23'])
+  })
+
+  it('offers the season in force and the four before until September', async () => {
+    renderOn('2026-09-30T10:00:00')
+
+    expect(screen.getByText('Temporada 2025-26 · licencias 2026')).toBeInTheDocument()
     expect(await offeredYears()).toEqual(['2025-26', '2024-25', '2023-24', '2022-23', '2021-22'])
   })
 
-  it('needs no warning about autumn payments', () => {
+  it('points to the season being paid from October', async () => {
     renderOn('2026-10-25T10:00:00')
 
-    expect(screen.queryByText(/desde octubre/)).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^Ver 20/ })).not.toBeInTheDocument()
+    expect(screen.getByText('Ya hay pagos de la temporada 2026-27.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Ver temporada 2026-27' }))
+
+    expect(requestedYear()).toBe(2027)
+    expect(screen.getByText('Temporada 2026-27 · licencias 2027')).toBeInTheDocument()
+    expect(screen.queryByText(/Ya hay pagos/)).not.toBeInTheDocument()
+  })
+
+  it('does not point anywhere until October', () => {
+    renderOn('2026-09-30T10:00:00')
+
+    expect(screen.queryByText(/Ya hay pagos/)).not.toBeInTheDocument()
   })
 })
