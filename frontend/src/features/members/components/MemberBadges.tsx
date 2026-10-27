@@ -1,5 +1,5 @@
 import { KeyRound } from 'lucide-react';
-import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
+import { StatusBadge, toneClasses, type StatusTone } from '@/components/ui/status-badge';
 import { BeltBadge } from '@/components/ui/graphic';
 import { cn } from '@/lib/utils';
 import type { LicenseSummary, InsuranceSummary } from '../data/schemas/member.schema';
@@ -55,13 +55,6 @@ export function LicenseStatusBadge({ licenseSummary }: LicenseStatusBadgeProps) 
   return <StatusBadge tone={tone}>{label}</StatusBadge>;
 }
 
-const TILE_TONES: Record<StatusTone, string> = {
-  ok: 'bg-success-soft text-success',
-  warn: 'bg-warning-soft text-warning',
-  bad: 'bg-danger-soft text-danger',
-  neutral: 'bg-muted text-muted-foreground',
-};
-
 interface InsuranceTileProps {
   code: 'AC' | 'RC';
   name: string;
@@ -80,7 +73,7 @@ function InsuranceTile({ code, name, has, rawStatus }: InsuranceTileProps) {
       aria-label={spoken}
       title={spoken}
       data-tone={tone}
-      className={cn('inline-grid size-[30px] place-items-center rounded-lg text-[11px] font-bold', TILE_TONES[tone])}
+      className={cn('inline-grid size-[30px] place-items-center rounded-lg text-[11px] font-bold', toneClasses[tone])}
     >
       {code}
     </span>

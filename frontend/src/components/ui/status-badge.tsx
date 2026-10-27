@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 
 export type StatusTone = 'ok' | 'warn' | 'bad' | 'neutral'
 
-const toneClasses: Record<StatusTone, string> = {
+export const toneClasses: Record<StatusTone, string> = {
   ok: 'bg-success-soft text-success',
   warn: 'bg-warning-soft text-warning',
   bad: 'bg-danger-soft text-danger',

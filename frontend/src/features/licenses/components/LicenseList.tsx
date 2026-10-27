@@ -129,7 +129,7 @@ export const LicenseList = () => {
     [sorted],
   );
   const visible = useMemo(
-    () => (chip === 'all' ? sorted : sorted.filter((license) => getUrgency(license) === (chip === 'expired' ? 'expired' : 'expiring'))),
+    () => (chip === 'all' ? sorted : sorted.filter((license) => getUrgency(license) === chip)),
     [sorted, chip],
   );
 

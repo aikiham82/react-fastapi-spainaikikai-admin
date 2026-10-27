@@ -21,7 +21,7 @@ export const insurancePresentation = (has: boolean, rawStatus: string | null | u
   return has && status ? insuranceStatus({ status, end_date: '' }) : null;
 };
 
-export const isInsuranceInOrder = (has: boolean, rawStatus: string | null | undefined): boolean =>
+const isInsuranceInOrder = (has: boolean, rawStatus: string | null | undefined): boolean =>
   insurancePresentation(has, rawStatus)?.tone === 'ok';
 
 export const matchesMemberChip = (member: Member, chip: MemberChip): boolean => {

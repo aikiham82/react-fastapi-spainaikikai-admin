@@ -1,3 +1,4 @@
+import { toneClasses, type StatusTone } from '@/components/ui/status-badge'
 import type { CSSProperties, ReactNode } from 'react'
 import { Check, Plus, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -112,7 +113,7 @@ export function BeltBadge({ grade, title }: BeltBadgeProps) {
   )
 }
 
-type Tone = 'ok' | 'warn' | 'bad' | 'brand' | 'neutral'
+type Tone = StatusTone | 'brand'
 
 const toneColour: Record<Tone, string> = {
   ok: 'var(--success)',
@@ -171,13 +172,7 @@ export function ProgressBar({ value, max, label, tone = 'ok' }: ProgressProps) {
   )
 }
 
-const tileClasses: Record<Tone, string> = {
-  ok: 'bg-success-soft text-success',
-  warn: 'bg-warning-soft text-warning',
-  bad: 'bg-danger-soft text-danger',
-  brand: 'bg-primary-soft text-primary',
-  neutral: 'bg-muted text-muted-foreground',
-}
+const tileClasses: Record<Tone, string> = { ...toneClasses, brand: 'bg-primary-soft text-primary' }
 
 interface IconTileProps {
   icon: LucideIcon
