@@ -44,7 +44,7 @@ class ClerkIdentityProvider(IdentityProviderPort):
         except Exception as error:
             logger.error("Clerk token check failed, check the Clerk keys: %s", type(error).__name__)
             return None
-        if not self._is_native_or_allowed_origin(claims.get("azp")):
+        if claims.get("act") or not self._is_native_or_allowed_origin(claims.get("azp")):
             return None
 
         try:
@@ -57,8 +57,13 @@ class ClerkIdentityProvider(IdentityProviderPort):
             (email for email in user.email_addresses if email.id == user.primary_email_address_id),
             None,
         )
-        if primary and primary.verification and primary.verification.status == "verified":
-            return primary.email_address
+        if (
+            primary
+            and primary.email_address.isascii()
+            and primary.verification
+            and primary.verification.status == "verified"
+        ):
+            return primary.email_address.lower()
         return None
 
     def _is_native_or_allowed_origin(self, azp: Optional[str]) -> bool:

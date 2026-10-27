@@ -6,6 +6,8 @@ Google sign-in goes through Clerk, and Clerk **only proves who the person is**. 
 
 The client signs out of Clerk right after the exchange, so our JWT is the only session and logout stays as it was.
 
+The adapter also refuses impersonation tokens (`act` claim) and non-ASCII emails, which the case-insensitive collation could fold onto a real address. An active account that has not set a password yet can enter with Google: proving the inbox is the same proof the activation link asks for.
+
 ## 🏆 Benefits
 
 - Access is still granted by a club or the federation (`GrantMemberAccess`, card activation). A Google account nobody gave access to gets nothing.
@@ -46,6 +48,7 @@ The default Clerk session token carries no email, and a custom claim says nothin
 ## ⚙️ Setup
 
 1. Clerk dashboard: create the application, enable only **Google** under social connections, require no extra sign-up field (no username, no password, no phone), and keep **Sign-up mode → Public**. Every member is new to Clerk, so their first Google sign-in is a Clerk sign-up: **Restricted** mode refuses it and nobody gets in. The gate is our backend, not Clerk; a stranger gets a Clerk user and our `401`.
+   Also in the dashboard: disable email, password and code sign-in (Google only); set a short session lifetime (minutes), since a tab closed before the exchange leaves a Clerk session in that browser; protect the dashboard with MFA and few members, because dashboard impersonation tokens (`act` claim) are refused but a dashboard owner can still create users with verified emails; add the app redirect (`spain-aikikai://`) to the native application allowlist.
 2. Keys, never committed:
    - Backend: `CLERK_SECRET_KEY`, and `CLERK_AUTHORIZED_PARTIES` with the panel and Expo web origins (comma-separated). A token that names an origin (`azp`) must name one of them, so an empty list refuses every web token; a native app token names none and is accepted. Only session tokens are considered. Optional `CLERK_JWT_KEY` (PEM public key) verifies the signature without calling Clerk.
    - Frontend: `VITE_CLERK_PUBLISHABLE_KEY`, a Docker build arg, so it must be set in the deploy's build arguments.

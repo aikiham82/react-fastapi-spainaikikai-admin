@@ -46,6 +46,21 @@ class TestClerkIdentityProviderHardening:
         with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value=claims)):
             assert await provider.verified_email("t") is None
 
+    async def test_refuses_an_impersonation_token(self):
+        provider = _provider_with_user(_clerk_user("verified"))
+        claims = {"sub": "user_1", "act": {"sub": "user_admin"}}
+
+        with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value=claims)):
+            assert await provider.verified_email("t") is None
+
+    async def test_refuses_a_non_ascii_email(self):
+        user = _clerk_user("verified")
+        user.email_addresses[0].email_address = "vic​tim@example.com"
+        provider = _provider_with_user(user)
+
+        with patch(f"{MODULE}.verify_token_async", AsyncMock(return_value={"sub": "user_1"})):
+            assert await provider.verified_email("t") is None
+
     async def test_verifies_offline_with_the_jwt_key_when_configured(self):
         provider = _provider_with_user(_clerk_user("verified"), jwt_key="-----BEGIN PUBLIC KEY-----")
 

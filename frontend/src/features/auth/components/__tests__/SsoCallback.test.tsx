@@ -12,6 +12,12 @@ vi.mock('@clerk/react', () => ({
   HandleSSOCallback: () => null,
 }))
 
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useNavigate: () => mockNavigate,
+}))
+
 const mockAuthContext = createMockAuthContextValue()
 vi.mock('@/features/auth/hooks/useAuthContext', () => ({
   useAuthContext: () => mockAuthContext,
@@ -60,5 +66,16 @@ describe('SsoCallback', () => {
     renderWithProviders(<SsoCallback />)
 
     expect(clerkAuth.getToken).not.toHaveBeenCalled()
+  })
+
+  it('gives up and goes back to the login when Clerk never answers', () => {
+    vi.useFakeTimers()
+    clerkAuth.isSignedIn = false
+
+    renderWithProviders(<SsoCallback />)
+    vi.advanceTimersByTime(20_000)
+
+    expect(mockNavigate).toHaveBeenCalledWith('/login?google=failed', { replace: true })
+    vi.useRealTimers()
   })
 })

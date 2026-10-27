@@ -55,6 +55,15 @@ describe('GoogleSignIn', () => {
     })
   })
 
+  it('reports a flow that throws because Clerk did not load', async () => {
+    sso.mockRejectedValue(new Error('clerk-js failed to load'))
+    renderWithProviders(<GoogleSignIn />)
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Entrar con Google' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/login?google=failed', { replace: true })
+  })
+
   it('reports a flow that cannot start', async () => {
     sso.mockResolvedValue({ error: new Error('boom') })
     renderWithProviders(<GoogleSignIn />)

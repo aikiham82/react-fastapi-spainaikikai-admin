@@ -8,11 +8,13 @@ const GoogleButton = () => {
   const navigate = useNavigate();
 
   const start = async () => {
-    const { error } = await signIn.sso({
-      strategy: "oauth_google",
-      redirectUrl: SSO_CALLBACK_PATH,
-      redirectCallbackUrl: SSO_CALLBACK_PATH,
-    });
+    const { error } = await signIn
+      .sso({
+        strategy: "oauth_google",
+        redirectUrl: SSO_CALLBACK_PATH,
+        redirectCallbackUrl: SSO_CALLBACK_PATH,
+      })
+      .catch((thrown: unknown) => ({ error: thrown }));
     if (error) navigate(GOOGLE_FAILED_PATH, { replace: true });
   };
 
