@@ -5,7 +5,7 @@ from typing import List, Optional
 from io import BytesIO
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from datetime import datetime
 
@@ -127,7 +127,7 @@ async def get_licenses(
     offset: int = 0,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
-    search: Optional[str] = None,
+    search: Optional[str] = Query(None, max_length=100),
     status: Optional[str] = None,
     get_all_use_case = Depends(get_all_licenses_use_case),
     member_repository = Depends(get_member_repository),

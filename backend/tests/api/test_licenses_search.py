@@ -61,3 +61,9 @@ def test_licence_search_with_regex_characters_matches_the_literal_text(client):
 
     assert response.status_code == status.HTTP_200_OK
     assert [item["member_name"] for item in response.json()["items"]] == ["Carlos García (Jr)"]
+
+
+def test_a_licence_search_longer_than_100_characters_is_refused(client):
+    response = client.get("/api/v1/licenses", params={"search": "a" * 101})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
