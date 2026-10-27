@@ -77,6 +77,7 @@ docs/
 │   ├── payment-cycles.md
 │   ├── payments-never-guess-paid-state.md
 │   ├── roles-and-permissions.md
+│   ├── the-card-is-for-every-member-the-panel-for-managers.md
 │   ├── unique-optional-fields.md
 │   └── validity-follows-dates.md
 ├── git/
