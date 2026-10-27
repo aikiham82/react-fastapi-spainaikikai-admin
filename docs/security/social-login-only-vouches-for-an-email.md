@@ -58,6 +58,8 @@ The default Clerk session token carries no email, and a custom claim says nothin
    A refused exchange is a `401`; the API client must treat `/auth/social-login` like `/auth/login` (`isSignInAttempt`), or its expired-session handler wipes storage and reloads `/login` before the refusal message shows.
 4. Production needs a Clerk **production instance** on the panel's own domain (DNS records Clerk lists), and **our own Google OAuth client** in Google Cloud with the consent screen published ("In production"), the Clerk redirect URI and the panel origin authorised.
 
+   Where it lives (set up 2026-10-27): Clerk application "Spain Aikikai" (production instance on `spainaikikai.org`, Frontend API `clerk.spainaikikai.org`); the five CNAMEs Clerk lists (`clerk`, `accounts`, `clkmail`, `clk._domainkey`, `clk2._domainkey`) in the OVH zone; the Google OAuth client "Clerk Spain Aikikai" in the Google Cloud project `spain-aikikai-login` (account `spainaikikai.web`), kept apart from the WordPress mail project; keys in Dokploy (backend env, frontend build arg). The production secret key is the one named `backend` in Clerk.
+
 ## 🧐 Real world examples
 
 - [`backend/src/application/use_cases/user_use_cases.py`](../../backend/src/application/use_cases/user_use_cases.py): `LoginWithIdentityProviderUseCase`.
