@@ -25,6 +25,7 @@ const ALL = 'all';
 const typeIcon = (type: string): LucideIcon => (type === 'accident' ? HeartPulse : ShieldCheck);
 
 const memberNameOf = (insurance: Insurance) => insurance.member_name || 'Sin miembro';
+const dniOf = (insurance: Insurance) => (insurance.member_dni ? `DNI ${insurance.member_dni}` : null);
 
 const InsuranceKind = ({ type }: { type: string }) => {
   const Icon = typeIcon(type);
@@ -246,13 +247,16 @@ export const InsuranceList = () => {
                 >
                   <Avatar name={memberNameOf(insurance)} size="md" />
                   <div className="min-w-0 flex-1 space-y-2">
-                    <button
-                      type="button"
-                      className="block max-w-full truncate text-left text-base font-bold text-foreground"
-                      onClick={() => openDetail(insurance)}
-                    >
-                      {memberNameOf(insurance)}
-                    </button>
+                    <div>
+                      <button
+                        type="button"
+                        className="block max-w-full truncate text-left text-base font-bold text-foreground"
+                        onClick={() => openDetail(insurance)}
+                      >
+                        {memberNameOf(insurance)}
+                      </button>
+                      {dniOf(insurance) && <p className="truncate text-sm text-muted-foreground">{dniOf(insurance)}</p>}
+                    </div>
                     <p className="text-sm">
                       <InsuranceKind type={insurance.insurance_type} />
                     </p>
@@ -304,8 +308,10 @@ export const InsuranceList = () => {
                             <button type="button" className="text-left font-bold text-foreground" onClick={() => openDetail(insurance)}>
                               {memberNameOf(insurance)}
                             </button>
-                            {insurance.policy_number && (
-                              <p className="whitespace-nowrap text-muted-foreground">{insurance.policy_number}</p>
+                            {(dniOf(insurance) || insurance.policy_number) && (
+                              <p className="whitespace-nowrap text-muted-foreground">
+                                {[dniOf(insurance), insurance.policy_number].filter(Boolean).join(' · ')}
+                              </p>
                             )}
                           </div>
                         </div>

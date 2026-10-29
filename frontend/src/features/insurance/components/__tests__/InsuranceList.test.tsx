@@ -71,6 +71,19 @@ describe('InsuranceList', () => {
     context.deleteInsurance.mockClear()
   })
 
+  it("shows the member's DNI on the card and in the table", () => {
+    context.insuranceList = [{ ...insurance, member_dni: '12345678Z' }]
+    renderWithProviders(<InsuranceList />)
+
+    expect(screen.getAllByText(/DNI 12345678Z/)).toHaveLength(2)
+  })
+
+  it('shows no DNI label when the member has none', () => {
+    renderWithProviders(<InsuranceList />)
+
+    expect(screen.queryByText(/DNI/)).not.toBeInTheDocument()
+  })
+
   it('labels the insurance filters', async () => {
     renderWithProviders(<InsuranceList />)
 

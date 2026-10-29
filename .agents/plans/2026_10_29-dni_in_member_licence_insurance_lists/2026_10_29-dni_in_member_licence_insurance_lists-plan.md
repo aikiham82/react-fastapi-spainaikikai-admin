@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-29T12:30:00Z"
+has_completed_all_phases: false
 ---
 
 # DNI in member, licence and insurance lists
@@ -52,12 +61,12 @@ Public contracts:
   - `backend/tests/api/test_insurances_list_filters.py`: same for insurances.
   - `MemberList.test.tsx`, `LicenseList.test.tsx`, `InsuranceList.test.tsx`: the DNI is shown; no "DNI" text when empty.
 
-- [ ] Write the failing backend and frontend tests.
-- [ ] Add `member_dni` to both response DTOs and both `_populate_member_names`.
-- [ ] Add `member_dni` to both Zod schemas.
-- [ ] Render the DNI under the name in the three lists, table and card.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing backend and frontend tests.
+- [x] Add `member_dni` to both response DTOs and both `_populate_member_names`.
+- [x] Add `member_dni` to both Zod schemas.
+- [x] Render the DNI under the name in the three lists, table and card.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: search by DNI
 
@@ -81,6 +90,6 @@ Public contracts:
 
 ## Next step
 
-Implement Phase 1: show the DNI in the three lists.
+Implement Phase 2: search by DNI.
 
 Plan looked up by DNI and found by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

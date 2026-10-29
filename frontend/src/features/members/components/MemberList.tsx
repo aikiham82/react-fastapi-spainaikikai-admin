@@ -40,7 +40,7 @@ const NAME_COLLATOR = new Intl.Collator('es');
 const fullName = (member: Member) => `${member.first_name} ${member.last_name ?? ''}`.trim();
 
 const secondaryLine = (member: Member, isSuperAdmin: boolean) =>
-  [isSuperAdmin ? member.club_name : null, member.email || member.phone].filter(Boolean).join(' · ') || '-';
+  [member.dni ? `DNI ${member.dni}` : null, isSuperAdmin ? member.club_name : null, member.email || member.phone].filter(Boolean).join(' · ') || '-';
 
 const LoadingRows = () => (
   <div role="status" aria-label="Cargando miembros" className="space-y-3">

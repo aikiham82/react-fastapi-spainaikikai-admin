@@ -69,6 +69,7 @@ class LicenseResponse(LicenseBase):
     image_url: Optional[str] = None
     member_name: Optional[str] = None
     member_status: Optional[str] = None
+    member_dni: Optional[str] = None
     # Category fields (English names)
     technical_grade: str = "kyu"
     instructor_category: str = "none"

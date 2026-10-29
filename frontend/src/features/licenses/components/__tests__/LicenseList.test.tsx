@@ -206,6 +206,14 @@ describe('LicenseList', () => {
     expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
   })
 
+  it("shows the member's DNI on the card and in the table, and nothing when there is none", () => {
+    context.licenses = [{ ...makeLicense('1', 'Bea Active', 200, 'active'), member_dni: '12345678Z' }, makeLicense('3', 'Dora Expired', -40, 'expired')]
+    renderList()
+
+    expect(screen.getAllByText(/DNI/)).toHaveLength(2)
+    expect(screen.getAllByText(/DNI 12345678Z/)).toHaveLength(2)
+  })
+
   it('the mobile card says Caducó el for a past expiry and Caduca el for a future one', () => {
     context.licenses = [makeLicense('1', 'Bea Active', 200, 'active'), makeLicense('3', 'Dora Expired', -40, 'expired')]
     renderList()

@@ -52,6 +52,8 @@ const LicenseBelt = ({ license }: { license: License }) => (
 );
 
 const memberNameOf = (license: License) => license.member_name || 'Sin nombre';
+const subtitleOf = (license: License) =>
+  [license.member_dni ? `DNI ${license.member_dni}` : null, license.license_number].filter(Boolean).join(' · ');
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'active', label: 'Activa' },
@@ -285,7 +287,7 @@ export const LicenseList = () => {
                   <span className="flex min-w-0 flex-1 flex-col gap-2">
                     <span className="min-w-0">
                       <span className="block truncate text-base font-bold text-foreground">{memberNameOf(license)}</span>
-                      <span className="block text-sm text-muted-foreground">{license.license_number}</span>
+                      <span className="block text-sm text-muted-foreground">{subtitleOf(license)}</span>
                     </span>
                     <LicenseBelt license={license} />
                     <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
@@ -326,7 +328,7 @@ export const LicenseList = () => {
                         <Avatar name={memberNameOf(license)} size="md" />
                         <span className="min-w-0">
                           <span className="block truncate text-[15px] font-bold text-foreground">{memberNameOf(license)}</span>
-                          <span className="block truncate text-muted-foreground">{license.license_number}</span>
+                          <span className="block truncate text-muted-foreground">{subtitleOf(license)}</span>
                         </span>
                       </button>
                     </td>

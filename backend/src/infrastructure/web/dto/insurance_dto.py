@@ -46,6 +46,7 @@ class InsuranceResponse(InsuranceBase):
     end_date: Optional[datetime] = None
     documents: Optional[str] = None
     member_name: Optional[str] = None
+    member_dni: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
