@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.application.use_cases.payment.process_redsys_webhook_use_case import (
-    ProcessRedsysWebhookUseCase,
+from src.application.use_cases.payment.complete_payment_use_case import (
+    CompletePaymentUseCase,
 )
 from src.domain.entities.member_payment import MemberPaymentType
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
@@ -16,9 +16,8 @@ from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
 def _use_case():
     member_repository = AsyncMock()
     member_repository.find_by_id.return_value = MagicMock(club_role="member")
-    return ProcessRedsysWebhookUseCase(
+    return CompletePaymentUseCase(
         payment_repository=MagicMock(),
-        redsys_service=MagicMock(),
         member_payment_repository=AsyncMock(),
         member_repository=member_repository,
     )

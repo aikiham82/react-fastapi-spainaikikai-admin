@@ -1,4 +1,4 @@
-"""Invoice creation in ProcessRedsysWebhookUseCase for a club annual payment."""
+"""Invoice creation in CompletePaymentUseCase for a club annual payment."""
 
 import json
 from unittest.mock import AsyncMock, MagicMock
@@ -7,8 +7,8 @@ import pytest
 
 from src.domain.entities.invoice import InvoiceStatus
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
-from src.application.use_cases.payment.process_redsys_webhook_use_case import (
-    ProcessRedsysWebhookUseCase,
+from src.application.use_cases.payment.complete_payment_use_case import (
+    CompletePaymentUseCase,
 )
 
 
@@ -18,9 +18,8 @@ async def test_club_annual_payment_without_member_gets_an_invoice():
     invoice_repository = MagicMock()
     invoice_repository.get_next_invoice_number = AsyncMock(return_value="2026-000001")
     invoice_repository.create = AsyncMock(side_effect=lambda invoice: invoice)
-    use_case = ProcessRedsysWebhookUseCase(
+    use_case = CompletePaymentUseCase(
         payment_repository=MagicMock(),
-        redsys_service=MagicMock(),
         invoice_repository=invoice_repository,
         member_repository=MagicMock(),
     )
@@ -59,9 +58,8 @@ async def test_a_member_payment_gets_an_invoice_in_the_members_name():
     member_repository.find_by_id = AsyncMock(return_value=Member(
         id="m1", first_name="Ana", last_name="Example", email="ana@example.com",
     ))
-    use_case = ProcessRedsysWebhookUseCase(
+    use_case = CompletePaymentUseCase(
         payment_repository=MagicMock(),
-        redsys_service=MagicMock(),
         invoice_repository=invoice_repository,
         member_repository=member_repository,
     )

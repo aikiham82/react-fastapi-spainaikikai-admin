@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-29T13:00:00Z"
+last_implementation_at: "2026-10-29T14:00:00Z"
 has_completed_all_phases: false
 ---
 
@@ -72,13 +72,13 @@ Logo, customer block and payment details on every new invoice, built the same wa
 
 ### Phase 2: confirm an unfinished payment
 
-- [ ] Extract the webhook success branch into `CompletePaymentUseCase.execute(payment: Payment) -> CompletedPayment(payment, invoice)`. The webhook calls it; behaviour unchanged.
-- [ ] `ConfirmPaymentReceivedUseCase.execute(payment_id: str, payment_method: str) -> CompletedPayment`: `PaymentNotFoundError` (404), `InvalidPaymentStatusError` unless `pending`/`processing` (409), `InvalidPaymentDataError` for `redsys` or unknown method (400). Sets the method, completes, sends the confirmation email with the invoice.
-- [ ] `POST /payments/{payment_id}/confirm`, body `ConfirmPaymentRequest{payment_method}`, response `PaymentResponse`, super admin only.
-- [ ] Frontend: in the Historial club detail, section "Pagos sin terminar" (pending/processing payments of the club, from `GET /payments?club_id=`), each row with amount, date, concept and "Confirmar cobro" (super admin only) opening a dialog with the method select (Transferencia bancaria / Efectivo / Otro) and "Confirmar". Success toast "Cobro confirmado. Se ha emitido la factura."
-- [ ] Tests: use case (annual processing payment creates lines, licences and invoice; seminar marked official; 409 on completed; 400 on redsys); API guard (club admin 403); webhook tests still green; frontend service, mutation and component tests.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Extract the webhook success branch into `CompletePaymentUseCase.execute(payment: Payment) -> CompletedPayment(payment, invoice)`. The webhook calls it; behaviour unchanged.
+- [x] `ConfirmPaymentReceivedUseCase.execute(payment_id: str, payment_method: str) -> CompletedPayment`: `PaymentNotFoundError` (404), `InvalidPaymentStatusError` unless `pending`/`processing` (409), `InvalidPaymentDataError` for `redsys` or unknown method (400). Sets the method, completes, sends the confirmation email with the invoice.
+- [x] `POST /payments/{payment_id}/confirm`, body `ConfirmPaymentRequest{payment_method}`, response `PaymentResponse`, super admin only.
+- [x] Frontend: in the Historial club detail, section "Pagos sin terminar" (pending/processing payments of the club, from `GET /payments?club_id=`), each row with amount, date, concept and "Confirmar cobro" (super admin only) opening a dialog with the method select (Transferencia bancaria / Efectivo / Otro) and "Confirmar". Success toast "Cobro confirmado. Se ha emitido la factura."
+- [x] Tests: use case (annual processing payment creates lines, licences and invoice; seminar marked official; 409 on completed; 400 on redsys); API guard (club admin 403); webhook tests still green; frontend service, mutation and component tests.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: backfill the existing invoices
 
@@ -89,6 +89,6 @@ Logo, customer block and payment details on every new invoice, built the same wa
 
 ## ⏭️ Next step
 
-Implement Phase 2: confirm an unfinished payment.
+Implement Phase 3: backfill the existing invoices.
 
-Invoices dressed for the federation, logo and all, by 🧾 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Invoices dressed for the federation, logo and all, and stuck payments rescued, by 🧾 🛟 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

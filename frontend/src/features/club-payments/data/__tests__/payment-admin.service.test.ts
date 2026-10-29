@@ -336,3 +336,22 @@ describe('paymentAdminService', () => {
     });
   });
 });
+
+describe('unfinished payments', () => {
+  it('lists the payments of a club', async () => {
+    mockApiClient.get.mockResolvedValue([mockPayment]);
+
+    await expect(paymentAdminService.getClubPayments('club-abc')).resolves.toEqual([mockPayment]);
+    expect(mockApiClient.get).toHaveBeenCalledWith('/api/v1/payments', { params: { club_id: 'club-abc' } });
+  });
+
+  it('confirms a payment with the method it was received by', async () => {
+    mockApiClient.post.mockResolvedValue(mockPayment);
+
+    await paymentAdminService.confirmPayment('payment-123', 'transfer');
+
+    expect(mockApiClient.post).toHaveBeenCalledWith('/api/v1/payments/payment-123/confirm', {
+      payment_method: 'transfer',
+    });
+  });
+});

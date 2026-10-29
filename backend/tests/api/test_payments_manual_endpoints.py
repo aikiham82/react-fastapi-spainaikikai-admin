@@ -504,3 +504,69 @@ class TestDeletePayment:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         mock_use_case.execute.assert_awaited_once_with("pay-001", force=False)
+
+
+# ---------------------------------------------------------------------------
+# POST /{payment_id}/confirm
+# ---------------------------------------------------------------------------
+
+@pytest.mark.api
+@pytest.mark.unit
+class TestConfirmPaymentReceived:
+    """Tests for POST /api/v1/payments/{payment_id}/confirm."""
+
+    def _client(self, test_app, ctx, use_case):
+        from src.infrastructure.web.dependencies import get_confirm_payment_received_use_case
+
+        test_app.dependency_overrides[get_auth_context] = lambda: ctx
+        test_app.dependency_overrides[get_confirm_payment_received_use_case] = lambda: use_case
+        return TestClient(test_app)
+
+    def test_super_admin_confirms_a_transfer(self, test_app):
+        from src.application.use_cases.payment.complete_payment_use_case import CompletedPayment
+
+        use_case = AsyncMock()
+        use_case.execute.return_value = CompletedPayment(payment=_make_payment(method=PaymentMethod.TRANSFER))
+
+        response = self._client(test_app, _make_super_admin_ctx(), use_case).post(
+            "/api/v1/payments/pay-001/confirm", json={"payment_method": "transfer"}
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["status"] == "completed"
+        use_case.execute.assert_awaited_once_with(payment_id="pay-001", payment_method="transfer")
+
+    def test_a_club_admin_cannot_confirm(self, test_app):
+        use_case = AsyncMock()
+
+        response = self._client(test_app, _make_regular_ctx(), use_case).post(
+            "/api/v1/payments/pay-001/confirm", json={"payment_method": "transfer"}
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        use_case.execute.assert_not_called()
+
+    @pytest.mark.parametrize("error, code", [
+        (PaymentNotFoundError("pay-001"), status.HTTP_404_NOT_FOUND),
+        (InvalidPaymentStatusError("done"), status.HTTP_409_CONFLICT),
+        (InvalidPaymentDataError("bad"), status.HTTP_400_BAD_REQUEST),
+    ])
+    def test_use_case_errors_map_to_http(self, test_app, error, code):
+        use_case = AsyncMock()
+        use_case.execute.side_effect = error
+
+        response = self._client(test_app, _make_super_admin_ctx(), use_case).post(
+            "/api/v1/payments/pay-001/confirm", json={"payment_method": "transfer"}
+        )
+
+        assert response.status_code == code
+
+    def test_redsys_is_refused_before_the_use_case(self, test_app):
+        use_case = AsyncMock()
+
+        response = self._client(test_app, _make_super_admin_ctx(), use_case).post(
+            "/api/v1/payments/pay-001/confirm", json={"payment_method": "redsys"}
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        use_case.execute.assert_not_called()

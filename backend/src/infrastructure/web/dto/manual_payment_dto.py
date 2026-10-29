@@ -86,6 +86,12 @@ class PaymentUpdateRequest(BaseModel):
     status: Optional[str] = None
 
 
+class ConfirmPaymentRequest(BaseModel):
+    """Request DTO for POST /payments/{id}/confirm."""
+
+    payment_method: Literal["cash", "transfer", "other"]
+
+
 class ManualPaymentResponse(BaseModel):
     """Response DTO for POST /payments/manual."""
 

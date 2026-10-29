@@ -20,6 +20,7 @@ vi.mock('@/features/club-payments/data/services/payment-admin.service', () => ({
     getClubMemberPayments: vi.fn(),
     updateMemberPayment: vi.fn(),
     deleteMemberPayment: vi.fn(),
+    confirmPayment: vi.fn(),
   },
 }));
 
@@ -32,6 +33,7 @@ import {
   useDeletePaymentMutation,
   useUpdateMemberPaymentMutation,
   useDeleteMemberPaymentMutation,
+  useConfirmPaymentMutation,
 } from '../../mutations/usePaymentAdminMutations';
 
 // ─── Typed mock helpers ──────────────────────────────────────────────
@@ -42,6 +44,7 @@ const mockService = paymentAdminService as unknown as {
   getClubMemberPayments: ReturnType<typeof vi.fn>;
   updateMemberPayment: ReturnType<typeof vi.fn>;
   deleteMemberPayment: ReturnType<typeof vi.fn>;
+  confirmPayment: ReturnType<typeof vi.fn>;
 };
 
 const mockToast = toast as unknown as {
@@ -800,5 +803,32 @@ describe('useDeleteMemberPaymentMutation', () => {
 
       expect(mockToast.error).toHaveBeenCalledWith('Error al eliminar la línea de pago');
     });
+  });
+});
+
+describe('useConfirmPaymentMutation', () => {
+  it('confirms the payment and says the invoice was issued', async () => {
+    mockService.confirmPayment.mockResolvedValue(mockPayment);
+    const { wrapper } = createWrapper();
+    const { result } = renderHook(() => useConfirmPaymentMutation(), { wrapper });
+
+    act(() => {
+      result.current.confirmPayment({ id: 'pay-001', paymentMethod: 'transfer' });
+    });
+
+    await waitFor(() => expect(mockToast.success).toHaveBeenCalledWith('Cobro confirmado. Se ha emitido la factura.'));
+    expect(mockService.confirmPayment).toHaveBeenCalledWith('pay-001', 'transfer');
+  });
+
+  it('shows the reason when the payment cannot be confirmed', async () => {
+    mockService.confirmPayment.mockRejectedValue({ detail: 'Solo se puede confirmar un pago sin terminar' });
+    const { wrapper } = createWrapper();
+    const { result } = renderHook(() => useConfirmPaymentMutation(), { wrapper });
+
+    act(() => {
+      result.current.confirmPayment({ id: 'pay-001', paymentMethod: 'transfer' });
+    });
+
+    await waitFor(() => expect(mockToast.error).toHaveBeenCalledWith('Solo se puede confirmar un pago sin terminar'));
   });
 });
