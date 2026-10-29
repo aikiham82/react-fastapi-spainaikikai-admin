@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-29T14:00:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-29T15:00:00Z"
+has_completed_all_phases: true
 ---
 
 # Invoice details and confirm pending payments
@@ -82,13 +82,13 @@ Logo, customer block and payment details on every new invoice, built the same wa
 
 ### Phase 3: backfill the existing invoices
 
-- [ ] Script in `backend/scripts/` that fills `customer_address`, `customer_email`, `customer_phone`, `payment_date`, `payment_method` of existing invoices from their club/member and payment, with `--dry-run`, and clears `pdf_path` so the PDF is regenerated on download.
-- [ ] Run after deploy following `production-data-changes.md`: backup, dry run, apply, re-read.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Script in `backend/scripts/` that fills `customer_address`, `customer_email`, `customer_phone`, `payment_date`, `payment_method` of existing invoices from their club/member and payment, with `--dry-run`, and clears `pdf_path` so the PDF is regenerated on download.
+- [x] Run following `production-data-changes.md`: backup, dry run, apply, re-read. Done 2026-10-29 before deploy (old code ignores the new fields): 21 of 21 filled, backup `~/backups/spainaikikai/backup-invoice-details-20261029-091325.json`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 3: backfill the existing invoices.
+All phases done: review, QA and merge.
 
-Invoices dressed for the federation, logo and all, and stuck payments rescued, by 🧾 🛟 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Invoices dressed for the federation, logo and all, and stuck payments rescued, and the old ones brought up to date, by 🧾 🛟 🗂️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

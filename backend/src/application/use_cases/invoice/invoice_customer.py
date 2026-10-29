@@ -16,7 +16,7 @@ class InvoiceCustomer:
     phone: str = ""
 
 
-def _address_line(address: str, postal_code: str, city: str, province: str) -> str:
+def address_line(address: str, postal_code: str, city: str, province: str) -> str:
     place = " ".join(part for part in (postal_code, city, f"({province})" if province else "") if part)
     return ", ".join(part for part in (address, place) if part)
 
@@ -32,7 +32,7 @@ async def build_invoice_customer(
             return InvoiceCustomer(
                 name=member.get_full_name().strip(),
                 email=member.email or "",
-                address=_address_line(member.address, member.postal_code, member.city, member.province),
+                address=address_line(member.address, member.postal_code, member.city, member.province),
                 phone=member.phone or "",
             )
 
@@ -42,7 +42,7 @@ async def build_invoice_customer(
             return InvoiceCustomer(
                 name=club.name,
                 email=club.email or "",
-                address=_address_line(club.address, club.postal_code, club.city, club.province),
+                address=address_line(club.address, club.postal_code, club.city, club.province),
                 phone=club.phone or "",
             )
 
