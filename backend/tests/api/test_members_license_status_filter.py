@@ -51,6 +51,10 @@ LICENCES = [
 ]
 
 
+def first(limit, club_id=None):
+    return list(MEMBERS[:limit] if limit else MEMBERS)
+
+
 @pytest.fixture
 def client():
     licences = SimpleNamespace(find_by_member_ids=AsyncMock(return_value=LICENCES))
@@ -60,7 +64,7 @@ def client():
     app.include_router(router, prefix="/api/v1")
     app.dependency_overrides = {
         get_auth_context: lambda: super_admin(),
-        get_all_members_use_case: lambda: SimpleNamespace(execute=AsyncMock(return_value=list(MEMBERS))),
+        get_all_members_use_case: lambda: SimpleNamespace(execute=AsyncMock(side_effect=first)),
         get_search_members_use_case: lambda: SimpleNamespace(execute=AsyncMock(return_value=[])),
         get_license_repository: lambda: licences,
         get_insurance_repository: lambda: empty,
@@ -90,6 +94,10 @@ def test_a_member_without_licence_is_left_out_when_filtering(client):
 
 def test_no_licence_filter_lists_every_member(client):
     assert listed_ids(client) == {member.id for member in MEMBERS}
+
+
+def test_limit_applies_after_the_licence_filter(client):
+    assert listed_ids(client, license_status="expired", limit=1) == {"expired"}
 
 
 def test_licence_filter_combines_with_member_status(client):

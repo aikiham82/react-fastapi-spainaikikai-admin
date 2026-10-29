@@ -46,7 +46,7 @@ def client(monkeypatch):
         return items
 
     monkeypatch.setattr(insurances_router, "_populate_member_names", unchanged)
-    get_all = SimpleNamespace(execute=AsyncMock(return_value=STORED))
+    get_all = SimpleNamespace(execute=AsyncMock(side_effect=lambda limit, club_id, member_id: STORED[:limit] if limit else STORED))
     super_admin = AuthContext(
         user=User(
             id="user-id",
@@ -103,6 +103,10 @@ def test_no_filter_lists_every_insurance(client):
     body = listed(client)
     assert ids(body) == {item.id for item in STORED}
     assert body["total"] == len(STORED)
+
+
+def test_limit_applies_after_the_filter(client):
+    assert ids(listed(client, insurance_type="civil_liability", limit=1)) == {"rc-in-force"}
 
 
 def test_unknown_type_is_rejected(client):

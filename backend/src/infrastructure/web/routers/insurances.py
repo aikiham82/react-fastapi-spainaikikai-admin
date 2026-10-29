@@ -94,11 +94,14 @@ async def get_insurances(
             await _require_access_to_member(ctx, member_id)
         club_id = ctx.club_id
 
-    insurances = await get_all_use_case.execute(limit, club_id, member_id)
+    filtering = bool(insurance_type or insurance_status)
+    insurances = await get_all_use_case.execute(0 if filtering else limit, club_id, member_id)
     if insurance_type:
         insurances = [i for i in insurances if i.insurance_type == insurance_type]
     if insurance_status:
         insurances = [i for i in insurances if i.effective_status == insurance_status]
+    if filtering and limit > 0:
+        insurances = insurances[:limit]
 
     items = InsuranceMapper.to_response_list(insurances)
     items = await _populate_member_names(items)

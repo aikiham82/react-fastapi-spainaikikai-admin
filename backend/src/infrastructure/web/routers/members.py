@@ -192,10 +192,12 @@ async def get_members(
         _require_access_to_club(ctx, ctx.club_id)
         club_id = ctx.club_id
 
+    filtering = bool(status or license_status)
+    fetch_limit = 0 if filtering else limit
     if search:
-        members = await get_search_use_case.execute(search, limit, club_id=club_id)
+        members = await get_search_use_case.execute(search, fetch_limit, club_id=club_id)
     else:
-        members = await get_all_use_case.execute(limit, club_id)
+        members = await get_all_use_case.execute(fetch_limit, club_id)
 
     if status:
         members = [m for m in members if m.status.value == status]
@@ -204,6 +206,8 @@ async def get_members(
     responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
     if license_status:
         responses = [r for r in responses if r.license_summary and r.license_summary.status == license_status.value]
+    if filtering and limit > 0:
+        responses = responses[:limit]
     responses = await _enrich_members_with_own_email(responses, member_repo)
     return await _enrich_members_with_club_names(responses, club_repo)
 
