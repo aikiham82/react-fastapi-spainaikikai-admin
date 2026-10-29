@@ -124,6 +124,13 @@ class Payment:
         self.refund_amount = refund_amount if refund_amount else self.amount
         self.refund_date = datetime.now()
 
+    @property
+    def is_received_by_card(self) -> bool:
+        return self.payment_method == PaymentMethod.REDSYS and self.status in (
+            PaymentStatus.COMPLETED,
+            PaymentStatus.REFUNDED,
+        )
+
     def is_refundable(self) -> bool:
         """Check if payment can be refunded."""
         return self.status == PaymentStatus.COMPLETED

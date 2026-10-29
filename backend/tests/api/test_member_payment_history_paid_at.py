@@ -101,3 +101,10 @@ def test_a_pending_line_has_no_date_even_if_its_payment_completed(client):
     by_id = {p["id"]: p for p in client.get("/api/v1/member-payments/member/member-ana/history").json()["payments"]}
 
     assert (by_id["mp-6"]["paid_at"], by_id["mp-6"]["payment_method"]) == (None, None)
+
+
+def test_a_pending_line_inside_a_card_payment_says_it_was_received_by_card(client):
+    by_id = {p["id"]: p for p in client.get("/api/v1/member-payments/member/member-ana/history").json()["payments"]}
+
+    assert by_id["mp-1"]["received_by_card"] is True
+    assert by_id["mp-2"]["received_by_card"] is False

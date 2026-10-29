@@ -13,6 +13,7 @@ import { useDeleteMemberPaymentMutation } from '../hooks/mutations/usePaymentAdm
 import { MemberPaymentEditModal } from './MemberPaymentEditModal'
 import { ManualPaymentModal } from './ManualPaymentModal'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
+import { useCanChangePaymentLine } from '../hooks/useCanChangePaymentLine'
 
 interface MemberPaymentLinesProps {
   memberId: string
@@ -61,6 +62,7 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
   const [isAdding, setIsAdding] = useState(false)
 
   const canEdit = isAssociationAdmin() || isClubAdmin()
+  const canChangeLine = useCanChangePaymentLine()
   const { data } = useMemberPaymentHistoryQuery(memberId, 0)
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation()
 
@@ -92,8 +94,8 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
                   <PaymentLineItem
                     key={line.id}
                     line={line}
-                    onEdit={canEdit ? () => setEditing(line) : undefined}
-                    onDelete={canEdit ? () => setDeleting(line) : undefined}
+                    onEdit={canChangeLine(line) ? () => setEditing(line) : undefined}
+                    onDelete={canChangeLine(line) ? () => setDeleting(line) : undefined}
                   />
                 ))}
               </ul>

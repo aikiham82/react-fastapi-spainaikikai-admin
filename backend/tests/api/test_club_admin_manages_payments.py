@@ -46,10 +46,10 @@ def line(line_id: str, member_id: str, payment_id: str = "pay-own") -> MemberPay
     )
 
 
-def payment(payment_id: str, club_id: str) -> Payment:
+def payment(payment_id: str, club_id: str, method: PaymentMethod = PaymentMethod.CASH) -> Payment:
     return Payment(
         id=payment_id, club_id=club_id, amount=20, status=PaymentStatus.COMPLETED,
-        payment_method=PaymentMethod.CASH, payment_year=2026,
+        payment_method=method, payment_year=2026,
     )
 
 
@@ -57,8 +57,13 @@ LINES = {
     "mp-own": line("mp-own", OWN_MEMBER),
     "mp-foreign": line("mp-foreign", FOREIGN_MEMBER, "pay-foreign"),
     "mp-moved": line("mp-moved", OWN_MEMBER, "pay-foreign"),
+    "mp-card": line("mp-card", OWN_MEMBER, "pay-card"),
 }
-PAYMENTS = {"pay-own": payment("pay-own", OWN_CLUB), "pay-foreign": payment("pay-foreign", OTHER_CLUB)}
+PAYMENTS = {
+    "pay-own": payment("pay-own", OWN_CLUB),
+    "pay-foreign": payment("pay-foreign", OTHER_CLUB),
+    "pay-card": payment("pay-card", OWN_CLUB, PaymentMethod.REDSYS),
+}
 
 
 @pytest.fixture
@@ -166,3 +171,26 @@ def test_a_club_admin_cannot_change_a_line_paid_through_another_club(client_as, 
     assert client.delete("/api/v1/member-payments/mp-moved").status_code == 403
     use_cases.update_line.execute.assert_not_awaited()
     use_cases.delete_line.execute.assert_not_awaited()
+
+
+def test_a_card_payment_the_federation_received_is_left_to_the_super_admin(client_as, use_cases):
+    client = client_as(club_admin())
+
+    answered = {
+        "update_line": client.put("/api/v1/member-payments/mp-card", json={"status": "pending"}).status_code,
+        "delete_line": client.delete("/api/v1/member-payments/mp-card").status_code,
+        "update_payment": client.put("/api/v1/payments/pay-card", json={"status": "pending"}).status_code,
+        "delete_payment": client.delete("/api/v1/payments/pay-card?force=true").status_code,
+        "refund": client.put("/api/v1/payments/pay-card/refund", json={}).status_code,
+    }
+
+    assert answered == {name: status.HTTP_403_FORBIDDEN for name in answered}
+    use_cases.delete_payment.execute.assert_not_awaited()
+    use_cases.refund.execute.assert_not_awaited()
+
+
+def test_a_super_admin_still_changes_a_card_payment(client_as):
+    client = client_as(super_admin())
+
+    assert client.put("/api/v1/member-payments/mp-card", json={"status": "pending"}).status_code == 200
+    assert client.put("/api/v1/payments/pay-card/refund", json={}).status_code == 200

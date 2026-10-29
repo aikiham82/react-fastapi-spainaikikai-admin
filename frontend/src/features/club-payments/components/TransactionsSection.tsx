@@ -17,14 +17,7 @@ import type { MemberPayment } from '@/features/member-payments/data/schemas/memb
 import { formatCurrency } from '@/core/utils/format'
 import { getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
 import { LineActions } from './LineActions'
-
-// NOTE ON REDSYS HANDLING:
-// MemberPayment does NOT have a payment_method field — that field belongs to the
-// parent Payment entity. Since we cannot determine at the line level whether a
-// MemberPayment was processed via Redsys, edit/delete actions are shown uniformly
-// for all rows. The backend enforces any business rules around Redsys payments.
-// If in the future the backend exposes payment_method per line, this component
-// should add requiresForce=true logic for Redsys COMPLETED rows.
+import { useCanChangePaymentLine } from '../hooks/useCanChangePaymentLine'
 
 const getStatusVariant = (
   status: string
@@ -46,6 +39,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
   const { data: memberPayments, isLoading } = useClubMemberPaymentsQuery(clubId, paymentYear)
 
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation()
+  const canChangeLine = useCanChangePaymentLine()
 
   const handleConfirmDelete = () => {
     if (deletingItem) {
@@ -90,7 +84,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 <Badge variant={getStatusVariant(mp.status)}>{getStatusLabel(mp.status)}</Badge>
               </div>
             </div>
-            <LineActions onEdit={() => setEditingItem(mp)} onDelete={() => setDeletingItem(mp)} />
+            {canChangeLine(mp) && <LineActions onEdit={() => setEditingItem(mp)} onDelete={() => setDeletingItem(mp)} />}
           </li>
         ))}
       </ul>
@@ -124,10 +118,12 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
-                  <LineActions
-                    onEdit={() => setEditingItem(mp)}
-                    onDelete={() => setDeletingItem(mp)}
-                  />
+                  {canChangeLine(mp) && (
+                    <LineActions
+                      onEdit={() => setEditingItem(mp)}
+                      onDelete={() => setDeletingItem(mp)}
+                    />
+                  )}
                 </TableCell>
               </TableRow>
             ))}

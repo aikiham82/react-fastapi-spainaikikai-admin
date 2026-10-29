@@ -3,9 +3,14 @@ import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { TransactionsSection } from '../TransactionsSection'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
+import { usePermissions } from '@/core/hooks/usePermissions'
 // ReturnType<typeof useClubMemberPaymentsQuery> is used inline via dynamic import — no top-level import needed
 
 // ─── Mock query hook ───────────────────────────────────────────────────────
+vi.mock('@/core/hooks/usePermissions', () => ({
+  usePermissions: vi.fn(() => ({ isAssociationAdmin: () => true, isClubAdmin: () => false })),
+}))
+
 vi.mock('../../hooks/queries/useClubPaymentsQueries', () => ({
   useClubMemberPaymentsQuery: vi.fn(),
   clubPaymentsKeys: {
@@ -240,5 +245,20 @@ describe('TransactionsSection', () => {
       // 3. Assert the mutation was called with the correct id
       expect(mockDeleteMemberPayment).toHaveBeenCalledWith('mp-001')
     })
+  })
+
+  it('a club admin gets no actions on a line the federation received by card', async () => {
+    vi.mocked(usePermissions).mockReturnValue({ isAssociationAdmin: () => false, isClubAdmin: () => true } as ReturnType<typeof usePermissions>)
+    const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+    vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+      data: [makeMemberPayment({ received_by_card: true })],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+    renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+    expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
   })
 })

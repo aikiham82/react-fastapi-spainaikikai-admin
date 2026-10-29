@@ -41,6 +41,7 @@ from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
     require_member_access,
+    require_not_received_by_card,
     require_super_admin,
 )
 from src.domain.exceptions.payment import (
@@ -82,8 +83,9 @@ async def _require_stored_payment_access(ctx: AuthContext, payment_id: str, paym
         return
     payment = await payment_repository.find_by_id(payment_id)
     if not payment:
-        require_club_access(ctx, None, PAYMENT_DENIED)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=PAYMENT_DENIED)
     await _require_payment_access(ctx, payment, member_repository)
+    require_not_received_by_card(ctx, payment)
 
 
 @router.get("", response_model=List[PaymentResponse])
@@ -370,8 +372,10 @@ async def register_manual_payment(
 ):
     """Register a manual payment (cash/transfer/other). Super admin, or the admin of that club for its own members."""
     require_club_access(ctx, request.club_id)
-    for assignment in request.member_assignments:
-        await require_member_access(ctx, assignment.member_id, member_repository)
+    if not ctx.is_super_admin:
+        club_member_ids = {m.id for m in await member_repository.find_by_club_id(request.club_id)}
+        if any(a.member_id not in club_member_ids for a in request.member_assignments):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this member")
     try:
         result = await use_case.execute(
             payer_name=request.payer_name,

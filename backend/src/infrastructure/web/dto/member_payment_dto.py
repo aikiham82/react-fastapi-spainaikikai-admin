@@ -21,6 +21,7 @@ class MemberPaymentResponse(BaseModel):
     status: str
     paid_at: Optional[datetime] = None
     payment_method: Optional[str] = None
+    received_by_card: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

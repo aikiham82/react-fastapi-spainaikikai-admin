@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { MemberPaymentLines } from '../MemberPaymentLines'
 import { usePermissions } from '@/core/hooks/usePermissions'
+import { useMemberPaymentHistoryQuery } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 
 const deleteMemberPayment = vi.fn()
@@ -114,6 +115,15 @@ describe('MemberPaymentLines', () => {
 
     expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(3)
     expect(screen.getByRole('button', { name: 'Añadir pago' })).toBeInTheDocument()
+  })
+
+  it('a club admin cannot change a line the federation received by card', () => {
+    vi.mocked(usePermissions).mockReturnValue({ isAssociationAdmin: () => false, isClubAdmin: () => true } as ReturnType<typeof usePermissions>)
+    const cardLines = LINES.map((l) => (l.id === 'mp-licence' ? { ...l, received_by_card: true } : l))
+    vi.mocked(useMemberPaymentHistoryQuery).mockReturnValueOnce({ data: { payments: cardLines, total_count: 3 }, isLoading: false, error: null } as unknown as ReturnType<typeof useMemberPaymentHistoryQuery>)
+    renderLines()
+
+    expect(screen.getAllByRole('button', { name: 'Editar' })).toHaveLength(2)
   })
 
   it('anyone else sees the payments read only', () => {

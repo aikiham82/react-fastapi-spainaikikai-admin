@@ -484,6 +484,7 @@ def get_list_club_member_payments_use_case() -> GetClubMemberPaymentsUseCase:
     return GetClubMemberPaymentsUseCase(
         member_payment_repository=get_member_payment_repository(),
         member_repository=get_member_repository(),
+        payment_repository=get_payment_repository(),
     )
 
 

@@ -37,6 +37,7 @@ from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
     require_member_access,
+    require_not_received_by_card,
     require_super_admin,
 )
 from src.domain.exceptions.payment import (
@@ -53,10 +54,13 @@ async def _require_line_access(
     if ctx.is_super_admin:
         return
     line = await member_payment_repository.find_by_id(member_payment_id)
-    await require_member_access(ctx, line.member_id if line else None, member_repository)
+    if not line:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this member")
+    await require_member_access(ctx, line.member_id, member_repository)
     parent = await payment_repository.find_by_id(line.payment_id) if line.payment_id else None
     if parent:
         require_club_access(ctx, parent.club_id)
+        require_not_received_by_card(ctx, parent)
 
 
 @router.get("/member/{member_id}", response_model=MemberPaymentStatusResponse)
@@ -135,11 +139,12 @@ async def get_member_payment_history(
                     concept=p.concept,
                     amount=p.amount,
                     status=p.status.value,
-                    paid_at=paid.payment_date if paid else None,
-                    payment_method=paid.payment_method.value if paid else None,
+                    paid_at=lp.paid.payment_date if lp.paid else None,
+                    payment_method=lp.paid.payment_method.value if lp.paid else None,
+                    received_by_card=lp.received_by_card,
                     created_at=p.created_at,
                     updated_at=p.updated_at
-                ) for p, paid in zip(result.payments, result.completed_payments)
+                ) for p, lp in zip(result.payments, result.line_payments)
             ],
             total_count=result.total_count
         )
@@ -303,6 +308,9 @@ async def get_club_member_payments(
             concept=item.payment.concept,
             amount=item.payment.amount,
             status=item.payment.status.value,
+            paid_at=item.line_payment.paid.payment_date if item.line_payment.paid else None,
+            payment_method=item.line_payment.paid.payment_method.value if item.line_payment.paid else None,
+            received_by_card=item.line_payment.received_by_card,
             created_at=item.payment.created_at,
             updated_at=item.payment.updated_at,
         )

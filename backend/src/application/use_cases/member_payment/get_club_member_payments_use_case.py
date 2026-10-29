@@ -6,6 +6,8 @@ from typing import List
 from src.domain.entities.member_payment import MemberPayment
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.use_cases.member_payment.line_payments import LinePayment, line_payments_for
 
 
 @dataclass
@@ -17,6 +19,7 @@ class MemberPaymentWithMember:
     """
     payment: MemberPayment
     member_name: str
+    line_payment: LinePayment = LinePayment()
 
 
 class GetClubMemberPaymentsUseCase:
@@ -33,9 +36,11 @@ class GetClubMemberPaymentsUseCase:
         self,
         member_payment_repository: MemberPaymentRepositoryPort,
         member_repository: MemberRepositoryPort,
+        payment_repository: PaymentRepositoryPort,
     ):
         self.member_payment_repository = member_payment_repository
         self.member_repository = member_repository
+        self.payment_repository = payment_repository
 
     async def execute(
         self, club_id: str, payment_year: int
@@ -51,12 +56,14 @@ class GetClubMemberPaymentsUseCase:
             member_ids=member_ids,
             payment_year=payment_year,
         )
+        line_payments = await line_payments_for(payments, self.payment_repository)
         return [
             MemberPaymentWithMember(
                 payment=p,
                 # Fall back to the id if a name can't be resolved, so the row is
                 # never blank.
                 member_name=name_by_id.get(p.member_id, p.member_id),
+                line_payment=line_payment,
             )
-            for p in payments
+            for p, line_payment in zip(payments, line_payments)
         ]
