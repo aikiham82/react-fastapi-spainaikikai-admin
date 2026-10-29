@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { paymentAdminService } from '../../data/services/payment-admin.service';
+import { INVOICES_QUERY_KEY } from '@/features/invoices/hooks/queries/useInvoiceQueries';
+import type { OfflinePaymentMethod } from '../../data/schemas/payment-admin.schema';
 import { clubPaymentsKeys } from '../queries/useClubPaymentsQueries';
 import { memberPaymentKeys } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries';
 
@@ -56,6 +58,29 @@ export const useUpdatePaymentMutation = () => {
     isLoading: mutation.isPending,
     error: mutation.error,
     isSuccess: mutation.isSuccess,
+  };
+};
+
+// ─── Confirm an unfinished payment ─────────────────────────────────────────
+export const useConfirmPaymentMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: ({ id, paymentMethod }: { id: string; paymentMethod: OfflinePaymentMethod }) =>
+      paymentAdminService.confirmPayment(id, paymentMethod),
+    onSuccess: () => {
+      toast.success('Cobro confirmado. Se ha emitido la factura.');
+      invalidatePayments(queryClient);
+      queryClient.invalidateQueries({ queryKey: [INVOICES_QUERY_KEY] });
+    },
+    onError: (error: { detail?: string; message?: string }) => {
+      toast.error(error.detail || 'Error al confirmar el cobro');
+    },
+  });
+
+  return {
+    confirmPayment: mutation.mutate,
+    isLoading: mutation.isPending,
   };
 };
 

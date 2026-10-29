@@ -2,10 +2,12 @@
 
 ## 💡 Convention
 
-Every use case that issues an `Invoice` (today the Redsys webhook and the manual payment) builds it with the same fields and the same fallbacks:
+Every use case that issues an `Invoice` (today `CompletePaymentUseCase`, used by the Redsys webhook and the offline confirmation, and the manual payment) builds it with the same fields and the same fallbacks:
 
 - Pass **only fields the `Invoice` dataclass declares**. It has no `license_id` and no `paid_date`.
 - `member_id` is `payment.member_id or payment.club_id`. A club payment has no member, and `Invoice.__post_init__` refuses an empty `member_id`.
+- The customer comes from `build_invoice_customer(payment, member_repository, club_repository)`: the member who paid, else the club (name, email, address line, phone), else `payer_name`.
+- `payment_date` is `payment.payment_date or datetime.utcnow()` and `payment_method` is `payment.payment_method.value`; the PDF prints both.
 - `issue_date` is a naive `datetime.utcnow()`, never an ISO string and never `datetime.now()`.
 - Call `invoice.calculate_totals()` before saving.
 
@@ -22,16 +24,21 @@ When one path changes how it builds the invoice, change the other in the same co
 ### ✅ Good: entity fields only, club fallback, naive UTC date
 
 ```python
+customer = await build_invoice_customer(payment, self.member_repository, self.club_repository)
 invoice = Invoice(
     invoice_number=invoice_number,
     payment_id=payment.id,
     member_id=payment.member_id or payment.club_id,
     club_id=payment.club_id,
-    customer_name=customer_name,
-    customer_email=customer_email,
+    customer_name=customer.name,
+    customer_email=customer.email,
+    customer_address=customer.address,
+    customer_phone=customer.phone,
     line_items=line_items,
     status=InvoiceStatus.ISSUED,
     issue_date=datetime.utcnow(),
+    payment_date=payment.payment_date or datetime.utcnow(),
+    payment_method=payment.payment_method.value,
 )
 invoice.calculate_totals()
 ```
@@ -59,8 +66,8 @@ It raises `TypeError: Invoice.__init__() got an unexpected keyword argument 'lic
 ## 🧐 Real world examples
 
 - [`register_manual_payment_use_case.py`](../../backend/src/application/use_cases/payment/register_manual_payment_use_case.py): `_create_invoice`.
-- [`process_redsys_webhook_use_case.py`](../../backend/src/application/use_cases/payment/process_redsys_webhook_use_case.py): `_create_invoice`, fixed in commit `37fa1fe` (Sentry SPAIN-AIKIKAI-3).
-- [`test_process_redsys_webhook_invoice.py`](../../backend/tests/application/use_cases/payment/test_process_redsys_webhook_invoice.py): a club annual payment with no member gets an invoice.
+- [`complete_payment_use_case.py`](../../backend/src/application/use_cases/payment/complete_payment_use_case.py): `_create_invoice`, moved from the Redsys webhook (fixed there in commit `37fa1fe`, Sentry SPAIN-AIKIKAI-3).
+- [`test_complete_payment_invoice.py`](../../backend/tests/application/use_cases/payment/test_complete_payment_invoice.py): a club annual payment with no member gets an invoice.
 
 ## 🔗 Related agreements
 

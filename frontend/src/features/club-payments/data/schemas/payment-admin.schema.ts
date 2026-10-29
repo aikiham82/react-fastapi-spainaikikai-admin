@@ -11,6 +11,12 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   other: 'Otro',
 };
 
+export const OFFLINE_PAYMENT_METHODS = ['transfer', 'cash', 'other'] as const;
+export type OfflinePaymentMethod = (typeof OFFLINE_PAYMENT_METHODS)[number];
+
+export const UNFINISHED_PAYMENT_STATUSES: readonly string[] = ['pending', 'processing'];
+export const CONFIRMABLE_PAYMENT_TYPES: readonly string[] = ['annual_quota', 'seminar_oficialidad'];
+
 // ─── Payment (transaction header) ─────────────────────────────────
 export const paymentSchema = z.object({
   id: z.string(),

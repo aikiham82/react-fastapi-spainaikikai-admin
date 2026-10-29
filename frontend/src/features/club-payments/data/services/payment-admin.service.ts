@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
-import type { Payment } from '../schemas/payment-admin.schema';
+import type { OfflinePaymentMethod, Payment } from '../schemas/payment-admin.schema';
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema';
 
 const PAYMENTS_URL = '/api/v1/payments';
@@ -31,6 +31,16 @@ export const updatePayment = async (
   }>
 ): Promise<Payment> => {
   return await apiClient.put<Payment>(`${PAYMENTS_URL}/${id}`, data);
+};
+
+// GET /api/v1/payments?club_id={club_id}&payment_year={year}
+export const getClubPayments = async (clubId: string, paymentYear: number): Promise<Payment[]> => {
+  return await apiClient.get<Payment[]>(PAYMENTS_URL, { params: { club_id: clubId, payment_year: paymentYear } });
+};
+
+// POST /api/v1/payments/{id}/confirm
+export const confirmPayment = async (id: string, paymentMethod: OfflinePaymentMethod): Promise<Payment> => {
+  return await apiClient.post<Payment>(`${PAYMENTS_URL}/${id}/confirm`, { payment_method: paymentMethod });
 };
 
 // DELETE /api/v1/payments/{id}?force=true  (only sent when force is true)
@@ -74,6 +84,8 @@ export const paymentAdminService = {
   registerManualPayment,
   updatePayment,
   deletePayment,
+  getClubPayments,
+  confirmPayment,
   getClubMemberPayments,
   updateMemberPayment,
   deleteMemberPayment,

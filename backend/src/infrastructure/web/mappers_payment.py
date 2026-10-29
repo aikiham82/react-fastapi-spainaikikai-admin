@@ -42,7 +42,10 @@ class PaymentMapper:
             refund_amount=entity.refund_amount,
             refund_date=entity.refund_date,
             related_entity_id=entity.related_entity_id,
-            payment_year=entity.payment_year
+            payment_year=entity.payment_year,
+            payer_name=entity.payer_name,
+            created_at=entity.created_at,
+            updated_at=entity.updated_at,
         )
 
     @staticmethod

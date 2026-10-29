@@ -5,6 +5,7 @@ import { usePermissions } from '@/core/hooks/usePermissions';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import { ManualPaymentModal } from './ManualPaymentModal';
 import { TransactionsSection } from './TransactionsSection';
+import { UnfinishedPaymentsSection } from './UnfinishedPaymentsSection';
 import { ArrowLeft, HeartPulse, IdCard, Plus, type LucideIcon } from 'lucide-react';
 import { Avatar, ProgressRing, StateTile } from '@/components/ui/graphic';
 import { Button } from '@/components/ui/button';
@@ -163,6 +164,8 @@ export const ClubPaymentDetail = () => {
           })}
         </ul>
       )}
+
+      {canManagePayments && <UnfinishedPaymentsSection clubId={clubDetail.club_id} paymentYear={selectedYear} />}
 
       {canManagePayments && (
         <section className="flex flex-col gap-3">

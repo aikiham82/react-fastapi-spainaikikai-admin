@@ -26,6 +26,19 @@ class PaymentType(str, Enum):
     SEMINAR_OFICIALIDAD = "seminar_oficialidad"
 
 
+PAYMENT_TYPE_LABELS = {
+    PaymentType.LICENSE: "Licencia",
+    PaymentType.ACCIDENT_INSURANCE: "Seguro de accidentes",
+    PaymentType.CIVIL_LIABILITY_INSURANCE: "Seguro RC",
+    PaymentType.ANNUAL_QUOTA: "Pago anual",
+    PaymentType.SEMINAR: "Seminario",
+    PaymentType.SEMINAR_OFICIALIDAD: "Oficialidad de seminario",
+}
+
+UNFINISHED_PAYMENT_STATUSES = (PaymentStatus.PENDING, PaymentStatus.PROCESSING)
+CONFIRMABLE_PAYMENT_TYPES = (PaymentType.ANNUAL_QUOTA, PaymentType.SEMINAR_OFICIALIDAD)
+
+
 class PaymentMethod(str, Enum):
     """Payment method enumeration."""
     REDSYS = "redsys"
@@ -99,6 +112,14 @@ class Payment:
         self.transaction_id = transaction_id
         self.redsys_response = redsys_response
         self.payment_date = datetime.now()
+
+    def confirm_received(self, payment_method: "PaymentMethod") -> None:
+        """Complete an unfinished payment that was received outside Redsys."""
+        if self.status not in UNFINISHED_PAYMENT_STATUSES:
+            raise ValueError("Only unfinished payments can be confirmed")
+        self.status = PaymentStatus.COMPLETED
+        self.payment_method = payment_method
+        self.payment_date = datetime.utcnow()
 
     def fail_payment(self, error_message: str) -> None:
         """Mark payment as failed."""

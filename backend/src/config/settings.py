@@ -1,6 +1,7 @@
 """Application settings and configuration for payment gateway integration."""
 
 import os
+from pathlib import Path
 from typing import Literal, Optional
 from dataclasses import dataclass
 from dotenv import load_dotenv
@@ -88,6 +89,9 @@ class EmailSettings:
         return bool(self.smtp_host and self.smtp_user and self.smtp_password)
 
 
+DEFAULT_INVOICE_LOGO = str(Path(__file__).resolve().parent.parent / "infrastructure" / "assets" / "logo.jpg")
+
+
 @dataclass
 class InvoiceSettings:
     """Invoice generation settings."""
@@ -104,7 +108,7 @@ class InvoiceSettings:
         self.company_name = os.getenv("INVOICE_COMPANY_NAME", self.company_name)
         self.company_address = os.getenv("INVOICE_COMPANY_ADDRESS", self.company_address)
         self.company_tax_id = os.getenv("INVOICE_COMPANY_TAX_ID", self.company_tax_id)
-        self.logo_path = os.getenv("INVOICE_LOGO_PATH", self.logo_path)
+        self.logo_path = os.getenv("INVOICE_LOGO_PATH") or self.logo_path or DEFAULT_INVOICE_LOGO
         self.tax_rate = float(os.getenv("INVOICE_TAX_RATE", str(self.tax_rate)))
         self.output_directory = os.getenv("INVOICE_OUTPUT_DIR", self.output_directory)
 

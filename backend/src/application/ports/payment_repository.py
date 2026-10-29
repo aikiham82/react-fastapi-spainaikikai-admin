@@ -65,6 +65,11 @@ class PaymentRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def claim_unfinished(self, payment_id: str, status: PaymentStatus = PaymentStatus.COMPLETED) -> bool:
+        """Atomically move a pending or processing payment to `status`; False if it was no longer unfinished."""
+        pass
+
+    @abstractmethod
     async def delete(self, payment_id: str) -> bool:
         """Delete a payment by ID."""
         pass

@@ -45,6 +45,7 @@ from src.infrastructure.web.authorization import (
 )
 from src.domain.exceptions.payment import (
     DuplicatePaymentForYearError,
+    PaymentAlreadyCompletedError,
     PaymentNotFoundError,
     InvalidPaymentStatusError,
     InvalidPaymentDataError,
@@ -53,10 +54,12 @@ from src.infrastructure.web.dto.manual_payment_dto import (
     ManualPaymentRequest,
     PaymentUpdateRequest,
     ManualPaymentResponse,
+    ConfirmPaymentRequest,
 )
 from src.infrastructure.web.dependencies import (
     get_register_manual_payment_use_case,
     get_update_payment_use_case,
+    get_confirm_payment_received_use_case,
 )
 from src.application.use_cases.payment.register_manual_payment_use_case import ManualMemberAssignment
 from src.config.settings import get_app_settings
@@ -386,6 +389,28 @@ async def register_manual_payment(
         member_payment_count=len(result.member_payments),
         invoice_number=result.invoice.invoice_number if result.invoice else None,
     )
+
+
+@router.post("/{payment_id}/confirm", response_model=PaymentResponse)
+async def confirm_payment_received(
+    payment_id: str,
+    request: ConfirmPaymentRequest,
+    use_case=Depends(get_confirm_payment_received_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Confirm an unfinished payment received offline and fulfil it. Super admin only."""
+    require_super_admin(ctx)
+    try:
+        completed = await use_case.execute(payment_id=payment_id, payment_method=request.payment_method)
+    except (DuplicatePaymentForYearError, PaymentAlreadyCompletedError) as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except PaymentNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except InvalidPaymentStatusError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return PaymentMapper.to_response_dto(completed.payment)
 
 
 @router.put("/{payment_id}", response_model=PaymentResponse)

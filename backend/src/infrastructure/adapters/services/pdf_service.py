@@ -18,6 +18,13 @@ from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from src.application.ports.pdf_service import PDFServicePort
 from src.domain.entities.invoice import Invoice
 
+PAYMENT_METHOD_LABELS = {
+    "redsys": "Tarjeta (Redsys)",
+    "cash": "Efectivo",
+    "transfer": "Transferencia bancaria",
+    "other": "Otro",
+}
+
 
 class PDFService(PDFServicePort):
     """Implementation of PDF generation service using ReportLab."""
@@ -105,31 +112,26 @@ class PDFService(PDFServicePort):
 
         elements = []
 
-        # Logo and company header
-        header_data = []
-        if logo_path and os.path.exists(logo_path):
-            logo = Image(logo_path, width=4 * cm, height=2 * cm)
-            header_data.append([logo, ""])
-        else:
-            header_data.append(["", ""])
-
-        # Company info
-        company_info = f"""
+        company_info = Paragraph(f"""
         <b>{escape(company_name)}</b><br/>
         {escape(company_address)}<br/>
         CIF/NIF: {escape(company_tax_id)}
-        """
-        header_data[0][0] = Paragraph(company_info, self.styles["CompanyInfo"])
+        """, self.styles["CompanyInfo"])
+        company_cell = [company_info]
+        if logo_path and os.path.exists(logo_path):
+            company_cell = [Image(logo_path, width=2.5 * cm, height=2.5 * cm, kind="proportional", hAlign="LEFT"), Spacer(1, 0.3 * cm), company_info]
 
-        # Invoice info
-        invoice_info = f"""
-        <b>FACTURA</b><br/>
-        Número: {escape(invoice.invoice_number)}<br/>
-        Fecha: {self._format_date(invoice.issue_date)}<br/>
-        """
-        header_data[0][1] = Paragraph(invoice_info, self.styles["InvoiceHeader"])
+        details = [
+            f"Número de factura: {escape(invoice.invoice_number)}",
+            f"Fecha de factura: {self._format_date(invoice.issue_date)}",
+        ]
+        if invoice.payment_date:
+            details.append(f"Fecha de pago: {self._format_date(invoice.payment_date)}")
+        if invoice.payment_method in PAYMENT_METHOD_LABELS:
+            details.append(f"Método de pago: {PAYMENT_METHOD_LABELS[invoice.payment_method]}")
+        invoice_info = Paragraph("<b>FACTURA</b><br/>" + "<br/>".join(details), self.styles["InvoiceHeader"])
 
-        header_table = Table(header_data, colWidths=[10 * cm, 7 * cm])
+        header_table = Table([[company_cell, invoice_info]], colWidths=[10 * cm, 7 * cm])
         header_table.setStyle(TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ("ALIGN", (1, 0), (1, 0), "RIGHT"),
@@ -137,13 +139,16 @@ class PDFService(PDFServicePort):
         elements.append(header_table)
         elements.append(Spacer(1, 1 * cm))
 
-        # Customer info section
-        customer_info = f"""
-        <b>Datos del cliente:</b><br/>
-        {escape(invoice.customer_name or "N/A")}<br/>
-        {escape(invoice.customer_address or "")}<br/>
-        {f"CIF/NIF: {escape(invoice.customer_tax_id)}" if invoice.customer_tax_id else ""}
-        """
+        customer_lines = [escape(invoice.customer_name or "N/A")]
+        if invoice.customer_address:
+            customer_lines.append(escape(invoice.customer_address))
+        if invoice.customer_email:
+            customer_lines.append(f"Email: {escape(invoice.customer_email)}")
+        if invoice.customer_phone:
+            customer_lines.append(f"Tel.: {escape(invoice.customer_phone)}")
+        if invoice.customer_tax_id:
+            customer_lines.append(f"CIF/NIF: {escape(invoice.customer_tax_id)}")
+        customer_info = "<b>Datos del cliente:</b><br/>" + "<br/>".join(customer_lines)
         elements.append(Paragraph(customer_info, self.styles["CustomerInfo"]))
         elements.append(Spacer(1, 1 * cm))
 

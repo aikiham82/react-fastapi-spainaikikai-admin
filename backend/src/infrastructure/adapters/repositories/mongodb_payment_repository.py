@@ -4,7 +4,7 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
 
-from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
+from src.domain.entities.payment import UNFINISHED_PAYMENT_STATUSES, Payment, PaymentMethod, PaymentStatus, PaymentType
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -141,6 +141,13 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         await self.collection.update_one({"_id": ObjectId(payment.id)}, {"$set": doc})
         updated_doc = await self.collection.find_one({"_id": ObjectId(payment.id)})
         return self._to_domain(updated_doc)
+
+    async def claim_unfinished(self, payment_id: str, status: PaymentStatus = PaymentStatus.COMPLETED) -> bool:
+        result = await self.collection.update_one(
+            {"_id": ObjectId(payment_id), "status": {"$in": [status.value for status in UNFINISHED_PAYMENT_STATUSES]}},
+            {"$set": {"status": status.value, "updated_at": datetime.utcnow()}},
+        )
+        return result.modified_count == 1
 
     async def delete(self, payment_id: str) -> bool:
         try:
