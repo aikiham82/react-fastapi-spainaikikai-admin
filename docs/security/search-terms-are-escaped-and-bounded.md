@@ -4,7 +4,7 @@
 
 Text a user types into a search never reaches MongoDB as a pattern: it goes through `re.escape` before `$regex`, and the query parameter carries `Query(..., max_length=100)` so an oversized term answers `422` before any query runs.
 
-A member name search goes through `name_search_filter`: it escapes each character, requires every typed word in `first_name` or `last_name`, and lets an unaccented vowel, `n` or `c` match its accented forms, so "lucia fernandez" finds "Lucía Fernández Soto".
+A member name search goes through `name_search_filter`: it escapes each character, requires every typed word in `first_name` or `last_name`, and lets an unaccented Latin letter match its accented forms (a typed accented letter matches itself too), so "lucia fernandez" finds "Lucía Fernández Soto".
 
 ## 🏆 Benefits
 

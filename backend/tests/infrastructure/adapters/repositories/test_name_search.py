@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from src.infrastructure.adapters.repositories.name_search import name_search_filter
+from src.infrastructure.adapters.repositories.name_search import MATCHES_NOTHING, name_search_filter
 
 pytestmark = [pytest.mark.unit]
 
@@ -53,8 +53,13 @@ def test_a_comma_separates_words():
 def test_regex_characters_are_matched_literally():
     assert matches("garcia (jr", "Carlos", "García (Jr)")
     assert not matches(".*", "Carlos", "García")
-    assert r"\(" in name_search_filter("(jr")["$and"][0]["$or"][0]["first_name"]["$regex"]
 
 
-def test_a_blank_term_filters_nothing_out():
-    assert name_search_filter("   ") == {}
+def test_a_term_without_words_matches_nobody():
+    assert name_search_filter("   ") == MATCHES_NOTHING
+    assert name_search_filter(" , ") == MATCHES_NOTHING
+
+
+def test_letters_beyond_spanish_ignore_their_accent():
+    assert matches("stefan", "Ştefan", "Popescu")
+    assert matches("dvorak", "Ana", "Dvořák")

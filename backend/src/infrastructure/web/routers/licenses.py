@@ -146,7 +146,7 @@ async def get_licenses(
     # If search is provided, find matching member IDs first
     effective_member_id = member_id
     member_ids_from_search: Optional[List[str]] = None
-    if search and search.strip():
+    if search:
         matching_members = await member_repository.search_by_name(search)
         member_ids_from_search = [member.id for member in matching_members]
         if not member_ids_from_search:
