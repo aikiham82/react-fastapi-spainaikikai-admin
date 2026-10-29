@@ -101,6 +101,68 @@ async def test_the_invoice_pdf_writes_spanish_accents(uncompressed_pdf):
         assert pdf_string(text) in pdf
 
 
+def detailed_invoice(**overrides):
+    fields = dict(
+        id="invoice-1", invoice_number="2026-000007", payment_id="payment-1",
+        member_id="club-1", club_id="club-1", customer_name="Example Dojo",
+        customer_address="Calle Mayor 1, 28001 Madrid", customer_email="dojo@example.com",
+        customer_phone="600000000", status=InvoiceStatus.ISSUED,
+        issue_date=datetime(2026, 10, 8), payment_date=datetime(2026, 10, 7),
+        payment_method="transfer", subtotal=0, tax_total=0.0, total=0.0,
+    )
+    return Invoice(**{**fields, **overrides})
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_the_invoice_pdf_shows_the_customer_and_payment_details(uncompressed_pdf):
+    pdf = await PDFService().generate_invoice_pdf(
+        invoice=detailed_invoice(), company_name="Spain Aikikai", company_address="", company_tax_id=""
+    )
+
+    for text in (
+        "Calle Mayor 1, 28001 Madrid", "dojo@example.com", "600000000",
+        "Número de factura", "Fecha de factura", "08/10/2026",
+        "Fecha de pago", "07/10/2026", "Método de pago", "Transferencia bancaria",
+    ):
+        assert pdf_string(text) in pdf
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_the_invoice_pdf_leaves_out_what_the_invoice_lacks(uncompressed_pdf):
+    invoice = detailed_invoice(customer_phone="", payment_date=None, payment_method="")
+
+    pdf = await PDFService().generate_invoice_pdf(
+        invoice=invoice, company_name="Spain Aikikai", company_address="", company_tax_id=""
+    )
+
+    for text in ("Tel.", "Fecha de pago", "Método de pago"):
+        assert pdf_string(text) not in pdf
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_the_invoice_pdf_draws_the_federation_logo(uncompressed_pdf):
+    from src.config.settings import InvoiceSettings
+
+    pdf = await PDFService().generate_invoice_pdf(
+        invoice=detailed_invoice(), company_name="Spain Aikikai", company_address="",
+        company_tax_id="", logo_path=InvoiceSettings().logo_path,
+    )
+
+    assert b"/Subtype /Image" in pdf
+
+
+def test_the_logo_defaults_to_the_shipped_asset(monkeypatch):
+    import os
+    from src.config.settings import InvoiceSettings
+
+    monkeypatch.setenv("INVOICE_LOGO_PATH", "")
+
+    assert os.path.exists(InvoiceSettings().logo_path)
+
+
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_the_license_pdf_writes_spanish_accents(uncompressed_pdf):

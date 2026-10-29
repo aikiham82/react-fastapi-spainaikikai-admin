@@ -420,6 +420,7 @@ def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
         pdf_service=get_pdf_service(),
         price_configuration_repository=get_price_configuration_repository(),
         seminar_repository=get_seminar_repository(),
+        club_repository=get_club_repository(),
     )
 
 @lru_cache()
@@ -449,6 +450,7 @@ def get_register_manual_payment_use_case() -> RegisterManualPaymentUseCase:
         pdf_service=get_pdf_service(),
         license_repository=get_license_repository(),
         insurance_repository=get_insurance_repository(),
+        club_repository=get_club_repository(),
     )
 
 

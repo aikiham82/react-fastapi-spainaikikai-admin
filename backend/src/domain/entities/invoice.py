@@ -58,11 +58,14 @@ class Invoice:
     customer_email: str = ""
     customer_address: str = ""
     customer_tax_id: str = ""
+    customer_phone: str = ""
 
     # Invoice details
     status: InvoiceStatus = InvoiceStatus.DRAFT
     issue_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
+    payment_date: Optional[datetime] = None
+    payment_method: str = ""
 
     # Line items
     line_items: List[InvoiceLineItem] = field(default_factory=list)

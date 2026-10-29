@@ -45,3 +45,33 @@ async def test_club_annual_payment_without_member_gets_an_invoice():
     assert invoice.status == InvoiceStatus.ISSUED
     assert invoice.total == 60.0
     assert invoice.issue_date.tzinfo is None
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_member_payment_gets_an_invoice_in_the_members_name():
+    from src.domain.entities.member import Member
+
+    invoice_repository = MagicMock()
+    invoice_repository.get_next_invoice_number = AsyncMock(return_value="2026-000002")
+    invoice_repository.create = AsyncMock(side_effect=lambda invoice: invoice)
+    member_repository = MagicMock()
+    member_repository.find_by_id = AsyncMock(return_value=Member(
+        id="m1", first_name="Ana", last_name="Example", email="ana@example.com",
+    ))
+    use_case = ProcessRedsysWebhookUseCase(
+        payment_repository=MagicMock(),
+        redsys_service=MagicMock(),
+        invoice_repository=invoice_repository,
+        member_repository=member_repository,
+    )
+    payment = Payment(
+        id="pay2", member_id="m1", club_id="club1", payment_type=PaymentType.LICENSE,
+        amount=20.0, status=PaymentStatus.COMPLETED, payment_year=2026,
+    )
+
+    invoice = await use_case._create_invoice(payment)
+
+    assert invoice.customer_name == "Ana Example"
+    assert invoice.customer_email == "ana@example.com"
+    assert invoice.payment_method == "redsys"

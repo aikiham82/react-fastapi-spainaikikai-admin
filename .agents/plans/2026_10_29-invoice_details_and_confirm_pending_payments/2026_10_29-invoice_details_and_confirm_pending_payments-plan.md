@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-10-29T13:00:00Z"
+has_completed_all_phases: false
 ---
 
 # Invoice details and confirm pending payments
@@ -51,14 +61,14 @@ Invoice PDFs show the Spain Aikikai logo, the customer's address, email and phon
 
 Logo, customer block and payment details on every new invoice, built the same way on both payment paths.
 
-- [ ] Copy the logo to `backend/src/infrastructure/assets/logo.jpg`; `InvoiceSettings.logo_path` defaults to it when `INVOICE_LOGO_PATH` is unset. Draw it top-left keeping its aspect ratio.
-- [ ] `Invoice` gains `customer_phone: str = ""`, `payment_date: Optional[datetime] = None`, `payment_method: str = ""`; Mongo adapter reads and writes them.
-- [ ] New `invoice_customer` module in `application/use_cases/invoice/`: `async build_invoice_customer(payment, member_repository, club_repository) -> InvoiceCustomer(name, email, address, phone)`. Member payment: member data. Club payment: club data. Address line: `address, postal_code city (province)` skipping blanks.
-- [ ] Both `_create_invoice` use `build_invoice_customer` and fill `payment_date` and `payment_method`. Inject `club_repository` in both use cases (`dependencies.py`). Fixes the `member.nombre` crash.
-- [ ] PDF customer block: name, address, email, phone, CIF/NIF, each only when present. Details block: "Número de factura", "Fecha de factura", "Fecha de pago", "Método de pago" (redsys "Tarjeta (Redsys)", cash "Efectivo", transfer "Transferencia bancaria", other "Otro"). All text escaped.
-- [ ] Tests: `test_pdf_service.py` (logo drawn, customer lines, payment details, missing phone omitted); `test_invoice_customer.py` (club, club without phone/city, member); webhook member payment gets an invoice with the member's name; manual payment invoice carries club address and method.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Copy the logo to `backend/src/infrastructure/assets/logo.jpg`; `InvoiceSettings.logo_path` defaults to it when `INVOICE_LOGO_PATH` is unset. Draw it top-left keeping its aspect ratio.
+- [x] `Invoice` gains `customer_phone: str = ""`, `payment_date: Optional[datetime] = None`, `payment_method: str = ""`; Mongo adapter reads and writes them.
+- [x] New `invoice_customer` module in `application/use_cases/invoice/`: `async build_invoice_customer(payment, member_repository, club_repository) -> InvoiceCustomer(name, email, address, phone)`. Member payment: member data. Club payment: club data. Address line: `address, postal_code city (province)` skipping blanks.
+- [x] Both `_create_invoice` use `build_invoice_customer` and fill `payment_date` and `payment_method`. Inject `club_repository` in both use cases (`dependencies.py`). Fixes the `member.nombre` crash.
+- [x] PDF customer block: name, address, email, phone, CIF/NIF, each only when present. Details block: "Número de factura", "Fecha de factura", "Fecha de pago", "Método de pago" (redsys "Tarjeta (Redsys)", cash "Efectivo", transfer "Transferencia bancaria", other "Otro"). All text escaped.
+- [x] Tests: `test_pdf_service.py` (logo drawn, customer lines, payment details, missing phone omitted); `test_invoice_customer.py` (club, club without phone/city, member); webhook member payment gets an invoice with the member's name; manual payment invoice carries club address and method.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: confirm an unfinished payment
 
@@ -79,6 +89,6 @@ Logo, customer block and payment details on every new invoice, built the same wa
 
 ## ⏭️ Next step
 
-Implement Phase 1: a complete invoice.
+Implement Phase 2: confirm an unfinished payment.
 
-Invoices dressed for the federation by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Invoices dressed for the federation, logo and all, by 🧾 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

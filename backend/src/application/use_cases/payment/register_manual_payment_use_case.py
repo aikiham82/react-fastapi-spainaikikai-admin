@@ -28,6 +28,8 @@ from src.application.ports.price_configuration_repository import PriceConfigurat
 from src.application.ports.pdf_service import PDFServicePort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
+from src.application.ports.club_repository import ClubRepositoryPort
+from src.application.use_cases.invoice.invoice_customer import build_invoice_customer
 from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
     GenerateLicensesAndInsuranceFromPaymentUseCase,
 )
@@ -84,6 +86,7 @@ class RegisterManualPaymentUseCase:
         pdf_service: Optional[PDFServicePort] = None,
         license_repository: Optional[LicenseRepositoryPort] = None,
         insurance_repository: Optional[InsuranceRepositoryPort] = None,
+        club_repository: Optional[ClubRepositoryPort] = None,
     ):
         self.payment_repository = payment_repository
         self.member_payment_repository = member_payment_repository
@@ -93,6 +96,7 @@ class RegisterManualPaymentUseCase:
         self.pdf_service = pdf_service
         self.license_repository = license_repository
         self.insurance_repository = insurance_repository
+        self.club_repository = club_repository
 
     async def execute(
         self,
@@ -298,20 +302,13 @@ class RegisterManualPaymentUseCase:
         to the Invoice constructor.
 
         Invoice entity fields used: invoice_number, payment_id, member_id, club_id,
-        customer_name, customer_email, line_items, status, issue_date.
+        customer_*, line_items, status, issue_date, payment_date, payment_method.
         Totals (tax_total, total) are computed by invoice.calculate_totals().
         """
         if not self.invoice_repository:
             return None
 
-        customer_name = payment.payer_name or ""
-        customer_email = ""
-
-        # Attempt to enrich customer email from member record
-        if self.member_repository and payment.member_id:
-            member = await self.member_repository.find_by_id(payment.member_id)
-            if member:
-                customer_email = getattr(member, "email", "") or ""
+        customer = await build_invoice_customer(payment, self.member_repository, self.club_repository)
 
         invoice_year = payment.payment_year or datetime.utcnow().year
         invoice_number = await self.invoice_repository.get_next_invoice_number(invoice_year)
@@ -354,11 +351,15 @@ class RegisterManualPaymentUseCase:
             payment_id=payment.id,
             member_id=invoice_member_id,
             club_id=payment.club_id,
-            customer_name=customer_name,
-            customer_email=customer_email,
+            customer_name=customer.name,
+            customer_email=customer.email,
+            customer_address=customer.address,
+            customer_phone=customer.phone,
             line_items=line_items,
             status=InvoiceStatus.ISSUED,
             issue_date=datetime.utcnow(),
+            payment_date=payment.payment_date or datetime.utcnow(),
+            payment_method=payment.payment_method.value,
         )
         # Populate tax_total and total fields from line items
         invoice.calculate_totals()

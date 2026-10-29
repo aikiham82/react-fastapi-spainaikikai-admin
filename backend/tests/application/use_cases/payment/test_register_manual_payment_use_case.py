@@ -621,9 +621,10 @@ class TestRegisterManualPaymentUseCase:
         """When payment has a member_id, the member's email is fetched and used on the invoice."""
         from src.domain.entities.payment import Payment, PaymentStatus, PaymentType, PaymentMethod
 
-        mock_member = MagicMock()
-        mock_member.email = "member@test.com"
-        mock_repos["member_repo"].find_by_id = AsyncMock(return_value=mock_member)
+        from src.domain.entities.member import Member
+
+        member = Member(id="m1", first_name="Ana", last_name="Example", email="member@test.com")
+        mock_repos["member_repo"].find_by_id = AsyncMock(return_value=member)
 
         payment_with_member = Payment(
             id="pay-member",
@@ -657,3 +658,35 @@ class TestRegisterManualPaymentUseCase:
 
         assert len(captured_invoices) == 1
         assert captured_invoices[0].customer_email == "member@test.com"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_the_manual_invoice_carries_the_club_details_and_the_method(mock_repos):
+    from src.domain.entities.club import Club
+
+    club_repo = AsyncMock()
+    club_repo.find_by_id = AsyncMock(return_value=Club(
+        id="club1", name="Example Dojo", address="Calle Mayor 1", city="Madrid",
+        email="dojo@example.com", phone="600000000",
+    ))
+    mock_repos["invoice_repo"].create = AsyncMock(side_effect=lambda invoice: invoice)
+    use_case = RegisterManualPaymentUseCase(
+        payment_repository=mock_repos["payment_repo"],
+        member_payment_repository=mock_repos["member_payment_repo"],
+        invoice_repository=mock_repos["invoice_repo"],
+        member_repository=mock_repos["member_repo"],
+        price_configuration_repository=mock_repos["price_config_repo"],
+        club_repository=club_repo,
+    )
+
+    result = await use_case.execute(
+        payer_name="Admin", club_id="club1", payment_year=2026, payment_method="cash",
+        member_assignments=[ManualMemberAssignment("m1", "M One", ["kyu"])],
+    )
+
+    assert result.invoice.customer_name == "Example Dojo"
+    assert result.invoice.customer_address == "Calle Mayor 1, Madrid"
+    assert result.invoice.customer_phone == "600000000"
+    assert result.invoice.payment_method == "cash"
+    assert result.invoice.payment_date is not None

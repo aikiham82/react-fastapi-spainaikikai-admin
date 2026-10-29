@@ -33,6 +33,8 @@ from src.domain.entities.member_payment import (
 )
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.seminar_repository import SeminarRepositoryPort
+from src.application.ports.club_repository import ClubRepositoryPort
+from src.application.use_cases.invoice.invoice_customer import build_invoice_customer
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
 from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
     GenerateLicensesAndInsuranceFromPaymentUseCase,
@@ -64,6 +66,7 @@ class ProcessRedsysWebhookUseCase:
         pdf_service: Optional[PDFServicePort] = None,
         price_configuration_repository: Optional[PriceConfigurationRepositoryPort] = None,
         seminar_repository: Optional[SeminarRepositoryPort] = None,
+        club_repository: Optional[ClubRepositoryPort] = None,
     ):
         self.payment_repository = payment_repository
         self.redsys_service = redsys_service
@@ -76,6 +79,7 @@ class ProcessRedsysWebhookUseCase:
         self.pdf_service = pdf_service
         self.price_configuration_repository = price_configuration_repository
         self.seminar_repository = seminar_repository
+        self.club_repository = club_repository
 
     async def execute(
         self,
@@ -208,18 +212,7 @@ class ProcessRedsysWebhookUseCase:
         if not self.invoice_repository:
             return None
 
-        # Get member info if available
-        customer_name = None
-        customer_email = None
-        if self.member_repository and payment.member_id:
-            member = await self.member_repository.find_by_id(payment.member_id)
-            if member:
-                customer_name = f"{member.nombre} {member.primer_apellido} {member.segundo_apellido or ''}".strip()
-                customer_email = member.email
-
-        # For annual payments, use payer_name if available
-        if payment.payer_name:
-            customer_name = payment.payer_name
+        customer = await build_invoice_customer(payment, self.member_repository, self.club_repository)
 
         # Get next invoice number (use payment year for multi-year support)
         invoice_year = payment.payment_year or datetime.now().year
@@ -267,11 +260,15 @@ class ProcessRedsysWebhookUseCase:
             payment_id=payment.id,
             member_id=payment.member_id or payment.club_id,
             club_id=payment.club_id,
-            customer_name=customer_name,
-            customer_email=customer_email,
+            customer_name=customer.name,
+            customer_email=customer.email,
+            customer_address=customer.address,
+            customer_phone=customer.phone,
             line_items=line_items,
             status=InvoiceStatus.ISSUED,
             issue_date=datetime.utcnow(),
+            payment_date=payment.payment_date or datetime.utcnow(),
+            payment_method=payment.payment_method.value,
         )
         invoice.calculate_totals()
 
