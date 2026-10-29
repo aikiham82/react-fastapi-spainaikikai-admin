@@ -36,7 +36,7 @@ from src.infrastructure.web.dependencies import (
     get_delete_payment_use_case,
     get_process_redsys_webhook_use_case
 )
-from src.infrastructure.web.dependencies import get_auth_context, get_member_repository
+from src.infrastructure.web.dependencies import get_auth_context, get_member_repository, get_payment_repository
 from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
@@ -75,6 +75,15 @@ async def _require_payment_access(ctx: AuthContext, payment, member_repository) 
         require_club_access(ctx, payment.club_id, PAYMENT_DENIED)
     else:
         await require_member_access(ctx, payment.member_id, member_repository, PAYMENT_DENIED)
+
+
+async def _require_stored_payment_access(ctx: AuthContext, payment_id: str, payment_repository, member_repository) -> None:
+    if ctx.is_super_admin:
+        return
+    payment = await payment_repository.find_by_id(payment_id)
+    if not payment:
+        require_club_access(ctx, None, PAYMENT_DENIED)
+    await _require_payment_access(ctx, payment, member_repository)
 
 
 @router.get("", response_model=List[PaymentResponse])
@@ -329,10 +338,12 @@ async def refund_payment(
     payment_id: str,
     refund_data: PaymentRefundRequest,
     get_refund_use_case = Depends(get_refund_payment_use_case),
+    payment_repository=Depends(get_payment_repository),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Refund payment. Super admin only."""
-    require_super_admin(ctx)
+    """Refund payment. Super admin, or the admin of the payment's club."""
+    await _require_stored_payment_access(ctx, payment_id, payment_repository, member_repository)
     payment = await get_refund_use_case.execute(payment_id, refund_data.refund_amount)
     return PaymentMapper.to_response_dto(payment)
 
@@ -354,10 +365,13 @@ async def get_payment_status(
 async def register_manual_payment(
     request: ManualPaymentRequest,
     use_case=Depends(get_register_manual_payment_use_case),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    """Register a manual payment (cash/transfer/other). Super admin only."""
-    require_super_admin(ctx)
+    """Register a manual payment (cash/transfer/other). Super admin, or the admin of that club for its own members."""
+    require_club_access(ctx, request.club_id)
+    for assignment in request.member_assignments:
+        await require_member_access(ctx, assignment.member_id, member_repository)
     try:
         result = await use_case.execute(
             payer_name=request.payer_name,
@@ -393,10 +407,12 @@ async def update_payment(
     payment_id: str,
     request: PaymentUpdateRequest,
     use_case=Depends(get_update_payment_use_case),
+    payment_repository=Depends(get_payment_repository),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    """Update a manual payment. Redsys COMPLETED payments are blocked. Super admin only."""
-    require_super_admin(ctx)
+    """Update a manual payment. Redsys COMPLETED payments are blocked. Super admin, or the admin of the payment's club."""
+    await _require_stored_payment_access(ctx, payment_id, payment_repository, member_repository)
     try:
         payment = await use_case.execute(
             payment_id=payment_id,
@@ -420,11 +436,13 @@ async def delete_payment(
     payment_id: str,
     force: bool = False,
     get_delete_use_case=Depends(get_delete_payment_use_case),
+    payment_repository=Depends(get_payment_repository),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Delete payment with cascade (MemberPayments -> Invoice -> Payment).
-    force=true required for Redsys COMPLETED payments. Super admin only."""
-    require_super_admin(ctx)
+    force=true required for Redsys COMPLETED payments. Super admin, or the admin of the payment's club."""
+    await _require_stored_payment_access(ctx, payment_id, payment_repository, member_repository)
     try:
         await get_delete_use_case.execute(payment_id, force=force)
     except PaymentNotFoundError as e:

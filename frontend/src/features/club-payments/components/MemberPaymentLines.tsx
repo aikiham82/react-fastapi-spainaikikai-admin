@@ -55,12 +55,12 @@ function PaymentLineItem({ line, onEdit, onDelete }: PaymentLineItemProps) {
 }
 
 export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: MemberPaymentLinesProps) {
-  const { isAssociationAdmin } = usePermissions()
+  const { isAssociationAdmin, isClubAdmin } = usePermissions()
   const [editing, setEditing] = useState<MemberPayment | null>(null)
   const [deleting, setDeleting] = useState<MemberPayment | null>(null)
   const [isAdding, setIsAdding] = useState(false)
 
-  const canEdit = isAssociationAdmin()
+  const canEdit = isAssociationAdmin() || isClubAdmin()
   const { data } = useMemberPaymentHistoryQuery(memberId, 0)
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation()
 

@@ -14,7 +14,7 @@ The join lives in `GetMemberPaymentHistoryUseCase`, which returns each line pair
 ## 🏆 Benefits
 
 - A refunded or pending payment never reads as "Pagado el …" next to a badge that says otherwise.
-- The super admin can check a claimed payment's date before marking a line as paid.
+- An admin can check a claimed payment's date before marking a line as paid.
 
 ## 👀 Examples
 
