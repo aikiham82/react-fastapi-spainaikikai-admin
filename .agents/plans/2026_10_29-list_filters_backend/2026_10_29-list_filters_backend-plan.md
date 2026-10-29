@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-29T14:00:00Z"
+has_completed_all_phases: false
 ---
 
 # List filters the backend ignores
@@ -46,17 +55,17 @@ Every record is stored `active`, so a filter on the stored field would never ret
 
 Description: `GET /api/v1/insurances` accepts optional `insurance_type: InsuranceType` and `status: InsuranceStatus` (matched against `effective_status`); `total` counts the filtered items.
 
-- [ ] Test suite `tests/api/test_insurances_list_filters.py`:
-  - [ ] only accident insurances for `insurance_type=accident`
-  - [ ] only RC insurances for `insurance_type=civil_liability`
-  - [ ] `status=active` excludes an insurance stored active whose end date passed
-  - [ ] `status=expired` returns that insurance
-  - [ ] type and status combine
-  - [ ] `total` equals the filtered count
-  - [ ] no params returns everything
-- [ ] Add both query params to `get_insurances` and filter after the use case.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test suite `tests/api/test_insurances_list_filters.py`:
+  - [x] only accident insurances for `insurance_type=accident`
+  - [x] only RC insurances for `insurance_type=civil_liability`
+  - [x] `status=active` excludes an insurance stored active whose end date passed
+  - [x] `status=expired` returns that insurance
+  - [x] type and status combine
+  - [x] `total` equals the filtered count
+  - [x] no params returns everything
+- [x] Add both query params to `get_insurances` and filter after the use case.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: member licence status filter
 
@@ -74,6 +83,6 @@ Description: `GET /api/v1/members` accepts optional `license_status: LicenseStat
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
 Filters that finally filter, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

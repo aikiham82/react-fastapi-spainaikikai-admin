@@ -3,8 +3,9 @@
 from typing import List, Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from src.domain.entities.insurance import InsuranceStatus, InsuranceType
 from src.infrastructure.web.dto.insurance_dto import (
     InsuranceCreate,
     InsuranceUpdate,
@@ -81,10 +82,12 @@ async def get_insurances(
     offset: int = 0,
     club_id: Optional[str] = None,
     member_id: Optional[str] = None,
+    insurance_type: Optional[InsuranceType] = None,
+    insurance_status: Optional[InsuranceStatus] = Query(None, alias="status"),
     get_all_use_case = Depends(get_all_insurances_use_case),
     ctx: AuthContext = Depends(get_auth_context)
 ):
-    """Get all insurances, optionally filtered by club or member."""
+    """Get all insurances, optionally filtered by club, member, type or date-derived status."""
     if not ctx.is_super_admin:
         require_club_access(ctx, ctx.club_id)
         if member_id:
@@ -92,6 +95,10 @@ async def get_insurances(
         club_id = ctx.club_id
 
     insurances = await get_all_use_case.execute(limit, club_id, member_id)
+    if insurance_type:
+        insurances = [i for i in insurances if i.insurance_type == insurance_type]
+    if insurance_status:
+        insurances = [i for i in insurances if i.effective_status == insurance_status]
 
     items = InsuranceMapper.to_response_list(insurances)
     items = await _populate_member_names(items)
