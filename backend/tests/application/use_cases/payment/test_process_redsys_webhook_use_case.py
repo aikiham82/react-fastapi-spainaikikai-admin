@@ -63,3 +63,28 @@ async def test_a_success_racing_an_offline_confirmation_is_acknowledged():
     result = await use_case.execute("signature", "parameters", "HMAC_SHA256_V1")
 
     assert result.success
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_failure_notice_never_undoes_a_payment_confirmed_meanwhile():
+    payment = Payment(
+        id="pay1", club_id="club1", payment_type=PaymentType.ANNUAL_QUOTA, amount=20.0,
+        status=PaymentStatus.PROCESSING, transaction_id="QA0000000003", payment_year=2026,
+    )
+    payment_repository = MagicMock()
+    payment_repository.find_by_transaction_id = AsyncMock(return_value=payment)
+    payment_repository.claim_unfinished = AsyncMock(return_value=False)
+    payment_repository.update = AsyncMock()
+    redsys_service = MagicMock()
+    redsys_service.verify_notification_signature = AsyncMock(return_value=True)
+    redsys_service.parse_notification = AsyncMock(return_value=MagicMock(
+        order_id="QA0000000003", is_successful=False, response_code="0190",
+    ))
+    redsys_service.get_response_message = MagicMock(return_value="Denegada")
+    use_case = ProcessRedsysWebhookUseCase(payment_repository, redsys_service, MagicMock())
+
+    await use_case.execute("signature", "parameters", "HMAC_SHA256_V1")
+
+    payment_repository.claim_unfinished.assert_awaited_once_with("pay1", PaymentStatus.FAILED)
+    payment_repository.update.assert_not_called()

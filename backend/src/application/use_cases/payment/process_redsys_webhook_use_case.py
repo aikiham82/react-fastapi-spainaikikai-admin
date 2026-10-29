@@ -117,7 +117,9 @@ class ProcessRedsysWebhookUseCase:
             payment.fail_payment(error_message)
             message = error_message
 
-            # Persist FAILED status
+            if not await self.payment_repository.claim_unfinished(payment.id, PaymentStatus.FAILED):
+                logger.warning("Redsys order %s failed after it was completed; kept completed", notification.order_id)
+                return WebhookProcessResult(payment=payment, success=False, message=message)
             payment = await self.payment_repository.update(payment)
 
             # Send failure notification
