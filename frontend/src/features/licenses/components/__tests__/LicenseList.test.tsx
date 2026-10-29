@@ -10,6 +10,8 @@ const context = vi.hoisted(() => ({
   licenses: [] as License[],
   canCreate: true,
   canUpdate: true,
+  role: 'super_admin',
+  setFilters: vi.fn(),
 }))
 
 vi.mock('../../hooks/useLicenseContext', () => ({
@@ -18,7 +20,7 @@ vi.mock('../../hooks/useLicenseContext', () => ({
     isLoading: false,
     error: null,
     filters: {},
-    setFilters: vi.fn(),
+    setFilters: context.setFilters,
     total: context.licenses.length,
     limit: 0,
     offset: 0,
@@ -30,6 +32,15 @@ vi.mock('../../hooks/useLicenseContext', () => ({
 
 vi.mock('../../../members/hooks/useMemberContext', () => ({
   useMemberContext: () => ({ members: [] }),
+}))
+
+vi.mock('@/features/clubs/hooks/useClubContext', () => ({
+  useClubContext: () => ({ clubs: [{ id: 'club-1', name: 'Example Club' }] }),
+}))
+
+vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
+  useAuthContext: () => ({ userRole: context.role }),
 }))
 
 vi.mock('@/core/hooks/usePermissions', () => ({
@@ -84,6 +95,8 @@ describe('LicenseList', () => {
   beforeEach(() => {
     context.canCreate = true
     context.canUpdate = true
+    context.role = 'super_admin'
+    context.setFilters.mockClear()
     context.licenses = [
       makeLicense('1', 'Bea Active', 200, 'active'),
       makeLicense('2', 'Carlos Soon', 10, 'active'),
@@ -241,5 +254,43 @@ describe('LicenseList', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Ver pagos' }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('Pagos de Bea Active member-1')
+  })
+
+  it('offers a Club filter to the super admin', async () => {
+    renderList()
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+
+    expect(screen.getByText('Club', { selector: 'label' })).toBeInTheDocument()
+  })
+
+  it('does not offer a Club filter to a club admin', async () => {
+    context.role = 'club_admin'
+    renderList()
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+
+    expect(screen.queryByText('Club', { selector: 'label' })).not.toBeInTheDocument()
+  })
+
+  it('filters licences by the chosen club', async () => {
+    renderList()
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Club' }))
+    await userEvent.click(screen.getByRole('option', { name: 'Example Club' }))
+
+    expect(context.setFilters.mock.calls.at(-1)?.[0]).toMatchObject({ club_id: 'club-1', offset: 0 })
+  })
+
+  it('clears the club with Quitar filtros', async () => {
+    renderList()
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Club' }))
+    await userEvent.click(screen.getByRole('option', { name: 'Example Club' }))
+    await userEvent.click(screen.getAllByRole('button', { name: 'Quitar filtros' })[0])
+
+    expect(context.setFilters.mock.calls.at(-1)?.[0]).toMatchObject({ club_id: undefined })
   })
 })
