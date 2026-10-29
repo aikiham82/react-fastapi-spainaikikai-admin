@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-10-29T13:10:00Z"
+has_completed_all_phases: true
 ---
 
 # Transactions sorted by paid date
@@ -43,15 +52,15 @@ All 1104 member payment lines are completed and their transaction (`transactions
 
 Sort in the use case by the paid date of each line, newest first, undated last, ties by member name; render `getPaidLabel` in a new "Pago" column (desktop) and line (mobile card).
 
-- [ ] Backend tests in `test_get_club_member_payments_use_case.py`: `test_lines_come_most_recently_paid_first`, `test_lines_without_a_paid_date_go_last`, `test_lines_paid_together_are_ordered_by_member_name`.
-- [ ] Sort the result of `GetClubMemberPaymentsUseCase.execute` (signature unchanged).
-- [ ] Frontend tests in `TransactionsSection.test.tsx`: `shows when and how each paid line was paid`, `keeps the order the API returns`.
-- [ ] `TransactionsSection`: "Pago" column and mobile line with `getPaidLabel`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Backend tests in `test_get_club_member_payments_use_case.py`: `test_lines_come_most_recently_paid_first`, `test_lines_without_a_paid_date_go_last`, `test_lines_paid_together_are_ordered_by_member_name`.
+- [x] Sort the result of `GetClubMemberPaymentsUseCase.execute` (signature unchanged).
+- [x] Frontend tests in `TransactionsSection.test.tsx`: `shows when and how each paid line was paid`, `keeps the order the API returns`.
+- [x] `TransactionsSection`: "Pago" column and mobile line with `getPaidLabel`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 1.
+All phases implemented.
 
 Sorted newest first by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)’s mascot).

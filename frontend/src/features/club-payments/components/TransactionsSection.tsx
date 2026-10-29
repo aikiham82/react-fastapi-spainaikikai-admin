@@ -15,7 +15,7 @@ import { MemberPaymentEditModal } from './MemberPaymentEditModal'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 import { formatCurrency } from '@/core/utils/format'
-import { getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
+import { getPaidLabel, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
 import { LineActions } from './LineActions'
 import { useCanChangePaymentLine } from '../hooks/useCanChangePaymentLine'
 
@@ -78,6 +78,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
                 <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
+                {getPaidLabel(mp) && <p className="text-sm text-muted-foreground">{getPaidLabel(mp)}</p>}
               </div>
               <div className="text-right space-y-1">
                 <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
@@ -96,6 +97,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
               <TableHead>Miembro</TableHead>
               <TableHead>Concepto</TableHead>
               <TableHead>Tipo</TableHead>
+              <TableHead>Pago</TableHead>
               <TableHead className="text-right">Importe</TableHead>
               <TableHead className="text-center">Estado</TableHead>
               <TableHead className="text-center">Acciones</TableHead>
@@ -109,6 +111,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 </TableCell>
                 <TableCell>{mp.concept}</TableCell>
                 <TableCell>{getPaymentTypeLabel(mp.payment_type)}</TableCell>
+                <TableCell className="text-muted-foreground">{getPaidLabel(mp)}</TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatCurrency(mp.amount)}
                 </TableCell>
