@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { formatDni } from '@/core/utils/format';
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { ListPager } from '@/core/components/ListPager';
 import { useMemberContext } from '../hooks/useMemberContext';
@@ -40,7 +41,7 @@ const NAME_COLLATOR = new Intl.Collator('es');
 const fullName = (member: Member) => `${member.first_name} ${member.last_name ?? ''}`.trim();
 
 const secondaryLine = (member: Member, isSuperAdmin: boolean) =>
-  [member.dni ? `DNI ${member.dni}` : null, isSuperAdmin ? member.club_name : null, member.email || member.phone].filter(Boolean).join(' · ') || '-';
+  [formatDni(member.dni), isSuperAdmin ? member.club_name : null, member.email || member.phone].filter(Boolean).join(' · ') || '-';
 
 const LoadingRows = () => (
   <div role="status" aria-label="Cargando miembros" className="space-y-3">

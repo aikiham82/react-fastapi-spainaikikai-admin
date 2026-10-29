@@ -5,7 +5,7 @@ import { Avatar, BeltBadge } from '@/components/ui/graphic';
 import { ListPager } from '@/core/components/ListPager';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import { formatDate } from '@/core/utils/format';
+import { formatDate, formatDni } from '@/core/utils/format';
 import { daysUntil } from '@/core/utils/expiry';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -53,7 +53,7 @@ const LicenseBelt = ({ license }: { license: License }) => (
 
 const memberNameOf = (license: License) => license.member_name || 'Sin nombre';
 const subtitleOf = (license: License) =>
-  [license.member_dni ? `DNI ${license.member_dni}` : null, license.license_number].filter(Boolean).join(' · ');
+  [formatDni(license.member_dni), license.license_number].filter(Boolean).join(' · ');
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'active', label: 'Activa' },

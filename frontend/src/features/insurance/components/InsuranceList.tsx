@@ -18,14 +18,15 @@ import { insuranceStatus, insuranceTypeLabel, needsRenewal } from './insuranceDi
 import { foldForSearch } from '@/core/utils/search';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
-import { formatCurrency, formatDate } from '@/core/utils/format';
+import { formatCurrency, formatDate, formatDni } from '@/core/utils/format';
 
 const ALL = 'all';
 
 const typeIcon = (type: string): LucideIcon => (type === 'accident' ? HeartPulse : ShieldCheck);
 
 const memberNameOf = (insurance: Insurance) => insurance.member_name || 'Sin miembro';
-const dniOf = (insurance: Insurance) => (insurance.member_dni ? `DNI ${insurance.member_dni}` : null);
+const subtitleOf = (insurance: Insurance) =>
+  [formatDni(insurance.member_dni), insurance.policy_number].filter(Boolean).join(' · ');
 
 const InsuranceKind = ({ type }: { type: string }) => {
   const Icon = typeIcon(type);
@@ -255,7 +256,7 @@ export const InsuranceList = () => {
                       >
                         {memberNameOf(insurance)}
                       </button>
-                      {dniOf(insurance) && <p className="truncate text-sm text-muted-foreground">{dniOf(insurance)}</p>}
+                      {insurance.member_dni && <p className="truncate text-sm text-muted-foreground">{formatDni(insurance.member_dni)}</p>}
                     </div>
                     <p className="text-sm">
                       <InsuranceKind type={insurance.insurance_type} />
@@ -308,11 +309,7 @@ export const InsuranceList = () => {
                             <button type="button" className="text-left font-bold text-foreground" onClick={() => openDetail(insurance)}>
                               {memberNameOf(insurance)}
                             </button>
-                            {(dniOf(insurance) || insurance.policy_number) && (
-                              <p className="whitespace-nowrap text-muted-foreground">
-                                {[dniOf(insurance), insurance.policy_number].filter(Boolean).join(' · ')}
-                              </p>
-                            )}
+                            {subtitleOf(insurance) && <p className="whitespace-nowrap text-muted-foreground">{subtitleOf(insurance)}</p>}
                           </div>
                         </div>
                       </td>
