@@ -1,10 +1,11 @@
 """Get Member Payment History use case."""
 
+import asyncio
 from dataclasses import dataclass
 from typing import Dict, List
 
 from src.domain.entities.member_payment import MemberPayment
-from src.domain.entities.payment import Payment
+from src.domain.entities.payment import Payment, PaymentStatus
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
@@ -61,12 +62,13 @@ class GetMemberPaymentHistoryUseCase:
             limit=limit
         )
 
-        # ponytail: one lookup per distinct payment; a member has a handful, add find_by_ids if that grows
-        payment_by_id: Dict[str, Payment] = {}
-        for payment_id in {p.payment_id for p in payments if p.payment_id}:
-            payment = await self.payment_repository.find_by_id(payment_id)
-            if payment:
-                payment_by_id[payment_id] = payment
+        payment_ids = list({p.payment_id for p in payments if p.payment_id})
+        found = await asyncio.gather(*(self.payment_repository.find_by_id(pid) for pid in payment_ids))
+        payment_by_id: Dict[str, Payment] = {
+            pid: payment
+            for pid, payment in zip(payment_ids, found)
+            if payment and payment.status == PaymentStatus.COMPLETED
+        }
 
         return MemberPaymentHistoryResult(
             member_id=member_id,

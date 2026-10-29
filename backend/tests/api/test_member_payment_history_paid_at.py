@@ -41,6 +41,10 @@ TRANSACTIONS = {
         payment_date=datetime(2025, 6, 15, 9, 30), payment_method=PaymentMethod.CASH,
     ),
     "pay-undated": Payment(id="pay-undated", status=PaymentStatus.PROCESSING),
+    "pay-refunded": Payment(
+        id="pay-refunded", status=PaymentStatus.REFUNDED,
+        payment_date=datetime(2026, 1, 2, 12, 0), payment_method=PaymentMethod.REDSYS,
+    ),
 }
 
 
@@ -54,6 +58,7 @@ def client() -> TestClient:
         line("mp-2", "pay-cash", 2025),
         line("mp-3", "pay-undated", 2027),
         line("mp-4", "pay-missing", 2024),
+        line("mp-5", "pay-refunded", 2026),
     ]
     payments = AsyncMock()
     payments.find_by_id.side_effect = TRANSACTIONS.get
@@ -83,3 +88,9 @@ def test_a_line_without_a_dated_payment_has_no_date(client):
     assert by_id["mp-3"]["paid_at"] is None
     assert by_id["mp-4"]["paid_at"] is None
     assert by_id["mp-4"]["payment_method"] is None
+
+
+def test_a_refunded_payment_is_not_shown_as_paid(client):
+    by_id = {p["id"]: p for p in client.get("/api/v1/member-payments/member/member-ana/history").json()["payments"]}
+
+    assert by_id["mp-5"]["paid_at"] is None

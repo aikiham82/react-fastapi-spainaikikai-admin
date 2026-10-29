@@ -335,7 +335,7 @@ export const LicenseList = () => {
 
       <MemberPaymentsDialog
         memberId={licenseForPayments?.member_id ?? null}
-        memberName={licenseForPayments?.member_name ?? ''}
+        memberName={licenseForPayments ? licenseForPayments.member_name || licenseForPayments.license_number : ''}
         onClose={() => setLicenseForPayments(null)}
       />
 

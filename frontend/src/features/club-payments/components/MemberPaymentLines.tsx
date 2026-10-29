@@ -46,7 +46,7 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h4 className="font-medium">Líneas de pago</h4>
-        <Button className="h-10 sm:h-8" onClick={() => setIsAdding(true)}>
+        <Button className="h-10 sm:h-8" disabled={!clubId} onClick={() => setIsAdding(true)}>
           <Plus className="h-4 w-4 mr-1" />
           Añadir pago
         </Button>
@@ -68,7 +68,7 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{getPaymentTypeLabel(line.payment_type)}</p>
                         <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
-                        <p className="text-sm text-muted-foreground">{getPaidLabel(line.paid_at, line.payment_method)}</p>
+                        {getPaidLabel(line) && <p className="text-sm text-muted-foreground">{getPaidLabel(line)}</p>}
                       </div>
                       <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
                         {getStatusLabel(line.status)}

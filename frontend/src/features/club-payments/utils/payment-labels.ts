@@ -3,7 +3,8 @@ import {
   MEMBER_PAYMENT_TYPES,
 } from '@/features/member-payments/data/schemas/member-payment.schema'
 import { PAYMENT_METHOD_LABELS, type PaymentMethod } from '../data/schemas/payment-admin.schema'
-import { formatDate } from '@/core/utils/format'
+import { formatDate, parseUtcDateTime } from '@/core/utils/format'
+import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 
 
 export const getPaymentTypeLabel = (paymentType: string): string =>
@@ -12,9 +13,10 @@ export const getPaymentTypeLabel = (paymentType: string): string =>
 export const getStatusLabel = (status: string): string =>
   MEMBER_PAYMENT_STATUS[status as keyof typeof MEMBER_PAYMENT_STATUS] ?? status
 
-export const getPaidLabel = (paidAt?: string | null, method?: string | null): string =>
-  paidAt
-    ? [`Pagado el ${formatDate(paidAt)}`, method && (PAYMENT_METHOD_LABELS[method as PaymentMethod] ?? method)]
-        .filter(Boolean)
-        .join(' · ')
-    : 'Sin fecha de pago'
+export const getPaidLabel = ({ status, paid_at, payment_method }: MemberPayment): string | null => {
+  if (status !== 'completed') return null
+  const paidAt = parseUtcDateTime(paid_at)
+  if (!paidAt) return 'Sin fecha de pago'
+  const method = payment_method && (PAYMENT_METHOD_LABELS[payment_method as PaymentMethod] ?? payment_method)
+  return [`Pagado el ${formatDate(paidAt)}`, method].filter(Boolean).join(' · ')
+}
