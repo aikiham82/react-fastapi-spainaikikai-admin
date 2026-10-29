@@ -16,6 +16,7 @@ const LINES: MemberPayment[] = [
   {
     id: 'mp-licence', payment_id: 'pay-1', member_id: 'member-ana', club_id: 'club-dojo', payment_year: 2026,
     payment_type: 'licencia_kyu', concept: 'licencia_kyu - 2026', amount: 15, status: 'completed',
+    paid_at: '2026-03-04T10:00:00', payment_method: 'cash',
     created_at: '2026-03-12T10:00:00', updated_at: '2026-03-12T10:00:00',
   },
   {
@@ -64,6 +65,13 @@ describe('MemberPaymentLines', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'Editar' })[1])
 
     expect(screen.getByRole('dialog')).toHaveTextContent('Editando mp-insurance')
+  })
+
+  it('each line says when and how it was paid', () => {
+    renderLines()
+
+    expect(screen.getByText('Pagado el 04/03/2026 · Efectivo')).toBeInTheDocument()
+    expect(screen.getByText('Sin fecha de pago')).toBeInTheDocument()
   })
 
   it('a super admin deletes a payment line from the member', async () => {

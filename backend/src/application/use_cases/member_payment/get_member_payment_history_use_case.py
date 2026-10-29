@@ -1,11 +1,13 @@
 """Get Member Payment History use case."""
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, List
 
 from src.domain.entities.member_payment import MemberPayment
+from src.domain.entities.payment import Payment
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.ports.payment_repository import PaymentRepositoryPort
 
 
 @dataclass
@@ -15,6 +17,7 @@ class MemberPaymentHistoryResult:
     member_name: str
     payments: List[MemberPayment]
     total_count: int
+    payment_by_id: Dict[str, Payment]
 
 
 class GetMemberPaymentHistoryUseCase:
@@ -23,10 +26,12 @@ class GetMemberPaymentHistoryUseCase:
     def __init__(
         self,
         member_payment_repository: MemberPaymentRepositoryPort,
-        member_repository: MemberRepositoryPort
+        member_repository: MemberRepositoryPort,
+        payment_repository: PaymentRepositoryPort,
     ):
         self.member_payment_repository = member_payment_repository
         self.member_repository = member_repository
+        self.payment_repository = payment_repository
 
     async def execute(
         self,
@@ -56,9 +61,17 @@ class GetMemberPaymentHistoryUseCase:
             limit=limit
         )
 
+        # ponytail: one lookup per distinct payment; a member has a handful, add find_by_ids if that grows
+        payment_by_id: Dict[str, Payment] = {}
+        for payment_id in {p.payment_id for p in payments if p.payment_id}:
+            payment = await self.payment_repository.find_by_id(payment_id)
+            if payment:
+                payment_by_id[payment_id] = payment
+
         return MemberPaymentHistoryResult(
             member_id=member_id,
             member_name=member_name,
             payments=payments,
-            total_count=len(payments)
+            total_count=len(payments),
+            payment_by_id=payment_by_id,
         )

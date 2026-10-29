@@ -7,7 +7,7 @@ import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear'
 import { useMemberPaymentHistoryQuery } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 import { formatCurrency } from '@/core/utils/format'
-import { getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
+import { getPaidLabel, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
 import { LineActions } from './LineActions'
 import { useDeleteMemberPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
 import { MemberPaymentEditModal } from './MemberPaymentEditModal'
@@ -54,6 +54,7 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{line.payment_year} · {getPaymentTypeLabel(line.payment_type)}</p>
                   <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
+                  <p className="text-sm text-muted-foreground">{getPaidLabel(line.paid_at, line.payment_method)}</p>
                 </div>
                 <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
                   {getStatusLabel(line.status)}
