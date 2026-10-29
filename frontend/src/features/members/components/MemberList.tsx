@@ -267,7 +267,7 @@ export const MemberList = () => {
   return (
     <div className="space-y-5">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar miembro' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar por nombre o DNI' }}
         filters={filtersPanel}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}

@@ -196,6 +196,12 @@ describe('MemberList', () => {
     expect(screen.getAllByText(/DNI 12345678Z/)).toHaveLength(2)
   })
 
+  it('tells the user the search finds a DNI too', () => {
+    renderWithProviders(<MemberList />)
+
+    expect(screen.getByRole('searchbox', { name: 'Buscar por nombre o DNI' })).toBeInTheDocument()
+  })
+
   it('shows no DNI label when the member has none', () => {
     state.members = [member({ dni: '' })]
     renderWithProviders(<MemberList />)

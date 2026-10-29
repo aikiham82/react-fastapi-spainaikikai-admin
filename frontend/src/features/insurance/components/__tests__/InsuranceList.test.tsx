@@ -151,6 +151,19 @@ describe('InsuranceList', () => {
     expect(await screen.findByRole('dialog')).toHaveTextContent('Aseguradora Example')
   })
 
+  it("finds an insurance by its member's DNI", async () => {
+    context.insuranceList = [
+      { ...insurance, member_dni: '12345678Z' },
+      { ...insurance, id: 'insurance-2', member_id: 'member-2', member_name: 'Bea Example', member_dni: '87654321X' },
+    ]
+    renderWithProviders(<InsuranceList />)
+
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar por nombre, DNI o póliza' }), '12345678z')
+
+    expect(screen.getAllByText('Ana Example').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Bea Example')).not.toBeInTheDocument()
+  })
+
   it('offers to clear filters when the search matches nothing', async () => {
     renderWithProviders(<InsuranceList />)
 

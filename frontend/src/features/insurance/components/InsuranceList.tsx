@@ -73,7 +73,7 @@ export const InsuranceList = () => {
     const term = foldForSearch(searchTerm.trim());
     if (!term) return insuranceList;
     return insuranceList.filter((insurance) =>
-      foldForSearch(`${insurance.member_name ?? ''} ${insurance.policy_number}`).includes(term)
+      foldForSearch(`${insurance.member_name ?? ''} ${insurance.member_dni ?? ''} ${insurance.policy_number}`).includes(term)
     );
   }, [insuranceList, searchTerm]);
 
@@ -184,7 +184,7 @@ export const InsuranceList = () => {
   return (
     <div className="space-y-4">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar seguro' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar por nombre, DNI o póliza' }}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
         filters={

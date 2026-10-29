@@ -7,8 +7,8 @@ from src.infrastructure.adapters.repositories.name_search import MATCHES_NOTHING
 pytestmark = [pytest.mark.unit]
 
 
-def matches(term, first_name, last_name):
-    member = {"first_name": first_name, "last_name": last_name}
+def matches(term, first_name, last_name, dni=""):
+    member = {"first_name": first_name, "last_name": last_name, "dni": dni}
     return all(
         any(re.search(condition[field]["$regex"], member[field], re.IGNORECASE) for condition in word["$or"] for field in condition)
         for word in name_search_filter(term).get("$and", [])
@@ -68,3 +68,14 @@ def test_control_characters_are_dropped():
 def test_letters_beyond_spanish_ignore_their_accent():
     assert matches("stefan", "Ştefan", "Popescu")
     assert matches("dvorak", "Ana", "Dvořák")
+
+
+def test_a_dni_matches_whatever_its_letter_case():
+    assert matches("12345678z", "Ana", "Example", "12345678Z")
+    assert matches("12345678", "Ana", "Example", "12345678Z")
+    assert not matches("87654321", "Ana", "Example", "12345678Z")
+
+
+def test_a_name_and_a_dni_together_must_both_match():
+    assert matches("ana 12345678Z", "Ana", "Example", "12345678Z")
+    assert not matches("bea 12345678Z", "Ana", "Example", "12345678Z")

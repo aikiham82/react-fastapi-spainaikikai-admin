@@ -214,6 +214,12 @@ describe('LicenseList', () => {
     expect(screen.getAllByText(/DNI 12345678Z/)).toHaveLength(2)
   })
 
+  it('tells the user the search finds a DNI too', () => {
+    renderList()
+
+    expect(screen.getByRole('searchbox', { name: 'Buscar por nombre o DNI' })).toBeInTheDocument()
+  })
+
   it('the mobile card says Caducó el for a past expiry and Caduca el for a future one', () => {
     context.licenses = [makeLicense('1', 'Bea Active', 200, 'active'), makeLicense('3', 'Dora Expired', -40, 'expired')]
     renderList()

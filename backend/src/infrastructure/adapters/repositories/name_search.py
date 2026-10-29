@@ -41,6 +41,7 @@ def name_search_filter(term: str) -> dict:
                 "$or": [
                     {"first_name": {"$regex": pattern, "$options": "i"}},
                     {"last_name": {"$regex": pattern, "$options": "i"}},
+                    {"dni": {"$regex": pattern, "$options": "i"}},
                 ]
             }
             for pattern in patterns

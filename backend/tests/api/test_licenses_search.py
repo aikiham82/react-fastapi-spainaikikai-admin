@@ -17,7 +17,7 @@ from tests.api.callers import super_admin
 pytestmark = [pytest.mark.api]
 
 MEMBERS = [
-    {"_id": "member-junior", "first_name": "Carlos", "last_name": "García (Jr)", "status": "active", "club_id": "club-north"},
+    {"_id": "member-junior", "first_name": "Carlos", "last_name": "García (Jr)", "dni": "12345678Z", "status": "active", "club_id": "club-north"},
     {"_id": "member-other", "first_name": "Carla", "last_name": "Gómez", "status": "active", "club_id": "club-north"},
     {"_id": "member-accented", "first_name": "Lucía", "last_name": "Fernández Soto", "status": "active", "club_id": "club-north"},
     {"_id": "member-elsewhere", "first_name": "Lucía", "last_name": "Fernández Ruiz", "status": "active", "club_id": "club-south"},
@@ -31,7 +31,7 @@ class MembersCollection:
                 return False
             return all(
                 any(
-                    re.search(condition[field]["$regex"], member[field], re.IGNORECASE)
+                    re.search(condition[field]["$regex"], member.get(field, ""), re.IGNORECASE)
                     for condition in word["$or"]
                     for field in condition
                 )
@@ -73,6 +73,13 @@ def client(monkeypatch):
 
 def test_licence_search_with_regex_characters_matches_the_literal_text(client):
     response = client.get("/api/v1/licenses", params={"search": "García (Jr"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert [item["member_name"] for item in response.json()["items"]] == ["Carlos García (Jr)"]
+
+
+def test_licence_search_by_dni_finds_that_members_licence(client):
+    response = client.get("/api/v1/licenses", params={"search": "12345678z"})
 
     assert response.status_code == status.HTTP_200_OK
     assert [item["member_name"] for item in response.json()["items"]] == ["Carlos García (Jr)"]

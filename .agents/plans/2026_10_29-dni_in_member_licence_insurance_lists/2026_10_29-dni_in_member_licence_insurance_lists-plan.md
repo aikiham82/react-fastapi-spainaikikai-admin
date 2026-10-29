@@ -16,8 +16,8 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-29T12:30:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-29T13:00:00Z"
+has_completed_all_phases: true
 ---
 
 # DNI in member, licence and insurance lists
@@ -81,15 +81,15 @@ Public contracts:
   - `backend/tests/api/test_licenses_search.py`: searching a DNI returns that member's licence.
   - `InsuranceList.test.tsx`: typing a DNI keeps only that member's insurance.
 
-- [ ] Write the failing tests.
-- [ ] Add the `dni` clause to `name_search_filter`.
-- [ ] Include `member_dni` in the insurance client-side search.
-- [ ] Update `search-terms-are-escaped-and-bounded.md` to say the member search also matches the DNI.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Add the `dni` clause to `name_search_filter`.
+- [x] Include `member_dni` in the insurance client-side search.
+- [x] Update `search-terms-are-escaped-and-bounded.md` to say the member search also matches the DNI.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2: search by DNI.
+All phases are implemented; next is review and QA.
 
 Plan looked up by DNI and found by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
