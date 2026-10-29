@@ -7,7 +7,6 @@ import type { Member } from '../data/schemas/member.schema';
 import { CircleX, Clock, ShieldOff, UserPlus } from 'lucide-react';
 import { Avatar } from '@/components/ui/graphic';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
@@ -26,8 +25,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChipGroup, EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
 import { MemberForm } from './MemberForm';
-import { MemberPaymentStatus } from '@/features/member-payments/components/MemberPaymentStatus';
-import { MemberPaymentLines } from '@/features/club-payments/components/MemberPaymentLines';
+import { MemberPaymentsDialog } from '@/features/member-payments/components/MemberPaymentsDialog';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { GradeBadge, InsuranceTiles, LicenseStatusBadge, MemberAccessBadge, MemberStatusBadge, NoOwnEmailBadge } from './MemberBadges';
 import { Switch } from '@/components/ui/switch';
@@ -427,26 +425,14 @@ export const MemberList = () => {
         member={selectedMemberForEdit}
       />
 
-      <Dialog open={!!selectedMemberForPayments} onOpenChange={(open) => !open && setSelectedMemberForPayments(null)}>
-        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="pr-8">
-              Pagos de {selectedMemberForPayments ? fullName(selectedMemberForPayments) : ''}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedMemberForPayments && (
-            <>
-              <MemberPaymentStatus memberId={selectedMemberForPayments.id} />
-              <MemberPaymentLines
-                memberId={selectedMemberForPayments.id}
-                memberName={fullName(selectedMemberForPayments)}
-                clubId={selectedMemberForPayments.club_id ?? ''}
-                clubName={selectedMemberForPayments.club_name ?? ''}
-              />
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <MemberPaymentsDialog
+        memberId={selectedMemberForPayments?.id ?? null}
+        memberName={selectedMemberForPayments ? fullName(selectedMemberForPayments) : ''}
+        club={selectedMemberForPayments?.club_id
+          ? { id: selectedMemberForPayments.club_id, name: selectedMemberForPayments.club_name ?? '' }
+          : undefined}
+        onClose={() => setSelectedMemberForPayments(null)}
+      />
 
       <ConfirmDeleteDialog
         open={!!memberToDelete}

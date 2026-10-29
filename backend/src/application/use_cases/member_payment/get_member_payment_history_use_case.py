@@ -1,11 +1,14 @@
 """Get Member Payment History use case."""
 
+import asyncio
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from src.domain.entities.member_payment import MemberPayment
+from src.domain.entities.payment import Payment, PaymentStatus
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.ports.payment_repository import PaymentRepositoryPort
 
 
 @dataclass
@@ -15,6 +18,7 @@ class MemberPaymentHistoryResult:
     member_name: str
     payments: List[MemberPayment]
     total_count: int
+    completed_payments: List[Optional[Payment]]
 
 
 class GetMemberPaymentHistoryUseCase:
@@ -23,10 +27,12 @@ class GetMemberPaymentHistoryUseCase:
     def __init__(
         self,
         member_payment_repository: MemberPaymentRepositoryPort,
-        member_repository: MemberRepositoryPort
+        member_repository: MemberRepositoryPort,
+        payment_repository: PaymentRepositoryPort,
     ):
         self.member_payment_repository = member_payment_repository
         self.member_repository = member_repository
+        self.payment_repository = payment_repository
 
     async def execute(
         self,
@@ -56,9 +62,18 @@ class GetMemberPaymentHistoryUseCase:
             limit=limit
         )
 
+        payment_ids = list({p.payment_id for p in payments if p.payment_id})
+        found = await asyncio.gather(*(self.payment_repository.find_by_id(pid) for pid in payment_ids))
+        payment_by_id: Dict[str, Payment] = {
+            pid: payment
+            for pid, payment in zip(payment_ids, found)
+            if payment and payment.status == PaymentStatus.COMPLETED
+        }
+
         return MemberPaymentHistoryResult(
             member_id=member_id,
             member_name=member_name,
             payments=payments,
-            total_count=len(payments)
+            total_count=len(payments),
+            completed_payments=[payment_by_id.get(p.payment_id) if p.is_completed else None for p in payments],
         )

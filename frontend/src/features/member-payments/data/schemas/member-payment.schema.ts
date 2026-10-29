@@ -35,6 +35,8 @@ export const memberPaymentSchema = z.object({
   concept: z.string(),
   amount: z.number(),
   status: z.string(),
+  paid_at: z.string().nullable().optional(),
+  payment_method: z.string().nullable().optional(),
   created_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
 });

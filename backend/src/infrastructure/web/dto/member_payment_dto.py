@@ -19,6 +19,8 @@ class MemberPaymentResponse(BaseModel):
     concept: str
     amount: float
     status: str
+    paid_at: Optional[datetime] = None
+    payment_method: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

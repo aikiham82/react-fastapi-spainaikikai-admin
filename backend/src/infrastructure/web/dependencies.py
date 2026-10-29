@@ -860,7 +860,8 @@ def get_member_payment_history_use_case() -> GetMemberPaymentHistoryUseCase:
     """Get member payment history use case."""
     return GetMemberPaymentHistoryUseCase(
         member_payment_repository=get_member_payment_repository(),
-        member_repository=get_member_repository()
+        member_repository=get_member_repository(),
+        payment_repository=get_payment_repository(),
     )
 
 

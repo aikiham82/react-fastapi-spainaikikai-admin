@@ -38,6 +38,11 @@ vi.mock('@/core/hooks/usePermissions', () => ({
   }),
 }))
 
+vi.mock('@/features/member-payments/components/MemberPaymentsDialog', () => ({
+  MemberPaymentsDialog: ({ memberId, memberName }: { memberId: string | null; memberName: string }) =>
+    memberId ? <div role="dialog">Pagos de {memberName} {memberId}</div> : null,
+}))
+
 const daysFromNow = (days: number) => {
   const date = new Date()
   date.setDate(date.getDate() + days)
@@ -227,5 +232,14 @@ describe('LicenseList', () => {
     renderList()
 
     expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
+  })
+
+  it('opens the payments of the licence holder', async () => {
+    renderList()
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Acciones de licencia LIC-1' })[0])
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Ver pagos' }))
+
+    expect(screen.getByRole('dialog')).toHaveTextContent('Pagos de Bea Active member-1')
   })
 })

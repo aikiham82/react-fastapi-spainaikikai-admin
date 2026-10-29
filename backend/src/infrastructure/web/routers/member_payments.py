@@ -121,9 +121,11 @@ async def get_member_payment_history(
                     concept=p.concept,
                     amount=p.amount,
                     status=p.status.value,
+                    paid_at=paid.payment_date if paid else None,
+                    payment_method=paid.payment_method.value if paid else None,
                     created_at=p.created_at,
                     updated_at=p.updated_at
-                ) for p in result.payments
+                ) for p, paid in zip(result.payments, result.completed_payments)
             ],
             total_count=result.total_count
         )

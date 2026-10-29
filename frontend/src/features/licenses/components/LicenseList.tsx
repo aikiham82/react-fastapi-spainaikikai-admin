@@ -15,6 +15,7 @@ import { ChipGroup, EmptyState, ListToolbar, RowActions, ListLoading, ListError 
 import { TextLink } from '@/components/ui/text-link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
+import { MemberPaymentsDialog } from '@/features/member-payments/components/MemberPaymentsDialog';
 import { useLicenseContext } from '../hooks/useLicenseContext';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { License, LicenseFilters } from '../data/schemas/license.schema';
@@ -85,6 +86,7 @@ export const LicenseList = () => {
   const [licenseToEdit, setLicenseToEdit] = useState<License | null>(null);
   const [licenseToView, setLicenseToView] = useState<License | null>(null);
   const [licenseToDelete, setLicenseToDelete] = useState<License | null>(null);
+  const [licenseForPayments, setLicenseForPayments] = useState<License | null>(null);
 
   const canCreate = canAccess({ resource: 'licenses', action: 'create' });
   const canUpdate = canAccess({ resource: 'licenses', action: 'update' });
@@ -186,6 +188,7 @@ export const LicenseList = () => {
   const rowActions = (license: License) => {
     return [
       { label: 'Ver detalle', onSelect: () => openDetail(license) },
+      { label: 'Ver pagos', onSelect: () => setLicenseForPayments(license) },
       ...(canUpdate ? [{ label: 'Editar', onSelect: () => openEdit(license) }] : []),
       ...(canDelete ? [{ label: 'Eliminar', onSelect: () => askDelete(license), destructive: true }] : []),
     ];
@@ -329,6 +332,12 @@ export const LicenseList = () => {
       )}
 
       {chip === 'all' && <ListPager total={total} limit={limit} offset={offset} noun="licencias" onPage={(next) => setPagination(next, limit)} />}
+
+      <MemberPaymentsDialog
+        memberId={licenseForPayments?.member_id ?? null}
+        memberName={licenseForPayments ? licenseForPayments.member_name || licenseForPayments.license_number : ''}
+        onClose={() => setLicenseForPayments(null)}
+      />
 
       <Dialog open={!!licenseToView} onOpenChange={(open) => !open && setLicenseToView(null)}>
         {licenseToView && (
