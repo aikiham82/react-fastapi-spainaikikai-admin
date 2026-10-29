@@ -41,6 +41,7 @@ export interface UpdateInsuranceRequest {
 }
 
 export interface InsuranceFilters {
+  club_id?: string;
   member_id?: string;
   insurance_type?: InsuranceType;
   status?: 'active' | 'expired';

@@ -16,8 +16,8 @@ implemented_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
-last_implementation_at: "2026-10-29T12:50:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-29T13:05:00Z"
+has_completed_all_phases: true
 ---
 
 # Club filter in licences and insurance
@@ -53,13 +53,13 @@ Super admin picks a club inside "Filtros" and the licences list shows only that 
 
 Same filter in the insurance list.
 
-- [ ] Add `club_id` to `InsuranceFilters`.
-- [ ] Wrap `InsurancePage` in `ClubProvider`.
-- [ ] Add the "Club" `SearchableSelect` (`insurance-club-filter`) to `InsuranceList` for `super_admin` only, same behaviour as Phase 1.
-- [ ] Tests in `InsuranceList.test.tsx`: the same four cases.
-- [ ] Backend test `test_a_super_admin_lists_the_insurances_of_one_club` in `test_insurances_authorization.py`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Add `club_id` to `InsuranceFilters`.
+- [x] Wrap `InsurancePage` in `ClubProvider`.
+- [x] Add the "Club" `SearchableSelect` (`insurance-club-filter`) to `InsuranceList` for `super_admin` only, same behaviour as Phase 1.
+- [x] Tests in `InsuranceList.test.tsx`: the same four cases.
+- [x] Backend test `test_a_super_admin_lists_the_insurances_of_one_club` in `test_insurances_authorization.py`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### UI copy
 
@@ -67,6 +67,6 @@ Same filter in the insurance list.
 
 ## Next step
 
-Implement Phase 1: the Club filter in Licencias.
+All phases implemented.
 
 Filters sorted club by club by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)’s mascot)

@@ -9,6 +9,7 @@ const context = vi.hoisted(() => ({
   setFilters: vi.fn(),
   deleteInsurance: vi.fn(),
   allowed: new Set<string>(),
+  role: 'super_admin',
 }))
 
 vi.mock('../../hooks/useInsuranceContext', () => ({
@@ -27,6 +28,15 @@ vi.mock('../../hooks/useInsuranceContext', () => ({
     createInsurance: vi.fn(),
     updateInsurance: vi.fn(),
   }),
+}))
+
+vi.mock('@/features/clubs/hooks/useClubContext', () => ({
+  useClubContext: () => ({ clubs: [{ id: 'club-1', name: 'Example Club' }] }),
+}))
+
+vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
+  useAuthContext: () => ({ userRole: context.role }),
 }))
 
 vi.mock('@/core/hooks/usePermissions', () => ({
@@ -62,6 +72,7 @@ describe('InsuranceList', () => {
     context.insuranceList = [insurance]
     context.allowed = new Set(['read', 'create', 'update', 'delete'])
     context.setFilters.mockClear()
+    context.role = 'super_admin'
     context.deleteInsurance.mockClear()
   })
 
@@ -163,5 +174,43 @@ describe('InsuranceList', () => {
     renderWithProviders(<InsuranceList />)
 
     expect(screen.getAllByRole('link', { name: /^Renovar \S+ Ana Example$/ })[0]).toHaveAttribute('href', expect.stringMatching(/^\/payments\?renovar=member-1&que=rc&anio=\d{4}$/))
+  })
+
+  it('offers a Club filter to the super admin', async () => {
+    renderWithProviders(<InsuranceList />)
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+
+    expect(screen.getByText('Club', { selector: 'label' })).toBeInTheDocument()
+  })
+
+  it('does not offer a Club filter to a club admin', async () => {
+    context.role = 'club_admin'
+    renderWithProviders(<InsuranceList />)
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+
+    expect(screen.queryByText('Club', { selector: 'label' })).not.toBeInTheDocument()
+  })
+
+  it('filters insurances by the chosen club', async () => {
+    renderWithProviders(<InsuranceList />)
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Club' }))
+    await userEvent.click(screen.getByRole('option', { name: 'Example Club' }))
+
+    expect(context.setFilters.mock.calls.at(-1)?.[0]).toMatchObject({ club_id: 'club-1', offset: 0 })
+  })
+
+  it('clears the club with Quitar filtros', async () => {
+    renderWithProviders(<InsuranceList />)
+
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Club' }))
+    await userEvent.click(screen.getByRole('option', { name: 'Example Club' }))
+    await userEvent.click(screen.getAllByRole('button', { name: 'Quitar filtros' })[0])
+
+    expect(context.setFilters.mock.calls.at(-1)?.[0]).toMatchObject({ club_id: undefined })
   })
 })

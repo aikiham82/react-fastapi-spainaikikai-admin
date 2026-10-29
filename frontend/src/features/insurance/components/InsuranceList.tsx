@@ -6,6 +6,9 @@ import { useInsuranceContext } from '../hooks/useInsuranceContext';
 import type { Insurance, InsuranceType } from '../data/schemas/insurance.schema';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
+import { useClubContext } from '@/features/clubs/hooks/useClubContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -38,6 +41,9 @@ const InsuranceKind = ({ type }: { type: string }) => {
 export const InsuranceList = () => {
   const { insuranceList, isLoading, error, filters, setFilters, total, limit, offset, deleteInsurance, selectInsurance, setPagination } = useInsuranceContext();
   const { canAccess } = usePermissions();
+  const { userRole } = useAuthContext();
+  const { clubs } = useClubContext();
+  const isSuperAdmin = userRole === 'super_admin';
   const canCreate = canAccess({ resource: 'insurance', action: 'create' });
   const canUpdate = canAccess({ resource: 'insurance', action: 'update' });
   const canDelete = canAccess({ resource: 'insurance', action: 'delete' });
@@ -54,6 +60,7 @@ export const InsuranceList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState(ALL);
   const [statusFilter, setStatusFilter] = useState(ALL);
+  const [clubFilter, setClubFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [insuranceForEdit, setInsuranceForEdit] = useState<Insurance | null>(null);
   const [insuranceForDetail, setInsuranceForDetail] = useState<Insurance | null>(null);
@@ -73,7 +80,12 @@ export const InsuranceList = () => {
     );
   }, [insuranceList, searchTerm]);
 
-  const activeFilters = (typeFilter !== ALL ? 1 : 0) + (statusFilter !== ALL ? 1 : 0);
+  const clubOptions = useMemo(() => [
+    { value: '', label: 'Todos los clubs' },
+    ...clubs.map((club) => ({ value: club.id, label: club.name })),
+  ], [clubs]);
+
+  const activeFilters = (typeFilter !== ALL ? 1 : 0) + (statusFilter !== ALL ? 1 : 0) + (isSuperAdmin && clubFilter ? 1 : 0);
   const hasCriteria = activeFilters > 0 || searchTerm.trim() !== '';
 
   const handleTypeFilter = (value: string) => {
@@ -86,11 +98,17 @@ export const InsuranceList = () => {
     setFilters({ ...filters, status: value === ALL ? undefined : (value as 'active' | 'expired'), offset: 0 });
   };
 
+  const handleClubFilter = (value: string) => {
+    setClubFilter(value);
+    setFilters({ ...filters, club_id: value || undefined, offset: 0 });
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setTypeFilter(ALL);
     setStatusFilter(ALL);
-    setFilters({ ...filters, insurance_type: undefined, status: undefined, offset: 0 });
+    setClubFilter('');
+    setFilters({ ...filters, insurance_type: undefined, status: undefined, club_id: undefined, offset: 0 });
   };
 
   const openCreate = () => {
@@ -205,6 +223,20 @@ export const InsuranceList = () => {
                 </SelectContent>
               </Select>
             </div>
+            {isSuperAdmin && (
+              <div className="space-y-2">
+                <Label htmlFor="insurance-club-filter">Club</Label>
+                <SearchableSelect
+                  id="insurance-club-filter"
+                  options={clubOptions}
+                  value={clubFilter}
+                  onValueChange={handleClubFilter}
+                  placeholder="Todos los clubs"
+                  searchPlaceholder="Buscar club..."
+                  emptyMessage="No se encontraron clubs."
+                />
+              </div>
+            )}
           </>
         }
         action={createButton || undefined}
