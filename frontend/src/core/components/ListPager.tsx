@@ -12,7 +12,8 @@ export const ListPager = ({ total, limit, offset, noun, onPage }: ListPagerProps
   if (total === 0) return null;
 
   if (limit === 0) {
-    return <p className="text-sm text-gray-600">{total} {noun}</p>;
+    // ponytail: every caller passes a regular plural ending in "s"; add a singular prop when one does not
+    return <p className="text-sm text-gray-600">{total} {total === 1 ? noun.slice(0, -1) : noun}</p>;
   }
 
   if (total <= limit) return null;

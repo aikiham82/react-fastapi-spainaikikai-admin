@@ -12,6 +12,12 @@ describe('ListPager', () => {
     expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument()
   })
 
+  it('says one row in the singular', () => {
+    renderWithProviders(<ListPager total={1} limit={0} offset={0} noun="seguros" onPage={vi.fn()} />)
+
+    expect(screen.getByText('1 seguro')).toBeInTheDocument()
+  })
+
   it('pages when the rows come in pages', async () => {
     const onPage = vi.fn()
     renderWithProviders(<ListPager total={45} limit={20} offset={20} noun="miembros" onPage={onPage} />)
