@@ -31,6 +31,7 @@ from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_member_repository,
     get_member_payment_repository,
+    get_payment_repository,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -46,11 +47,16 @@ from src.domain.exceptions.payment import (
 router = APIRouter(prefix="/member-payments", tags=["member-payments"])
 
 
-async def _require_line_access(ctx: AuthContext, member_payment_id: str, member_payment_repository, member_repository) -> None:
+async def _require_line_access(
+    ctx: AuthContext, member_payment_id: str, member_payment_repository, payment_repository, member_repository
+) -> None:
     if ctx.is_super_admin:
         return
     line = await member_payment_repository.find_by_id(member_payment_id)
     await require_member_access(ctx, line.member_id if line else None, member_repository)
+    parent = await payment_repository.find_by_id(line.payment_id) if line.payment_id else None
+    if parent:
+        require_club_access(ctx, parent.club_id)
 
 
 @router.get("/member/{member_id}", response_model=MemberPaymentStatusResponse)
@@ -310,11 +316,12 @@ async def update_member_payment(
     request: MemberPaymentUpdateRequest,
     use_case=Depends(get_update_member_payment_use_case),
     member_payment_repository=Depends(get_member_payment_repository),
+    payment_repository=Depends(get_payment_repository),
     member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
-    await _require_line_access(ctx, member_payment_id, member_payment_repository, member_repository)
+    await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
     try:
         mp = await use_case.execute(
             member_payment_id=member_payment_id,
@@ -347,11 +354,12 @@ async def delete_member_payment(
     member_payment_id: str,
     use_case=Depends(get_delete_member_payment_use_case),
     member_payment_repository=Depends(get_member_payment_repository),
+    payment_repository=Depends(get_payment_repository),
     member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Delete a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
-    await _require_line_access(ctx, member_payment_id, member_payment_repository, member_repository)
+    await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
     try:
         await use_case.execute(member_payment_id)
     except MemberPaymentNotFoundError as e:

@@ -38,9 +38,9 @@ from tests.api.callers import (
 pytestmark = [pytest.mark.api, pytest.mark.auth]
 
 
-def line(line_id: str, member_id: str) -> MemberPayment:
+def line(line_id: str, member_id: str, payment_id: str = "pay-own") -> MemberPayment:
     return MemberPayment(
-        id=line_id, payment_id="pay-x", member_id=member_id, payment_year=2026,
+        id=line_id, payment_id=payment_id, member_id=member_id, payment_year=2026,
         payment_type=MemberPaymentType.SEGURO_ACCIDENTES, concept="seguro_accidentes - 2026",
         amount=20, status=MemberPaymentStatus.PENDING,
     )
@@ -53,7 +53,11 @@ def payment(payment_id: str, club_id: str) -> Payment:
     )
 
 
-LINES = {"mp-own": line("mp-own", OWN_MEMBER), "mp-foreign": line("mp-foreign", FOREIGN_MEMBER)}
+LINES = {
+    "mp-own": line("mp-own", OWN_MEMBER),
+    "mp-foreign": line("mp-foreign", FOREIGN_MEMBER, "pay-foreign"),
+    "mp-moved": line("mp-moved", OWN_MEMBER, "pay-foreign"),
+}
 PAYMENTS = {"pay-own": payment("pay-own", OWN_CLUB), "pay-foreign": payment("pay-foreign", OTHER_CLUB)}
 
 
@@ -153,3 +157,12 @@ def test_a_plain_member_changes_no_payment(client_as):
 
 def test_a_super_admin_still_changes_any_clubs_payments(client_as):
     assert calls(client_as(super_admin()), "mp-foreign", "pay-foreign", OTHER_CLUB, FOREIGN_MEMBER) == OK
+
+
+def test_a_club_admin_cannot_change_a_line_paid_through_another_club(client_as, use_cases):
+    client = client_as(club_admin())
+
+    assert client.put("/api/v1/member-payments/mp-moved", json={"status": "completed"}).status_code == 403
+    assert client.delete("/api/v1/member-payments/mp-moved").status_code == 403
+    use_cases.update_line.execute.assert_not_awaited()
+    use_cases.delete_line.execute.assert_not_awaited()
