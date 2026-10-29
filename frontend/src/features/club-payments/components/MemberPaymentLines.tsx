@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge'
 import { usePermissions } from '@/core/hooks/usePermissions'
 import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear'
 import { useMemberPaymentHistoryQuery } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries'
@@ -20,6 +20,8 @@ interface MemberPaymentLinesProps {
   clubId: string
   clubName: string
 }
+
+const STATUS_TONES: Record<string, StatusTone> = { completed: 'ok', pending: 'warn', refunded: 'bad' }
 
 const groupByYear = (lines: MemberPayment[]): [number, MemberPayment[]][] =>
   [...new Set(lines.map((line) => line.payment_year))]
@@ -45,9 +47,7 @@ function PaymentLineItem({ line, onEdit, onDelete }: PaymentLineItemProps) {
           <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
           {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
         </div>
-        <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
-          {getStatusLabel(line.status)}
-        </Badge>
+        <StatusBadge tone={STATUS_TONES[line.status] ?? 'neutral'}>{getStatusLabel(line.status)}</StatusBadge>
       </div>
       <LineActions onEdit={onEdit} onDelete={onDelete} />
     </li>
@@ -83,8 +83,8 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
         <div className="space-y-4">
           {groupByYear(lines).map(([year, yearLines]) => (
             <div key={year} className="space-y-2">
-              <h5 className="text-sm font-semibold tabular-nums">
-                {year} · {formatCurrency(paidTotal(yearLines))}
+              <h5 className="border-b pb-1 text-base font-semibold tabular-nums">
+                {year} · {formatCurrency(paidTotal(yearLines))} pagado
               </h5>
               <ul className="space-y-2">
                 {yearLines.map((line) => (

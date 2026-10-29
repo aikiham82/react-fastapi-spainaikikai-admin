@@ -75,7 +75,7 @@ describe('MemberPaymentLines', () => {
     renderLines()
 
     const years = screen.getAllByRole('heading', { level: 5 }).map((h) => h.textContent?.replace(/\s/g, ' '))
-    expect(years).toEqual(['2027 · 20,00 €', '2026 · 15,00 €', '2025 · 0,00 €'])
+    expect(years).toEqual(['2027 · 20,00 € pagado', '2026 · 15,00 € pagado', '2025 · 0,00 € pagado'])
   })
 
   it('each line says when and how it was paid', () => {

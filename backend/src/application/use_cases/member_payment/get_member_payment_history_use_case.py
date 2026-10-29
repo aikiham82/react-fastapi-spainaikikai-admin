@@ -75,5 +75,5 @@ class GetMemberPaymentHistoryUseCase:
             member_name=member_name,
             payments=payments,
             total_count=len(payments),
-            completed_payments=[payment_by_id.get(p.payment_id) for p in payments],
+            completed_payments=[payment_by_id.get(p.payment_id) if p.is_completed else None for p in payments],
         )

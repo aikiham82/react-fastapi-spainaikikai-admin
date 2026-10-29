@@ -23,11 +23,11 @@ from tests.api.callers import super_admin
 pytestmark = [pytest.mark.api]
 
 
-def line(line_id: str, payment_id: str, year: int) -> MemberPayment:
+def line(line_id: str, payment_id: str, year: int, status=MemberPaymentStatus.COMPLETED) -> MemberPayment:
     return MemberPayment(
         id=line_id, payment_id=payment_id, member_id="member-ana", payment_year=year,
         payment_type=MemberPaymentType.SEGURO_ACCIDENTES, concept=f"seguro_accidentes - {year}",
-        amount=20, status=MemberPaymentStatus.COMPLETED,
+        amount=20, status=status,
     )
 
 
@@ -59,6 +59,7 @@ def client() -> TestClient:
         line("mp-3", "pay-undated", 2027),
         line("mp-4", "pay-missing", 2024),
         line("mp-5", "pay-refunded", 2026),
+        line("mp-6", "pay-cash", 2025, MemberPaymentStatus.PENDING),
     ]
     payments = AsyncMock()
     payments.find_by_id.side_effect = TRANSACTIONS.get
@@ -94,3 +95,9 @@ def test_a_refunded_payment_is_not_shown_as_paid(client):
     by_id = {p["id"]: p for p in client.get("/api/v1/member-payments/member/member-ana/history").json()["payments"]}
 
     assert by_id["mp-5"]["paid_at"] is None
+
+
+def test_a_pending_line_has_no_date_even_if_its_payment_completed(client):
+    by_id = {p["id"]: p for p in client.get("/api/v1/member-payments/member/member-ana/history").json()["payments"]}
+
+    assert (by_id["mp-6"]["paid_at"], by_id["mp-6"]["payment_method"]) == (None, None)

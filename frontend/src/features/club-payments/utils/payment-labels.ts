@@ -18,5 +18,5 @@ export const getPaidLabel = ({ status, paid_at, payment_method }: MemberPayment)
   const paidAt = parseUtcDateTime(paid_at)
   if (!paidAt) return 'Sin fecha de pago'
   const method = payment_method && (PAYMENT_METHOD_LABELS[payment_method as PaymentMethod] ?? payment_method)
-  return [`Pagado el ${formatDate(paidAt)}`, method].filter(Boolean).join(' · ')
+  return [`Pagado\u00a0el\u00a0${formatDate(paidAt)}`, method].filter(Boolean).join('\u00a0· ')
 }

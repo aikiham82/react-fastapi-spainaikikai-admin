@@ -17,7 +17,7 @@ export function MemberPaymentsDialog({ memberId, memberName, club, onClose }: Me
 
   return (
     <Dialog open={!!memberId} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl max-h-[90dvh] overflow-y-auto">
+      <DialogContent aria-describedby={undefined} className="max-w-[calc(100%-2rem)] sm:max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="pr-8">Pagos de {memberName}</DialogTitle>
         </DialogHeader>
