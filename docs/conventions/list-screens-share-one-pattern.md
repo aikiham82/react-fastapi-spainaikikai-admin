@@ -12,6 +12,8 @@ Every list screen (members, licences, insurance, invoices, clubs, seminars, pric
 
 A list the super admin can narrow by club puts [`ClubFilterSelect`](../../frontend/src/features/clubs/components/ClubFilterSelect.tsx) in that popover, shown only when `usePermissions().isAssociationAdmin()`, and sends its value as `club_id`. It loads the clubs itself, so the page needs no `ClubProvider` and a club admin never fetches the club list; the backend already forces a club admin to their own club.
 
+A row's identifiers (DNI, licence number, policy number) each get their own muted line under the name, never joined with ` · ` to a truncated secondary line: on 2026-10-29 a DNI joined that way pushed the email out of the members table and cut the licence number in half at 1024px. The DNI goes through `formatDni` in [`format.ts`](../../frontend/src/core/utils/format.ts) and renders nothing when empty.
+
 Urgent rows come first. From 768px a table that fits at 1024px without clipped columns; below 768px tappable cards. Dialogs keep the save button visible in `DialogFooter`.
 
 ## 🏆 Benefits

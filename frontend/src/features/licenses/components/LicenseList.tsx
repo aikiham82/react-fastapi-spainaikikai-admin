@@ -5,7 +5,7 @@ import { Avatar, BeltBadge } from '@/components/ui/graphic';
 import { ListPager } from '@/core/components/ListPager';
 import { useDebounce } from '@/core/hooks/useDebounce';
 import { usePermissions } from '@/core/hooks/usePermissions';
-import { formatDate } from '@/core/utils/format';
+import { formatDate, formatDni } from '@/core/utils/format';
 import { daysUntil } from '@/core/utils/expiry';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -231,7 +231,7 @@ export const LicenseList = () => {
   return (
     <div className="space-y-5">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar miembro' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar nombre o DNI' }}
         filters={filtersPanel}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
@@ -285,6 +285,7 @@ export const LicenseList = () => {
                   <span className="flex min-w-0 flex-1 flex-col gap-2">
                     <span className="min-w-0">
                       <span className="block truncate text-base font-bold text-foreground">{memberNameOf(license)}</span>
+                      {license.member_dni && <span className="block truncate text-sm text-muted-foreground">{formatDni(license.member_dni)}</span>}
                       <span className="block text-sm text-muted-foreground">{license.license_number}</span>
                     </span>
                     <LicenseBelt license={license} />
@@ -326,6 +327,7 @@ export const LicenseList = () => {
                         <Avatar name={memberNameOf(license)} size="md" />
                         <span className="min-w-0">
                           <span className="block truncate text-[15px] font-bold text-foreground">{memberNameOf(license)}</span>
+                          {license.member_dni && <span className="block truncate text-muted-foreground">{formatDni(license.member_dni)}</span>}
                           <span className="block truncate text-muted-foreground">{license.license_number}</span>
                         </span>
                       </button>

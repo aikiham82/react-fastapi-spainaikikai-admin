@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { formatDni } from '@/core/utils/format';
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { ListPager } from '@/core/components/ListPager';
 import { useMemberContext } from '../hooks/useMemberContext';
@@ -267,7 +268,7 @@ export const MemberList = () => {
   return (
     <div className="space-y-5">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar miembro' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar nombre o DNI' }}
         filters={filtersPanel}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
@@ -326,6 +327,7 @@ export const MemberList = () => {
                 >
                   {fullName(member)}
                 </button>
+                {member.dni && <p className="truncate text-sm text-muted-foreground">{formatDni(member.dni)}</p>}
                 <p className="truncate text-sm text-muted-foreground">{secondaryLine(member, isSuperAdmin)}</p>
               </div>
               <GradeBadge licenseSummary={member.license_summary} />
@@ -377,6 +379,7 @@ export const MemberList = () => {
                           {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
                           <NoOwnEmailBadge hasOwnEmail={member.has_own_email} />
                         </div>
+                        {member.dni && <p className="truncate text-muted-foreground">{formatDni(member.dni)}</p>}
                         <p className="max-w-[12rem] truncate text-muted-foreground xl:max-w-[18rem]">
                           {secondaryLine(member, isSuperAdmin)}
                         </p>

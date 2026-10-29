@@ -5,6 +5,7 @@ export interface Insurance {
   member_id?: string;
   club_id?: string;
   member_name?: string;
+  member_dni?: string | null;
   insurance_type: InsuranceType;
   policy_number: string;
   insurance_company: string;

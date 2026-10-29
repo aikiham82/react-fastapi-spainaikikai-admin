@@ -8,6 +8,7 @@ export interface License {
   member_id: string;
   member_name?: string;
   member_status?: string;
+  member_dni?: string | null;
   issue_date: string;
   expiry_date: string;
   status: 'active' | 'expired' | 'pending' | 'revoked';

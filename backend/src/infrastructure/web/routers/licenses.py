@@ -108,6 +108,7 @@ async def _populate_member_names(items: List[LicenseResponse]) -> List[LicenseRe
                 if member:
                     item.member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip()
                     item.member_status = member.get("status")
+                    item.member_dni = member.get("dni") or None
             except Exception:
                 pass
     return items

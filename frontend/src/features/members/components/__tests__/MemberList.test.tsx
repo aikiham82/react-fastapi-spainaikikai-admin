@@ -189,6 +189,26 @@ describe('MemberList', () => {
     expect(within(screen.getAllByTestId('member-card')[0]).getByText('4.º Dan')).toBeInTheDocument()
   })
 
+  it('shows the DNI on the card and in the table', () => {
+    state.members = [member({ dni: '12345678Z' })]
+    renderWithProviders(<MemberList />)
+
+    expect(screen.getAllByText(/DNI 12345678Z/)).toHaveLength(2)
+  })
+
+  it('tells the user the search finds a DNI too', () => {
+    renderWithProviders(<MemberList />)
+
+    expect(screen.getByRole('searchbox', { name: 'Buscar nombre o DNI' })).toBeInTheDocument()
+  })
+
+  it('shows no DNI label when the member has none', () => {
+    state.members = [member({ dni: '' })]
+    renderWithProviders(<MemberList />)
+
+    expect(screen.queryByText(/DNI/)).not.toBeInTheDocument()
+  })
+
   it('shows skeleton rows instead of a bare spinner while loading', () => {
     state.members = []
     state.isLoading = true

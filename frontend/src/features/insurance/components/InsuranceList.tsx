@@ -18,7 +18,7 @@ import { insuranceStatus, insuranceTypeLabel, needsRenewal } from './insuranceDi
 import { foldForSearch } from '@/core/utils/search';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
-import { formatCurrency, formatDate } from '@/core/utils/format';
+import { formatCurrency, formatDate, formatDni } from '@/core/utils/format';
 
 const ALL = 'all';
 
@@ -72,7 +72,7 @@ export const InsuranceList = () => {
     const term = foldForSearch(searchTerm.trim());
     if (!term) return insuranceList;
     return insuranceList.filter((insurance) =>
-      foldForSearch(`${insurance.member_name ?? ''} ${insurance.policy_number}`).includes(term)
+      foldForSearch(`${insurance.member_name ?? ''} ${insurance.member_dni ?? ''} ${insurance.policy_number}`).includes(term)
     );
   }, [insuranceList, searchTerm]);
 
@@ -183,7 +183,7 @@ export const InsuranceList = () => {
   return (
     <div className="space-y-4">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar seguro' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Nombre, DNI o póliza' }}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
         filters={
@@ -246,13 +246,16 @@ export const InsuranceList = () => {
                 >
                   <Avatar name={memberNameOf(insurance)} size="md" />
                   <div className="min-w-0 flex-1 space-y-2">
-                    <button
-                      type="button"
-                      className="block max-w-full truncate text-left text-base font-bold text-foreground"
-                      onClick={() => openDetail(insurance)}
-                    >
-                      {memberNameOf(insurance)}
-                    </button>
+                    <div>
+                      <button
+                        type="button"
+                        className="block max-w-full truncate text-left text-base font-bold text-foreground"
+                        onClick={() => openDetail(insurance)}
+                      >
+                        {memberNameOf(insurance)}
+                      </button>
+                      {insurance.member_dni && <p className="truncate text-sm text-muted-foreground">{formatDni(insurance.member_dni)}</p>}
+                    </div>
                     <p className="text-sm">
                       <InsuranceKind type={insurance.insurance_type} />
                     </p>
@@ -304,6 +307,7 @@ export const InsuranceList = () => {
                             <button type="button" className="text-left font-bold text-foreground" onClick={() => openDetail(insurance)}>
                               {memberNameOf(insurance)}
                             </button>
+                            {insurance.member_dni && <p className="max-w-[14rem] truncate text-muted-foreground">{formatDni(insurance.member_dni)}</p>}
                             {insurance.policy_number && (
                               <p className="whitespace-nowrap text-muted-foreground">{insurance.policy_number}</p>
                             )}

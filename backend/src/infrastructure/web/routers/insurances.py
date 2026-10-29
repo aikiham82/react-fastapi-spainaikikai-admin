@@ -63,6 +63,7 @@ async def _populate_member_names(items: List[InsuranceResponse]) -> List[Insuran
                     member = await db["members"].find_one({"_id": ObjectId(item.member_id)})
                 if member:
                     item.member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip()
+                    item.member_dni = member.get("dni") or None
             except Exception:
                 pass
     return items

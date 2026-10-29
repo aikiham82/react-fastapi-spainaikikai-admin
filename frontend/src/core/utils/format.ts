@@ -78,3 +78,5 @@ export const formatDateTime = (value: DateInput): string => {
 
 export const formatCurrency = (amount: number | null | undefined): string =>
   amount === null || amount === undefined ? EMPTY : currencyFormatter.format(amount)
+
+export const formatDni = (dni: string | null | undefined): string | null => (dni ? `DNI ${dni}` : null)
