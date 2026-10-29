@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 last_implementation_at: "2026-10-29T14:00:00Z"
-has_completed_all_phases: false
+has_completed_all_phases: true
 ---
 
 # List filters the backend ignores
@@ -71,18 +71,18 @@ Description: `GET /api/v1/insurances` accepts optional `insurance_type: Insuranc
 
 Description: `GET /api/v1/members` accepts optional `license_status: LicenseStatus`, matched against `license_summary.status`; members without a licence are excluded when it is set.
 
-- [ ] Test suite `tests/api/test_members_license_status_filter.py`:
-  - [ ] `license_status=active` returns only members with an in-force licence
-  - [ ] `license_status=expired` returns a member whose licence is stored active with a past expiration date
-  - [ ] a member without a licence is excluded when filtering
-  - [ ] no param returns every member
-  - [ ] combines with the member `status` filter
-- [ ] Add the query param to `get_members` and filter after the summaries are built.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test suite `tests/api/test_members_license_status_filter.py`:
+  - [x] `license_status=active` returns only members with an in-force licence
+  - [x] `license_status=expired` returns a member whose licence is stored active with a past expiration date
+  - [x] a member without a licence is excluded when filtering
+  - [x] no param returns every member
+  - [x] combines with the member `status` filter
+- [x] Add the query param to `get_members` and filter after the summaries are built.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 2.
+All phases are implemented; next is review and QA.
 
 Filters that finally filter, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
