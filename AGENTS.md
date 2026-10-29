@@ -76,6 +76,7 @@ docs/
 │   ├── club-admins-manage-member-access.md
 │   ├── a-club-is-switched-off-only-by-deregistration.md
 │   ├── a-deregistered-members-licence-is-history.md
+│   ├── a-payment-is-fulfilled-once.md
 │   ├── a-payment-line-shows-a-date-only-when-paid.md
 │   ├── club-account-placeholders-are-legacy.md
 │   ├── data-model.md
