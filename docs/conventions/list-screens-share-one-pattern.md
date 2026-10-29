@@ -10,6 +10,8 @@ Every list screen (members, licences, insurance, invoices, clubs, seminars, pric
 - `RowActions`: edit, delete and secondary actions in one row menu; destructive actions always confirm.
 - `ListLoading` and `ListError`: the loading and error states.
 
+A list the super admin can narrow by club puts [`ClubFilterSelect`](../../frontend/src/features/clubs/components/ClubFilterSelect.tsx) in that popover, shown only when `usePermissions().isAssociationAdmin()`, and sends its value as `club_id`. It loads the clubs itself, so the page needs no `ClubProvider` and a club admin never fetches the club list; the backend already forces a club admin to their own club.
+
 Urgent rows come first. From 768px a table that fits at 1024px without clipped columns; below 768px tappable cards. Dialogs keep the save button visible in `DialogFooter`.
 
 ## 🏆 Benefits
@@ -47,6 +49,7 @@ Urgent rows come first. From 768px a table that fits at 1024px without clipped c
 - [`frontend/src/features/members/components/MemberList.tsx`](../../frontend/src/features/members/components/MemberList.tsx)
 - [`frontend/src/features/licenses/components/LicenseList.tsx`](../../frontend/src/features/licenses/components/LicenseList.tsx): chips synced with `?estado=` in the URL.
 - [`frontend/src/components/ui/list-controls.tsx`](../../frontend/src/components/ui/list-controls.tsx)
+- [`frontend/src/features/insurance/components/InsuranceList.tsx`](../../frontend/src/features/insurance/components/InsuranceList.tsx): the Club filter next to type and status.
 
 ## 🔗 Related agreements
 
