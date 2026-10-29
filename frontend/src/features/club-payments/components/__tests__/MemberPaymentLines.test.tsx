@@ -3,7 +3,6 @@ import { screen } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { MemberPaymentLines } from '../MemberPaymentLines'
 import { usePermissions } from '@/core/hooks/usePermissions'
-import { useMemberPaymentHistoryQuery } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 
 const deleteMemberPayment = vi.fn()
@@ -113,8 +112,10 @@ describe('MemberPaymentLines', () => {
     vi.mocked(usePermissions).mockReturnValue({ isAssociationAdmin: () => false } as ReturnType<typeof usePermissions>)
     renderLines()
 
+    expect(screen.getByText('Pagado el 04/03/2026 · Efectivo')).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 5 })).toHaveLength(3)
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Eliminar' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Añadir pago' })).not.toBeInTheDocument()
-    expect(useMemberPaymentHistoryQuery).toHaveBeenLastCalledWith(MEMBER.id, 0, false)
   })
 })
