@@ -164,6 +164,20 @@ describe('InsuranceList', () => {
     expect(screen.queryByText('Bea Example')).not.toBeInTheDocument()
   })
 
+  it('counts only the insurances the search leaves in the footer', async () => {
+    context.insuranceList = [
+      { ...insurance, member_dni: '12345678Z' },
+      { ...insurance, id: 'insurance-2', member_id: 'member-2', member_name: 'Bea Example', member_dni: '87654321X' },
+    ]
+    renderWithProviders(<InsuranceList />)
+    expect(screen.getByText('2 seguros')).toBeInTheDocument()
+
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Nombre, DNI o póliza' }), '12345678z')
+
+    expect(screen.getByText(/^1 seguro/)).toBeInTheDocument()
+    expect(screen.queryByText('2 seguros')).not.toBeInTheDocument()
+  })
+
   it('offers to clear filters when the search matches nothing', async () => {
     renderWithProviders(<InsuranceList />)
 
