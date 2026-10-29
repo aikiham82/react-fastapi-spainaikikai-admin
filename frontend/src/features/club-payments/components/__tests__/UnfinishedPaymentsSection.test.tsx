@@ -57,7 +57,8 @@ describe('UnfinishedPaymentsSection', () => {
 
     expect(screen.getByRole('heading', { name: 'Pagos sin terminar' })).toBeInTheDocument()
     expect(screen.getByText('Pago anual 2026')).toBeInTheDocument()
-    expect(screen.getByText(/Iniciado el 03\/04\/2026 · Example Dojo · 185,00/)).toBeInTheDocument()
+    expect(screen.getByText(/Iniciado el 03\/04\/2026 ·/)).toBeInTheDocument()
+    expect(screen.getByText(/185,00/)).toBeInTheDocument()
   })
 
   it('names the payment in Spanish and leaves out a missing start date', () => {

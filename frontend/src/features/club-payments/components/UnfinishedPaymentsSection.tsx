@@ -35,14 +35,8 @@ interface UnfinishedPaymentsSectionProps {
 const conceptOf = (payment: Payment): string =>
   `${getPaymentTypeLabel(payment.payment_type)} ${payment.payment_year}`
 
-const detailsOf = (payment: Payment): string =>
-  [
-    payment.created_at && `Iniciado el ${formatDate(payment.created_at)}`,
-    payment.payer_name,
-    formatCurrency(payment.amount),
-  ]
-    .filter(Boolean)
-    .join(' · ')
+const startedOn = (payment: Payment): string | null =>
+  payment.created_at ? `Iniciado el ${formatDate(payment.created_at)} · ` : null
 
 const whatConfirmingDoes = (payment: Payment): string =>
   payment.payment_type === 'annual_quota'
@@ -83,7 +77,10 @@ export function UnfinishedPaymentsSection({ clubId, paymentYear }: UnfinishedPay
           >
             <div className="min-w-0 basis-full sm:flex-1 sm:basis-auto">
               <p className="break-words text-[15px] font-semibold text-foreground">{conceptOf(payment)}</p>
-              <p className="break-words text-sm text-muted-foreground">{detailsOf(payment)}</p>
+              <p className="text-sm text-muted-foreground">
+                {startedOn(payment)}
+                <span className="whitespace-nowrap tabular-nums">{formatCurrency(payment.amount)}</span>
+              </p>
             </div>
             <Button size="sm" className="ml-auto" onClick={() => setConfirming(payment)}>
               Confirmar cobro

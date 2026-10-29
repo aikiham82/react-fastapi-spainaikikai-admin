@@ -58,10 +58,12 @@ export const useClubUnfinishedPaymentsQuery = (clubId: string, paymentYear: numb
     queryKey: clubPaymentsKeys.clubUnfinishedPayments(clubId, paymentYear),
     queryFn: () => paymentAdminService.getClubPayments(clubId, paymentYear),
     select: (payments) =>
-      payments.filter(
-        (payment) =>
-          UNFINISHED_PAYMENT_STATUSES.includes(payment.status) && CONFIRMABLE_PAYMENT_TYPES.includes(payment.payment_type),
-      ),
+      payments
+        .filter(
+          (payment) =>
+            UNFINISHED_PAYMENT_STATUSES.includes(payment.status) && CONFIRMABLE_PAYMENT_TYPES.includes(payment.payment_type),
+        )
+        .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? '')),
     enabled: !!clubId,
     staleTime: 2 * 60 * 1000,
   });
