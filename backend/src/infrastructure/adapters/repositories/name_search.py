@@ -31,7 +31,8 @@ def _char_pattern(char: str) -> str:
 
 
 def name_search_filter(term: str) -> dict:
-    patterns = ["".join(_char_pattern(char) for char in word) for word in term.replace(",", " ").split()]
+    printable = "".join(char for char in term if char.isprintable() or char.isspace())
+    patterns = ["".join(_char_pattern(char) for char in word) for word in printable.replace(",", " ").split()]
     if not patterns:
         return MATCHES_NOTHING
     return {

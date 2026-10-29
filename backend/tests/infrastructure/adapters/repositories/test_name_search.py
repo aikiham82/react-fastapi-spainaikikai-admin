@@ -60,6 +60,11 @@ def test_a_term_without_words_matches_nobody():
     assert name_search_filter(" , ") == MATCHES_NOTHING
 
 
+def test_control_characters_are_dropped():
+    assert matches("luc\x00ia", "Lucía", "Soto")
+    assert "\x00" not in str(name_search_filter("\x00"))
+
+
 def test_letters_beyond_spanish_ignore_their_accent():
     assert matches("stefan", "Ştefan", "Popescu")
     assert matches("dvorak", "Ana", "Dvořák")

@@ -17,15 +17,18 @@ from tests.api.callers import super_admin
 pytestmark = [pytest.mark.api]
 
 MEMBERS = [
-    {"_id": "member-junior", "first_name": "Carlos", "last_name": "García (Jr)", "status": "active"},
-    {"_id": "member-other", "first_name": "Carla", "last_name": "Gómez", "status": "active"},
-    {"_id": "member-accented", "first_name": "Lucía", "last_name": "Fernández Soto", "status": "active"},
+    {"_id": "member-junior", "first_name": "Carlos", "last_name": "García (Jr)", "status": "active", "club_id": "club-north"},
+    {"_id": "member-other", "first_name": "Carla", "last_name": "Gómez", "status": "active", "club_id": "club-north"},
+    {"_id": "member-accented", "first_name": "Lucía", "last_name": "Fernández Soto", "status": "active", "club_id": "club-north"},
+    {"_id": "member-elsewhere", "first_name": "Lucía", "last_name": "Fernández Ruiz", "status": "active", "club_id": "club-south"},
 ]
 
 
 class MembersCollection:
     def find(self, query, projection=None):
         def matches(member):
+            if "club_id" in query and member["club_id"] != query["club_id"]:
+                return False
             return all(
                 any(
                     re.search(condition[field]["$regex"], member[field], re.IGNORECASE)
@@ -76,10 +79,23 @@ def test_licence_search_with_regex_characters_matches_the_literal_text(client):
 
 
 def test_licence_search_by_first_and_last_name_ignores_accents(client):
-    response = client.get("/api/v1/licenses", params={"search": "lucia fernandez"})
+    response = client.get("/api/v1/licenses", params={"search": "lucia fernandez soto"})
 
     assert response.status_code == status.HTTP_200_OK
     assert [item["member_name"] for item in response.json()["items"]] == ["Lucía Fernández Soto"]
+
+
+def test_a_licence_search_inside_a_club_only_looks_at_that_club(client):
+    response = client.get("/api/v1/licenses", params={"search": "lucia", "club_id": "club-south"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert [item["member_name"] for item in response.json()["items"]] == ["Lucía Fernández Ruiz"]
+
+
+def test_a_licence_search_with_a_nul_character_does_not_fail(client):
+    response = client.get("/api/v1/licenses", params={"search": "luc\x00ia soto"})
+
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_a_licence_search_longer_than_100_characters_is_refused(client):
