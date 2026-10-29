@@ -1,6 +1,5 @@
 """Tests for how the MongoDB Member Repository reads stored documents."""
 
-import re
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -52,8 +51,9 @@ class TestMongoDBMemberRepositorySearchByName:
         await repository.search_by_name("García (Jr")
 
         query = repository.collection.find.call_args.args[0]
-        escaped = {"$regex": re.escape("García (Jr"), "$options": "i"}
-        assert query["$or"] == [{"first_name": escaped}, {"last_name": escaped}]
+        bracket_word = query["$and"][1]["$or"]
+        assert bracket_word[0]["first_name"]["$regex"].startswith(r"\(")
+        assert bracket_word[1]["last_name"]["$regex"].startswith(r"\(")
         assert "club_id" not in query
 
     @pytest.mark.asyncio

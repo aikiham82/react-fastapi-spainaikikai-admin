@@ -1,6 +1,5 @@
 """License routes."""
 
-import re
 from typing import List, Optional
 from io import BytesIO
 import uuid
@@ -96,13 +95,6 @@ def _get_expiration_date(license_data: LicenseCreate) -> Optional[datetime]:
     return license_data.expiration_date or license_data.expiry_date
 
 
-async def _get_club_member_ids(club_id: str) -> set:
-    """Get the set of member ID strings for a given club."""
-    db = get_database()
-    member_ids = await db["members"].distinct("_id", {"club_id": club_id})
-    return {str(m) for m in member_ids}
-
-
 async def _populate_member_names(items: List[LicenseResponse]) -> List[LicenseResponse]:
     """Populate member_name and member_status for license items."""
     db = get_database()
@@ -148,28 +140,14 @@ async def get_licenses(
     effective_member_id = member_id
     member_ids_from_search: Optional[List[str]] = None
     if search:
-        db = get_database()
-        member_query = {
-            "$or": [
-                {"first_name": {"$regex": re.escape(search), "$options": "i"}},
-                {"last_name": {"$regex": re.escape(search), "$options": "i"}}
-            ]
-        }
-        matching_members = await db["members"].find(member_query, {"_id": 1}).to_list(length=None)
-        member_ids_from_search = [str(m["_id"]) for m in matching_members]
+        matching_members = await member_repository.search_by_name(search, club_id=effective_club_id or club_id)
+        member_ids_from_search = [member.id for member in matching_members]
         if not member_ids_from_search:
             return LicenseListResponse(items=[], total=0, offset=offset, limit=limit)
 
     if member_ids_from_search is not None:
         # Search by member name - use find_by_member_ids
         licenses = await get_all_use_case.license_repository.find_by_member_ids(member_ids_from_search, db_limit)
-        # Apply club filter
-        if effective_club_id is not None:
-            club_member_ids = await _get_club_member_ids(effective_club_id)
-            licenses = [lic for lic in licenses if lic.member_id in club_member_ids]
-        elif club_id:
-            club_member_ids = await _get_club_member_ids(club_id)
-            licenses = [lic for lic in licenses if lic.member_id in club_member_ids]
     elif effective_club_id is not None:
         licenses = await get_all_use_case.execute(db_limit, effective_club_id, effective_member_id)
     elif club_id:
