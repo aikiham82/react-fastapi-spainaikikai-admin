@@ -6,11 +6,14 @@ import { MemberPaymentStatus } from './MemberPaymentStatus';
 interface MemberPaymentsDialogProps {
   memberId: string | null;
   memberName: string;
+  club?: { id: string; name: string };
   onClose: () => void;
 }
 
-export function MemberPaymentsDialog({ memberId, memberName, onClose }: MemberPaymentsDialogProps) {
-  const { data: member } = useMemberQuery(memberId ?? '');
+export function MemberPaymentsDialog({ memberId, memberName, club, onClose }: MemberPaymentsDialogProps) {
+  const { data: member } = useMemberQuery(club ? '' : memberId ?? '');
+  const clubId = club?.id ?? member?.club_id ?? '';
+  const clubName = club?.name ?? member?.club_name ?? '';
 
   return (
     <Dialog open={!!memberId} onOpenChange={(open) => !open && onClose()}>
@@ -21,12 +24,7 @@ export function MemberPaymentsDialog({ memberId, memberName, onClose }: MemberPa
         {memberId && (
           <>
             <MemberPaymentStatus memberId={memberId} />
-            <MemberPaymentLines
-              memberId={memberId}
-              memberName={memberName}
-              clubId={member?.club_id ?? ''}
-              clubName={member?.club_name ?? ''}
-            />
+            <MemberPaymentLines memberId={memberId} memberName={memberName} clubId={clubId} clubName={clubName} />
           </>
         )}
       </DialogContent>

@@ -2,7 +2,7 @@
 
 import asyncio
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from src.domain.entities.member_payment import MemberPayment
 from src.domain.entities.payment import Payment, PaymentStatus
@@ -18,7 +18,7 @@ class MemberPaymentHistoryResult:
     member_name: str
     payments: List[MemberPayment]
     total_count: int
-    payment_by_id: Dict[str, Payment]
+    completed_payments: List[Optional[Payment]]
 
 
 class GetMemberPaymentHistoryUseCase:
@@ -75,5 +75,5 @@ class GetMemberPaymentHistoryUseCase:
             member_name=member_name,
             payments=payments,
             total_count=len(payments),
-            payment_by_id=payment_by_id,
+            completed_payments=[payment_by_id.get(p.payment_id) for p in payments],
         )

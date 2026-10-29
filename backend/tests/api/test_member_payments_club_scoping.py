@@ -35,7 +35,7 @@ def use_cases():
         member_id=OWN_MEMBER, member_name="Ana Example", payment_year=2026, payment_statuses=[],
         total_paid=0.0, has_all_licenses=False, has_all_insurances=False,
     )
-    history_result = SimpleNamespace(member_id=OWN_MEMBER, member_name="Ana Example", payments=[], total_count=0)
+    history_result = SimpleNamespace(member_id=OWN_MEMBER, member_name="Ana Example", payments=[], total_count=0, completed_payments=[])
     summary_result = SimpleNamespace(
         club_id=OWN_CLUB, club_name="Club Example", payment_year=2026, total_members=0,
         members_with_license=0, members_with_insurance=0, total_collected=0.0, has_club_fee=False,

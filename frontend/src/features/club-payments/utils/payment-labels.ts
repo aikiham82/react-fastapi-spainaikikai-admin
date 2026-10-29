@@ -1,10 +1,10 @@
 import {
   MEMBER_PAYMENT_STATUS,
   MEMBER_PAYMENT_TYPES,
+  type MemberPayment,
 } from '@/features/member-payments/data/schemas/member-payment.schema'
 import { PAYMENT_METHOD_LABELS, type PaymentMethod } from '../data/schemas/payment-admin.schema'
 import { formatDate, parseUtcDateTime } from '@/core/utils/format'
-import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 
 
 export const getPaymentTypeLabel = (paymentType: string): string =>

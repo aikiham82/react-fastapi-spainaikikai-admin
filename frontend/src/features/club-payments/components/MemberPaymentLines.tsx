@@ -29,6 +29,31 @@ const groupByYear = (lines: MemberPayment[]): [number, MemberPayment[]][] =>
 const paidTotal = (lines: MemberPayment[]): number =>
   lines.filter((line) => line.status === 'completed').reduce((sum, line) => sum + line.amount, 0)
 
+interface PaymentLineItemProps {
+  line: MemberPayment
+  onEdit: () => void
+  onDelete: () => void
+}
+
+function PaymentLineItem({ line, onEdit, onDelete }: PaymentLineItemProps) {
+  const paidLabel = getPaidLabel(line)
+  return (
+    <li className="rounded-md border p-3 space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">{getPaymentTypeLabel(line.payment_type)}</p>
+          <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
+          {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
+        </div>
+        <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
+          {getStatusLabel(line.status)}
+        </Badge>
+      </div>
+      <LineActions onEdit={onEdit} onDelete={onDelete} />
+    </li>
+  )
+}
+
 export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: MemberPaymentLinesProps) {
   const { isAssociationAdmin } = usePermissions()
   const [editing, setEditing] = useState<MemberPayment | null>(null)
@@ -63,19 +88,12 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
               </h5>
               <ul className="space-y-2">
                 {yearLines.map((line) => (
-                  <li key={line.id} className="rounded-md border p-3 space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">{getPaymentTypeLabel(line.payment_type)}</p>
-                        <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
-                        {getPaidLabel(line) && <p className="text-sm text-muted-foreground">{getPaidLabel(line)}</p>}
-                      </div>
-                      <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
-                        {getStatusLabel(line.status)}
-                      </Badge>
-                    </div>
-                    <LineActions onEdit={() => setEditing(line)} onDelete={() => setDeleting(line)} />
-                  </li>
+                  <PaymentLineItem
+                    key={line.id}
+                    line={line}
+                    onEdit={() => setEditing(line)}
+                    onDelete={() => setDeleting(line)}
+                  />
                 ))}
               </ul>
             </div>

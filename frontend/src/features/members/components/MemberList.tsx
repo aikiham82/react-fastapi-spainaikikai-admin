@@ -428,6 +428,9 @@ export const MemberList = () => {
       <MemberPaymentsDialog
         memberId={selectedMemberForPayments?.id ?? null}
         memberName={selectedMemberForPayments ? fullName(selectedMemberForPayments) : ''}
+        club={selectedMemberForPayments?.club_id
+          ? { id: selectedMemberForPayments.club_id, name: selectedMemberForPayments.club_name ?? '' }
+          : undefined}
         onClose={() => setSelectedMemberForPayments(null)}
       />
 
