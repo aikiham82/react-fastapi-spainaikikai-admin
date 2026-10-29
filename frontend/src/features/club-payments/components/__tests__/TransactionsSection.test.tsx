@@ -258,7 +258,9 @@ describe('TransactionsSection', () => {
 
     renderWithProviders(<TransactionsSection {...defaultProps} />)
 
-    expect(screen.getAllByText('Pagado el 04/03/2026 · Efectivo').length).toBeGreaterThan(0)
+    expect(screen.getByRole('columnheader', { name: 'Fecha de pago' })).toBeInTheDocument()
+    expect(screen.getByRole('cell', { name: '04/03/2026 Efectivo' })).toBeInTheDocument()
+    expect(screen.getByText('Pagado el 04/03/2026 · Efectivo')).toBeInTheDocument()
   })
 
   it('keeps the order the API returns', async () => {

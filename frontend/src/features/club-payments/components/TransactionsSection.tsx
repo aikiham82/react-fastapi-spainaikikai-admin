@@ -15,7 +15,7 @@ import { MemberPaymentEditModal } from './MemberPaymentEditModal'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 import { formatCurrency } from '@/core/utils/format'
-import { getPaidLabel, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
+import { getPaidLabel, getPaidParts, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
 import { LineActions } from './LineActions'
 import { useCanChangePaymentLine } from '../hooks/useCanChangePaymentLine'
 
@@ -25,6 +25,17 @@ const getStatusVariant = (
   if (status === 'completed') return 'default'
   if (status === 'refunded') return 'secondary'
   return 'destructive'
+}
+
+function PaidOn({ line }: { line: MemberPayment }) {
+  const parts = getPaidParts(line)
+  if (!parts) return null
+  return (
+    <>
+      <span className="block tabular-nums">{parts.date ?? 'Sin fecha de pago'}</span>
+      {parts.method && <span className="block text-xs text-muted-foreground">{parts.method}</span>}
+    </>
+  )
 }
 
 interface TransactionsSectionProps {
@@ -80,13 +91,13 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
                   <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
-                  {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
                 </div>
                 <div className="text-right space-y-1">
                   <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
                   <Badge variant={getStatusVariant(mp.status)}>{getStatusLabel(mp.status)}</Badge>
                 </div>
               </div>
+              {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
               {canChangeLine(mp) && <LineActions onEdit={() => setEditingItem(mp)} onDelete={() => setDeletingItem(mp)} />}
             </li>
           )
@@ -100,7 +111,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
               <TableHead>Miembro</TableHead>
               <TableHead>Concepto</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead>Pago</TableHead>
+              <TableHead>Fecha de pago</TableHead>
               <TableHead className="text-right">Importe</TableHead>
               <TableHead className="text-center">Estado</TableHead>
               <TableHead className="text-center">Acciones</TableHead>
@@ -114,7 +125,9 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 </TableCell>
                 <TableCell>{mp.concept}</TableCell>
                 <TableCell>{getPaymentTypeLabel(mp.payment_type)}</TableCell>
-                <TableCell className="text-muted-foreground">{getPaidLabel(mp)}</TableCell>
+                <TableCell>
+                  <PaidOn line={mp} />
+                </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatCurrency(mp.amount)}
                 </TableCell>
