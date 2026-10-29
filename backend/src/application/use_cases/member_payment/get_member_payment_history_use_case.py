@@ -1,14 +1,13 @@
 """Get Member Payment History use case."""
 
-import asyncio
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import List
 
 from src.domain.entities.member_payment import MemberPayment
-from src.domain.entities.payment import Payment, PaymentStatus
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
+from src.application.use_cases.member_payment.line_payments import LinePayment, line_payments_for
 
 
 @dataclass
@@ -18,7 +17,7 @@ class MemberPaymentHistoryResult:
     member_name: str
     payments: List[MemberPayment]
     total_count: int
-    completed_payments: List[Optional[Payment]]
+    line_payments: List[LinePayment]
 
 
 class GetMemberPaymentHistoryUseCase:
@@ -62,18 +61,10 @@ class GetMemberPaymentHistoryUseCase:
             limit=limit
         )
 
-        payment_ids = list({p.payment_id for p in payments if p.payment_id})
-        found = await asyncio.gather(*(self.payment_repository.find_by_id(pid) for pid in payment_ids))
-        payment_by_id: Dict[str, Payment] = {
-            pid: payment
-            for pid, payment in zip(payment_ids, found)
-            if payment and payment.status == PaymentStatus.COMPLETED
-        }
-
         return MemberPaymentHistoryResult(
             member_id=member_id,
             member_name=member_name,
             payments=payments,
             total_count=len(payments),
-            completed_payments=[payment_by_id.get(p.payment_id) if p.is_completed else None for p in payments],
+            line_payments=await line_payments_for(payments, self.payment_repository),
         )

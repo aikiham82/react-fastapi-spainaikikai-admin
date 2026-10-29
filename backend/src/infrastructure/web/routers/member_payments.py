@@ -30,11 +30,14 @@ from src.infrastructure.web.dependencies import (
     get_delete_member_payment_use_case,
     get_auth_context,
     get_member_repository,
+    get_member_payment_repository,
+    get_payment_repository,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
     require_member_access,
+    require_not_received_by_card,
     require_super_admin,
 )
 from src.domain.exceptions.payment import (
@@ -43,6 +46,21 @@ from src.domain.exceptions.payment import (
 )
 
 router = APIRouter(prefix="/member-payments", tags=["member-payments"])
+
+
+async def _require_line_access(
+    ctx: AuthContext, member_payment_id: str, member_payment_repository, payment_repository, member_repository
+) -> None:
+    if ctx.is_super_admin:
+        return
+    line = await member_payment_repository.find_by_id(member_payment_id)
+    if not line:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this member")
+    await require_member_access(ctx, line.member_id, member_repository)
+    parent = await payment_repository.find_by_id(line.payment_id) if line.payment_id else None
+    if parent:
+        require_club_access(ctx, parent.club_id)
+        require_not_received_by_card(ctx, parent)
 
 
 @router.get("/member/{member_id}", response_model=MemberPaymentStatusResponse)
@@ -121,11 +139,12 @@ async def get_member_payment_history(
                     concept=p.concept,
                     amount=p.amount,
                     status=p.status.value,
-                    paid_at=paid.payment_date if paid else None,
-                    payment_method=paid.payment_method.value if paid else None,
+                    paid_at=lp.paid.payment_date if lp.paid else None,
+                    payment_method=lp.paid.payment_method.value if lp.paid else None,
+                    received_by_card=lp.received_by_card,
                     created_at=p.created_at,
                     updated_at=p.updated_at
-                ) for p, paid in zip(result.payments, result.completed_payments)
+                ) for p, lp in zip(result.payments, result.line_payments)
             ],
             total_count=result.total_count
         )
@@ -261,7 +280,7 @@ async def get_unpaid_members(
 
 
 # ---------------------------------------------------------------------------
-# Admin endpoints — super_admin only
+# Admin endpoints — super admin, or a club admin within their own club
 # IMPORTANT: GET /club/{club_id} is declared AFTER /club/{club_id}/summary
 # and /club/{club_id}/unpaid so those more-specific paths are matched first
 # by FastAPI's route resolution order.
@@ -274,8 +293,8 @@ async def get_club_member_payments(
     use_case=Depends(get_list_club_member_payments_use_case),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    """List all MemberPayments for a club, optionally filtered by year. Super admin only."""
-    require_super_admin(ctx)
+    """List all MemberPayments for a club, optionally filtered by year. Super admin, or that club's admin."""
+    require_club_access(ctx, club_id)
     year = payment_year or datetime.now().year
     member_payments = await use_case.execute(club_id=club_id, payment_year=year)
     return [
@@ -289,6 +308,9 @@ async def get_club_member_payments(
             concept=item.payment.concept,
             amount=item.payment.amount,
             status=item.payment.status.value,
+            paid_at=item.line_payment.paid.payment_date if item.line_payment.paid else None,
+            payment_method=item.line_payment.paid.payment_method.value if item.line_payment.paid else None,
+            received_by_card=item.line_payment.received_by_card,
             created_at=item.payment.created_at,
             updated_at=item.payment.updated_at,
         )
@@ -301,10 +323,13 @@ async def update_member_payment(
     member_payment_id: str,
     request: MemberPaymentUpdateRequest,
     use_case=Depends(get_update_member_payment_use_case),
+    member_payment_repository=Depends(get_member_payment_repository),
+    payment_repository=Depends(get_payment_repository),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin only."""
-    require_super_admin(ctx)
+    """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
+    await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
     try:
         mp = await use_case.execute(
             member_payment_id=member_payment_id,
@@ -336,10 +361,13 @@ async def update_member_payment(
 async def delete_member_payment(
     member_payment_id: str,
     use_case=Depends(get_delete_member_payment_use_case),
+    member_payment_repository=Depends(get_member_payment_repository),
+    payment_repository=Depends(get_payment_repository),
+    member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    """Delete a MemberPayment line. Parent Payment amount is recomputed. Super admin only."""
-    require_super_admin(ctx)
+    """Delete a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
+    await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
     try:
         await use_case.execute(member_payment_id)
     except MemberPaymentNotFoundError as e:

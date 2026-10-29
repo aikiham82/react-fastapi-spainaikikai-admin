@@ -137,10 +137,21 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
     expect(screen.getByText('Cuota pendiente').closest('[data-tone]')).toHaveAttribute('data-tone', 'warn')
   })
 
-  // ─── Case 1: non-admin sees no admin UI ─────────────────────────────────
-  describe('when isAssociationAdmin() returns false (club_admin)', () => {
+  // ─── Case 1: a role that is neither admin sees no admin UI ──────────────
+  describe('when the user is neither super admin nor club admin', () => {
+    const mockAsPlainUser = () => {
+      vi.mocked(usePermissions).mockReturnValue({
+        isAssociationAdmin: () => false,
+        isClubAdmin: () => false,
+        canAccess: vi.fn(() => false),
+        canAccessClub: vi.fn(() => false),
+        userRole: null,
+        clubId: 'club-001',
+      })
+    }
+
     it('does NOT render the "Registrar pago manual" button', () => {
-      mockAsClubAdmin()
+      mockAsPlainUser()
       renderWithProviders(<ClubPaymentDetail />)
 
       expect(
@@ -149,10 +160,20 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
     })
 
     it('does NOT render the TransactionsSection', () => {
-      mockAsClubAdmin()
+      mockAsPlainUser()
       renderWithProviders(<ClubPaymentDetail />)
 
       expect(screen.queryByTestId('transactions-section')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('when the user is the club admin', () => {
+    it('renders the "Registrar pago manual" button and the TransactionsSection', () => {
+      mockAsClubAdmin()
+      renderWithProviders(<ClubPaymentDetail />)
+
+      expect(screen.getByRole('button', { name: /registrar pago manual/i })).toBeInTheDocument()
+      expect(screen.getByTestId('transactions-section')).toBeInTheDocument()
     })
   })
 

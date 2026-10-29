@@ -34,6 +34,10 @@ vi.mock('@/features/members/hooks/queries/useMemberQueries', () => ({
 }))
 
 // ─── Stub child components to isolate ClubPaymentDetail logic ──────────────
+vi.mock('../TransactionsSection', () => ({
+  TransactionsSection: ({ clubId }: { clubId: string }) => <div>Transacciones de {clubId}</div>,
+}))
+
 vi.mock('../ManualPaymentModal', () => ({
   ManualPaymentModal: vi.fn(() => null),
 }))
@@ -94,7 +98,7 @@ const baseContextValue = {
   setSelectedYear: vi.fn(),
 }
 
-// ─── Helper to configure mocks as club admin (no manage-payments access) ──
+// ─── Helper to configure mocks as club admin ──
 const mockAsClubAdmin = () => {
   vi.mocked(usePermissions).mockReturnValue({
     isAssociationAdmin: () => false,
@@ -116,7 +120,7 @@ describe('ClubPaymentDetail — gap coverage', () => {
       unobserve: vi.fn(),
       disconnect: vi.fn(),
     }))
-    // Default: club admin (no manage payments), useMembersQuery returns empty
+    // Default: club admin, useMembersQuery returns empty
     mockAsClubAdmin()
     mockUseMembersQuery.mockReturnValue({ data: [], isLoading: false, error: null })
     mockUseClubPaymentsContext.mockReturnValue(baseContextValue)
@@ -277,5 +281,12 @@ describe('ClubPaymentDetail — gap coverage', () => {
         expect.objectContaining({ enabled: true })
       )
     })
+  })
+
+  it('a club admin manages the payments of their club', () => {
+    renderWithProviders(<ClubPaymentDetail />)
+
+    expect(screen.getByRole('button', { name: /Registrar pago manual/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Transacciones' })).toBeInTheDocument()
   })
 })

@@ -7,6 +7,7 @@ from src.application.use_cases.member_payment.get_club_member_payments_use_case 
     GetClubMemberPaymentsUseCase,
 )
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentType, MemberPaymentStatus
+from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus
 
 
 def _make_member(member_id):
@@ -42,10 +43,18 @@ def mock_member_repo():
 
 
 @pytest.fixture
-def use_case(mock_member_payment_repo, mock_member_repo):
+def mock_payment_repo():
+    repo = AsyncMock()
+    repo.find_by_id.return_value = None
+    return repo
+
+
+@pytest.fixture
+def use_case(mock_member_payment_repo, mock_member_repo, mock_payment_repo):
     return GetClubMemberPaymentsUseCase(
         member_payment_repository=mock_member_payment_repo,
         member_repository=mock_member_repo,
+        payment_repository=mock_payment_repo,
     )
 
 
@@ -117,3 +126,17 @@ class TestGetClubMemberPaymentsUseCase:
 
         assert result == []
         mock_member_payment_repo.find_by_member_ids_year.assert_not_called()
+
+    async def test_each_line_carries_the_completed_payment_that_paid_it(
+        self, use_case, mock_member_repo, mock_member_payment_repo, mock_payment_repo
+    ):
+        mock_member_repo.find_by_club_id = AsyncMock(return_value=[_make_member("m1")])
+        mock_member_payment_repo.find_by_member_ids_year = AsyncMock(return_value=[_make_member_payment("mp1", "m1")])
+        card = Payment(id="pay1", status=PaymentStatus.COMPLETED, payment_method=PaymentMethod.REDSYS)
+        mock_payment_repo.find_by_id.return_value = card
+
+        result = await use_case.execute(club_id="club1", payment_year=2026)
+
+        assert result[0].line_payment.paid is card
+        assert result[0].line_payment.received_by_card
+

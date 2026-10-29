@@ -15,6 +15,10 @@ import { TransactionsSection } from '../TransactionsSection'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
 
 // ─── Mock query hook ───────────────────────────────────────────────────────
+vi.mock('@/core/hooks/usePermissions', () => ({
+  usePermissions: vi.fn(() => ({ isAssociationAdmin: () => true, isClubAdmin: () => false })),
+}))
+
 vi.mock('../../hooks/queries/useClubPaymentsQueries', () => ({
   useClubMemberPaymentsQuery: vi.fn(),
   clubPaymentsKeys: {

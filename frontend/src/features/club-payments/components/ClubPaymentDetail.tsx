@@ -48,8 +48,8 @@ export const ClubPaymentDetail = () => {
     selectedYear,
   } = useClubPaymentsContext();
 
-  const { isAssociationAdmin } = usePermissions();
-  const canManagePayments = isAssociationAdmin();
+  const { isAssociationAdmin, isClubAdmin } = usePermissions();
+  const canManagePayments = isAssociationAdmin() || isClubAdmin();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isManualPaymentOpen, setIsManualPaymentOpen] = useState(false);

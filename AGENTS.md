@@ -74,6 +74,7 @@ docs/
 ├── domain/
 │   ├── a-club-changes-the-grade-number-not-the-kind.md
 │   ├── club-admins-manage-member-access.md
+│   ├── club-admins-manage-their-clubs-payments.md
 │   ├── a-club-is-switched-off-only-by-deregistration.md
 │   ├── a-deregistered-members-licence-is-history.md
 │   ├── a-payment-is-fulfilled-once.md

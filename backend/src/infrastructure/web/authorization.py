@@ -186,3 +186,12 @@ async def require_member_access(
         return
     member = await member_repository.find_by_id(member_id) if member_id else None
     require_club_access(ctx, member.club_id if member else None, detail)
+
+
+CARD_PAYMENT_DENIED = "Los pagos con tarjeta solo los modifica la federación"
+
+
+def require_not_received_by_card(ctx: AuthContext, payment) -> None:
+    """A card payment the federation received is changed only by the super admin."""
+    if not ctx.is_super_admin and payment is not None and payment.is_received_by_card:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=CARD_PAYMENT_DENIED)
