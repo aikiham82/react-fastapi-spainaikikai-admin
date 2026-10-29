@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
-from src.domain.entities.license import License, grade_licence_among, title_among
+from src.domain.entities.license import License, LicenseStatus, grade_licence_among, title_among
 from src.domain.entities.insurance import Insurance
 from src.domain.entities.member import ClubRole
 from src.domain.exceptions.license import LicenseNotFoundError
@@ -178,6 +178,7 @@ async def get_members(
     club_id: Optional[str] = Query(None),
     search: Optional[str] = Query(None, max_length=100),
     status: Optional[str] = Query(None),
+    license_status: Optional[LicenseStatus] = Query(None),
     get_all_use_case = Depends(get_all_members_use_case),
     get_search_use_case = Depends(get_search_members_use_case),
     ctx: AuthContext = Depends(get_auth_context),
@@ -186,21 +187,27 @@ async def get_members(
     club_repo = Depends(get_club_repository),
     member_repo = Depends(get_member_repository),
 ):
-    """Get all members, optionally filtered by club, search term, or status."""
+    """Get all members, optionally filtered by club, search term, status, or licence status."""
     if not ctx.is_super_admin:
         _require_access_to_club(ctx, ctx.club_id)
         club_id = ctx.club_id
 
+    filtering = bool(status or license_status)
+    fetch_limit = 0 if filtering else limit
     if search:
-        members = await get_search_use_case.execute(search, limit, club_id=club_id)
+        members = await get_search_use_case.execute(search, fetch_limit, club_id=club_id)
     else:
-        members = await get_all_use_case.execute(limit, club_id)
+        members = await get_all_use_case.execute(fetch_limit, club_id)
 
     if status:
         members = [m for m in members if m.status.value == status]
 
     responses = MemberMapper.to_response_list(members)
     responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    if license_status:
+        responses = [r for r in responses if r.license_summary and r.license_summary.status == license_status.value]
+    if filtering and limit > 0:
+        responses = responses[:limit]
     responses = await _enrich_members_with_own_email(responses, member_repo)
     return await _enrich_members_with_club_names(responses, club_repo)
 
