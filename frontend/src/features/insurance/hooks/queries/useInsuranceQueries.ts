@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { insuranceService } from '../../data/services/insurance.service';
 import type { InsuranceFilters } from '../../data/schemas/insurance.schema';
 
@@ -7,6 +7,7 @@ export const useInsuranceQuery = (filters?: InsuranceFilters) => {
     queryKey: ['insurance', filters],
     queryFn: () => insuranceService.getInsurance(filters),
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 };
 

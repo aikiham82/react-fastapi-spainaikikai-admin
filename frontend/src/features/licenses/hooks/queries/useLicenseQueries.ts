@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { licenseService } from '../../data/services/license.service';
 import type { LicenseFilters } from '../../data/schemas/license.schema';
 
@@ -7,6 +7,7 @@ export const useLicensesQuery = (filters?: LicenseFilters) => {
     queryKey: ['licenses', filters],
     queryFn: () => licenseService.getLicenses(filters),
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 };
 

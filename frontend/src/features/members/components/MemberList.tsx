@@ -20,8 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
-import { useClubContext } from '@/features/clubs/hooks/useClubContext';
-import { SearchableSelect } from '@/components/ui/searchable-select';
+import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChipGroup, EmptyState, ListToolbar, RowActions } from '@/components/ui/list-controls';
 import { MemberForm } from './MemberForm';
@@ -102,7 +101,6 @@ export const MemberList = () => {
   const { members, isLoading, error, setFilters, total, limit, offset, deleteMember, changeMemberStatus, setPagination } = useMemberContext();
   const { canAccess } = usePermissions();
   const { userRole } = useAuthContext();
-  const { clubs } = useClubContext();
   const isSuperAdmin = userRole === 'super_admin';
   const canCreate = canAccess({ resource: 'members', action: 'create' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -117,11 +115,6 @@ export const MemberList = () => {
   const [selectedMemberForPayments, setSelectedMemberForPayments] = useState<Member | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
   const [memberToChangeStatus, setMemberToChangeStatus] = useState<Member | null>(null);
-
-  const clubOptions = useMemo(() => [
-    { value: '', label: 'Todos los clubs' },
-    ...clubs.map(c => ({ value: c.id, label: c.name })),
-  ], [clubs]);
 
   useEffect(() => {
     const search = debouncedSearch || undefined;
@@ -256,15 +249,7 @@ export const MemberList = () => {
       {isSuperAdmin && (
         <div className="space-y-1.5">
           <Label htmlFor="member-club-filter">Club</Label>
-          <SearchableSelect
-            id="member-club-filter"
-            options={clubOptions}
-            value={clubFilter}
-            onValueChange={handleClubFilter}
-            placeholder="Todos los clubs"
-            searchPlaceholder="Buscar club..."
-            emptyMessage="No se encontraron clubs."
-          />
+          <ClubFilterSelect id="member-club-filter" value={clubFilter} onValueChange={handleClubFilter} />
         </div>
       )}
 

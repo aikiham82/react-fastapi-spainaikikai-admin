@@ -17,6 +17,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { MemberPaymentsDialog } from '@/features/member-payments/components/MemberPaymentsDialog';
 import { useLicenseContext } from '../hooks/useLicenseContext';
+import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { License, LicenseFilters } from '../data/schemas/license.schema';
 import {
@@ -78,10 +79,12 @@ const DetailField = ({ label, children }: { label: string; children: React.React
 
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
-  const { canAccess } = usePermissions();
+  const { canAccess, isAssociationAdmin } = usePermissions();
+  const isSuperAdmin = isAssociationAdmin();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter | ''>('');
+  const [clubFilter, setClubFilter] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [licenseToEdit, setLicenseToEdit] = useState<License | null>(null);
   const [licenseToView, setLicenseToView] = useState<License | null>(null);
@@ -126,6 +129,11 @@ export const LicenseList = () => {
     setFilters({ ...filters, status: next || undefined, offset: 0 });
   };
 
+  const handleClubFilter = (value: string) => {
+    setClubFilter(value);
+    setFilters({ ...filters, club_id: value || undefined, offset: 0 });
+  };
+
   const sorted = useMemo(() => sortByUrgency(licenses), [licenses]);
   const counts = useMemo(
     () => ({
@@ -139,13 +147,14 @@ export const LicenseList = () => {
     [sorted, chip],
   );
 
-  const activeFilters = statusFilter ? 1 : 0;
+  const activeFilters = (statusFilter ? 1 : 0) + (clubFilter ? 1 : 0);
   const hasActiveFilters = !!searchTerm || activeFilters > 0 || chip !== 'all';
 
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
-    setFilters({ ...filters, search: undefined, status: undefined, offset: 0 });
+    setClubFilter('');
+    setFilters({ ...filters, search: undefined, status: undefined, club_id: undefined, offset: 0 });
     setChip('all');
   };
 
@@ -195,19 +204,27 @@ export const LicenseList = () => {
   };
 
   const filtersPanel = (
-    <div className="space-y-2">
-      <Label htmlFor="license-status-filter">Estado de la licencia</Label>
-      <Select value={statusFilter || 'all'} onValueChange={handleStatusFilter}>
-        <SelectTrigger id="license-status-filter" className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos los estados</SelectItem>
-          {STATUS_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="license-status-filter">Estado de la licencia</Label>
+        <Select value={statusFilter || 'all'} onValueChange={handleStatusFilter}>
+          <SelectTrigger id="license-status-filter" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los estados</SelectItem>
+            {STATUS_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {isSuperAdmin && (
+        <div className="space-y-2">
+          <Label htmlFor="license-club-filter">Club</Label>
+          <ClubFilterSelect id="license-club-filter" value={clubFilter} onValueChange={handleClubFilter} />
+        </div>
+      )}
     </div>
   );
 

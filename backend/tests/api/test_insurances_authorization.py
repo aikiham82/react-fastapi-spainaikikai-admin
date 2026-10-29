@@ -173,6 +173,12 @@ class TestInsurancesAuthorization:
         assert response.status_code == status.HTTP_200_OK
         use_cases.get_all.execute.assert_called_once_with(0, OWN_CLUB, None)
 
+    def test_a_super_admin_lists_the_insurances_of_one_club(self, client_as, use_cases):
+        response = client_as(super_admin()).get(f"/api/v1/insurances?club_id={OTHER_CLUB}")
+
+        assert response.status_code == status.HTTP_200_OK
+        use_cases.get_all.execute.assert_called_once_with(0, OTHER_CLUB, None)
+
     def test_a_club_admin_works_with_insurances_of_their_own_club(self, client_as):
         responses = every_request(client_as(club_admin()), OWN_MEMBER)
 
