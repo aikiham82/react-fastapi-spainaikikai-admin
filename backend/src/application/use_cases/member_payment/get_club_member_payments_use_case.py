@@ -1,6 +1,7 @@
 """Get all MemberPayments for a club in a given year."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List
 
 from src.domain.entities.member_payment import MemberPayment
@@ -57,7 +58,7 @@ class GetClubMemberPaymentsUseCase:
             payment_year=payment_year,
         )
         line_payments = await line_payments_for(payments, self.payment_repository)
-        return [
+        lines = [
             MemberPaymentWithMember(
                 payment=p,
                 # Fall back to the id if a name can't be resolved, so the row is
@@ -67,3 +68,11 @@ class GetClubMemberPaymentsUseCase:
             )
             for p, line_payment in zip(payments, line_payments)
         ]
+        lines.sort(key=lambda line: line.member_name)
+        lines.sort(key=_paid_on, reverse=True)
+        return lines
+
+
+def _paid_on(line: MemberPaymentWithMember) -> datetime:
+    paid = line.line_payment.paid
+    return paid.payment_date if paid and paid.payment_date else datetime.min

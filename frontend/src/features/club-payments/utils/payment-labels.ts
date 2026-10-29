@@ -23,10 +23,22 @@ export const getPaymentTypeLabel = (paymentType: string): string =>
 export const getStatusLabel = (status: string): string =>
   MEMBER_PAYMENT_STATUS[status as keyof typeof MEMBER_PAYMENT_STATUS] ?? status
 
-export const getPaidLabel = ({ status, paid_at, payment_method }: MemberPayment): string | null => {
+export interface PaidParts {
+  date: string | null
+  method: string | null
+}
+
+export const getPaidParts = ({ status, paid_at, payment_method }: MemberPayment): PaidParts | null => {
   if (status !== 'completed') return null
   const paidAt = parseUtcDateTime(paid_at)
-  if (!paidAt) return 'Sin fecha de pago'
-  const method = payment_method && (PAYMENT_METHOD_LABELS[payment_method as PaymentMethod] ?? payment_method)
-  return [`Pagado\u00a0el\u00a0${formatDate(paidAt)}`, method].filter(Boolean).join('\u00a0· ')
+  if (!paidAt) return { date: null, method: null }
+  const method = payment_method ? (PAYMENT_METHOD_LABELS[payment_method as PaymentMethod] ?? payment_method) : null
+  return { date: formatDate(paidAt), method }
+}
+
+export const getPaidLabel = (line: MemberPayment): string | null => {
+  const parts = getPaidParts(line)
+  if (!parts) return null
+  if (!parts.date) return 'Sin fecha de pago'
+  return [`Pagado\u00a0el\u00a0${parts.date}`, parts.method].filter(Boolean).join('\u00a0· ')
 }

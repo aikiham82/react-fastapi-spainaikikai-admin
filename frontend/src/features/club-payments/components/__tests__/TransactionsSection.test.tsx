@@ -247,6 +247,41 @@ describe('TransactionsSection', () => {
     })
   })
 
+  it('shows when and how each paid line was paid', async () => {
+    const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+    vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+      data: [makeMemberPayment({ status: 'completed', paid_at: '2026-03-03T23:30:00', payment_method: 'cash' })],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+    renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+    expect(screen.getByRole('columnheader', { name: 'Fecha de pago' })).toBeInTheDocument()
+    expect(screen.getByRole('cell', { name: '04/03/2026 Efectivo' })).toBeInTheDocument()
+    expect(screen.getByText('Pagado el 04/03/2026 · Efectivo')).toBeInTheDocument()
+  })
+
+  it('keeps the order the API returns', async () => {
+    const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+    vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+      data: [
+        makeMemberPayment({ id: 'mp-new', member_name: 'Zoe Newest' }),
+        makeMemberPayment({ id: 'mp-old', member_name: 'Ana Oldest' }),
+      ],
+      isLoading: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+    renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+    const names = screen.getAllByRole('row').slice(1).map((row) => row.textContent)
+    expect(names[0]).toContain('Zoe Newest')
+    expect(names[1]).toContain('Ana Oldest')
+  })
+
   it('a club admin gets no actions on a line the federation received by card', async () => {
     vi.mocked(usePermissions).mockReturnValue({ isAssociationAdmin: () => false, isClubAdmin: () => true } as ReturnType<typeof usePermissions>)
     const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
