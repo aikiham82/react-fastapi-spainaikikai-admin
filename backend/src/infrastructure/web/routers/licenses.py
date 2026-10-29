@@ -1,6 +1,5 @@
 """License routes."""
 
-import re
 from typing import List, Optional
 from io import BytesIO
 import uuid
@@ -147,16 +146,9 @@ async def get_licenses(
     # If search is provided, find matching member IDs first
     effective_member_id = member_id
     member_ids_from_search: Optional[List[str]] = None
-    if search:
-        db = get_database()
-        member_query = {
-            "$or": [
-                {"first_name": {"$regex": re.escape(search), "$options": "i"}},
-                {"last_name": {"$regex": re.escape(search), "$options": "i"}}
-            ]
-        }
-        matching_members = await db["members"].find(member_query, {"_id": 1}).to_list(length=None)
-        member_ids_from_search = [str(m["_id"]) for m in matching_members]
+    if search and search.strip():
+        matching_members = await member_repository.search_by_name(search)
+        member_ids_from_search = [member.id for member in matching_members]
         if not member_ids_from_search:
             return LicenseListResponse(items=[], total=0, offset=offset, limit=limit)
 
