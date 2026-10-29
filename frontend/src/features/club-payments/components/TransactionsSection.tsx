@@ -111,7 +111,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
               <TableHead>Miembro</TableHead>
               <TableHead>Concepto</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead>Fecha de pago</TableHead>
+              <TableHead className="whitespace-nowrap">Fecha de pago</TableHead>
               <TableHead className="text-right">Importe</TableHead>
               <TableHead className="text-center">Estado</TableHead>
               <TableHead className="text-center">Acciones</TableHead>
