@@ -7,8 +7,14 @@ import { PAYMENT_METHOD_LABELS, type PaymentMethod } from '../data/schemas/payme
 import { formatDate, parseUtcDateTime } from '@/core/utils/format'
 
 
+const PAYMENT_TYPES = {
+  ...MEMBER_PAYMENT_TYPES,
+  annual_quota: 'Pago anual',
+  seminar_oficialidad: 'Oficialidad de seminario',
+}
+
 export const getPaymentTypeLabel = (paymentType: string): string =>
-  MEMBER_PAYMENT_TYPES[paymentType as keyof typeof MEMBER_PAYMENT_TYPES] ?? paymentType
+  PAYMENT_TYPES[paymentType as keyof typeof PAYMENT_TYPES] ?? paymentType
 
 export const getStatusLabel = (status: string): string =>
   MEMBER_PAYMENT_STATUS[status as keyof typeof MEMBER_PAYMENT_STATUS] ?? status

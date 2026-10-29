@@ -24,26 +24,25 @@ from bson import ObjectId, json_util
 from dotenv import load_dotenv
 import motor.motor_asyncio
 
-from src.application.use_cases.invoice.invoice_customer import address_line
+from src.application.use_cases.invoice.invoice_customer import customer_from_club, customer_from_member
+from src.domain.entities.club import Club
+from src.domain.entities.member import Member
 
 BACKUP_DIR = Path.home() / "backups" / "spainaikikai"
 
 
-def _customer_name(doc: dict) -> str:
-    if "first_name" in doc:
-        return f"{doc.get('first_name') or ''} {doc.get('last_name') or ''}".strip()
-    return doc.get("name") or ""
+CONTACT_FIELDS = ("address", "postal_code", "city", "province", "email", "phone")
 
 
-def _customer_fields(doc: dict) -> dict:
-    return {
-        "customer_name": _customer_name(doc),
-        "customer_address": address_line(
-            doc.get("address") or "", doc.get("postal_code") or "", doc.get("city") or "", doc.get("province") or ""
-        ),
-        "customer_email": doc.get("email") or "",
-        "customer_phone": doc.get("phone") or "",
-    }
+def _customer(member_doc, club_doc):
+    contact = lambda doc: {key: doc.get(key) or "" for key in CONTACT_FIELDS}
+    if member_doc and member_doc.get("first_name"):
+        return customer_from_member(Member(
+            first_name=member_doc["first_name"], last_name=member_doc.get("last_name") or "", **contact(member_doc),
+        ))
+    if club_doc and club_doc.get("name"):
+        return customer_from_club(Club(name=club_doc["name"], **contact(club_doc)))
+    return None
 
 
 def plan_backfill(
@@ -55,11 +54,14 @@ def plan_backfill(
     changes = []
     for invoice in invoices:
         payment = payments_by_id.get(invoice.get("payment_id"), {})
-        customer = members_by_id.get(payment.get("member_id")) or clubs_by_id.get(invoice.get("club_id"))
+        customer = _customer(members_by_id.get(payment.get("member_id")), clubs_by_id.get(invoice.get("club_id")))
         if not customer:
             continue
         details = {
-            **_customer_fields(customer),
+            "customer_name": customer.name,
+            "customer_address": customer.address,
+            "customer_email": customer.email,
+            "customer_phone": customer.phone,
             "payment_date": payment.get("payment_date"),
             "payment_method": payment.get("payment_method") or "",
         }

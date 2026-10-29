@@ -23,10 +23,10 @@ import { useConfirmPaymentMutation } from '../hooks/mutations/usePaymentAdminMut
 import {
   OFFLINE_PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
-  PAYMENT_TYPE_LABELS,
   type OfflinePaymentMethod,
   type Payment,
 } from '../data/schemas/payment-admin.schema'
+import { getPaymentTypeLabel } from '../utils/payment-labels'
 
 interface UnfinishedPaymentsSectionProps {
   clubId: string
@@ -34,7 +34,7 @@ interface UnfinishedPaymentsSectionProps {
 }
 
 const conceptOf = (payment: Payment): string =>
-  `${PAYMENT_TYPE_LABELS[payment.payment_type] ?? payment.payment_type} ${payment.payment_year}`
+  `${getPaymentTypeLabel(payment.payment_type)} ${payment.payment_year}`
 
 export function UnfinishedPaymentsSection({ clubId, paymentYear }: UnfinishedPaymentsSectionProps) {
   const { data: payments = [] } = useClubUnfinishedPaymentsQuery(clubId, paymentYear)

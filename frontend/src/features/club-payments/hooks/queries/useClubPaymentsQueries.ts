@@ -11,8 +11,8 @@ export const clubPaymentsKeys = {
     [...clubPaymentsKeys.all, 'club-detail', clubId, year] as const,
   clubMemberPayments: (clubId: string, year?: number) =>
     [...clubPaymentsKeys.all, 'club-member-payments', clubId, year] as const,
-  clubUnfinishedPayments: (clubId: string) =>
-    [...clubPaymentsKeys.all, 'club-unfinished-payments', clubId] as const,
+  clubUnfinishedPayments: (clubId: string, year: number) =>
+    [...clubPaymentsKeys.all, 'club-unfinished-payments', clubId, year] as const,
 };
 
 export const useAllClubsPaymentSummaryQuery = (
@@ -53,15 +53,12 @@ export const useClubMemberPaymentsQuery = (
   });
 };
 
-export const useClubUnfinishedPaymentsQuery = (clubId: string, paymentYear: number, enabled: boolean = true) => {
+export const useClubUnfinishedPaymentsQuery = (clubId: string, paymentYear: number) => {
   return useQuery({
-    queryKey: clubPaymentsKeys.clubUnfinishedPayments(clubId),
-    queryFn: () => paymentAdminService.getClubPayments(clubId),
-    select: (payments) =>
-      payments.filter(
-        (payment) => payment.payment_year === paymentYear && UNFINISHED_PAYMENT_STATUSES.includes(payment.status),
-      ),
-    enabled: enabled && !!clubId,
+    queryKey: clubPaymentsKeys.clubUnfinishedPayments(clubId, paymentYear),
+    queryFn: () => paymentAdminService.getClubPayments(clubId, paymentYear),
+    select: (payments) => payments.filter((payment) => UNFINISHED_PAYMENT_STATUSES.includes(payment.status)),
+    enabled: !!clubId,
     staleTime: 2 * 60 * 1000,
   });
 };

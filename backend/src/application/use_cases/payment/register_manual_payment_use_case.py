@@ -30,6 +30,7 @@ from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.use_cases.invoice.invoice_customer import build_invoice_customer
+from src.application.use_cases.payment.refuse_lines_already_paid import refuse_lines_already_paid
 from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
     GenerateLicensesAndInsuranceFromPaymentUseCase,
 )
@@ -137,19 +138,12 @@ class RegisterManualPaymentUseCase:
 
         # 2. Duplicate check per (member_id, payment_type, line year).
         # club_fee is checked here too — a caller can include it in payment_types directly.
-        for assignment in member_assignments:
-            for ptype in assignment.payment_types:
-                mp_type = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get(ptype)
-                if mp_type is None:
-                    continue
-                year = line_year(mp_type)
-                already_exists = await self.member_payment_repository.exists_for_member_year_type(
-                    member_id=assignment.member_id,
-                    payment_year=year,
-                    payment_type=mp_type,
-                )
-                if already_exists:
-                    raise DuplicatePaymentForYearError(assignment.member_id, ptype, year)
+        await refuse_lines_already_paid(
+            self.member_payment_repository,
+            [(a.member_id, ptype) for a in member_assignments for ptype in a.payment_types],
+            payment_year,
+            paid_at,
+        )
 
         # Duplicate check for the standalone include_club_fee path (club_fee assigned to
         # member_assignments[0]). Only needed when club_fee is NOT already in payment_types

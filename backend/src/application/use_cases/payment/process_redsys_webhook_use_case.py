@@ -6,19 +6,11 @@ from typing import Optional
 
 from src.domain.entities.payment import Payment, PaymentStatus
 from src.domain.entities.invoice import Invoice
-from src.domain.exceptions.payment import PaymentNotFoundError, RedsysSignatureError
+from src.domain.exceptions.payment import PaymentAlreadyCompletedError, PaymentNotFoundError, RedsysSignatureError
 from src.application.ports.payment_repository import PaymentRepositoryPort
-from src.application.ports.invoice_repository import InvoiceRepositoryPort
-from src.application.ports.license_repository import LicenseRepositoryPort
-from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
-from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.redsys_service import RedsysServicePort
 from src.application.ports.email_service import EmailServicePort
-from src.application.ports.pdf_service import PDFServicePort
-from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
-from src.application.ports.seminar_repository import SeminarRepositoryPort
-from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.use_cases.payment.complete_payment_use_case import CompletePaymentUseCase
 
 logger = logging.getLogger(__name__)
@@ -40,42 +32,15 @@ class ProcessRedsysWebhookUseCase:
         self,
         payment_repository: PaymentRepositoryPort,
         redsys_service: RedsysServicePort,
-        invoice_repository: Optional[InvoiceRepositoryPort] = None,
-        license_repository: Optional[LicenseRepositoryPort] = None,
-        insurance_repository: Optional[InsuranceRepositoryPort] = None,
+        complete_payment_use_case: CompletePaymentUseCase,
         member_repository: Optional[MemberRepositoryPort] = None,
-        member_payment_repository: Optional[MemberPaymentRepositoryPort] = None,
         email_service: Optional[EmailServicePort] = None,
-        pdf_service: Optional[PDFServicePort] = None,
-        price_configuration_repository: Optional[PriceConfigurationRepositoryPort] = None,
-        seminar_repository: Optional[SeminarRepositoryPort] = None,
-        club_repository: Optional[ClubRepositoryPort] = None,
     ):
         self.payment_repository = payment_repository
         self.redsys_service = redsys_service
-        self.invoice_repository = invoice_repository
-        self.license_repository = license_repository
-        self.insurance_repository = insurance_repository
+        self.complete_payment_use_case = complete_payment_use_case
         self.member_repository = member_repository
-        self.member_payment_repository = member_payment_repository
         self.email_service = email_service
-        self.pdf_service = pdf_service
-        self.price_configuration_repository = price_configuration_repository
-        self.seminar_repository = seminar_repository
-        self.club_repository = club_repository
-        self.complete_payment_use_case = CompletePaymentUseCase(
-            payment_repository=payment_repository,
-            invoice_repository=invoice_repository,
-            license_repository=license_repository,
-            insurance_repository=insurance_repository,
-            member_repository=member_repository,
-            member_payment_repository=member_payment_repository,
-            email_service=email_service,
-            pdf_service=pdf_service,
-            price_configuration_repository=price_configuration_repository,
-            seminar_repository=seminar_repository,
-            club_repository=club_repository,
-        )
 
     async def execute(
         self,
@@ -138,7 +103,11 @@ class ProcessRedsysWebhookUseCase:
                 redsys_response=payment.redsys_response
             )
 
-            completed = await self.complete_payment_use_case.execute(payment)
+            try:
+                completed = await self.complete_payment_use_case.execute(payment)
+            except PaymentAlreadyCompletedError:
+                logger.warning("Redsys order %s was completed meanwhile; nothing to fulfil", notification.order_id)
+                return WebhookProcessResult(payment=payment, success=True, message="Pago ya completado")
             payment, invoice = completed.payment, completed.invoice
 
             message = self.redsys_service.get_response_message(notification.response_code)

@@ -33,9 +33,9 @@ export const updatePayment = async (
   return await apiClient.put<Payment>(`${PAYMENTS_URL}/${id}`, data);
 };
 
-// GET /api/v1/payments?club_id={club_id}
-export const getClubPayments = async (clubId: string): Promise<Payment[]> => {
-  return await apiClient.get<Payment[]>(PAYMENTS_URL, { params: { club_id: clubId } });
+// GET /api/v1/payments?club_id={club_id}&payment_year={year}
+export const getClubPayments = async (clubId: string, paymentYear: number): Promise<Payment[]> => {
+  return await apiClient.get<Payment[]>(PAYMENTS_URL, { params: { club_id: clubId, payment_year: paymentYear } });
 };
 
 // POST /api/v1/payments/{id}/confirm

@@ -4,7 +4,7 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
 
-from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
+from src.domain.entities.payment import UNFINISHED_PAYMENT_STATUSES, Payment, PaymentMethod, PaymentStatus, PaymentType
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.infrastructure.database import get_database
 
@@ -144,7 +144,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
 
     async def claim_unfinished(self, payment_id: str) -> bool:
         result = await self.collection.update_one(
-            {"_id": ObjectId(payment_id), "status": {"$in": [PaymentStatus.PENDING.value, PaymentStatus.PROCESSING.value]}},
+            {"_id": ObjectId(payment_id), "status": {"$in": [status.value for status in UNFINISHED_PAYMENT_STATUSES]}},
             {"$set": {"status": PaymentStatus.COMPLETED.value, "updated_at": datetime.utcnow()}},
         )
         return result.modified_count == 1

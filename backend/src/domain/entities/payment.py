@@ -26,6 +26,9 @@ class PaymentType(str, Enum):
     SEMINAR_OFICIALIDAD = "seminar_oficialidad"
 
 
+UNFINISHED_PAYMENT_STATUSES = (PaymentStatus.PENDING, PaymentStatus.PROCESSING)
+
+
 class PaymentMethod(str, Enum):
     """Payment method enumeration."""
     REDSYS = "redsys"
@@ -102,7 +105,7 @@ class Payment:
 
     def confirm_received(self, payment_method: "PaymentMethod") -> None:
         """Complete an unfinished payment that was received outside Redsys."""
-        if self.status not in (PaymentStatus.PENDING, PaymentStatus.PROCESSING):
+        if self.status not in UNFINISHED_PAYMENT_STATUSES:
             raise ValueError("Only unfinished payments can be confirmed")
         self.status = PaymentStatus.COMPLETED
         self.payment_method = payment_method

@@ -408,32 +408,10 @@ def get_prefill_annual_payment_use_case() -> PrefillAnnualPaymentUseCase:
     )
 
 @lru_cache()
-def get_confirm_payment_received_use_case() -> ConfirmPaymentReceivedUseCase:
-    """Confirm an unfinished payment received offline."""
-    return ConfirmPaymentReceivedUseCase(
-        get_payment_repository(),
-        get_member_payment_repository(),
-        CompletePaymentUseCase(
-            payment_repository=get_payment_repository(),
-            invoice_repository=get_invoice_repository(),
-            license_repository=get_license_repository(),
-            insurance_repository=get_insurance_repository(),
-            member_repository=get_member_repository(),
-            member_payment_repository=get_member_payment_repository(),
-            email_service=get_email_service(),
-            pdf_service=get_pdf_service(),
-            price_configuration_repository=get_price_configuration_repository(),
-            seminar_repository=get_seminar_repository(),
-            club_repository=get_club_repository(),
-        ),
-    )
-
-@lru_cache()
-def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
-    """Process Redsys webhook use case."""
-    return ProcessRedsysWebhookUseCase(
+def get_complete_payment_use_case() -> CompletePaymentUseCase:
+    """Fulfil a payment once it is paid, by Redsys or confirmed offline."""
+    return CompletePaymentUseCase(
         payment_repository=get_payment_repository(),
-        redsys_service=get_redsys_service(),
         invoice_repository=get_invoice_repository(),
         license_repository=get_license_repository(),
         insurance_repository=get_insurance_repository(),
@@ -444,6 +422,26 @@ def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
         price_configuration_repository=get_price_configuration_repository(),
         seminar_repository=get_seminar_repository(),
         club_repository=get_club_repository(),
+    )
+
+@lru_cache()
+def get_confirm_payment_received_use_case() -> ConfirmPaymentReceivedUseCase:
+    """Confirm an unfinished payment received offline."""
+    return ConfirmPaymentReceivedUseCase(
+        get_payment_repository(),
+        get_member_payment_repository(),
+        get_complete_payment_use_case(),
+    )
+
+@lru_cache()
+def get_process_redsys_webhook_use_case() -> ProcessRedsysWebhookUseCase:
+    """Process Redsys webhook use case."""
+    return ProcessRedsysWebhookUseCase(
+        payment_repository=get_payment_repository(),
+        redsys_service=get_redsys_service(),
+        complete_payment_use_case=get_complete_payment_use_case(),
+        member_repository=get_member_repository(),
+        email_service=get_email_service(),
     )
 
 @lru_cache()

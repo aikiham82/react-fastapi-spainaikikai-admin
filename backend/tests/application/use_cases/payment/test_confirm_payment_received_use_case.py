@@ -17,6 +17,7 @@ from src.domain.exceptions.payment import (
     DuplicatePaymentForYearError,
     InvalidPaymentDataError,
     InvalidPaymentStatusError,
+    PaymentAlreadyCompletedError,
     PaymentNotFoundError,
 )
 
@@ -152,7 +153,7 @@ async def test_an_abandoned_attempt_already_paid_by_a_later_one_is_refused(use_c
 async def test_a_payment_completed_meanwhile_is_not_fulfilled_twice(use_case, repos):
     repos["payment"].claim_unfinished = AsyncMock(return_value=False)
 
-    with pytest.raises(InvalidPaymentStatusError):
+    with pytest.raises(PaymentAlreadyCompletedError):
         await use_case.execute(payment_id="pay1", payment_method="transfer")
 
     repos["member_payment"].create_bulk.assert_not_called()

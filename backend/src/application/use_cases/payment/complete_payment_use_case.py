@@ -27,12 +27,13 @@ from src.application.ports.pdf_service import PDFServicePort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.seminar_repository import SeminarRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
-from src.application.use_cases.invoice.invoice_customer import build_invoice_customer
+from src.application.use_cases.invoice.invoice_customer import InvoiceCustomer, build_invoice_customer
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
 from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
     GenerateLicensesAndInsuranceFromPaymentUseCase,
 )
 from src.config.settings import get_invoice_settings
+from src.domain.exceptions.payment import PaymentAlreadyCompletedError
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,9 @@ class CompletePaymentUseCase:
         self.club_repository = club_repository
 
     async def execute(self, payment: Payment) -> CompletedPayment:
+        """Fulfil a payment the caller has just marked completed; only the first caller gets past the claim."""
+        if not await self.payment_repository.claim_unfinished(payment.id):
+            raise PaymentAlreadyCompletedError(f"Payment {payment.id} is already completed")
         invoice = None
 
         # --- Seminar oficialidad: mark as official on successful payment ---
@@ -109,7 +113,7 @@ class CompletePaymentUseCase:
         payment = await self.payment_repository.update(payment)
 
         # Create invoice if repositories are available
-        if self.invoice_repository and self.member_repository:
+        if self.invoice_repository:
             try:
                 invoice = await self._create_invoice(payment)
             except Exception:
@@ -121,11 +125,8 @@ class CompletePaymentUseCase:
 
         return CompletedPayment(payment=payment, invoice=invoice)
 
-    async def _create_invoice(self, payment: Payment) -> Optional[Invoice]:
+    async def _create_invoice(self, payment: Payment) -> Invoice:
         """Create an invoice for a successful payment."""
-        if not self.invoice_repository:
-            return None
-
         customer = await build_invoice_customer(payment, self.member_repository, self.club_repository)
 
         # Get next invoice number (use payment year for multi-year support)
@@ -212,7 +213,10 @@ class CompletePaymentUseCase:
         if not self.email_service:
             return
 
-        customer = await build_invoice_customer(payment, self.member_repository, self.club_repository)
+        if invoice:
+            customer = InvoiceCustomer(name=invoice.customer_name, email=invoice.customer_email)
+        else:
+            customer = await build_invoice_customer(payment, self.member_repository, self.club_repository)
         if not customer.email:
             return
 

@@ -5,6 +5,8 @@ from typing import Optional
 
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.domain.entities.club import Club
+from src.domain.entities.member import Member
 from src.domain.entities.payment import Payment
 
 
@@ -21,6 +23,24 @@ def address_line(address: str, postal_code: str, city: str, province: str) -> st
     return ", ".join(part for part in (address, place) if part)
 
 
+def customer_from_member(member: Member) -> InvoiceCustomer:
+    return InvoiceCustomer(
+        name=member.get_full_name().strip(),
+        email=member.email or "",
+        address=address_line(member.address, member.postal_code, member.city, member.province),
+        phone=member.phone or "",
+    )
+
+
+def customer_from_club(club: Club) -> InvoiceCustomer:
+    return InvoiceCustomer(
+        name=club.name,
+        email=club.email or "",
+        address=address_line(club.address, club.postal_code, club.city, club.province),
+        phone=club.phone or "",
+    )
+
+
 async def build_invoice_customer(
     payment: Payment,
     member_repository: Optional[MemberRepositoryPort],
@@ -29,21 +49,11 @@ async def build_invoice_customer(
     if payment.member_id and member_repository:
         member = await member_repository.find_by_id(payment.member_id)
         if member:
-            return InvoiceCustomer(
-                name=member.get_full_name().strip(),
-                email=member.email or "",
-                address=address_line(member.address, member.postal_code, member.city, member.province),
-                phone=member.phone or "",
-            )
+            return customer_from_member(member)
 
     if payment.club_id and club_repository:
         club = await club_repository.find_by_id(payment.club_id)
         if club:
-            return InvoiceCustomer(
-                name=club.name,
-                email=club.email or "",
-                address=address_line(club.address, club.postal_code, club.city, club.province),
-                phone=club.phone or "",
-            )
+            return customer_from_club(club)
 
     return InvoiceCustomer(name=payment.payer_name or "")
