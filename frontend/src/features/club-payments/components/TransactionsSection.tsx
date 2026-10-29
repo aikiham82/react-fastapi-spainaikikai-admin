@@ -72,22 +72,25 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
   return (
     <>
       <ul className="space-y-2 md:hidden">
-        {memberPayments.map((mp) => (
-          <li key={mp.id} className="rounded-md border p-3 space-y-2">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
-                <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
-                {getPaidLabel(mp) && <p className="text-sm text-muted-foreground">{getPaidLabel(mp)}</p>}
+        {memberPayments.map((mp) => {
+          const paidLabel = getPaidLabel(mp)
+          return (
+            <li key={mp.id} className="rounded-md border p-3 space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
+                  <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
+                  {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
+                </div>
+                <div className="text-right space-y-1">
+                  <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
+                  <Badge variant={getStatusVariant(mp.status)}>{getStatusLabel(mp.status)}</Badge>
+                </div>
               </div>
-              <div className="text-right space-y-1">
-                <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
-                <Badge variant={getStatusVariant(mp.status)}>{getStatusLabel(mp.status)}</Badge>
-              </div>
-            </div>
-            {canChangeLine(mp) && <LineActions onEdit={() => setEditingItem(mp)} onDelete={() => setDeletingItem(mp)} />}
-          </li>
-        ))}
+              {canChangeLine(mp) && <LineActions onEdit={() => setEditingItem(mp)} onDelete={() => setDeletingItem(mp)} />}
+            </li>
+          )
+        })}
       </ul>
 
       <div className="hidden md:block rounded-md border">
