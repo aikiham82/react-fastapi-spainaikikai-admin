@@ -33,8 +33,8 @@ const paidTotal = (lines: MemberPayment[]): number =>
 
 interface PaymentLineItemProps {
   line: MemberPayment
-  onEdit: () => void
-  onDelete: () => void
+  onEdit?: () => void
+  onDelete?: () => void
 }
 
 function PaymentLineItem({ line, onEdit, onDelete }: PaymentLineItemProps) {
@@ -49,7 +49,7 @@ function PaymentLineItem({ line, onEdit, onDelete }: PaymentLineItemProps) {
         </div>
         <StatusBadge tone={STATUS_TONES[line.status] ?? 'neutral'}>{getStatusLabel(line.status)}</StatusBadge>
       </div>
-      <LineActions onEdit={onEdit} onDelete={onDelete} />
+      {onEdit && onDelete && <LineActions onEdit={onEdit} onDelete={onDelete} />}
     </li>
   )
 }
@@ -60,10 +60,9 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
   const [deleting, setDeleting] = useState<MemberPayment | null>(null)
   const [isAdding, setIsAdding] = useState(false)
 
-  const { data } = useMemberPaymentHistoryQuery(memberId, 0, isAssociationAdmin())
+  const canEdit = isAssociationAdmin()
+  const { data } = useMemberPaymentHistoryQuery(memberId, 0)
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation()
-
-  if (!isAssociationAdmin()) return null
 
   const lines = data?.payments ?? []
 
@@ -71,10 +70,12 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h4 className="font-medium">Líneas de pago</h4>
-        <Button className="h-10 sm:h-8" disabled={!clubId} onClick={() => setIsAdding(true)}>
-          <Plus className="h-4 w-4 mr-1" />
-          Añadir pago
-        </Button>
+        {canEdit && (
+          <Button className="h-10 sm:h-8" disabled={!clubId} onClick={() => setIsAdding(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Añadir pago
+          </Button>
+        )}
       </div>
 
       {lines.length === 0 ? (
@@ -91,8 +92,8 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
                   <PaymentLineItem
                     key={line.id}
                     line={line}
-                    onEdit={() => setEditing(line)}
-                    onDelete={() => setDeleting(line)}
+                    onEdit={canEdit ? () => setEditing(line) : undefined}
+                    onDelete={canEdit ? () => setDeleting(line) : undefined}
                   />
                 ))}
               </ul>
