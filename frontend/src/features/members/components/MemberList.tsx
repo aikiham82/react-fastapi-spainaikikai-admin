@@ -41,7 +41,7 @@ const NAME_COLLATOR = new Intl.Collator('es');
 const fullName = (member: Member) => `${member.first_name} ${member.last_name ?? ''}`.trim();
 
 const secondaryLine = (member: Member, isSuperAdmin: boolean) =>
-  [formatDni(member.dni), isSuperAdmin ? member.club_name : null, member.email || member.phone].filter(Boolean).join(' · ') || '-';
+  [isSuperAdmin ? member.club_name : null, member.email || member.phone].filter(Boolean).join(' · ') || '-';
 
 const LoadingRows = () => (
   <div role="status" aria-label="Cargando miembros" className="space-y-3">
@@ -268,7 +268,7 @@ export const MemberList = () => {
   return (
     <div className="space-y-5">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar por nombre o DNI' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar nombre o DNI' }}
         filters={filtersPanel}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
@@ -327,6 +327,7 @@ export const MemberList = () => {
                 >
                   {fullName(member)}
                 </button>
+                {member.dni && <p className="truncate text-sm text-muted-foreground">{formatDni(member.dni)}</p>}
                 <p className="truncate text-sm text-muted-foreground">{secondaryLine(member, isSuperAdmin)}</p>
               </div>
               <GradeBadge licenseSummary={member.license_summary} />
@@ -378,6 +379,7 @@ export const MemberList = () => {
                           {isSuperAdmin && <MemberAccessBadge hasAccount={memberIdsWithAccount.has(member.id || '')} />}
                           <NoOwnEmailBadge hasOwnEmail={member.has_own_email} />
                         </div>
+                        {member.dni && <p className="truncate text-muted-foreground">{formatDni(member.dni)}</p>}
                         <p className="max-w-[12rem] truncate text-muted-foreground xl:max-w-[18rem]">
                           {secondaryLine(member, isSuperAdmin)}
                         </p>

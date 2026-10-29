@@ -158,7 +158,7 @@ describe('InsuranceList', () => {
     ]
     renderWithProviders(<InsuranceList />)
 
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar por nombre, DNI o póliza' }), '12345678z')
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Nombre, DNI o póliza' }), '12345678z')
 
     expect(screen.getAllByText('Ana Example').length).toBeGreaterThan(0)
     expect(screen.queryByText('Bea Example')).not.toBeInTheDocument()

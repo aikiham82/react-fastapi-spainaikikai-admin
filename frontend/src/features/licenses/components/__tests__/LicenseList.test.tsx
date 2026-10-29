@@ -217,7 +217,7 @@ describe('LicenseList', () => {
   it('tells the user the search finds a DNI too', () => {
     renderList()
 
-    expect(screen.getByRole('searchbox', { name: 'Buscar por nombre o DNI' })).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Buscar nombre o DNI' })).toBeInTheDocument()
   })
 
   it('the mobile card says Caducó el for a past expiry and Caduca el for a future one', () => {

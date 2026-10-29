@@ -25,8 +25,6 @@ const ALL = 'all';
 const typeIcon = (type: string): LucideIcon => (type === 'accident' ? HeartPulse : ShieldCheck);
 
 const memberNameOf = (insurance: Insurance) => insurance.member_name || 'Sin miembro';
-const subtitleOf = (insurance: Insurance) =>
-  [formatDni(insurance.member_dni), insurance.policy_number].filter(Boolean).join(' · ');
 
 const InsuranceKind = ({ type }: { type: string }) => {
   const Icon = typeIcon(type);
@@ -185,7 +183,7 @@ export const InsuranceList = () => {
   return (
     <div className="space-y-4">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar por nombre, DNI o póliza' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Nombre, DNI o póliza' }}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
         filters={
@@ -309,7 +307,10 @@ export const InsuranceList = () => {
                             <button type="button" className="text-left font-bold text-foreground" onClick={() => openDetail(insurance)}>
                               {memberNameOf(insurance)}
                             </button>
-                            {subtitleOf(insurance) && <p className="whitespace-nowrap text-muted-foreground">{subtitleOf(insurance)}</p>}
+                            {insurance.member_dni && <p className="max-w-[14rem] truncate text-muted-foreground">{formatDni(insurance.member_dni)}</p>}
+                            {insurance.policy_number && (
+                              <p className="whitespace-nowrap text-muted-foreground">{insurance.policy_number}</p>
+                            )}
                           </div>
                         </div>
                       </td>

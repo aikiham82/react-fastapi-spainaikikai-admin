@@ -52,8 +52,6 @@ const LicenseBelt = ({ license }: { license: License }) => (
 );
 
 const memberNameOf = (license: License) => license.member_name || 'Sin nombre';
-const subtitleOf = (license: License) =>
-  [formatDni(license.member_dni), license.license_number].filter(Boolean).join(' · ');
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'active', label: 'Activa' },
@@ -233,7 +231,7 @@ export const LicenseList = () => {
   return (
     <div className="space-y-5">
       <ListToolbar
-        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar por nombre o DNI' }}
+        search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Buscar nombre o DNI' }}
         filters={filtersPanel}
         activeFilters={activeFilters}
         onClearFilters={clearFilters}
@@ -287,7 +285,8 @@ export const LicenseList = () => {
                   <span className="flex min-w-0 flex-1 flex-col gap-2">
                     <span className="min-w-0">
                       <span className="block truncate text-base font-bold text-foreground">{memberNameOf(license)}</span>
-                      <span className="block text-sm text-muted-foreground">{subtitleOf(license)}</span>
+                      {license.member_dni && <span className="block truncate text-sm text-muted-foreground">{formatDni(license.member_dni)}</span>}
+                      <span className="block text-sm text-muted-foreground">{license.license_number}</span>
                     </span>
                     <LicenseBelt license={license} />
                     <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
@@ -328,7 +327,8 @@ export const LicenseList = () => {
                         <Avatar name={memberNameOf(license)} size="md" />
                         <span className="min-w-0">
                           <span className="block truncate text-[15px] font-bold text-foreground">{memberNameOf(license)}</span>
-                          <span className="block truncate text-muted-foreground">{subtitleOf(license)}</span>
+                          {license.member_dni && <span className="block truncate text-muted-foreground">{formatDni(license.member_dni)}</span>}
+                          <span className="block truncate text-muted-foreground">{license.license_number}</span>
                         </span>
                       </button>
                     </td>
