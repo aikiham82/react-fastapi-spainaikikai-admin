@@ -16,8 +16,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-10-29T10:00:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-10-29T10:40:00Z"
+has_completed_all_phases: true
 ---
 
 # Member payment history
@@ -63,12 +63,12 @@ Contracts:
 ### Phase 2: One payments dialog, grouped by year, from Miembros and Licencias
 
 Contracts:
-- Component `MemberPaymentsDialog({ memberId, onClose })` in `features/member-payments/components/`, loads the member for name and club.
-- `MemberPaymentLines` groups lines by year, newest first, with a year heading and the year's total.
+- Component `MemberPaymentsDialog({ memberId, memberName, onClose })` in `features/member-payments/components/`, loads the member for name and club.
+- `MemberPaymentLines` groups lines by year, newest first, with a year heading and the year's paid total.
 - Licencias row menu adds "Ver pagos".
 - Tests: `MemberPaymentLines.test.tsx` groups by year newest first; `LicenseList` test opens "Ver pagos".
 
-- [ ] Grouping by year.
-- [ ] Dialog extracted and used by MemberList and LicenseList.
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Grouping by year.
+- [x] Dialog extracted and used by MemberList and LicenseList.
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.

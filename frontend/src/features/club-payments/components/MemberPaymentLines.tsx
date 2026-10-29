@@ -21,6 +21,14 @@ interface MemberPaymentLinesProps {
   clubName: string
 }
 
+const groupByYear = (lines: MemberPayment[]): [number, MemberPayment[]][] =>
+  [...new Set(lines.map((line) => line.payment_year))]
+    .sort((a, b) => b - a)
+    .map((year) => [year, lines.filter((line) => line.payment_year === year)])
+
+const paidTotal = (lines: MemberPayment[]): number =>
+  lines.filter((line) => line.status === 'completed').reduce((sum, line) => sum + line.amount, 0)
+
 export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: MemberPaymentLinesProps) {
   const { isAssociationAdmin } = usePermissions()
   const [editing, setEditing] = useState<MemberPayment | null>(null)
@@ -47,23 +55,32 @@ export function MemberPaymentLines({ memberId, memberName, clubId, clubName }: M
       {lines.length === 0 ? (
         <p className="text-sm text-muted-foreground">Este miembro no tiene pagos registrados.</p>
       ) : (
-        <ul className="space-y-2">
-          {lines.map((line) => (
-            <li key={line.id} className="rounded-md border p-3 space-y-2">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{line.payment_year} · {getPaymentTypeLabel(line.payment_type)}</p>
-                  <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
-                  <p className="text-sm text-muted-foreground">{getPaidLabel(line.paid_at, line.payment_method)}</p>
-                </div>
-                <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
-                  {getStatusLabel(line.status)}
-                </Badge>
-              </div>
-              <LineActions onEdit={() => setEditing(line)} onDelete={() => setDeleting(line)} />
-            </li>
+        <div className="space-y-4">
+          {groupByYear(lines).map(([year, yearLines]) => (
+            <div key={year} className="space-y-2">
+              <h5 className="text-sm font-semibold tabular-nums">
+                {year} · {formatCurrency(paidTotal(yearLines))}
+              </h5>
+              <ul className="space-y-2">
+                {yearLines.map((line) => (
+                  <li key={line.id} className="rounded-md border p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{getPaymentTypeLabel(line.payment_type)}</p>
+                        <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
+                        <p className="text-sm text-muted-foreground">{getPaidLabel(line.paid_at, line.payment_method)}</p>
+                      </div>
+                      <Badge variant="secondary" className={line.status === 'completed' ? 'bg-green-100 text-green-800' : undefined}>
+                        {getStatusLabel(line.status)}
+                      </Badge>
+                    </div>
+                    <LineActions onEdit={() => setEditing(line)} onDelete={() => setDeleting(line)} />
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
       {editing && (

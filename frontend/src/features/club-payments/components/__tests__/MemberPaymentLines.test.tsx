@@ -61,10 +61,16 @@ describe('MemberPaymentLines', () => {
   it('a super admin edits a payment line from the member', async () => {
     renderLines()
 
-    expect(screen.getByText('2027 · Seguro de accidentes')).toBeInTheDocument()
-    await userEvent.click(screen.getAllByRole('button', { name: 'Editar' })[1])
+    await userEvent.click(screen.getAllByRole('button', { name: 'Editar' })[0])
 
     expect(screen.getByRole('dialog')).toHaveTextContent('Editando mp-insurance')
+  })
+
+  it('groups the lines by year, newest first, with the year total', () => {
+    renderLines()
+
+    const years = screen.getAllByRole('heading', { level: 5 }).map((h) => h.textContent?.replace(/\s/g, ' '))
+    expect(years).toEqual(['2027 · 20,00 €', '2026 · 15,00 €'])
   })
 
   it('each line says when and how it was paid', () => {
@@ -77,7 +83,7 @@ describe('MemberPaymentLines', () => {
   it('a super admin deletes a payment line from the member', async () => {
     renderLines()
 
-    await userEvent.click(screen.getAllByRole('button', { name: 'Eliminar' })[0])
+    await userEvent.click(screen.getAllByRole('button', { name: 'Eliminar' })[1])
     await userEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
 
     expect(deleteMemberPayment).toHaveBeenCalledWith('mp-licence')
