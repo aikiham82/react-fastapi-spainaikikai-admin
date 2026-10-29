@@ -9,7 +9,6 @@ import { formatDate } from '@/core/utils/format';
 import { daysUntil } from '@/core/utils/expiry';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChipGroup, EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
@@ -18,8 +17,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog';
 import { MemberPaymentsDialog } from '@/features/member-payments/components/MemberPaymentsDialog';
 import { useLicenseContext } from '../hooks/useLicenseContext';
-import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
-import { useClubContext } from '@/features/clubs/hooks/useClubContext';
+import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import type { License, LicenseFilters } from '../data/schemas/license.schema';
 import {
@@ -81,10 +79,8 @@ const DetailField = ({ label, children }: { label: string; children: React.React
 
 export const LicenseList = () => {
   const { licenses, isLoading, error, filters, setFilters, total, limit, offset, deleteLicense, selectLicense, setPagination } = useLicenseContext();
-  const { canAccess } = usePermissions();
-  const { userRole } = useAuthContext();
-  const { clubs } = useClubContext();
-  const isSuperAdmin = userRole === 'super_admin';
+  const { canAccess, isAssociationAdmin } = usePermissions();
+  const isSuperAdmin = isAssociationAdmin();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter | ''>('');
@@ -133,11 +129,6 @@ export const LicenseList = () => {
     setFilters({ ...filters, status: next || undefined, offset: 0 });
   };
 
-  const clubOptions = useMemo(() => [
-    { value: '', label: 'Todos los clubs' },
-    ...clubs.map((club) => ({ value: club.id, label: club.name })),
-  ], [clubs]);
-
   const handleClubFilter = (value: string) => {
     setClubFilter(value);
     setFilters({ ...filters, club_id: value || undefined, offset: 0 });
@@ -156,7 +147,7 @@ export const LicenseList = () => {
     [sorted, chip],
   );
 
-  const activeFilters = (statusFilter ? 1 : 0) + (isSuperAdmin && clubFilter ? 1 : 0);
+  const activeFilters = (statusFilter ? 1 : 0) + (clubFilter ? 1 : 0);
   const hasActiveFilters = !!searchTerm || activeFilters > 0 || chip !== 'all';
 
   const clearFilters = () => {
@@ -231,15 +222,7 @@ export const LicenseList = () => {
       {isSuperAdmin && (
         <div className="space-y-2">
           <Label htmlFor="license-club-filter">Club</Label>
-          <SearchableSelect
-            id="license-club-filter"
-            options={clubOptions}
-            value={clubFilter}
-            onValueChange={handleClubFilter}
-            placeholder="Todos los clubs"
-            searchPlaceholder="Buscar club..."
-            emptyMessage="No se encontraron clubs."
-          />
+          <ClubFilterSelect id="license-club-filter" value={clubFilter} onValueChange={handleClubFilter} />
         </div>
       )}
     </div>

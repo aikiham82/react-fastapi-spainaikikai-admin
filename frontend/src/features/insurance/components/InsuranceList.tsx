@@ -6,9 +6,7 @@ import { useInsuranceContext } from '../hooks/useInsuranceContext';
 import type { Insurance, InsuranceType } from '../data/schemas/insurance.schema';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { SearchableSelect } from '@/components/ui/searchable-select';
-import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
-import { useClubContext } from '@/features/clubs/hooks/useClubContext';
+import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState, ListToolbar, RowActions, ListLoading, ListError } from '@/components/ui/list-controls';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -40,10 +38,8 @@ const InsuranceKind = ({ type }: { type: string }) => {
 
 export const InsuranceList = () => {
   const { insuranceList, isLoading, error, filters, setFilters, total, limit, offset, deleteInsurance, selectInsurance, setPagination } = useInsuranceContext();
-  const { canAccess } = usePermissions();
-  const { userRole } = useAuthContext();
-  const { clubs } = useClubContext();
-  const isSuperAdmin = userRole === 'super_admin';
+  const { canAccess, isAssociationAdmin } = usePermissions();
+  const isSuperAdmin = isAssociationAdmin();
   const canCreate = canAccess({ resource: 'insurance', action: 'create' });
   const canUpdate = canAccess({ resource: 'insurance', action: 'update' });
   const canDelete = canAccess({ resource: 'insurance', action: 'delete' });
@@ -80,12 +76,7 @@ export const InsuranceList = () => {
     );
   }, [insuranceList, searchTerm]);
 
-  const clubOptions = useMemo(() => [
-    { value: '', label: 'Todos los clubs' },
-    ...clubs.map((club) => ({ value: club.id, label: club.name })),
-  ], [clubs]);
-
-  const activeFilters = (typeFilter !== ALL ? 1 : 0) + (statusFilter !== ALL ? 1 : 0) + (isSuperAdmin && clubFilter ? 1 : 0);
+  const activeFilters = (typeFilter !== ALL ? 1 : 0) + (statusFilter !== ALL ? 1 : 0) + (clubFilter ? 1 : 0);
   const hasCriteria = activeFilters > 0 || searchTerm.trim() !== '';
 
   const handleTypeFilter = (value: string) => {
@@ -226,15 +217,7 @@ export const InsuranceList = () => {
             {isSuperAdmin && (
               <div className="space-y-2">
                 <Label htmlFor="insurance-club-filter">Club</Label>
-                <SearchableSelect
-                  id="insurance-club-filter"
-                  options={clubOptions}
-                  value={clubFilter}
-                  onValueChange={handleClubFilter}
-                  placeholder="Todos los clubs"
-                  searchPlaceholder="Buscar club..."
-                  emptyMessage="No se encontraron clubs."
-                />
+                <ClubFilterSelect id="insurance-club-filter" value={clubFilter} onValueChange={handleClubFilter} />
               </div>
             )}
           </>

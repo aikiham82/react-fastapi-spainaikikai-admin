@@ -34,18 +34,14 @@ vi.mock('../../../members/hooks/useMemberContext', () => ({
   useMemberContext: () => ({ members: [] }),
 }))
 
-vi.mock('@/features/clubs/hooks/useClubContext', () => ({
-  useClubContext: () => ({ clubs: [{ id: 'club-1', name: 'Example Club' }] }),
-}))
-
-vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/features/auth/hooks/useAuthContext')>()),
-  useAuthContext: () => ({ userRole: context.role }),
+vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
+  useClubsQuery: () => ({ data: [{ id: 'club-1', name: 'Example Club' }] }),
 }))
 
 vi.mock('@/core/hooks/usePermissions', () => ({
   usePermissions: () => ({
     canAccess: ({ action }: { action: string }) => (action === 'update' ? context.canUpdate : context.canCreate),
+    isAssociationAdmin: () => context.role === 'super_admin',
   }),
 }))
 

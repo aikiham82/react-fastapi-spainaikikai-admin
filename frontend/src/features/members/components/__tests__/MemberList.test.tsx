@@ -28,8 +28,8 @@ vi.mock('../../hooks/useMemberContext', () => ({
   }),
 }))
 
-vi.mock('@/features/clubs/hooks/useClubContext', () => ({
-  useClubContext: () => ({ clubs: [{ id: 'club-1', name: 'Example Club' }] }),
+vi.mock('@/features/clubs/hooks/queries/useClubQueries', () => ({
+  useClubsQuery: () => ({ data: [{ id: 'club-1', name: 'Example Club' }] }),
 }))
 
 vi.mock('@/features/auth/hooks/useAuthContext', async (importOriginal) => ({
