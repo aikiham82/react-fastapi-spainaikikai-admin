@@ -4,10 +4,13 @@
 
 Whether a licence or an insurance is in force comes from its dates: a licence until its expiration date, an insurance until its end date. The only status an admin sets by hand is the annulment (licence `revoked`, insurance `cancelled`), shown as "Anulada"; "Reactivar" removes it and the dates rule again. To reactivate or expire one, the admin moves its dates.
 
+A list filter on status therefore compares the date-derived status (`Insurance.effective_status`, the licence status after `check_and_update_status` on load), never the stored Mongo field, and applies `limit` after filtering, not before. The licences, insurances and members lists all filter in the router this way.
+
 ## 🏆 Benefits
 
 - Decided with the federation on 2026-10-25. Production stores every licence and insurance as `active`, including 683 licences that expired in 2025, so a stored status was never the truth; a free status selector would have let "Activa" sit next to a past date.
 - Summaries, paid marks and lists that look at dates never disagree with what the admin chose.
+- 2026-10-29: the insurance type/status filters and the members "Licencia" filter changed nothing because the endpoints dropped the params. A filter on the stored status would have returned no "Caducado" at all, since every record is stored `active`.
 
 ## 👀 Examples
 
