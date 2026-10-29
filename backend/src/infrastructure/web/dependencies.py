@@ -412,6 +412,7 @@ def get_confirm_payment_received_use_case() -> ConfirmPaymentReceivedUseCase:
     """Confirm an unfinished payment received offline."""
     return ConfirmPaymentReceivedUseCase(
         get_payment_repository(),
+        get_member_payment_repository(),
         CompletePaymentUseCase(
             payment_repository=get_payment_repository(),
             invoice_repository=get_invoice_repository(),

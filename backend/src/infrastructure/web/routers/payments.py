@@ -401,6 +401,8 @@ async def confirm_payment_received(
     require_super_admin(ctx)
     try:
         completed = await use_case.execute(payment_id=payment_id, payment_method=request.payment_method)
+    except DuplicatePaymentForYearError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except PaymentNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except InvalidPaymentStatusError as e:

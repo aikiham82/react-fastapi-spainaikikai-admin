@@ -14,6 +14,7 @@ from src.domain.entities.member import Member
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
 from src.domain.entities.seminar import Seminar
 from src.domain.exceptions.payment import (
+    DuplicatePaymentForYearError,
     InvalidPaymentDataError,
     InvalidPaymentStatusError,
     PaymentNotFoundError,
@@ -40,6 +41,8 @@ def repos():
     )}
     repos["payment"].find_by_id = AsyncMock(return_value=unfinished_annual_payment())
     repos["payment"].update = AsyncMock(side_effect=lambda payment: payment)
+    repos["payment"].claim_unfinished = AsyncMock(return_value=True)
+    repos["member_payment"].exists_for_member_year_type = AsyncMock(return_value=False)
     repos["invoice"].get_next_invoice_number = AsyncMock(return_value="2026-000050")
     repos["invoice"].create = AsyncMock(side_effect=lambda invoice: invoice)
     repos["member"].find_by_id = AsyncMock(return_value=Member(id="m1", first_name="Ana", last_name="Example"))
@@ -57,7 +60,7 @@ def repos():
 
 @pytest.fixture
 def use_case(repos):
-    return ConfirmPaymentReceivedUseCase(repos["payment"], CompletePaymentUseCase(
+    return ConfirmPaymentReceivedUseCase(repos["payment"], repos["member_payment"], CompletePaymentUseCase(
         payment_repository=repos["payment"],
         invoice_repository=repos["invoice"],
         license_repository=repos["license"],
@@ -130,3 +133,27 @@ async def test_an_unknown_payment_is_not_found(use_case, repos):
 
     with pytest.raises(PaymentNotFoundError):
         await use_case.execute(payment_id="missing", payment_method="transfer")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_an_abandoned_attempt_already_paid_by_a_later_one_is_refused(use_case, repos):
+    repos["member_payment"].exists_for_member_year_type = AsyncMock(return_value=True)
+
+    with pytest.raises(DuplicatePaymentForYearError):
+        await use_case.execute(payment_id="pay1", payment_method="transfer")
+
+    repos["payment"].claim_unfinished.assert_not_called()
+    repos["invoice"].create.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_payment_completed_meanwhile_is_not_fulfilled_twice(use_case, repos):
+    repos["payment"].claim_unfinished = AsyncMock(return_value=False)
+
+    with pytest.raises(InvalidPaymentStatusError):
+        await use_case.execute(payment_id="pay1", payment_method="transfer")
+
+    repos["member_payment"].create_bulk.assert_not_called()
+    repos["invoice"].create.assert_not_called()

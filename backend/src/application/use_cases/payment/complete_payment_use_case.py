@@ -199,8 +199,7 @@ class CompletePaymentUseCase:
                 )
                 invoice.pdf_path = pdf_path
             except Exception:
-                # Log error but don't fail the webhook
-                pass
+                logger.warning("PDF generation failed for invoice %s", invoice.invoice_number, exc_info=True)
 
         return await self.invoice_repository.create(invoice)
 
@@ -223,7 +222,7 @@ class CompletePaymentUseCase:
                 with open(invoice.pdf_path, "rb") as f:
                     invoice_pdf = f.read()
             except Exception:
-                pass
+                logger.warning("Could not attach the PDF of invoice %s", invoice.invoice_number, exc_info=True)
 
         try:
             await self.email_service.send_payment_confirmation(
@@ -264,7 +263,6 @@ class CompletePaymentUseCase:
 
         for assignment in assignments:
             member_id = assignment.get("member_id")
-            member_name = assignment.get("member_name", "")
             payment_types = assignment.get("payment_types", [])
 
             # Skip if member_id is missing

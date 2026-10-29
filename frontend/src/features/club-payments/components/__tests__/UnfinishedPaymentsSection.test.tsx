@@ -45,7 +45,7 @@ describe('UnfinishedPaymentsSection', () => {
   it('shows nothing when the club has no unfinished payment', () => {
     withPayments([])
 
-    const { container } = renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" />)
+    const { container } = renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2026} />)
 
     expect(container).toBeEmptyDOMElement()
   })
@@ -53,7 +53,7 @@ describe('UnfinishedPaymentsSection', () => {
   it('lists each unfinished payment with its concept, date and amount', () => {
     withPayments([makePayment()])
 
-    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" />)
+    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2026} />)
 
     expect(screen.getByRole('heading', { name: 'Pagos sin terminar' })).toBeInTheDocument()
     expect(screen.getByText('Pago anual 2026')).toBeInTheDocument()
@@ -61,9 +61,17 @@ describe('UnfinishedPaymentsSection', () => {
     expect(screen.getByText(/185,00/)).toBeInTheDocument()
   })
 
+  it('asks only for the unfinished payments of the season on screen', () => {
+    withPayments([])
+
+    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2027} />)
+
+    expect(useClubUnfinishedPaymentsQuery).toHaveBeenCalledWith('club-1', 2027)
+  })
+
   it('confirms a payment as a bank transfer', async () => {
     withPayments([makePayment()])
-    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" />)
+    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2026} />)
 
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar cobro' }))
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))

@@ -100,6 +100,14 @@ class Payment:
         self.redsys_response = redsys_response
         self.payment_date = datetime.now()
 
+    def confirm_received(self, payment_method: "PaymentMethod") -> None:
+        """Complete an unfinished payment that was received outside Redsys."""
+        if self.status not in (PaymentStatus.PENDING, PaymentStatus.PROCESSING):
+            raise ValueError("Only unfinished payments can be confirmed")
+        self.status = PaymentStatus.COMPLETED
+        self.payment_method = payment_method
+        self.payment_date = datetime.utcnow()
+
     def fail_payment(self, error_message: str) -> None:
         """Mark payment as failed."""
         if self.status not in [PaymentStatus.PROCESSING, PaymentStatus.PENDING]:

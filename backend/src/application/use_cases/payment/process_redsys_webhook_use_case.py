@@ -1,9 +1,10 @@
 """Process Redsys Webhook use case."""
 
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from src.domain.entities.payment import Payment
+from src.domain.entities.payment import Payment, PaymentStatus
 from src.domain.entities.invoice import Invoice
 from src.domain.exceptions.payment import PaymentNotFoundError, RedsysSignatureError
 from src.application.ports.payment_repository import PaymentRepositoryPort
@@ -19,6 +20,8 @@ from src.application.ports.price_configuration_repository import PriceConfigurat
 from src.application.ports.seminar_repository import SeminarRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.use_cases.payment.complete_payment_use_case import CompletePaymentUseCase
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -122,6 +125,10 @@ class ProcessRedsysWebhookUseCase:
         }
 
         invoice = None
+
+        if payment.status == PaymentStatus.COMPLETED:
+            logger.warning("Redsys notified order %s, already completed; nothing to fulfil", notification.order_id)
+            return WebhookProcessResult(payment=payment, success=True, message="Pago ya completado")
 
         # Process based on response
         if notification.is_successful:

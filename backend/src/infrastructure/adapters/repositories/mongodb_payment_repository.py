@@ -142,6 +142,13 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         updated_doc = await self.collection.find_one({"_id": ObjectId(payment.id)})
         return self._to_domain(updated_doc)
 
+    async def claim_unfinished(self, payment_id: str) -> bool:
+        result = await self.collection.update_one(
+            {"_id": ObjectId(payment_id), "status": {"$in": [PaymentStatus.PENDING.value, PaymentStatus.PROCESSING.value]}},
+            {"$set": {"status": PaymentStatus.COMPLETED.value, "updated_at": datetime.utcnow()}},
+        )
+        return result.modified_count == 1
+
     async def delete(self, payment_id: str) -> bool:
         try:
             result = await self.collection.delete_one({"_id": ObjectId(payment_id)})

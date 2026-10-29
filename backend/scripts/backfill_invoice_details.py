@@ -29,8 +29,15 @@ from src.application.use_cases.invoice.invoice_customer import address_line
 BACKUP_DIR = Path.home() / "backups" / "spainaikikai"
 
 
+def _customer_name(doc: dict) -> str:
+    if "first_name" in doc:
+        return f"{doc.get('first_name') or ''} {doc.get('last_name') or ''}".strip()
+    return doc.get("name") or ""
+
+
 def _customer_fields(doc: dict) -> dict:
     return {
+        "customer_name": _customer_name(doc),
         "customer_address": address_line(
             doc.get("address") or "", doc.get("postal_code") or "", doc.get("city") or "", doc.get("province") or ""
         ),
@@ -47,19 +54,18 @@ def plan_backfill(
 ) -> List[Tuple[str, dict]]:
     changes = []
     for invoice in invoices:
-        if invoice.get("customer_address") and invoice.get("payment_method"):
-            continue
         payment = payments_by_id.get(invoice.get("payment_id"), {})
         customer = members_by_id.get(payment.get("member_id")) or clubs_by_id.get(invoice.get("club_id"))
         if not customer:
             continue
-        changes.append((invoice["_id"], {
+        details = {
             **_customer_fields(customer),
             "payment_date": payment.get("payment_date"),
             "payment_method": payment.get("payment_method") or "",
-            "pdf_path": None,
-            "pdf_generated_at": None,
-        }))
+        }
+        if all(invoice.get(key) == value for key, value in details.items()):
+            continue
+        changes.append((invoice["_id"], {**details, "pdf_path": None, "pdf_generated_at": None}))
     return changes
 
 

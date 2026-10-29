@@ -30,13 +30,14 @@ import {
 
 interface UnfinishedPaymentsSectionProps {
   clubId: string
+  paymentYear: number
 }
 
 const conceptOf = (payment: Payment): string =>
   `${PAYMENT_TYPE_LABELS[payment.payment_type] ?? payment.payment_type} ${payment.payment_year}`
 
-export function UnfinishedPaymentsSection({ clubId }: UnfinishedPaymentsSectionProps) {
-  const { data: payments = [] } = useClubUnfinishedPaymentsQuery(clubId)
+export function UnfinishedPaymentsSection({ clubId, paymentYear }: UnfinishedPaymentsSectionProps) {
+  const { data: payments = [] } = useClubUnfinishedPaymentsQuery(clubId, paymentYear)
   const { confirmPayment, isLoading } = useConfirmPaymentMutation()
   const [confirming, setConfirming] = useState<Payment | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<OfflinePaymentMethod>('transfer')

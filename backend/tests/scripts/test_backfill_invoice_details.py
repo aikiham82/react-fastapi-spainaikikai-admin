@@ -23,6 +23,7 @@ def test_an_old_club_invoice_gets_the_club_details_and_how_it_was_paid():
     )
 
     assert changes == [("inv-1", {
+        "customer_name": "Example Dojo",
         "customer_address": "Calle Mayor 1, 28001 Madrid",
         "customer_email": "dojo@example.com",
         "customer_phone": "",
@@ -48,13 +49,23 @@ def test_a_member_invoice_takes_the_member_details():
         {"club-1": CLUB}, {"m1": member},
     )
 
+    assert changes[0][1]["customer_name"] == "Ana Example"
     assert changes[0][1]["customer_address"] == "Calle Sol 2, Sevilla"
     assert changes[0][1]["customer_phone"] == "611111111"
 
 
+def test_an_invoice_issued_to_the_payer_takes_the_club_name():
+    changes = plan_backfill(
+        [invoice(customer_name="EXAMPLE DOJO")], {"pay-1": {"payment_date": PAID_AT}}, {"club-1": CLUB}, {},
+    )
+
+    assert changes[0][1]["customer_name"] == "Example Dojo"
+
+
 def test_an_invoice_that_already_has_its_details_is_left_alone():
     assert plan_backfill(
-        [invoice(customer_address="Calle Mayor 1", payment_method="redsys")],
+        [invoice(customer_address="Calle Mayor 1, 28001 Madrid", customer_email="dojo@example.com",
+                 customer_phone="", payment_date=PAID_AT, payment_method="redsys")],
         {"pay-1": {"payment_date": PAID_AT, "payment_method": "redsys"}},
         {"club-1": CLUB},
         {},

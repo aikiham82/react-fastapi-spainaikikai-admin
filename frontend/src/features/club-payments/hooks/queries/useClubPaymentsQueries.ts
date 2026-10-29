@@ -53,11 +53,14 @@ export const useClubMemberPaymentsQuery = (
   });
 };
 
-export const useClubUnfinishedPaymentsQuery = (clubId: string, enabled: boolean = true) => {
+export const useClubUnfinishedPaymentsQuery = (clubId: string, paymentYear: number, enabled: boolean = true) => {
   return useQuery({
     queryKey: clubPaymentsKeys.clubUnfinishedPayments(clubId),
     queryFn: () => paymentAdminService.getClubPayments(clubId),
-    select: (payments) => payments.filter((payment) => UNFINISHED_PAYMENT_STATUSES.includes(payment.status)),
+    select: (payments) =>
+      payments.filter(
+        (payment) => payment.payment_year === paymentYear && UNFINISHED_PAYMENT_STATUSES.includes(payment.status),
+      ),
     enabled: enabled && !!clubId,
     staleTime: 2 * 60 * 1000,
   });
