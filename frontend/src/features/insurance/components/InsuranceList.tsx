@@ -37,7 +37,7 @@ const InsuranceKind = ({ type }: { type: string }) => {
 };
 
 export const InsuranceList = () => {
-  const { insuranceList, isLoading, error, filters, setFilters, total, limit, offset, deleteInsurance, selectInsurance, setPagination } = useInsuranceContext();
+  const { insuranceList, isLoading, error, filters, setFilters, limit, offset, deleteInsurance, selectInsurance, setPagination } = useInsuranceContext();
   const { canAccess, isAssociationAdmin } = usePermissions();
   const isSuperAdmin = isAssociationAdmin();
   const canCreate = canAccess({ resource: 'insurance', action: 'create' });
@@ -353,7 +353,7 @@ export const InsuranceList = () => {
         </>
       )}
 
-      <ListPager total={total} limit={limit} offset={offset} noun="seguros" onPage={(next) => setPagination(next, limit)} />
+      <ListPager total={visibleInsurance.length} limit={limit} offset={offset} noun="seguros" onPage={(next) => setPagination(next, limit)} />
       {dialogs}
     </div>
   );
