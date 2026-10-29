@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, List
 
-from src.domain.entities.payment import Payment, PaymentType
+from src.domain.entities.payment import PAYMENT_TYPE_LABELS, Payment, PaymentType
 from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
 from src.domain.entities.insurance import insurance_season_year
 from src.domain.entities.member_payment import (
@@ -152,7 +152,7 @@ class CompletePaymentUseCase:
                 # Fallback to single line item if parsing fails
                 line_items = [
                     InvoiceLineItem(
-                        description=f"Pago anual - {payment.payment_type.value}",
+                        description=f"{PAYMENT_TYPE_LABELS[payment.payment_type]} {payment.payment_year}",
                         quantity=1,
                         unit_price=payment.amount,
                         tax_rate=invoice_settings.tax_rate * 100
@@ -162,7 +162,7 @@ class CompletePaymentUseCase:
             # Standard single line item for non-annual payments
             line_items = [
                 InvoiceLineItem(
-                    description=f"Pago de licencia - {payment.payment_type.value}",
+                    description=f"{PAYMENT_TYPE_LABELS[payment.payment_type]} {payment.payment_year}",
                     quantity=1,
                     unit_price=payment.amount,
                     tax_rate=invoice_settings.tax_rate * 100  # Convert to percentage

@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 
-from src.domain.entities.payment import UNFINISHED_PAYMENT_STATUSES, PaymentMethod
+from src.domain.entities.payment import CONFIRMABLE_PAYMENT_TYPES, UNFINISHED_PAYMENT_STATUSES, PaymentMethod
 from src.domain.exceptions.payment import (
     InvalidPaymentDataError,
     InvalidPaymentStatusError,
@@ -40,6 +40,8 @@ class ConfirmPaymentReceivedUseCase:
             raise PaymentNotFoundError(payment_id)
         if payment.status not in UNFINISHED_PAYMENT_STATUSES:
             raise InvalidPaymentStatusError("Solo se puede confirmar un pago sin terminar")
+        if payment.payment_type not in CONFIRMABLE_PAYMENT_TYPES:
+            raise InvalidPaymentDataError("Solo se confirman pagos anuales y de oficialidad de seminario")
         await refuse_lines_already_paid(
             self.member_payment_repository,
             [

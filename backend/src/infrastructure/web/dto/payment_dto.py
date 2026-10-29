@@ -31,6 +31,7 @@ class PaymentResponse(PaymentBase):
     error_message: Optional[str] = None
     refund_amount: Optional[float] = None
     refund_date: Optional[datetime] = None
+    payer_name: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

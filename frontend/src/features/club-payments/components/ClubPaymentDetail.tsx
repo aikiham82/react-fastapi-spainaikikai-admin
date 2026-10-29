@@ -165,7 +165,7 @@ export const ClubPaymentDetail = () => {
         </ul>
       )}
 
-      {canManagePayments && <UnfinishedPaymentsSection clubId={clubDetail.club_id} paymentYear={clubDetail.payment_year} />}
+      {canManagePayments && <UnfinishedPaymentsSection clubId={clubDetail.club_id} paymentYear={selectedYear} />}
 
       {canManagePayments && (
         <section className="flex flex-col gap-3">

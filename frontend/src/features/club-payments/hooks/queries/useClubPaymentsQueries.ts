@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { clubPaymentsService } from '../../data/services/club-payments.service';
 import { paymentAdminService } from '../../data/services/payment-admin.service';
-import { UNFINISHED_PAYMENT_STATUSES } from '../../data/schemas/payment-admin.schema';
+import { CONFIRMABLE_PAYMENT_TYPES, UNFINISHED_PAYMENT_STATUSES } from '../../data/schemas/payment-admin.schema';
 
 export const clubPaymentsKeys = {
   all: ['club-payments'] as const,
@@ -57,7 +57,11 @@ export const useClubUnfinishedPaymentsQuery = (clubId: string, paymentYear: numb
   return useQuery({
     queryKey: clubPaymentsKeys.clubUnfinishedPayments(clubId, paymentYear),
     queryFn: () => paymentAdminService.getClubPayments(clubId, paymentYear),
-    select: (payments) => payments.filter((payment) => UNFINISHED_PAYMENT_STATUSES.includes(payment.status)),
+    select: (payments) =>
+      payments.filter(
+        (payment) =>
+          UNFINISHED_PAYMENT_STATUSES.includes(payment.status) && CONFIRMABLE_PAYMENT_TYPES.includes(payment.payment_type),
+      ),
     enabled: !!clubId,
     staleTime: 2 * 60 * 1000,
   });

@@ -57,8 +57,25 @@ describe('UnfinishedPaymentsSection', () => {
 
     expect(screen.getByRole('heading', { name: 'Pagos sin terminar' })).toBeInTheDocument()
     expect(screen.getByText('Pago anual 2026')).toBeInTheDocument()
-    expect(screen.getByText(/03\/04\/2026/)).toBeInTheDocument()
-    expect(screen.getByText(/185,00/)).toBeInTheDocument()
+    expect(screen.getByText(/Iniciado el 03\/04\/2026 · Example Dojo · 185,00/)).toBeInTheDocument()
+  })
+
+  it('names the payment in Spanish and leaves out a missing start date', () => {
+    withPayments([makePayment({ payment_type: 'seminar_oficialidad', created_at: null, payer_name: '' })])
+
+    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2026} />)
+
+    expect(screen.getByText('Oficialidad de seminario 2026')).toBeInTheDocument()
+    expect(screen.queryByText(/Iniciado/)).not.toBeInTheDocument()
+  })
+
+  it('tells what confirming an oficialidad does, without licences', async () => {
+    withPayments([makePayment({ payment_type: 'seminar_oficialidad', amount: 20 })])
+    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2026} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar cobro' }))
+
+    expect(screen.getByText(/Se marcará como pagado y se enviará la factura al club\./)).toBeInTheDocument()
   })
 
   it('asks only for the unfinished payments of the season on screen', () => {

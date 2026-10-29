@@ -26,7 +26,17 @@ class PaymentType(str, Enum):
     SEMINAR_OFICIALIDAD = "seminar_oficialidad"
 
 
+PAYMENT_TYPE_LABELS = {
+    PaymentType.LICENSE: "Licencia",
+    PaymentType.ACCIDENT_INSURANCE: "Seguro de accidentes",
+    PaymentType.CIVIL_LIABILITY_INSURANCE: "Seguro RC",
+    PaymentType.ANNUAL_QUOTA: "Pago anual",
+    PaymentType.SEMINAR: "Seminario",
+    PaymentType.SEMINAR_OFICIALIDAD: "Oficialidad de seminario",
+}
+
 UNFINISHED_PAYMENT_STATUSES = (PaymentStatus.PENDING, PaymentStatus.PROCESSING)
+CONFIRMABLE_PAYMENT_TYPES = (PaymentType.ANNUAL_QUOTA, PaymentType.SEMINAR_OFICIALIDAD)
 
 
 class PaymentMethod(str, Enum):

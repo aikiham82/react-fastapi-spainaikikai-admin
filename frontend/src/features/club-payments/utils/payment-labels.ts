@@ -11,6 +11,10 @@ const PAYMENT_TYPES = {
   ...MEMBER_PAYMENT_TYPES,
   annual_quota: 'Pago anual',
   seminar_oficialidad: 'Oficialidad de seminario',
+  license: 'Licencia',
+  seminar: 'Seminario',
+  accident_insurance: 'Seguro de accidentes',
+  civil_liability_insurance: 'Seguro RC',
 }
 
 export const getPaymentTypeLabel = (paymentType: string): string =>

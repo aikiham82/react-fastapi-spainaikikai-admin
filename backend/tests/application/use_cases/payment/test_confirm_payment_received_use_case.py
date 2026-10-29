@@ -158,3 +158,31 @@ async def test_a_payment_completed_meanwhile_is_not_fulfilled_twice(use_case, re
 
     repos["member_payment"].create_bulk.assert_not_called()
     repos["invoice"].create.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_an_old_member_level_payment_cannot_be_confirmed(use_case, repos):
+    repos["payment"].find_by_id = AsyncMock(return_value=Payment(
+        id="pay3", member_id="m1", club_id="club1", payment_type=PaymentType.CIVIL_LIABILITY_INSURANCE,
+        amount=15.0, status=PaymentStatus.PENDING, payment_year=2026,
+    ))
+
+    with pytest.raises(InvalidPaymentDataError):
+        await use_case.execute(payment_id="pay3", payment_method="transfer")
+
+    repos["invoice"].create.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_an_oficialidad_invoice_names_the_concept_in_spanish(use_case, repos):
+    repos["seminar"].find_by_id = AsyncMock(return_value=None)
+    repos["payment"].find_by_id = AsyncMock(return_value=Payment(
+        id="pay2", club_id="club1", payment_type=PaymentType.SEMINAR_OFICIALIDAD,
+        amount=20.0, status=PaymentStatus.PROCESSING, related_entity_id="sem1", payment_year=2026,
+    ))
+
+    completed = await use_case.execute(payment_id="pay2", payment_method="cash")
+
+    assert [item.description for item in completed.invoice.line_items] == ["Oficialidad de seminario 2026"]

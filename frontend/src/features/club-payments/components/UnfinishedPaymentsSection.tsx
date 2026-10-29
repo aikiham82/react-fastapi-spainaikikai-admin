@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { StatusBadge } from '@/components/ui/status-badge'
 import { formatCurrency, formatDate } from '@/core/utils/format'
 import { useClubUnfinishedPaymentsQuery } from '../hooks/queries/useClubPaymentsQueries'
 import { useConfirmPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
@@ -35,6 +34,20 @@ interface UnfinishedPaymentsSectionProps {
 
 const conceptOf = (payment: Payment): string =>
   `${getPaymentTypeLabel(payment.payment_type)} ${payment.payment_year}`
+
+const detailsOf = (payment: Payment): string =>
+  [
+    payment.created_at && `Iniciado el ${formatDate(payment.created_at)}`,
+    payment.payer_name,
+    formatCurrency(payment.amount),
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+const whatConfirmingDoes = (payment: Payment): string =>
+  payment.payment_type === 'annual_quota'
+    ? 'Se darán de alta las licencias y seguros pagados y se enviará la factura al club.'
+    : 'Se marcará como pagado y se enviará la factura al club.'
 
 export function UnfinishedPaymentsSection({ clubId, paymentYear }: UnfinishedPaymentsSectionProps) {
   const { data: payments = [] } = useClubUnfinishedPaymentsQuery(clubId, paymentYear)
@@ -66,16 +79,13 @@ export function UnfinishedPaymentsSection({ clubId, paymentYear }: UnfinishedPay
         {payments.map((payment) => (
           <li
             key={payment.id}
-            className="flex flex-wrap items-center gap-3 rounded-[18px] bg-card p-3 shadow-card"
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[18px] bg-card p-3 shadow-card"
           >
-            <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-semibold text-foreground">{conceptOf(payment)}</p>
-              <p className="text-sm text-muted-foreground">
-                Iniciado el {formatDate(payment.created_at)} · {formatCurrency(payment.amount)}
-              </p>
+            <div className="min-w-0 basis-full sm:flex-1 sm:basis-auto">
+              <p className="break-words text-[15px] font-semibold text-foreground">{conceptOf(payment)}</p>
+              <p className="break-words text-sm text-muted-foreground">{detailsOf(payment)}</p>
             </div>
-            <StatusBadge tone="warn">Sin cobrar</StatusBadge>
-            <Button size="sm" onClick={() => setConfirming(payment)}>
+            <Button size="sm" className="ml-auto" onClick={() => setConfirming(payment)}>
               Confirmar cobro
             </Button>
           </li>
@@ -87,8 +97,7 @@ export function UnfinishedPaymentsSection({ clubId, paymentYear }: UnfinishedPay
           <DialogHeader>
             <DialogTitle>Confirmar cobro</DialogTitle>
             <DialogDescription>
-              {confirming && `${conceptOf(confirming)} · ${formatCurrency(confirming.amount)}. `}
-              Se crearán las licencias y seguros pagados, se emitirá la factura y se enviará al club.
+              {confirming && `${conceptOf(confirming)} · ${formatCurrency(confirming.amount)}. ${whatConfirmingDoes(confirming)}`}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-1.5">
