@@ -72,11 +72,9 @@ const licenceItemOf = (member: Member, today: Date = new Date()): LicenceItem =>
   const instructor = summary?.instructor_category;
   if (instructor === 'fukushidoin' || instructor === 'shidoin') return instructor;
   if (summary?.technical_grade === 'dan') return 'dan';
-  if (summary?.technical_grade === 'kyu') {
-    return summary.grade?.toLowerCase().includes('infantil') ? 'kyu_infantil' : 'kyu';
-  }
   const age = ageOn(member.birth_date, today);
-  return age !== null && age <= CHILD_MAX_AGE ? 'kyu_infantil' : 'kyu';
+  if (age !== null) return age <= CHILD_MAX_AGE ? 'kyu_infantil' : 'kyu';
+  return summary?.grade?.toLowerCase().includes('infantil') ? 'kyu_infantil' : 'kyu';
 };
 
 const licenceChoicesOf = (member: Member, licence: LicenceItem): readonly LicenceItem[] => {
