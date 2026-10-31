@@ -65,6 +65,17 @@ describe('reportApiFailure', () => {
     expect(Sentry.captureException).not.toHaveBeenCalled()
   })
 
+  it('leaves out network failures while the browser knows it is offline', () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+
+    reportApiFailure({ method: 'get', url: '/api/v1/clubs', status: undefined })
+    reportApiFailure({ method: 'get', url: '/api/v1/members', status: 502 })
+
+    const messages = vi.mocked(Sentry.captureException).mock.calls.map(([error]) => (error as Error).message)
+    expect(messages).toEqual(['API GET /api/v1/members failed: 502'])
+    onLine.mockRestore()
+  })
+
   it('leaves client errors alone, they are answers not failures', () => {
     for (const status of [400, 401, 403, 404, 409, 422]) {
       reportApiFailure({ method: 'get', url: '/api/v1/members', status })
