@@ -114,7 +114,7 @@ describe('PaymentChecklist', () => {
     mutate.mockClear()
     members = [
       member('m-kyu', 'Kira', { technical_grade: 'kyu', grade: '3er Kyu' }),
-      member('m-inf', 'Ines', { technical_grade: 'kyu', grade: '5º Kyu Infantil' }),
+      { ...member('m-inf', 'Ines', { technical_grade: 'kyu', grade: '5º Kyu Infantil' }), birth_date: '2017-05-01' },
       member('m-dan', 'Dario', { technical_grade: 'dan', grade: '1er Dan' }),
       member('m-fuku', 'Fuku', { technical_grade: 'dan', instructor_category: 'fukushidoin', grade: '3er Dan' }),
       member('m-shi', 'Shi', { technical_grade: 'dan', instructor_category: 'shidoin', grade: '5º Dan' }),
