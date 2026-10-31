@@ -34,8 +34,10 @@ interface ApiFailure {
 }
 
 export const reportApiFailure = ({ method = 'get', url = '', status, cancelled = false }: ApiFailure): void => {
-  const isServerFailure = status === undefined || status >= 500;
-  if (cancelled || !isServerFailure) return;
+  const isNetworkFailure = status === undefined;
+  const isServerFailure = isNetworkFailure || status >= 500;
+  const browserIsOffline = isNetworkFailure && !navigator.onLine;
+  if (cancelled || !isServerFailure || browserIsOffline) return;
 
   const verb = method.toUpperCase();
   const route = routeOf(url);
