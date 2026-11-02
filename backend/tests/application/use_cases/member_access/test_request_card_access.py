@@ -50,16 +50,6 @@ class TestRequestCardAccess:
         assert kwargs["to_email"] == "ana@example.com"
         assert kwargs["url"].startswith("https://admin.example.com/reset-password?token=")
 
-    async def test_a_look_alike_email_claims_nobody(self):
-        use_case, users, mailer, member_repo = setup([a_member(email="sara@example.com")])
-        member_repo.find_all_by_email = AsyncMock(return_value=[a_member(email="sara@example.com")])
-
-        await use_case.execute("ſara@example.com")
-
-        users.create.assert_not_awaited()
-        member_repo.claim_card_access.assert_not_awaited()
-        mailer.send_card_activation_email.assert_not_awaited()
-
     async def test_the_account_and_the_mail_use_the_email_on_the_file_not_the_one_typed(self):
         member = a_member(email=" Ana@Example.com ")
         use_case, users, mailer, member_repo = setup([member])

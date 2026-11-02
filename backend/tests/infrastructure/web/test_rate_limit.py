@@ -43,6 +43,25 @@ def test_it_forgets_clients_rather_than_growing_without_end():
     assert len(limiter._hits) <= 2
 
 
+def test_a_blocked_client_stays_blocked_when_idle_clients_are_forgotten():
+    clock = Clock()
+    limiter = SlidingWindowLimiter(max_requests=1, window_seconds=60, clock=clock, max_clients=2)
+    limiter.allow("idle")
+    clock.now += 61
+    limiter.allow("blocked")
+
+    limiter.allow("new")
+
+    assert limiter.allow("blocked") is False
+
+
+def test_addresses_of_one_ipv6_network_share_a_limit():
+    first = client_ip(request_from("2001:db8:1:2::a"))
+    second = client_ip(request_from("2001:db8:1:2::b"))
+
+    assert first == second
+
+
 def request_from(forwarded_for=None, host="10.0.0.5"):
     headers = {"x-forwarded-for": forwarded_for} if forwarded_for else {}
     return SimpleNamespace(headers=headers, client=SimpleNamespace(host=host))

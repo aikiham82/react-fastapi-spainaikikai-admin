@@ -69,10 +69,10 @@ class LicenseImageService(LicenseImageServicePort):
 
     def _font_that_fits(self, text: str, size: int, max_width: int) -> ImageFont.FreeTypeFont:
         font = self._get_font(size)
-        while size > self.MIN_FONT_SIZE and font.getlength(text) > max_width:
-            size -= 1
-            font = self._get_font(size)
-        return font
+        width = font.getlength(text)
+        if width <= max_width:
+            return font
+        return self._get_font(max(self.MIN_FONT_SIZE, int(size * max_width / width)))
 
     def _format_date(self, date) -> str:
         """Format date for display on license."""

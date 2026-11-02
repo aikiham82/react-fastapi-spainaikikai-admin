@@ -19,11 +19,6 @@ class UserBase(BaseModel):
     member_id: Optional[str] = None
 
 
-class UserCreate(BaseModel):
-    """DTO for creating a user."""
-    email: EmailStr
-    username: str
-    password: str = Field(..., min_length=6)
 
 
 class UserUpdate(BaseModel):

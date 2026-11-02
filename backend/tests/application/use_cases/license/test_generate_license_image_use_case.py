@@ -1,6 +1,6 @@
 """The card says the year of the licence it shows."""
 
-from datetime import datetime
+from datetime import date, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -35,9 +35,17 @@ async def test_the_year_is_the_year_the_licence_expires(expiry_year):
     assert result.filename.endswith(f"_{expiry_year}.png")
 
 
-async def test_a_licence_without_expiry_falls_back_to_the_current_season():
+@pytest.mark.parametrize("today, season", [
+    (date(2026, 9, 30), 2026),
+    (date(2026, 10, 1), 2027),
+])
+async def test_a_licence_without_expiry_falls_back_to_the_current_season(today, season, monkeypatch):
+    monkeypatch.setattr(
+        "src.application.use_cases.license.generate_license_image_use_case.date",
+        SimpleNamespace(today=lambda: today),
+    )
     use_case, images = use_case_for(None)
 
     await use_case.execute("lic")
 
-    assert images.generate_license_image.await_args.args[0].license_year >= 2026
+    assert images.generate_license_image.await_args.args[0].license_year == season

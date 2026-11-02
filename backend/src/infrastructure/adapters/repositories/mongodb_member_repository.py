@@ -124,7 +124,11 @@ class MongoDBMemberRepository(MemberRepositoryPort):
             {"email": {"$regex": rf"^\s*{re.escape(email.strip())}\s*$", "$options": "i"}}
         ).to_list(length=None)
         members = [self._to_domain(doc) for doc in documents]
-        return [m for m in members if not m.is_club_account_placeholder]
+        wanted = email.strip().lower()
+        return [
+            m for m in members
+            if not m.is_club_account_placeholder and (m.email or "").strip().lower() == wanted
+        ]
 
     async def find_by_club_id(self, club_id: str, limit: int = 0) -> List[Member]:
         cursor = self.collection.find({"club_id": club_id})

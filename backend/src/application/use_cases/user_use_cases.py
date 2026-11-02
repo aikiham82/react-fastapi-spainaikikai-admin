@@ -4,8 +4,7 @@ from typing import List, Optional
 
 from src.domain.entities.user import User, GlobalRole
 from src.domain.exceptions.user import (
-    UserNotFoundError, InvalidUserDataError, UserAlreadyExistsError,
-    SuperAdminAlreadyExistsError, EmailAlreadyInUseError
+    UserNotFoundError, InvalidUserDataError, EmailAlreadyInUseError
 )
 from src.application.ports.identity_provider import IdentityProviderPort
 from src.application.ports.repositories import UserRepositoryPort
@@ -65,53 +64,6 @@ class GetUserByEmailUseCase:
         return user
 
 
-class CreateUserUseCase:
-    """Use case for creating a new user."""
-
-    def __init__(self, user_repository: UserRepositoryPort):
-        self.user_repository = user_repository
-
-    async def execute(
-        self,
-        email: str,
-        username: str,
-        hashed_password: str,
-        global_role: GlobalRole = GlobalRole.USER,
-        member_id: Optional[str] = None
-    ) -> User:
-        """Execute the use case."""
-        if email.strip() and "@" not in email:
-            raise InvalidUserDataError("Invalid email format")
-
-        try:
-            user = User(
-                email=email,
-                username=username,
-                hashed_password=hashed_password,
-                global_role=global_role,
-                member_id=member_id
-            )
-        except ValueError as e:
-            raise InvalidUserDataError(str(e))
-
-        # Check if user already exists
-        existing_user = await self.user_repository.find_by_email(email)
-        if existing_user:
-            raise UserAlreadyExistsError("User with this email already exists")
-
-        # Checked the same way logins resolve it, or a name differing only in
-        # case or spacing would be accepted and then compete for every login
-        # and every reset aimed at the original account.
-        if await self.user_repository.find_by_username_loose(username):
-            raise UserAlreadyExistsError("User with this username already exists")
-
-        # Validate single super_admin constraint
-        if global_role == GlobalRole.SUPER_ADMIN:
-            existing_super_admin = await self.user_repository.find_by_global_role(GlobalRole.SUPER_ADMIN)
-            if existing_super_admin:
-                raise SuperAdminAlreadyExistsError()
-
-        return await self.user_repository.create(user)
 
 
 class UpdateUserEmailUseCase:

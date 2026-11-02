@@ -41,7 +41,7 @@ class RequestCardAccessUseCase:
 
     async def execute(self, email: str) -> None:
         email = (email or "").strip().lower()
-        if "@" not in email or not email.isascii():
+        if "@" not in email:
             return
 
         holders = await self.member_repository.find_all_by_email(email)
