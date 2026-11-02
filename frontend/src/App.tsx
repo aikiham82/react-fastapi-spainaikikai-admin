@@ -24,6 +24,7 @@ const ForgotPasswordPage = lazyWithRetry(() => import("./pages/forgot-password.p
 const ResetPasswordPage = lazyWithRetry(() => import("./pages/reset-password.page"));
 const UnauthorizedPage = lazyWithRetry(() => import("./pages/unauthorized.page"));
 const CardPage = lazyWithRetry(() => import("./pages/card.page"));
+const ActivatePage = lazyWithRetry(() => import("./pages/activate.page"));
 const SsoCallbackPage = lazyWithRetry(() => import("./pages/sso-callback.page"));
 
 // Pages with named exports
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/card" element={<CardPage />} />
+                <Route path="/activate" element={<ActivatePage />} />
 
                 <Route element={<AppLayout />}>
                   <Route path="/" element={<HomePage />} />

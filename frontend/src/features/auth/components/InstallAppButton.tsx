@@ -7,7 +7,7 @@ interface InstallOffer extends Event {
 }
 
 const HOW_TO_INSTALL = {
-  ios: 'En Safari, pulsa el botón Compartir y luego "Añadir a pantalla de inicio".',
+  ios: 'En Safari, pulsa el botón Compartir y luego "Añadir a pantalla de inicio". Después vuelve a entrar con tu correo y contraseña.',
   android: 'En Chrome, abre el menú ⋮ y pulsa "Instalar aplicación" o "Añadir a pantalla de inicio".',
 }
 

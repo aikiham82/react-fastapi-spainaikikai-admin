@@ -1,7 +1,7 @@
 {
-  "name": "Spain Aikikai Admin",
-  "short_name": "Aikikai Admin",
-  "description": "Gestión de clubes, socios y licencias de Spain Aikikai",
+  "name": "Spain Aikikai",
+  "short_name": "Spain Aikikai",
+  "description": "Carné de socio y gestión de clubes de Spain Aikikai",
   "lang": "es",
   "start_url": "/",
   "scope": "/",

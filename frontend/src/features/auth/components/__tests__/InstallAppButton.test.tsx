@@ -41,7 +41,7 @@ describe('InstallAppButton', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /instalar en el móvil/i }))
 
-    expect(screen.getByText(/añadir a pantalla de inicio/i)).toBeInTheDocument()
+    expect(screen.getByText(/añadir a pantalla de inicio.*vuelve a entrar/i)).toBeInTheDocument()
   })
 
   it('opens the browser install prompt on Android when it is offered', async () => {

@@ -30,6 +30,10 @@ const updateOwnEmail = async (data: UpdateOwnEmailRequest): Promise<AuthResponse
   return await apiClient.patch<AuthResponse>("/api/v1/users/me/email", data);
 };
 
+const requestCardAccess = async (email: string): Promise<{ message: string }> => {
+  return await apiClient.post<{ message: string }>(`${BASE_URL}/card-access/request`, { email });
+};
+
 const getCurrentUser = async (): Promise<CurrentUser> => {
   return await apiClient.get<CurrentUser>("/api/v1/users/me");
 };
@@ -40,6 +44,7 @@ export const authService = {
   socialLogin,
   register,
   updateOwnEmail,
+  requestCardAccess,
   getCurrentUser
 };
 

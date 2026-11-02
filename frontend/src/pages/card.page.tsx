@@ -1,6 +1,7 @@
 import { Loader2, LogOut } from 'lucide-react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { InstallAppButton } from '@/features/auth/components/InstallAppButton';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { MemberCard } from '@/features/licenses/components/MemberCard';
 import { useMemberLicensesQuery } from '@/features/licenses/hooks/queries/useLicenseQueries';
@@ -66,6 +67,9 @@ export default function CardPage() {
         ) : (
           <CardContent memberId={currentUser.member_id} />
         )}
+
+        <InstallAppButton />
+
       </main>
     </div>
   );

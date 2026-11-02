@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-11-02T09:24:41Z"
+last_implementation_at: "2026-11-02T09:26:54Z"
 has_completed_all_phases: "false"
 ---
 
@@ -107,13 +107,13 @@ Public contracts:
 
 To-do:
 
-- [ ] Add the card access service, mutation and `ActivateCardForm`, and the `/activate` page.
-- [ ] Link it from `LoginForm`.
-- [ ] Show `InstallAppButton` on `/card` and update the iOS hint.
-- [ ] Rename the icon in the manifest and `index.html`.
-- [ ] Update the activation email text, with its test.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Add the card access service, mutation and `ActivateCardForm`, and the `/activate` page.
+- [x] Link it from `LoginForm`.
+- [x] Show `InstallAppButton` on `/card` and update the iOS hint.
+- [x] Rename the icon in the manifest and `index.html`.
+- [x] Update the activation email text, with its test.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: download, and the card for managers
 
@@ -136,6 +136,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
-A card in every pocket, thanks to [Codely](https://codely.com) and Turbotuga™. 🪪 < 🐢 💨
+Activated, installed and on the home screen, with [Codely](https://codely.com) and Turbotuga™. 📲 < 🪪 < 🐢 💨

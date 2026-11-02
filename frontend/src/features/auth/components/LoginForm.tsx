@@ -94,7 +94,7 @@ export const LoginForm = () => {
 
       <div className="flex flex-col gap-2 text-[15px]">
         <TextLink to="/forgot-password">He olvidado la contraseña</TextLink>
-        <p className="text-muted-foreground">¿Primera vez? Pide acceso a tu club o a la Federación.</p>
+        <TextLink to="/activate">¿Primera vez? Activa tu carné</TextLink>
       </div>
     </div>
   );
