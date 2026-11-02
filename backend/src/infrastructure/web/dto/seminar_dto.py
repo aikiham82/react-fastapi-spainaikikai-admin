@@ -16,7 +16,7 @@ class SeminarBase(BaseModel):
     address: str
     city: str
     province: str
-    price: Money = 0.0
+    price: float = 0.0
     max_participants: Optional[int] = None
     club_id: Optional[str] = None
     association_id: Optional[str] = None
@@ -24,6 +24,7 @@ class SeminarBase(BaseModel):
 
 class SeminarCreate(SeminarBase):
     """DTO for creating a new seminar."""
+    price: Money = 0.0
     start_date: datetime
     end_date: datetime
 

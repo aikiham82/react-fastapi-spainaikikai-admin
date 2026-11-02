@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { appStorage } from './appStorage'
+import { readableDetail } from './readableDetail'
 import { reportApiFailure } from '../monitoring/sentry'
 
 
@@ -135,7 +136,7 @@ function handleError(error: AxiosError<ErrorResponse>): ApiError {
 
   return {
     message: message,
-    detail: response?.data?.detail,
+    detail: readableDetail(response?.data?.detail),
     status: response?.status,
     requestUrl: request?.responseURL,
     method: response?.config?.method,

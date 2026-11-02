@@ -9,7 +9,7 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from src.app import create_app, request_validation_handler
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.dto.annual_payment_dto import AnnualPaymentLineItem
-from src.infrastructure.web.dto.insurance_dto import InsuranceCreate, InsuranceUpdate
+from src.infrastructure.web.dto.insurance_dto import InsuranceCreate, InsuranceResponse, InsuranceUpdate
 from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
 from src.infrastructure.web.dto.money import Money
 from src.infrastructure.web.dto.member_payment_dto import MemberPaymentUpdateRequest
@@ -17,18 +17,21 @@ from src.infrastructure.web.dto.payment_dto import (
     InitiatePaymentRequest,
     PaymentCreate,
     PaymentRefundRequest,
+    PaymentResponse,
     RedsysPaymentRequest,
 )
-from src.infrastructure.web.dto.price_configuration_dto import PriceConfigurationCreate, PriceConfigurationUpdate
-from src.infrastructure.web.dto.seminar_dto import SeminarCreate, SeminarUpdate
+from src.infrastructure.web.dto.price_configuration_dto import (
+    PriceConfigurationCreate,
+    PriceConfigurationResponse,
+    PriceConfigurationUpdate,
+)
+from src.infrastructure.web.dto.seminar_dto import SeminarCreate, SeminarResponse, SeminarUpdate
 from src.infrastructure.web.routers.import_export import _money
 from tests.api.callers import super_admin
 
 pytestmark = [pytest.mark.api]
 
 MONEY_FIELDS = [
-    (AnnualPaymentLineItem, "unit_price"),
-    (AnnualPaymentLineItem, "total"),
     (InsuranceCreate, "coverage_amount"),
     (InsuranceUpdate, "coverage_amount"),
     (PaymentUpdateRequest, "amount"),
@@ -60,6 +63,21 @@ def test_a_money_field_refuses_a_non_money(model, field, value):
 @pytest.mark.parametrize("value", [0, 15.5, 1_000_000], ids=["zero", "with-cents", "the-limit"])
 def test_a_money_field_accepts_a_normal_amount(model, field, value):
     assert field_adapter(model, field).validate_python(value) == value
+
+
+@pytest.mark.parametrize(
+    ("model", "field"),
+    [
+        (AnnualPaymentLineItem, "total"),
+        (InsuranceResponse, "coverage_amount"),
+        (PaymentResponse, "amount"),
+        (PriceConfigurationResponse, "price"),
+        (SeminarResponse, "price"),
+    ],
+    ids=["annual-total", "insurance", "payment", "price", "seminar"],
+)
+def test_a_response_still_reads_a_total_above_the_input_limit(model, field):
+    assert field_adapter(model, field).validate_python(2_000_000) == 2_000_000
 
 
 @pytest.fixture
@@ -110,7 +128,7 @@ def test_the_real_payment_line_route_answers_422_for_infinity():
     assert response.status_code == 422
 
 
-@pytest.mark.parametrize("raw", ["inf", "-inf", "nan", "Infinity", "1e400", "1e308", "1000001"])
+@pytest.mark.parametrize("raw", ["inf", "-inf", "nan", "Infinity", "1e400", "1e308", "1000001", "-5"])
 def test_an_imported_non_money_is_invalid(raw):
     with pytest.raises(ValueError):
         _money(raw)

@@ -10,7 +10,7 @@ from src.infrastructure.web.dto.money import Money
 class PriceConfigurationBase(BaseModel):
     """Base Price Configuration DTO."""
     key: str
-    price: Money
+    price: float
     description: str = ""
     category: str = "license"
     is_active: bool = True
@@ -20,7 +20,7 @@ class PriceConfigurationBase(BaseModel):
 
 class PriceConfigurationCreate(PriceConfigurationBase):
     """DTO for creating a new price configuration."""
-    pass
+    price: Money
 
 
 class PriceConfigurationUpdate(BaseModel):

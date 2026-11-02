@@ -4,8 +4,6 @@ from pydantic import BaseModel, field_validator
 from typing import Optional, List
 from datetime import datetime
 
-from src.infrastructure.web.dto.money import Money
-
 # Maximum quantity per item type
 MAX_QUANTITY_PER_ITEM = 200
 
@@ -15,8 +13,8 @@ class AnnualPaymentLineItem(BaseModel):
     item_type: str
     description: str
     quantity: int
-    unit_price: Money
-    total: Money
+    unit_price: float
+    total: float
 
 
 class MemberPaymentAssignment(BaseModel):

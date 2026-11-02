@@ -12,14 +12,14 @@ class PaymentBase(BaseModel):
     member_id: Optional[str] = None
     club_id: Optional[str] = None
     payment_type: str = "license_fee"
-    amount: Money
+    amount: float
     related_entity_id: Optional[str] = None
     payment_year: Optional[int] = None
 
 
 class PaymentCreate(PaymentBase):
     """DTO for creating a new payment."""
-    pass
+    amount: Money
 
 
 class PaymentResponse(PaymentBase):

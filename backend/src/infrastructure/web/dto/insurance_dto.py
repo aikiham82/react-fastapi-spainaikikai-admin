@@ -19,12 +19,13 @@ class InsuranceBase(BaseModel):
     insurance_type: str = "accident"
     policy_number: str
     insurance_company: str
-    coverage_amount: Optional[Money] = None
+    coverage_amount: Optional[float] = None
     payment_id: Optional[str] = None
 
 
 class InsuranceCreate(InsuranceBase):
     """DTO for creating a new insurance."""
+    coverage_amount: Optional[Money] = None
     start_date: datetime
     end_date: datetime
 
