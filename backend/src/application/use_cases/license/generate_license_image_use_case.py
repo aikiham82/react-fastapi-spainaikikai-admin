@@ -79,6 +79,8 @@ class GenerateLicenseImageUseCase:
             license.expiration_date.year if license.expiration_date else self._calculate_license_year()
         )
 
+        insurances = await self.insurance_repository.find_by_member_id(license.member_id)
+
         # Prepare image data
         image_data = LicenseImageData(
             license_number=license.license_number,
@@ -86,9 +88,7 @@ class GenerateLicenseImageUseCase:
             last_name=member.last_name,
             dni=member.dni,
             birth_date=member.birth_date,
-            insurance_end_date=latest_accident_insurance_end(
-                await self.insurance_repository.find_by_member_id(license.member_id)
-            ),
+            insurance_end_date=latest_accident_insurance_end(insurances),
             license_year=license_year
         )
 
