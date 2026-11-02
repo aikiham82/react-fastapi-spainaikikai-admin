@@ -134,6 +134,10 @@ class Payment:
             raise ValueError("Only pending or processing payments can be cancelled")
         self.status = PaymentStatus.CANCELLED
 
+    def ensure_covers_refund(self, amount: float) -> None:
+        if self.refund_amount and amount < self.refund_amount:
+            raise InvalidPaymentDataError("El importe no puede ser menor que lo ya reembolsado")
+
     def refund_payment(self, refund_amount: Optional[float] = None) -> None:
         """Refund the payment."""
         if self.status != PaymentStatus.COMPLETED:

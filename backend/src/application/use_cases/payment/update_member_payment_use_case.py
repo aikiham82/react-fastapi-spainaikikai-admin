@@ -81,6 +81,8 @@ class UpdateMemberPaymentUseCase:
             except ValueError:
                 raise InvalidPaymentDataError(f"Estado inválido: {status}")
 
+        await self._ensure_parent_covers_refund(mp)
+
         mp.updated_at = datetime.utcnow()
         updated_mp = await self.member_payment_repository.update(mp)
 
@@ -129,6 +131,16 @@ class UpdateMemberPaymentUseCase:
                 if generated_for_the_line and (insurance.insurance_type, target_end) not in covered:
                     insurance.update_dates(target_start, target_end)
                     await self.insurance_repository.update(insurance)
+
+    async def _ensure_parent_covers_refund(self, edited: MemberPayment) -> None:
+        parent = await self.payment_repository.find_by_id(edited.payment_id)
+        if not parent or not parent.refund_amount:
+            return
+        lines = await self.member_payment_repository.find_by_payment_id(edited.payment_id)
+        lines_after = [line for line in lines if line.id != edited.id] + [edited]
+        parent.ensure_covers_refund(
+            sum(line.amount for line in lines_after if line.status == MemberPaymentStatus.COMPLETED)
+        )
 
     async def _recompute_parent_amount(self, payment_id: str) -> None:
         """Set Payment.amount = sum of all COMPLETED MemberPayment.amount."""

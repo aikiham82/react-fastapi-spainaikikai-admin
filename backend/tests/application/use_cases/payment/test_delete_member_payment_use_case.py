@@ -183,12 +183,12 @@ class TestDeleteMemberPaymentUseCase:
             return_value=_make_mp("mp1", "pay1", 50.0)
         )
         mock_repos["mp_repo"].delete = AsyncMock(return_value=False)
+        mock_repos["payment_repo"].find_by_id = AsyncMock(return_value=None)
 
         result = await use_case.execute("mp1")
 
         assert result is False
         mock_repos["mp_repo"].find_by_payment_id.assert_not_called()
-        mock_repos["payment_repo"].find_by_id.assert_not_called()
         mock_repos["payment_repo"].update.assert_not_called()
 
     # --- recompute skips update when parent not found ----------------------

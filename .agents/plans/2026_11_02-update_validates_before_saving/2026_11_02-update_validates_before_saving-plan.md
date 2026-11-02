@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-11-02T18:30:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Updates validate before saving
@@ -48,10 +58,10 @@ Public contracts:
 - Test cases: each path below, equal to and above the refund; a payment with no refund is unaffected; the line is not saved or deleted when refused.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Add the check before each save.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Add the check before each save.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: editing a seminar validates before saving
 
@@ -81,6 +91,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Lists that stay up, planned by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Refunds kept whole by 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

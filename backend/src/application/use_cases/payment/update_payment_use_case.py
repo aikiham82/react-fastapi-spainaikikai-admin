@@ -43,6 +43,7 @@ class UpdatePaymentUseCase:
         if amount is not None:
             if amount < 0:
                 raise InvalidPaymentDataError("El importe no puede ser negativo")
+            payment.ensure_covers_refund(amount)
             payment.amount = amount
 
         if payment_year is not None:
