@@ -21,7 +21,13 @@ const LoadFailed = ({ onRetry }: { onRetry: () => void }) => (
 const CardContent = ({ memberId }: { memberId: string | undefined }) => {
   const { data, isLoading, refetch } = useMemberLicensesQuery(memberId);
 
-  if (!memberId) return <CardMessage title="Sin miembro asociado" />;
+  if (!memberId) {
+    return (
+      <CardMessage title="Tu cuenta no tiene ficha de socio">
+        <p className="text-[15px] text-muted-foreground">Pregunta a tu club.</p>
+      </CardMessage>
+    );
+  }
   if (isLoading) return <Loading />;
   if (!data) return <LoadFailed onRetry={() => refetch()} />;
   return <MemberCard licenses={data} />;

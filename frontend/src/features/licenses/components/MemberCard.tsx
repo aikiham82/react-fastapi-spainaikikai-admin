@@ -36,15 +36,14 @@ interface CardImageProps {
   image: Blob | undefined;
   failed: boolean;
   onRetry: () => void;
-  alt: string;
 }
 
-const CardImage = ({ image, failed, onRetry, alt }: CardImageProps) => {
+const CardImage = ({ image, failed, onRetry }: CardImageProps) => {
   const url = useObjectUrl(image);
 
   if (failed && !image) {
     return (
-      <div className="flex aspect-[1.586] flex-col items-center justify-center gap-3 rounded-[18px] bg-muted p-5 text-center">
+      <div className="flex aspect-[1748/1240] flex-col items-center justify-center gap-3 rounded-[18px] bg-muted p-5 text-center">
         <p className="text-[15px] text-muted-foreground">No se pudo cargar la imagen</p>
         <Button variant="outline" onClick={onRetry}>Reintentar</Button>
       </div>
@@ -53,13 +52,13 @@ const CardImage = ({ image, failed, onRetry, alt }: CardImageProps) => {
 
   if (!url) {
     return (
-      <div className="flex aspect-[1.586] items-center justify-center rounded-[18px] bg-muted">
+      <div className="flex aspect-[1748/1240] items-center justify-center rounded-[18px] bg-muted">
         <Loader2 className="size-8 animate-spin text-primary" aria-label="Cargando carné" />
       </div>
     );
   }
 
-  return <img src={url} alt={alt} className="aspect-[1.586] w-full rounded-[18px] object-contain shadow-card" />;
+  return <img src={url} alt="Tu carné" className="aspect-[1748/1240] w-full rounded-[18px] shadow-card" />;
 };
 
 const Detail = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -92,23 +91,18 @@ export const MemberCard = ({ licenses, now = new Date() }: MemberCardProps) => {
 
   return (
     <div className="flex flex-col gap-5">
-      {isInForce && (
-        <CardImage
-          image={image}
-          failed={isError}
-          onRetry={() => refetch()}
-          alt={`Carné de ${license.member_name || 'socio'}`}
-        />
-      )}
+      {isInForce && <CardImage image={image} failed={isError} onRetry={() => refetch()} />}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <StatusBadge tone={tone} icon={icon}>{label}</StatusBadge>
-        {license.expiry_date && (
+        {license.expiry_date && (isInForce || hasExpired) && (
           <span className="text-[15px] text-muted-foreground">
             {hasExpired ? 'Caducó el' : 'Caduca el'} {formatDate(license.expiry_date)}
           </span>
         )}
       </div>
+
+      {!isInForce && <p className="text-[15px] text-muted-foreground">Pregunta a tu club.</p>}
 
       <dl className="divide-y divide-border rounded-[18px] bg-card px-5 py-2 shadow-card">
         {license.member_name && <Detail label="Nombre">{license.member_name}</Detail>}
@@ -120,7 +114,6 @@ export const MemberCard = ({ licenses, now = new Date() }: MemberCardProps) => {
 
       {isInForce && (
         <Button
-          variant="outline"
           size="lg"
           className="w-full"
           disabled={!image}

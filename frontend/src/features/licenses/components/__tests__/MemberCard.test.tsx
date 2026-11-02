@@ -52,7 +52,7 @@ describe('MemberCard', () => {
     expect(screen.getByText('Caduca el 30/06/2027')).toBeInTheDocument();
     expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
     expect(screen.getByText('LIC-2026-0001')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Carné de Ana Pérez' })).toHaveAttribute('src', 'blob:card');
+    expect(screen.getByRole('img', { name: 'Tu carné' })).toHaveAttribute('src', 'blob:card');
   });
 
   it('shows a licence past its date as expired even if stored active', () => {
@@ -69,15 +69,28 @@ describe('MemberCard', () => {
   ])('offers no card image to keep when the licence is %s', (_state, overrides) => {
     renderCard([licence(overrides)]);
 
-    expect(screen.queryByRole('img', { name: /carné de/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Tu carné' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Descargar' })).not.toBeInTheDocument();
+    expect(screen.getByText('Pregunta a tu club.')).toBeInTheDocument();
+  });
+
+  it('does not promise a future expiry to a deregistered member', () => {
+    renderCard([licence({ member_status: 'inactive' })]);
+
+    expect(screen.queryByText(/caduca el/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps the name of the member out of the image description', () => {
+    renderCard([licence()]);
+
+    expect(screen.getByRole('img').getAttribute('alt')).not.toContain('Ana');
   });
 
   it('keeps showing the image when a later refresh fails', () => {
     imageQuery.mockReturnValue({ data: new Blob(['png']), isLoading: false, isError: true, refetch: refetchImage });
     renderCard([licence()]);
 
-    expect(screen.getByRole('img', { name: 'Carné de Ana Pérez' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Tu carné' })).toBeInTheDocument();
   });
 
   it('shows a licence stored expired as expired', () => {

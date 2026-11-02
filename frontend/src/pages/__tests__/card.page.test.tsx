@@ -48,7 +48,7 @@ describe('CardPage', () => {
     Object.assign(authContext, { currentUser: {} });
     renderWithProviders(<CardPage />);
 
-    expect(screen.getByText('Sin miembro asociado')).toBeInTheDocument();
+    expect(screen.getByText('Tu cuenta no tiene ficha de socio')).toBeInTheDocument();
   });
 
   it('offers a retry when the licences cannot be loaded', () => {
