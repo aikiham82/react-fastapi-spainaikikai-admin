@@ -30,7 +30,11 @@ const renderWith = (licencePaid: boolean, insurancePaid: boolean) => {
   renderWithProviders(<MemberPaymentStatus memberId="mem-1" />)
 }
 
-const iconOf = (text: string) => screen.getByText(text).parentElement?.querySelector('svg')
+const toneOf = (text: string) => {
+  const heading = screen.queryByRole('heading', { name: text })
+  const container = heading ?? screen.getByText(text).parentElement
+  return container?.querySelector('[data-tone]')?.getAttribute('data-tone')
+}
 
 describe('MemberPaymentStatus', () => {
   beforeEach(() => {
@@ -40,24 +44,24 @@ describe('MemberPaymentStatus', () => {
   it('without insurance, the insurance group and its lines show no danger', () => {
     renderWith(true, false)
 
-    for (const text of ['Seguros', 'Seguro de accidentes', 'Seguro RC']) {
-      expect(iconOf(text)).not.toHaveClass('text-danger')
-    }
+    expect(toneOf('Seguros')).toBe('neutral')
+    expect(toneOf('Seguro de accidentes')).toBe('neutral')
+    expect(toneOf('Seguro RC')).toBe('neutral')
     expect(screen.getByText('Seguro RC').closest('.bg-danger-soft')).toBeNull()
   })
 
-  it('with all insurances, the insurance group keeps the success icon', () => {
+  it('with all insurances, the insurance group keeps the success tone', () => {
     renderWith(true, true)
 
-    expect(iconOf('Seguros')).toHaveClass('text-success')
-    expect(iconOf('Seguro RC')).toHaveClass('text-success')
+    expect(toneOf('Seguros')).toBe('ok')
+    expect(toneOf('Seguro RC')).toBe('ok')
   })
 
-  it('without licence, the licence group keeps the danger icon', () => {
+  it('without licence, the licence group keeps the danger tone', () => {
     renderWith(false, false)
 
-    expect(iconOf('Licencias')).toHaveClass('text-danger')
-    expect(iconOf('Licencia KYU')).toHaveClass('text-danger')
+    expect(toneOf('Licencias')).toBe('bad')
+    expect(toneOf('Licencia KYU')).toBe('bad')
     expect(screen.getByText('Licencia KYU').closest('.bg-danger-soft')).not.toBeNull()
   })
 })
