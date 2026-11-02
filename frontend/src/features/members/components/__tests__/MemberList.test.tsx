@@ -135,9 +135,9 @@ describe('MemberList', () => {
     renderWithProviders(<MemberList />)
 
     const card = screen.getAllByTestId('member-card')[0]
-    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'bad')
+    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'neutral')
     expect(within(card).getByLabelText('Seguro de responsabilidad civil: al día')).toHaveAttribute('data-tone', 'ok')
-    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro').querySelector('.lucide-circle-x')).not.toBeNull()
+    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro').querySelector('.lucide-circle-dashed')).not.toBeNull()
     expect(within(card).getByLabelText('Seguro de responsabilidad civil: al día').querySelector('.lucide-circle-check')).not.toBeNull()
   })
 
@@ -164,7 +164,7 @@ describe('MemberList', () => {
 
     const card = screen.getAllByTestId('member-card')[0]
     expect(within(card).getByLabelText('Seguro de responsabilidad civil: pendiente')).toHaveAttribute('data-tone', 'neutral')
-    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'bad')
+    expect(within(card).getByLabelText('Seguro de accidentes: sin seguro')).toHaveAttribute('data-tone', 'neutral')
   })
 
   it('counts the quick chips and filters by them', async () => {

@@ -91,6 +91,8 @@ The "Seguros" group of the dialog no longer shows a red X when insurance is miss
 - [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
 - [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
+Added during QA: the AC and RC tiles of the member list painted a missing insurance red (`MemberBadges.tsx`); they now use the neutral "Sin seguro" tone, with test suite `InsuranceTiles`. An expired insurance keeps its own tone.
+
 ## Next step
 
 All phases are implemented: review, QA and merge.
