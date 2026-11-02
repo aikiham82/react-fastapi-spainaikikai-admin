@@ -53,7 +53,7 @@ No data to repair.
 ### Phase 1: non-finite numbers are refused
 
 Public contracts:
-- Every money field of a request DTO becomes `FiniteFloat`: 422 instead of a stored value.
+- Every money field of a request DTO becomes `Money` (finite, not negative, at most 1,000,000; `FiniteFloat` alone did not survive review): 422 instead of a stored value. Responses stay `float`.
 - HTTP validation errors: `detail` keeps `type`, `loc` and `msg`, and no longer carries `input`.
 - Import of payments and insurances: a non-finite `monto` is an error for its row; a non-finite coverage is treated like an invalid one.
 - Test cases: each request DTO refuses the values in the matrix and accepts normal ones; a request with `Infinity` answers 422 through the app; the body does not echo the input; import refuses `inf`.
