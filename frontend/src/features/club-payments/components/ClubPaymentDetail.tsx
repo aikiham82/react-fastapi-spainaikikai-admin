@@ -119,7 +119,6 @@ export const ClubPaymentDetail = () => {
               {clubDetail.has_club_fee ? 'Cuota pagada' : 'Cuota pendiente'}
             </StatusBadge>
             <span className="text-sm text-muted-foreground">Cobrado {formatCurrency(clubDetail.total_collected)}</span>
-            <span className="text-sm text-muted-foreground" aria-hidden="true">·</span>
             <span className="text-sm text-muted-foreground">{clubDetail.members_with_insurance} con seguro</span>
           </div>
         </div>
