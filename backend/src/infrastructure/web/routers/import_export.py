@@ -1,5 +1,6 @@
 """Import/Export routes."""
 
+import math
 import re
 from typing import Optional
 from io import BytesIO
@@ -65,6 +66,13 @@ def _parse_date(value) -> Optional[datetime]:
 
 
 SPAIN_NAMES = {'españa', 'espana', 'spain'}
+
+
+def _finite_number(value) -> float:
+    number = float(str(value).replace(',', '.'))
+    if not math.isfinite(number):
+        raise ValueError(f"Not a finite number: {value}")
+    return number
 
 
 def _cell_text(value) -> str:
@@ -767,7 +775,7 @@ async def import_insurances(
                         update_fields['end_date'] = end_date
                     if coverage_str:
                         try:
-                            update_fields['coverage_amount'] = float(str(coverage_str).replace(',', '.'))
+                            update_fields['coverage_amount'] = _finite_number(coverage_str)
                         except (ValueError, TypeError):
                             pass
 
@@ -822,7 +830,7 @@ async def import_insurances(
             coverage_amount = None
             if coverage_str:
                 try:
-                    coverage_amount = float(str(coverage_str).replace(',', '.'))
+                    coverage_amount = _finite_number(coverage_str)
                 except (ValueError, TypeError):
                     pass
 
@@ -982,7 +990,7 @@ async def import_payments(
                 continue
 
             try:
-                amount = float(str(monto_raw).replace(',', '.'))
+                amount = _finite_number(monto_raw)
             except (ValueError, TypeError):
                 errors.append(f"Fila {idx + 1}: Monto inválido '{monto_raw}'")
                 failed += 1

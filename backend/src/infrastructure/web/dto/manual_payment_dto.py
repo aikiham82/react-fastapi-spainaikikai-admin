@@ -2,7 +2,7 @@
 
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, FiniteFloat, field_validator
 
 from src.infrastructure.web.dto.payment_dto import PaymentResponse
 
@@ -79,7 +79,7 @@ class ManualPaymentRequest(BaseModel):
 class PaymentUpdateRequest(BaseModel):
     """Request DTO for PUT /payments/{id}."""
 
-    amount: Optional[float] = None
+    amount: Optional[FiniteFloat] = None
     payment_year: Optional[int] = None
     payment_method: Optional[Literal["cash", "transfer", "other"]] = None
     payer_name: Optional[str] = None

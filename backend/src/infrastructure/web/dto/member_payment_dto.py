@@ -1,6 +1,6 @@
 """Member Payment DTOs for request/response validation."""
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, FiniteFloat, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -155,6 +155,6 @@ class MemberPaymentUpdateRequest(BaseModel):
 
     payment_type: Optional[str] = None
     concept: Optional[str] = Field(default=None, max_length=200)
-    amount: Optional[float] = None
+    amount: Optional[FiniteFloat] = None
     status: Optional[str] = None
     payment_year: Optional[int] = Field(default=None, ge=2000, le=2100)

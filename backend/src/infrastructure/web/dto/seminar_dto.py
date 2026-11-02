@@ -1,6 +1,6 @@
 """Seminar DTOs for request/response validation."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, FiniteFloat
 from typing import Optional
 from datetime import datetime
 
@@ -14,7 +14,7 @@ class SeminarBase(BaseModel):
     address: str
     city: str
     province: str
-    price: float = 0.0
+    price: FiniteFloat = 0.0
     max_participants: Optional[int] = None
     club_id: Optional[str] = None
     association_id: Optional[str] = None
@@ -37,7 +37,7 @@ class SeminarUpdate(BaseModel):
     province: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    price: Optional[float] = None
+    price: Optional[FiniteFloat] = None
     max_participants: Optional[int] = None
 
 

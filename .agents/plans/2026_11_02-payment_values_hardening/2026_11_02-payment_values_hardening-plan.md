@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-11-02T17:30:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Payment values hardening
@@ -47,10 +57,10 @@ Public contracts:
 - Test cases: each request DTO refuses the values in the matrix and accepts normal ones; a request with `Infinity` answers 422 through the app; the body does not echo the input; import refuses `inf`.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Apply `FiniteFloat`, the handler and the import parser.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`, and `npm run lint && npm run build && npx vitest run` if the frontend reads `input`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Apply `FiniteFloat`, the handler and the import parser.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`, and `npm run lint && npm run build && npx vitest run` if the frontend reads `input`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: error-looking text exports as text
 
@@ -79,6 +89,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Finite numbers guaranteed by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Infinity stopped at the door by ♾️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

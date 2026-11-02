@@ -1,6 +1,6 @@
 """Insurance DTOs for request/response validation."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, FiniteFloat
 from typing import Optional
 from datetime import datetime
 
@@ -17,7 +17,7 @@ class InsuranceBase(BaseModel):
     insurance_type: str = "accident"
     policy_number: str
     insurance_company: str
-    coverage_amount: Optional[float] = None
+    coverage_amount: Optional[FiniteFloat] = None
     payment_id: Optional[str] = None
 
 
@@ -34,7 +34,7 @@ class InsuranceUpdate(BaseModel):
     policy_number: Optional[str] = None
     start_date: Optional[NaiveDatetime] = None
     end_date: Optional[NaiveDatetime] = None
-    coverage_amount: Optional[float] = None
+    coverage_amount: Optional[FiniteFloat] = None
     annulled: Optional[bool] = None
 
 

@@ -1,6 +1,6 @@
 """Annual Payment DTOs for request/response validation."""
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, FiniteFloat, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -13,8 +13,8 @@ class AnnualPaymentLineItem(BaseModel):
     item_type: str
     description: str
     quantity: int
-    unit_price: float
-    total: float
+    unit_price: FiniteFloat
+    total: FiniteFloat
 
 
 class MemberPaymentAssignment(BaseModel):
