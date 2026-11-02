@@ -9,11 +9,11 @@ vi.mock('@/features/auth/hooks/useAuthContext', () => ({
 }))
 
 describe('UnauthorizedPage', () => {
-  it('sends a member who manages nothing to the card app', () => {
+  it('offers a way back to a user refused a page', () => {
     renderWithProviders(<UnauthorizedPage />)
 
-    expect(screen.getByRole('heading', { name: 'El panel es para los responsables de club' })).toBeInTheDocument()
-    expect(screen.getByText('Tu carné está en la app Spain Aikikai: entra en ella con tu correo y tu contraseña.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'No tienes acceso a esta página' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ir al inicio' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
   })
 })

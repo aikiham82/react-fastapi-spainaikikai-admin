@@ -7,7 +7,7 @@ interface InstallOffer extends Event {
 }
 
 const HOW_TO_INSTALL = {
-  ios: 'En Safari, pulsa el botón Compartir y luego "Añadir a pantalla de inicio".',
+  ios: 'En Safari, pulsa el botón Compartir y luego "Añadir a pantalla de inicio". Después vuelve a entrar con tu correo y contraseña.',
   android: 'En Chrome, abre el menú ⋮ y pulsa "Instalar aplicación" o "Añadir a pantalla de inicio".',
 }
 
@@ -44,12 +44,12 @@ export function InstallAppButton() {
   }
 
   return (
-    <div className="my-6 text-center">
-      <Button type="button" variant="outline" className="w-full" onClick={install}>
+    <div className="text-center">
+      <Button type="button" variant="outline" size="lg" className="w-full" onClick={install}>
         <Smartphone className="w-4 h-4 mr-2" />
         Instalar en el móvil
       </Button>
-      {showHowTo && <p className="mt-3 text-sm text-gray-600">{HOW_TO_INSTALL[platform]}</p>}
+      {showHowTo && <p className="mt-3 text-sm text-muted-foreground">{HOW_TO_INSTALL[platform]}</p>}
     </div>
   )
 }

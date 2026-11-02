@@ -1,8 +1,8 @@
-# 🎯 A refused role lands on /unauthorized
+# 🎯 A member lands on their card, a refused role on /unauthorized
 
 ## 💡 Convention
 
-In the admin web, a signed-in user with no panel role (`userRole === null`: a member who manages nothing) is sent by `AppLayout` to `/unauthorized` **before** any page or `ProtectedRoute` renders. What that user reads lives in [`unauthorized.page.tsx`](../../frontend/src/pages/unauthorized.page.tsx); change the message there. `ProtectedRoute` only ever sees users who already have a role.
+In the admin web, a signed-in user with no panel role (`userRole === null`: a member who manages nothing) is sent by `AppLayout` to `/card` **before** any page or `ProtectedRoute` renders. What that user reads lives in [`card.page.tsx`](../../frontend/src/pages/card.page.tsx). `ProtectedRoute` only ever sees users who already have a role: it sends a manager refused one screen to `/unauthorized`, so copy for a member never goes in `ProtectedRoute` or in [`unauthorized.page.tsx`](../../frontend/src/pages/unauthorized.page.tsx).
 
 ## 🏆 Benefits
 
@@ -10,12 +10,12 @@ In the admin web, a signed-in user with no panel role (`userRole === null`: a me
 
 ## 👀 Examples
 
-### ✅ Good: the copy is in the page every refused user reaches
+### ✅ Good: the layout decides where a member goes
 
 ```tsx
-<AuthHeading title="El panel es para los responsables de club">
-  Tu carné está en la app Spain Aikikai: entra en ella con tu correo y tu contraseña.
-</AuthHeading>
+if (!userRole) {
+  return <Navigate to="/card" replace />;
+}
 ```
 
 ### ❌ Bad: a branch the layout never lets through

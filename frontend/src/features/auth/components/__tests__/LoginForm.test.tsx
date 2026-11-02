@@ -77,11 +77,11 @@ describe('LoginForm', () => {
       window.history.pushState({}, '', '/')
     })
 
-    it('does not link to registration and explains how to get access', () => {
+    it('does not link to registration and sends a first timer to activate their card', () => {
       renderWithProviders(<LoginForm />)
 
       expect(screen.queryByRole('link', { name: /regístrate/i })).not.toBeInTheDocument()
-      expect(screen.getByText('¿Primera vez? Pide acceso a tu club o a la Federación.')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: '¿Primera vez? Activa tu carné' })).toHaveAttribute('href', '/activate')
     })
 
     it('should render all form elements correctly', () => {

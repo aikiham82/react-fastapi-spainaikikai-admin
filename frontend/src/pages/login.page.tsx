@@ -4,7 +4,7 @@ import { AuthLayout } from "@/features/auth/components/AuthLayout"
 
 export default function LoginPage() {
   return (
-    <AuthLayout title="Entrar" description="Entra para gestionar tu club.">
+    <AuthLayout title="Entrar" description="Entra para ver tu carné o gestionar tu club.">
       <LoginForm />
       <InstallAppButton />
     </AuthLayout>

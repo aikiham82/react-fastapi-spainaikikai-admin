@@ -27,7 +27,7 @@ export const AppLayout: React.FC = () => {
   }
 
   if (!userRole) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/card" replace />;
   }
 
   return (

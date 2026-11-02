@@ -275,12 +275,12 @@ CARD_ACTIVATION_TEMPLATE = """
         </div>
         <div class="content">
             <p>Hola <strong>{{ member_name }}</strong>,</p>
-            <p>Has pedido activar tu carné. Entrarás en la app Spain Aikikai con tu correo <strong>{{ login_email }}</strong>.</p>
-            <p>Pulsa el botón para poner tu contraseña y luego entra en la app:</p>
+            <p>Has pedido activar tu carné. Lo verás en la app Spain Aikikai o en la web, entrando con tu correo <strong>{{ login_email }}</strong>.</p>
+            <p>Pulsa el botón para poner tu contraseña y luego entra:</p>
             <p style="text-align: center;">
                 <a href="{{ url }}" class="btn">Poner mi contraseña</a>
             </p>
-            <p>El enlace caduca en 24 horas. Si caduca, vuelve a pedirlo en la app con "¿Has olvidado tu contraseña?".</p>
+            <p>El enlace caduca en 24 horas. Si caduca, vuelve a pedirlo con "¿Has olvidado tu contraseña?".</p>
             <div class="link-fallback">
                 <p>Si el boton no funciona, copia y pega este enlace en tu navegador:</p>
                 <p>{{ url }}</p>
@@ -551,7 +551,7 @@ class EmailService(EmailServicePort):
             body_html=html_body,
             body_text=(
                 f"Hola {member_name},\n\n"
-                f"Has pedido activar tu carné. Entrarás en la app Spain Aikikai con tu correo {to_email}.\n\n"
+                f"Has pedido activar tu carné. Lo verás en la app Spain Aikikai o en la web, entrando con tu correo {to_email}.\n\n"
                 f"Pon tu contraseña con este enlace:\n{url}\n\n"
                 "El enlace caduca en 24 horas."
             )

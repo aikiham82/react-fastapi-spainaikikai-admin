@@ -87,7 +87,10 @@ const GROUPS: GroupDefinition[] = [
     title: 'Ajustes',
     icon: Settings,
     footer: true,
-    tabs: [{ title: 'Configuración', path: '/settings', resource: 'clubs' }],
+    tabs: [
+      { title: 'Configuración', path: '/settings', resource: 'clubs' },
+      { title: 'Mi carné', path: '/card', resource: 'clubs', roles: ['club_admin'] },
+    ],
   },
 ]
 
