@@ -2,10 +2,11 @@
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Tuple
 
 from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import MemberNotFoundError
+from src.domain.entities.insurance import latest_accident_insurance_end
+from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.license_image_service import (
@@ -29,10 +30,12 @@ class GenerateLicenseImageUseCase:
         self,
         license_repository: LicenseRepositoryPort,
         member_repository: MemberRepositoryPort,
+        insurance_repository: InsuranceRepositoryPort,
         license_image_service: LicenseImageServicePort
     ):
         self.license_repository = license_repository
         self.member_repository = member_repository
+        self.insurance_repository = insurance_repository
         self.license_image_service = license_image_service
 
     def _calculate_license_year(self) -> int:
@@ -76,6 +79,8 @@ class GenerateLicenseImageUseCase:
             license.expiration_date.year if license.expiration_date else self._calculate_license_year()
         )
 
+        insurances = await self.insurance_repository.find_by_member_id(license.member_id)
+
         # Prepare image data
         image_data = LicenseImageData(
             license_number=license.license_number,
@@ -83,7 +88,7 @@ class GenerateLicenseImageUseCase:
             last_name=member.last_name,
             dni=member.dni,
             birth_date=member.birth_date,
-            expiration_date=license.expiration_date,
+            insurance_end_date=latest_accident_insurance_end(insurances),
             license_year=license_year
         )
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, date
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 
 
@@ -141,3 +141,17 @@ class Insurance:
         """Check if insurance is expiring soon."""
         days_until = self.get_days_until_expiry()
         return 0 < days_until <= days_threshold
+
+
+def latest_accident_insurance_end(insurances: List[Insurance]) -> Optional[datetime]:
+    """End of the member's latest accident insurance that was really held, even if it has passed."""
+    return max(
+        (
+            insurance.end_date
+            for insurance in insurances
+            if insurance.insurance_type == InsuranceType.ACCIDENT
+            and insurance.status in (InsuranceStatus.ACTIVE, InsuranceStatus.EXPIRED)
+            and insurance.end_date
+        ),
+        default=None,
+    )

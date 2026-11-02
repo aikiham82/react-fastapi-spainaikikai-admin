@@ -276,6 +276,7 @@ def get_generate_license_image_use_case() -> GenerateLicenseImageUseCase:
     return GenerateLicenseImageUseCase(
         get_license_repository(),
         get_member_repository(),
+        get_insurance_repository(),
         get_license_image_service()
     )
 

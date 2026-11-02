@@ -1,6 +1,6 @@
-"""A long name stays inside its line of the card."""
+"""A long name stays inside its line of the card, and the insurance line tells the truth."""
 
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 
@@ -32,6 +32,14 @@ def test_a_long_name_shrinks_until_it_fits(service, field, text):
     assert font.getlength(text) <= service.MAX_WIDTHS[field]
 
 
+@pytest.mark.parametrize("end_date, text", [
+    (datetime(2026, 9, 30, 23, 59, 59), "30/09/2026"),
+    (None, "SIN SEGURO"),
+])
+def test_the_insurance_line_is_its_end_date_or_says_there_is_none(service, end_date, text):
+    assert service._insurance_text(end_date) == text
+
+
 @pytest.mark.asyncio
 async def test_the_card_is_drawn_with_a_long_name(service):
     image = await service.generate_license_image(LicenseImageData(
@@ -40,7 +48,7 @@ async def test_the_card_is_drawn_with_a_long_name(service):
         last_name=LONGEST_LAST_NAME_IN_USE,
         dni="00000000T",
         birth_date=date(1990, 5, 1),
-        expiration_date=date(2026, 12, 31),
+        insurance_end_date=date(2026, 12, 31),
         license_year=2026,
     ))
 

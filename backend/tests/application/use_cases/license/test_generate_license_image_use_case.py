@@ -1,4 +1,4 @@
-"""The card says the year of the licence it shows."""
+"""The card says the year of the licence it shows and the insurance the member really holds."""
 
 from datetime import date, datetime
 from types import SimpleNamespace
@@ -7,22 +7,51 @@ from unittest.mock import AsyncMock
 import pytest
 
 from src.application.use_cases.license.generate_license_image_use_case import GenerateLicenseImageUseCase
+from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
+from src.domain.entities.license import License, LicenseType
+from src.domain.entities.member import Member
 
 pytestmark = [pytest.mark.unit, pytest.mark.asyncio]
 
+LICENCE_EXPIRY = datetime(2026, 12, 31, 23, 59, 59)
+ENDED = datetime(2026, 9, 30, 23, 59, 59)
+IN_FORCE = datetime(2027, 9, 30, 23, 59, 59)
 
-def use_case_for(expiration_date):
-    licence = SimpleNamespace(license_number="LIC-1", member_id="m1", expiration_date=expiration_date)
-    member = SimpleNamespace(first_name="Ana", last_name="Ejemplo", dni=None, birth_date=None)
+
+def an_insurance(end_date, insurance_type=InsuranceType.ACCIDENT, status=InsuranceStatus.ACTIVE):
+    return Insurance(
+        member_id="m1",
+        insurance_type=insurance_type,
+        policy_number="POL-1",
+        insurance_company="Aseguradora Ejemplo",
+        start_date=datetime(2020, 1, 1),
+        end_date=end_date,
+        status=status,
+    )
+
+
+def use_case_for(expiration_date=LICENCE_EXPIRY, insurances=()):
+    licence = License(
+        id="lic", license_number="LIC-1", member_id="m1", license_type=LicenseType.KYU,
+        grade="3º Kyu", expiration_date=expiration_date,
+    )
+    member = Member(id="m1", first_name="Ana", last_name="Ejemplo", email="ana@example.com", club_id="club-1")
     images = SimpleNamespace(generate_license_image=AsyncMock(return_value=b"png"))
+    insurance_repository = SimpleNamespace(find_by_member_id=AsyncMock(return_value=list(insurances)))
     return (
         GenerateLicenseImageUseCase(
             SimpleNamespace(find_by_id=AsyncMock(return_value=licence)),
             SimpleNamespace(find_by_id=AsyncMock(return_value=member)),
+            insurance_repository,
             images,
         ),
         images,
     )
+
+
+async def drawn(use_case, images):
+    await use_case.execute("lic")
+    return images.generate_license_image.await_args.args[0]
 
 
 @pytest.mark.parametrize("expiry_year", [2025, 2026, 2027])
@@ -49,3 +78,34 @@ async def test_a_licence_without_expiry_falls_back_to_the_current_season(today, 
     await use_case.execute("lic")
 
     assert images.generate_license_image.await_args.args[0].license_year == season
+
+
+@pytest.mark.parametrize("insurances, end_date", [
+    ([], None),
+    ([an_insurance(ENDED)], ENDED),
+    ([an_insurance(ENDED), an_insurance(IN_FORCE)], IN_FORCE),
+    ([an_insurance(IN_FORCE), an_insurance(ENDED)], IN_FORCE),
+    ([an_insurance(IN_FORCE)], IN_FORCE),
+    ([an_insurance(ENDED), an_insurance(IN_FORCE, status=InsuranceStatus.CANCELLED)], ENDED),
+    ([an_insurance(IN_FORCE, status=InsuranceStatus.CANCELLED)], None),
+    ([an_insurance(IN_FORCE, insurance_type=InsuranceType.CIVIL_LIABILITY)], None),
+    ([an_insurance(None)], None),
+    ([an_insurance(IN_FORCE, status=InsuranceStatus.PENDING)], None),
+    ([an_insurance(ENDED, status=InsuranceStatus.EXPIRED)], ENDED),
+], ids=[
+    "no insurance",
+    "only one that ended",
+    "ended, then renewed",
+    "renewed, then ended",
+    "only one in force",
+    "the newest was cancelled",
+    "only a cancelled one",
+    "only civil liability",
+    "no end date",
+    "only a pending one",
+    "stored as expired",
+])
+async def test_the_card_carries_the_end_of_the_accident_insurance(insurances, end_date):
+    use_case, images = use_case_for(insurances=insurances)
+
+    assert (await drawn(use_case, images)).insurance_end_date == end_date

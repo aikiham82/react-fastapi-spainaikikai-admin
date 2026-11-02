@@ -14,7 +14,7 @@ class LicenseImageData:
     last_name: str
     dni: str
     birth_date: Optional[datetime]
-    expiration_date: Optional[datetime]
+    insurance_end_date: Optional[datetime]
     license_year: int
 
 
