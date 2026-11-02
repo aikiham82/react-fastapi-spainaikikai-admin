@@ -65,102 +65,6 @@ def mock_security():
     }
 
 
-@pytest.mark.api
-@pytest.mark.unit
-class TestRegisterEndpoint:
-    """Test suite for user registration endpoint."""
-
-    def test_register_with_valid_data_returns_token(
-        self, test_app, user_create_data, user_entity_with_id
-    ):
-        """Test successful user registration returns JWT token."""
-        # Arrange - Mock dependencies using FastAPI's dependency override
-        from src.infrastructure.web.dependencies import get_create_user_use_case
-        from src.infrastructure.web.routers.users import get_password_hash, create_access_token
-        
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
-        
-        # Override dependencies
-        test_app.dependency_overrides[get_create_user_use_case] = lambda: mock_use_case
-        
-        with patch('src.infrastructure.web.routers.users.get_password_hash') as mock_hash_password, \
-             patch('src.infrastructure.web.routers.users.create_access_token') as mock_create_token:
-            
-            mock_hash_password.return_value = "hashed_password"
-            mock_create_token.return_value = "jwt.token.here"
-            
-            client = TestClient(test_app)
-            
-            # Act
-            response = client.post("/api/v1/auth/register", json=user_create_data)
-        
-        # Assert
-        assert response.status_code == status.HTTP_201_CREATED
-        data = response.json()
-        assert "access_token" in data
-        assert data["access_token"] == "jwt.token.here"
-        assert data["token_type"] == "bearer"
-        
-        # Verify use case was called with hashed password
-        mock_use_case.execute.assert_called_once_with(
-            email=user_create_data["email"],
-            username=user_create_data["username"],
-            hashed_password="hashed_password"
-        )
-
-    def test_register_with_existing_email_returns_400(
-        self, test_app, user_create_data
-    ):
-        """Test registration with existing email returns 400 Bad Request."""
-        # Arrange - Mock dependencies using FastAPI's dependency override
-        from src.infrastructure.web.dependencies import get_create_user_use_case
-
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.side_effect = UserAlreadyExistsError("User with this email already exists")
-
-        # Override dependencies
-        test_app.dependency_overrides[get_create_user_use_case] = lambda: mock_use_case
-
-        with patch('src.infrastructure.web.routers.users.get_password_hash') as mock_hash_password:
-            mock_hash_password.return_value = "hashed_password"
-
-            client = TestClient(test_app)
-
-            # Act
-            response = client.post("/api/v1/auth/register", json=user_create_data)
-
-        # Assert
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        data = response.json()
-        assert "User with this email already exists" in data["detail"]
-
-    @patch('src.infrastructure.web.routers.users.get_create_user_use_case')
-    @patch('src.infrastructure.web.routers.users.get_password_hash')
-    def test_register_with_invalid_data_returns_422(
-        self, mock_hash_password, mock_get_use_case, client
-    ):
-        """Test registration with invalid data returns 422 Validation Error."""
-        # Arrange
-        invalid_data = {
-            "email": "invalid.email",  # Invalid email format
-            "username": "testuser",
-            "password": "123"  # Too short
-        }
-        
-        # Act
-        response = client.post("/api/v1/auth/register", json=invalid_data)
-        
-        # Assert
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-
-    def test_register_missing_required_fields_returns_422(self, client):
-        """Test registration with missing fields returns 422."""
-        # Act
-        response = client.post("/api/v1/auth/register", json={})
-        
-        # Assert
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.api
@@ -551,7 +455,6 @@ class TestRouterIntegration:
         
         # Assert expected endpoints exist
         expected_paths = [
-            "/auth/register",
             "/auth/login", 
             "/users/me",
             "/users",
@@ -565,40 +468,6 @@ class TestRouterIntegration:
         """Test that router has correct tags."""
         assert router.tags == ["users"]
 
-    def test_register_endpoint_response_model(
-        self, test_app, user_create_data, user_entity_with_id
-    ):
-        """Test register endpoint returns correct response model structure."""
-        # Arrange - Mock dependencies using FastAPI's dependency override
-        from src.infrastructure.web.dependencies import get_create_user_use_case
-        from src.infrastructure.web.routers.users import get_password_hash, create_access_token
-        
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = user_entity_with_id
-        
-        # Override dependencies
-        test_app.dependency_overrides[get_create_user_use_case] = lambda: mock_use_case
-        
-        with patch('src.infrastructure.web.routers.users.get_password_hash') as mock_hash_password, \
-             patch('src.infrastructure.web.routers.users.create_access_token') as mock_create_token:
-            
-            mock_hash_password.return_value = "hashed_password"
-            mock_create_token.return_value = "jwt.token.here"
-            
-            client = TestClient(test_app)
-            
-            # Act
-            response = client.post("/api/v1/auth/register", json=user_create_data)
-        
-        # Assert
-        assert response.status_code == status.HTTP_201_CREATED
-        data = response.json()
-        
-        # Verify Token model structure
-        assert "access_token" in data
-        assert "token_type" in data
-        assert isinstance(data["access_token"], str)
-        assert data["token_type"] == "bearer"
 
     def test_get_users_endpoint_response_model(
         self, test_app, super_admin_entity, test_users_list
@@ -637,7 +506,6 @@ class TestRouterIntegration:
         ("/users", "GET", True),
         ("/users/123", "GET", True),
         ("/users/me", "GET", True),
-        ("/auth/register", "POST", False),
         ("/auth/login", "POST", False),
     ])
     def test_endpoint_authentication_requirements(
@@ -662,7 +530,6 @@ class TestRouterIntegration:
         """Test that all endpoints handle server errors gracefully."""
         # Mock all dependencies to prevent actual database calls
         from src.infrastructure.web.dependencies import (
-            get_create_user_use_case, 
             get_authenticate_user_use_case,
             get_all_users_use_case,
             get_user_by_id_use_case,
@@ -670,36 +537,30 @@ class TestRouterIntegration:
         )
         
         # Create mock use cases
-        mock_create_use_case = AsyncMock()
         mock_auth_use_case = AsyncMock() 
         mock_get_all_use_case = AsyncMock()
         mock_get_by_id_use_case = AsyncMock()
         
         # Setup basic mocking to avoid 500 errors
-        mock_create_use_case.execute.return_value = user_entity_with_id
         mock_auth_use_case.execute.return_value = [user_entity_with_id]
         mock_get_all_use_case.execute.return_value = [user_entity_with_id]
         mock_get_by_id_use_case.execute.return_value = user_entity_with_id
         
         # Override dependencies
-        test_app.dependency_overrides[get_create_user_use_case] = lambda: mock_create_use_case
         test_app.dependency_overrides[get_authenticate_user_use_case] = lambda: mock_auth_use_case
         test_app.dependency_overrides[get_all_users_use_case] = lambda: mock_get_all_use_case
         test_app.dependency_overrides[get_user_by_id_use_case] = lambda: mock_get_by_id_use_case
         test_app.dependency_overrides[get_current_active_user] = lambda: user_entity_with_id
         
-        with patch('src.infrastructure.web.routers.users.get_password_hash') as mock_hash, \
-             patch('src.infrastructure.web.routers.users.create_access_token') as mock_token, \
+        with patch('src.infrastructure.web.routers.users.create_access_token') as mock_token, \
              patch('src.infrastructure.web.routers.users.verify_password') as mock_verify:
-            
-            mock_hash.return_value = "hashed_password"
+
             mock_token.return_value = "jwt.token.here"
             mock_verify.return_value = True
             
             client = TestClient(test_app)
         
             endpoints_and_methods = [
-                ("/auth/register", "POST", {"email": "test@example.com", "username": "test", "password": "password123"}),
                 ("/auth/login", "POST", None),  # Form data
                 ("/users", "GET", None),
                 ("/users/123", "GET", None),

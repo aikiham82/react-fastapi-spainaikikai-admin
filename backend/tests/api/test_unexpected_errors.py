@@ -13,7 +13,6 @@ from src.domain.exceptions.license import LicenseImageGenerationError
 from src.infrastructure.web.authorization import AuthContext
 from src.infrastructure.web.dependencies import (
     get_auth_context,
-    get_create_user_use_case,
     get_generate_license_image_use_case,
     get_license_use_case,
     get_process_redsys_webhook_use_case,
@@ -73,16 +72,6 @@ def test_a_failed_licence_image_does_not_reveal_its_cause():
     assert INTERNAL_CAUSE not in response.text
 
 
-def test_a_failed_sign_up_does_not_reveal_its_cause():
-    client = client_with({get_create_user_use_case: lambda: failing(RuntimeError(INTERNAL_CAUSE))})
-
-    response = client.post(
-        "/api/v1/auth/register",
-        json={"email": "ana@example.com", "username": "ana", "password": "Secreta123!"},
-    )
-
-    assert response.status_code == 500
-    assert INTERNAL_CAUSE not in response.text
 
 
 def test_a_failed_redsys_notification_answers_200_without_its_cause(caplog):

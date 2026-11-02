@@ -6,7 +6,6 @@ from pydantic import ValidationError
 
 from src.infrastructure.web.dto.user_dto import (
     UserBase,
-    UserCreate,
     UserUpdate,
     UserResponse,
     UserLogin,
@@ -62,8 +61,7 @@ class TestUserBase:
         """Test that an account with an unusable email can still be returned.
 
         Migrated accounts store addresses no validator accepts. Refusing to
-        serialise them hid the very accounts support has to fix. Input DTOs
-        such as UserCreate keep EmailStr.
+        serialise them hid the very accounts support has to fix.
         """
         # Arrange
         data = {
@@ -119,111 +117,6 @@ class TestUserBase:
         assert "testuser" in json_str
 
 
-@pytest.mark.api
-@pytest.mark.unit
-class TestUserCreate:
-    """Test suite for UserCreate DTO."""
-
-    def test_user_create_creation_with_valid_data_succeeds(self, user_create_data):
-        """Test that UserCreate can be created with valid data."""
-        # Act
-        user_create = UserCreate(**user_create_data)
-        
-        # Assert
-        assert user_create.email == user_create_data["email"]
-        assert user_create.username == user_create_data["username"]
-        assert user_create.password == user_create_data["password"]
-
-    @pytest.mark.parametrize("invalid_email", [
-        "invalid.email",
-        "@example.com",
-        "test@",
-        ""
-    ])
-    def test_user_create_with_invalid_email_raises_validation_error(self, invalid_email):
-        """Test that UserCreate raises ValidationError for invalid emails."""
-        # Arrange
-        data = {
-            "email": invalid_email,
-            "username": "testuser",
-            "password": "password123"
-        }
-        
-        # Act & Assert
-        with pytest.raises(ValidationError) as exc_info:
-            UserCreate(**data)
-        
-        assert "email" in str(exc_info.value).lower()
-
-    @pytest.mark.parametrize("short_password", [
-        "12345",    # 5 chars
-        "pass",     # 4 chars
-        "a",        # 1 char
-        ""          # Empty
-    ])
-    def test_user_create_with_short_password_raises_validation_error(self, short_password):
-        """Test that UserCreate raises ValidationError for passwords shorter than 6 characters."""
-        # Arrange
-        data = {
-            "email": "test@example.com",
-            "username": "testuser",
-            "password": short_password
-        }
-        
-        # Act & Assert
-        with pytest.raises(ValidationError) as exc_info:
-            UserCreate(**data)
-        
-        error_message = str(exc_info.value).lower()
-        assert "password" in error_message
-        assert ("at least 6 characters" in error_message or 
-                "string too short" in error_message or 
-                "min_length" in error_message)
-
-    def test_user_create_with_minimum_valid_password_succeeds(self):
-        """Test that UserCreate accepts exactly 6 character passwords."""
-        # Arrange
-        data = {
-            "email": "test@example.com",
-            "username": "testuser",
-            "password": "123456"  # Exactly 6 chars
-        }
-        
-        # Act
-        user_create = UserCreate(**data)
-        
-        # Assert
-        assert user_create.password == "123456"
-
-    def test_user_create_with_long_password_succeeds(self):
-        """Test that UserCreate accepts long passwords."""
-        # Arrange
-        long_password = "very_long_password_with_special_chars_123!@#"
-        data = {
-            "email": "test@example.com",
-            "username": "testuser",
-            "password": long_password
-        }
-        
-        # Act
-        user_create = UserCreate(**data)
-        
-        # Assert
-        assert user_create.password == long_password
-
-    def test_user_create_missing_required_fields_raises_validation_error(self):
-        """Test that UserCreate raises ValidationError when required fields are missing."""
-        # Test missing email
-        with pytest.raises(ValidationError):
-            UserCreate(username="testuser", password="password123")
-        
-        # Test missing username
-        with pytest.raises(ValidationError):
-            UserCreate(email="test@example.com", password="password123")
-        
-        # Test missing password
-        with pytest.raises(ValidationError):
-            UserCreate(email="test@example.com", username="testuser")
 
 
 @pytest.mark.api
@@ -538,34 +431,6 @@ class TestTokenData:
 class TestUserDTOsIntegration:
     """Integration tests for User DTOs."""
 
-    def test_user_create_to_user_response_data_flow(self):
-        """Test data flow from UserCreate to UserResponse."""
-        # Arrange
-        create_data = {
-            "email": "test@example.com",
-            "username": "testuser",
-            "password": "password123"
-        }
-        user_create = UserCreate(**create_data)
-        
-        # Simulate processing and creating response
-        now = datetime.utcnow()
-        response_data = {
-            "id": "507f1f77bcf86cd799439011",
-            "email": user_create.email,
-            "username": user_create.username,
-            "is_active": True,
-            "created_at": now,
-            "updated_at": now
-        }
-        
-        # Act
-        user_response = UserResponse(**response_data)
-        
-        # Assert
-        assert user_response.email == user_create.email
-        assert user_response.username == user_create.username
-        assert user_response.is_active is True
 
     def test_user_login_to_token_data_flow(self):
         """Test data flow from UserLogin to TokenData."""
@@ -582,40 +447,9 @@ class TestUserDTOsIntegration:
         # Assert
         assert token_data.username == user_login.username
 
-    def test_all_dtos_serialization_compatibility(self):
-        """Test that all DTOs can be serialized without issues."""
-        # Arrange
-        now = datetime.utcnow()
-        dtos = [
-            UserBase(email="test@example.com", username="testuser"),
-            UserCreate(email="test@example.com", username="testuser", password="password123"),
-            UserUpdate(email="updated@example.com"),
-            UserResponse(
-                id="123", 
-                email="test@example.com", 
-                username="testuser",
-                is_active=True,
-                created_at=now,
-                updated_at=now
-            ),
-            UserLogin(username="testuser", password="password123"),
-            Token(access_token="sample.token"),
-            TokenData(username="testuser")
-        ]
-        
-        # Act & Assert
-        for dto in dtos:
-            # Should not raise any exceptions
-            json_str = dto.model_dump_json()
-            assert isinstance(json_str, str)
-            assert len(json_str) > 0
-            
-            dict_repr = dto.model_dump()
-            assert isinstance(dict_repr, dict)
 
     @pytest.mark.parametrize("dto_class,test_data", [
         (UserBase, {"email": "test@example.com", "username": "testuser"}),
-        (UserCreate, {"email": "test@example.com", "username": "testuser", "password": "password123"}),
         (UserLogin, {"username": "testuser", "password": "password123"}),
         (Token, {"access_token": "sample.token"}),
         (TokenData, {"username": "testuser"})

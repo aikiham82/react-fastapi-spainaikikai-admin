@@ -1,6 +1,6 @@
 """Data Transfer Objects."""
 
-from .user_dto import UserCreate, UserResponse, Token
+from .user_dto import UserResponse, Token
 from .club_dto import ClubCreate, ClubUpdate, ClubResponse
 from .member_dto import MemberCreate, MemberUpdate, MemberResponse
 from .license_dto import LicenseCreate, LicenseUpdate, LicenseRenewRequest, LicenseResponse
@@ -9,7 +9,7 @@ from .payment_dto import PaymentCreate, PaymentResponse, PaymentRefundRequest, R
 from .insurance_dto import InsuranceCreate, InsuranceUpdate, InsuranceResponse, InsuranceListResponse
 
 __all__ = [
-    "UserCreate", "UserResponse", "Token",
+    "UserResponse", "Token",
     "ClubCreate", "ClubUpdate", "ClubResponse",
     "MemberCreate", "MemberUpdate", "MemberResponse",
     "LicenseCreate", "LicenseUpdate", "LicenseRenewRequest", "LicenseResponse",

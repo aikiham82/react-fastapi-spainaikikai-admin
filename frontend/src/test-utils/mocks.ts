@@ -45,7 +45,6 @@ export const mockApiClient = {
 // Mock Auth Service
 export const mockAuthService = {
   login: vi.fn(),
-  register: vi.fn(),
   logout: vi.fn(),
   refreshToken: vi.fn(),
   getCurrentUser: vi.fn(),

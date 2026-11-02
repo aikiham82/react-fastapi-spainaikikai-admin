@@ -18,7 +18,6 @@ import { lazyWithRetry } from "./core/utils/lazyWithRetry";
 
 // Pages with default exports
 const LoginPage = lazyWithRetry(() => import("./pages/login.page"));
-const RegisterPage = lazyWithRetry(() => import("./pages/register.page"));
 const HomePage = lazyWithRetry(() => import("./pages/home.page"));
 const ForgotPasswordPage = lazyWithRetry(() => import("./pages/forgot-password.page"));
 const ResetPasswordPage = lazyWithRetry(() => import("./pages/reset-password.page"));
@@ -61,7 +60,6 @@ function App() {
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/sso-callback" element={<SsoCallbackPage />} />
-                <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/card" element={<CardPage />} />

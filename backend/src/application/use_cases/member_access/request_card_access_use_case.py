@@ -52,9 +52,10 @@ class RequestCardAccessUseCase:
         if member.is_club_admin:
             logger.info(f"Card access not granted: member {member.id} manages the club; a manager gives that access")
             return
+        login_email = member.email.strip().lower()
         if (
-            await self.user_repository.find_by_email(email)
-            or await self.user_repository.find_by_username_loose(email)
+            await self.user_repository.find_by_email(login_email)
+            or await self.user_repository.find_by_username_loose(login_email)
             or await self.user_repository.find_by_member_id(member.id)
         ):
             logger.info(f"Card access not granted: member {member.id} or the email already has an account")
@@ -65,8 +66,8 @@ class RequestCardAccessUseCase:
             return
 
         user = await self.user_repository.create(User(
-            email=email,
-            username=email,
+            email=login_email,
+            username=login_email,
             hashed_password=self.hash_password(secrets.token_urlsafe(32)),
             member_id=member.id,
         ))

@@ -30,7 +30,6 @@ from src.application.use_cases.user_use_cases import (
     GetUserByEmailUseCase,
     GetUserByMemberIdUseCase,
     FindLoginAccountsUseCase,
-    CreateUserUseCase,
     UpdateUserEmailUseCase,
     AuthenticateUserUseCase,
     LoginWithIdentityProviderUseCase,
@@ -660,11 +659,6 @@ def get_update_user_email_use_case() -> UpdateUserEmailUseCase:
         get_user_repository(),
         get_password_reset_token_repository()
     )
-
-
-def get_create_user_use_case() -> CreateUserUseCase:
-    """Get create user use case."""
-    return CreateUserUseCase(get_user_repository())
 
 
 def get_authenticate_user_use_case() -> AuthenticateUserUseCase:

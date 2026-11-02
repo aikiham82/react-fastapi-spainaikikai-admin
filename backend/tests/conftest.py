@@ -283,16 +283,6 @@ def test_users_list():
 
 # DTO test fixtures
 @pytest.fixture
-def user_create_data():
-    """Valid UserCreate DTO data for testing."""
-    return {
-        "email": "test@example.com",
-        "username": "testuser",
-        "password": "password123"
-    }
-
-
-@pytest.fixture
 def user_login_data():
     """Valid UserLogin DTO data for testing."""
     return {

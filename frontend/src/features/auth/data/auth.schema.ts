@@ -27,12 +27,6 @@ export interface AuthRequest {
   password: string;
 }
 
-export interface RegisterRequest {
-  email: string;
-  username: string;
-  password: string;
-}
-
 export interface AuthResponse {
   access_token: string;
   token_type: string;

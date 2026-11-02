@@ -6,7 +6,9 @@ An endpoint anyone can reach without a token answers the **same way** whether th
 
 1. **One answer.** `POST /auth/password-reset/request` returns the same body for a real account, an unknown identifier, an inactive account, a rate-limited one and a failed delivery. Log the difference; never return it.
 2. **One failure.** Wrong password, unknown account and deactivated account all answer `401` with the same message. A different status confirms the account exists.
-3. **Bounded work.** Cap how many password hashes one request can cause. Bcrypt costs ~200 ms per check and runs synchronously, so an unbounded loop blocks the whole API, not just that request.
+3. **Bounded work.** Cap how many password hashes one request can cause. Bcrypt costs ~200 ms per check and runs synchronously, so an unbounded loop blocks the whole API, not just that request. A public endpoint that works in the background also limits each client (`rate_limit.py`, the last `X-Forwarded-For` address, the one the proxy added): over the limit it answers the same and does nothing.
+
+Nobody signs up alone: `POST /auth/register` was removed on 2026-11-02. An account comes from a manager granting access or from a member activating their card. Activation creates the account with the email on the member's file, never the text typed, and `find_all_by_email` compares the emails again in Python: MongoDB's case-insensitive regex matches `ſ` as `s`, so a look-alike could claim someone else's member.
 
 ## 🏆 Benefits
 
@@ -88,13 +90,13 @@ user = next(
 )
 ```
 
-`candidates` is whatever the identifier resolved to. While `/auth/register` accepts anonymous sign-ups and uniqueness is checked more strictly than logins resolve names, an attacker registers case and spacing variants of a club name and every login as that club pays one bcrypt per variant, on the event loop.
+`candidates` is whatever the identifier resolved to. When `/auth/register` accepted anonymous sign-ups and uniqueness was checked more strictly than logins resolved names, an attacker could register case and spacing variants of a club name, and every login as that club paid one bcrypt per variant, on the event loop.
 
 ## 🧐 Real world examples
 
 - [`backend/src/application/use_cases/password_reset/request_password_reset_use_case.py`](../../backend/src/application/use_cases/password_reset/request_password_reset_use_case.py): the single answer, and the availability check placed before the lookup so a configuration failure cannot be told apart from a missing account.
 - [`backend/src/infrastructure/web/routers/users.py`](../../backend/src/infrastructure/web/routers/users.py): `MAX_LOGIN_CANDIDATES`, the active-only filter and the uniform `401`.
-- [`backend/src/application/use_cases/user_use_cases.py`](../../backend/src/application/use_cases/user_use_cases.py): `CreateUserUseCase` checks uniqueness with the same loose rule logins resolve names by, so the variants cannot be created.
+- [`backend/src/infrastructure/web/rate_limit.py`](../../backend/src/infrastructure/web/rate_limit.py): the limit per client, used by `POST /auth/card-access/request`.
 - `POST /auth/social-login` (Google through Clerk) answers every refusal with the same `401` as `/auth/login` and hashes nothing. See [`social-login-only-vouches-for-an-email.md`](social-login-only-vouches-for-an-email.md).
 - [`backend/tests/infrastructure/web/test_login_with_username_router.py`](../../backend/tests/infrastructure/web/test_login_with_username_router.py): `test_only_a_bounded_number_of_passwords_is_checked` pins the cap.
 
