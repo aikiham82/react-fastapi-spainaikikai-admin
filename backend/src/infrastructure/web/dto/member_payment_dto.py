@@ -150,11 +150,14 @@ class MemberPaymentAssignment(BaseModel):
         return v
 
 
+MAX_CONCEPT_LENGTH = 200
+
+
 class MemberPaymentUpdateRequest(BaseModel):
     """Request DTO for PUT /member-payments/{id}."""
 
     payment_type: Optional[str] = None
-    concept: Optional[str] = Field(default=None, max_length=200)
+    concept: Optional[str] = Field(default=None, max_length=MAX_CONCEPT_LENGTH)
     amount: Optional[FiniteFloat] = None
     status: Optional[str] = None
     payment_year: Optional[int] = Field(default=None, ge=2000, le=2100)

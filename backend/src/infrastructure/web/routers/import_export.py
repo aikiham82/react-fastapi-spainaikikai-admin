@@ -18,6 +18,7 @@ from src.infrastructure.web.dto.import_export_dto import (
     ImportInsurancesRequest,
     ImportPaymentsRequest
 )
+from src.infrastructure.web.dto.member_payment_dto import MAX_CONCEPT_LENGTH
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
     get_create_member_use_case,
@@ -967,7 +968,12 @@ async def import_payments(
             year_raw = row.get('ano') or row.get('Año') or row.get('Ano') or row.get('payment_year') or ''
             monto_raw = row.get('monto') or row.get('Monto') or row.get('amount') or 0
             estado = row.get('estado') or row.get('Estado') or row.get('status') or 'completed'
-            concepto = row.get('concepto') or row.get('Concepto') or row.get('concept') or ''
+            concepto = _cell_text(row.get('concepto') or row.get('Concepto') or row.get('concept'))
+
+            if len(concepto) > MAX_CONCEPT_LENGTH:
+                errors.append(f"Fila {idx + 1}: Concepto demasiado largo")
+                failed += 1
+                continue
 
             if not dni:
                 if is_upsert:

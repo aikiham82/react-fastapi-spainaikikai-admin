@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "medium"
 
 last_implementation_at: "2026-11-02T17:30:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # Payment values hardening
@@ -82,13 +82,13 @@ Public contracts:
 - Test cases: a number cell is stored as text; 200 characters accepted; 201 reported as a row error and not stored.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Validate the concept.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Validate the concept.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 3.
+All phases are complete.
 
-No fake errors left, says 🧾 ♾️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Every value in its place thanks to 📏 🧾 ♾️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
