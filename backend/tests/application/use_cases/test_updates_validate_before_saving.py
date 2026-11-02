@@ -1,6 +1,7 @@
 """A value the entity refuses is refused on update: stored, it made every list holding it answer 500."""
 
-from datetime import datetime
+import inspect
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
@@ -12,6 +13,9 @@ from src.domain.entities.club import Club
 from src.domain.entities.member import Member
 from src.domain.entities.seminar import Seminar
 from src.domain.exceptions.base import ValidationError
+from src.infrastructure.web.dto.club_dto import ClubUpdate
+from src.infrastructure.web.dto.member_dto import MemberUpdate
+from src.infrastructure.web.dto.seminar_dto import SeminarUpdate
 
 pytestmark = [pytest.mark.unit]
 
@@ -123,3 +127,29 @@ class TestClub:
         saved = await UpdateClubUseCase(clubs).execute("club-1", name="Club Nuevo")
 
         assert saved.name == "Club Nuevo"
+
+
+@pytest.mark.parametrize(
+    ("use_case", "dto"),
+    [(UpdateSeminarUseCase, SeminarUpdate), (UpdateClubUseCase, ClubUpdate)],
+    ids=["seminar", "club"],
+)
+def test_every_field_the_form_sends_reaches_the_use_case(use_case, dto):
+    assert set(dto.model_fields) <= set(inspect.signature(use_case.execute).parameters)
+
+
+def test_the_member_update_reaches_every_field_and_leaves_the_status_to_its_own_route():
+    parameters = set(inspect.signature(UpdateMemberUseCase.execute).parameters)
+
+    assert set(MemberUpdate.model_fields) <= parameters
+    assert "status" not in MemberUpdate.model_fields
+    assert "status" not in parameters
+
+
+async def test_one_date_with_a_timezone_is_compared_as_the_stored_naive_ones():
+    start_date = SeminarUpdate(start_date=datetime(2027, 3, 1, 12, tzinfo=timezone.utc)).start_date
+    seminars = repository(seminar())
+
+    saved = await UpdateSeminarUseCase(seminars).execute("seminar-1", start_date=start_date)
+
+    assert saved.start_date == datetime(2027, 3, 1, 12)

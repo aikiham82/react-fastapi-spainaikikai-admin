@@ -5,6 +5,7 @@ from typing import Optional
 from datetime import datetime
 
 from src.infrastructure.web.dto.money import Money
+from src.infrastructure.web.dto.naive_datetime import NaiveDatetime
 
 
 class SeminarBase(BaseModel):
@@ -38,8 +39,8 @@ class SeminarUpdate(BaseModel):
     address: Optional[str] = None
     city: Optional[str] = None
     province: Optional[str] = None
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    start_date: Optional[NaiveDatetime] = None
+    end_date: Optional[NaiveDatetime] = None
     price: Optional[Money] = None
     max_participants: Optional[int] = None
 
