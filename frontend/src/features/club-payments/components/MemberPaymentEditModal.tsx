@@ -178,9 +178,10 @@ export function MemberPaymentEditModal({
               type="number"
               step="0.01"
               value={formData.amount}
-              onChange={(e) =>
+              onChange={(e) => {
                 setFormData((prev) => ({ ...prev, amount: e.target.value }))
-              }
+                setErrors(({ amount: _cleared, ...others }) => others)
+              }}
             />
             {errors.amount && (
               <p className="text-sm text-destructive">{errors.amount}</p>

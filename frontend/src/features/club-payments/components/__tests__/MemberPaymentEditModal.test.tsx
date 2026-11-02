@@ -178,6 +178,17 @@ describe('MemberPaymentEditModal', () => {
       expect(mockUpdateMemberPayment).not.toHaveBeenCalled()
     })
 
+    it('clears the error as soon as the amount changes', async () => {
+      renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
+
+      const amountInput = screen.getByDisplayValue('50')
+      fireEvent.change(amountInput, { target: { value: '' } })
+      await user.click(screen.getByRole('button', { name: /guardar|actualizar/i }))
+      fireEvent.change(amountInput, { target: { value: '15' } })
+
+      expect(screen.queryByText('Indica un importe válido')).not.toBeInTheDocument()
+    })
+
     it('still saves an amount of 0 written on purpose', async () => {
       renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
 
