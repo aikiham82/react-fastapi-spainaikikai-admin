@@ -6,6 +6,12 @@ import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { MemberCard } from '@/features/licenses/components/MemberCard';
 import { useMemberLicensesQuery } from '@/features/licenses/hooks/queries/useLicenseQueries';
 
+const Loading = () => (
+  <div className="flex justify-center py-16">
+    <Loader2 className="size-8 animate-spin text-primary" aria-label="Cargando carné" />
+  </div>
+);
+
 const Message = ({ title, children }: { title: string; children?: React.ReactNode }) => (
   <div className="flex flex-col items-center gap-3 rounded-[18px] bg-card p-8 text-center shadow-card">
     <p className="text-lg font-semibold text-foreground">{title}</p>
@@ -13,33 +19,24 @@ const Message = ({ title, children }: { title: string; children?: React.ReactNod
   </div>
 );
 
+const LoadFailed = ({ onRetry }: { onRetry: () => void }) => (
+  <Message title="No se pudo cargar tu carné">
+    <Button variant="outline" onClick={onRetry}>Reintentar</Button>
+  </Message>
+);
+
 const CardContent = ({ memberId }: { memberId: string | undefined }) => {
-  const { data, isLoading, isError, refetch } = useMemberLicensesQuery(memberId);
+  const { data, isLoading, refetch } = useMemberLicensesQuery(memberId);
 
   if (!memberId) return <Message title="Sin miembro asociado" />;
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="size-8 animate-spin text-primary" aria-label="Cargando carné" />
-      </div>
-    );
-  }
-
-  if (isError || !data) {
-    return (
-      <Message title="No se pudo cargar tu carné">
-        <Button variant="outline" onClick={() => refetch()}>Reintentar</Button>
-      </Message>
-    );
-  }
-
+  if (isLoading) return <Loading />;
+  if (!data) return <LoadFailed onRetry={() => refetch()} />;
   return <MemberCard licenses={data} />;
 };
 
 export default function CardPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, currentUser, userRole, logout } = useAuthContext();
+  const { isAuthenticated, currentUser, userLoadFailed, retryLoadingUser, userRole, logout } = useAuthContext();
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
@@ -47,6 +44,8 @@ export default function CardPage() {
     logout();
     navigate('/login');
   };
+
+  const userContent = userLoadFailed ? <LoadFailed onRetry={retryLoadingUser} /> : <Loading />;
 
   return (
     <div className="h-dvh overflow-y-auto bg-background">
@@ -60,13 +59,7 @@ export default function CardPage() {
           </Button>
         </header>
 
-        {isLoading || !currentUser ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="size-8 animate-spin text-primary" aria-label="Cargando carné" />
-          </div>
-        ) : (
-          <CardContent memberId={currentUser.member_id} />
-        )}
+        {currentUser ? <CardContent memberId={currentUser.member_id} /> : userContent}
 
         {userRole && (
           <Button variant="outline" size="lg" className="w-full" asChild>
@@ -75,7 +68,6 @@ export default function CardPage() {
         )}
 
         <InstallAppButton />
-
       </main>
     </div>
   );

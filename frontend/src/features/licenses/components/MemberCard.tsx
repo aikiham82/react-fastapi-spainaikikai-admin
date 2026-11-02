@@ -7,7 +7,7 @@ import { daysUntil } from '@/core/utils/expiry';
 import { formatDate } from '@/core/utils/format';
 import type { License } from '../data/schemas/license.schema';
 import { useLicenseImageQuery } from '../hooks/queries/useLicenseQueries';
-import { cardTitle, holdsOnlyATitle, pickCardLicence } from '../utils/cardLicence';
+import { cardGrade, cardTitle, pickCardLicence } from '../utils/cardLicence';
 import { getStatusPresentation } from '../utils/licenseStatus';
 import { saveCardImage } from '../utils/saveCardImage';
 
@@ -28,7 +28,7 @@ const CardImage = ({ license }: { license: License }) => {
   const { data, isLoading, isError, refetch } = useLicenseImageQuery(license.id);
   const url = useObjectUrl(data);
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <div className="flex aspect-[1.586] flex-col items-center justify-center gap-3 rounded-[18px] bg-muted p-5 text-center">
         <p className="text-[15px] text-muted-foreground">No se pudo cargar la imagen</p>
@@ -98,10 +98,11 @@ export const MemberCard = ({ licenses, now = new Date() }: MemberCardProps) => {
 
   const { tone, label, icon } = getStatusPresentation(license, now);
   const hasExpired = !!license.expiry_date && daysUntil(license.expiry_date, now) < 0;
+  const isInForce = tone === 'ok' || tone === 'warn';
 
   return (
     <div className="flex flex-col gap-5">
-      <CardImage license={license} />
+      {isInForce && <CardImage license={license} />}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <StatusBadge tone={tone} icon={icon}>{label}</StatusBadge>
@@ -115,12 +116,12 @@ export const MemberCard = ({ licenses, now = new Date() }: MemberCardProps) => {
       <dl className="divide-y divide-border rounded-[18px] bg-card px-5 py-2 shadow-card">
         {license.member_name && <Detail label="Nombre">{license.member_name}</Detail>}
         <Detail label="Grado">
-          <BeltBadge grade={holdsOnlyATitle(license) ? null : license.grade} title={cardTitle(licenses)} />
+          <BeltBadge grade={cardGrade(licenses)} title={cardTitle(licenses)} />
         </Detail>
         <Detail label="N.º de licencia">{license.license_number}</Detail>
       </dl>
 
-      <DownloadCard license={license} />
+      {isInForce && <DownloadCard license={license} />}
     </div>
   );
 };

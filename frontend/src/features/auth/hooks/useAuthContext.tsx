@@ -32,6 +32,8 @@ interface AuthContextType {
   logout: () => void;
   getJwt: () => string | null;
   currentUser: CurrentUser | null;
+  userLoadFailed: boolean;
+  retryLoadingUser: () => void;
   userRole: UserRole;
   clubId: string | null;
   loginFailed: boolean;
@@ -58,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { logout: logoutMutation, isLoading: isLoggingOut } = useLogoutMutation();
   const { registerMutation, isPending: isRegistering, error: registerError } = useRegisterMutation();
 
-  const { data: currentUserData, refetch: refetchCurrentUser, isLoading: isLoadingUser } = useQuery({
+  const { data: currentUserData, refetch: refetchCurrentUser, isLoading: isLoadingUser, isError: userLoadFailed } = useQuery({
     queryKey: ['currentUser'],
     queryFn: getCurrentUser,
     enabled: isAuthenticated,
@@ -180,6 +182,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           logout,
           getJwt,
           currentUser: effectiveUser ?? null,
+          userLoadFailed,
+          retryLoadingUser: () => { refetchCurrentUser(); },
           userRole,
           clubId,
           loginFailed: Boolean(loginError),

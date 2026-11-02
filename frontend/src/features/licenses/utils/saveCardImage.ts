@@ -11,7 +11,8 @@ const download = (blob: Blob, fileName: string): void => {
 
 export const saveCardImage = async (blob: Blob, fileName: string): Promise<void> => {
   const file = new File([blob], fileName, { type: blob.type || 'image/png' });
-  if (navigator.canShare?.({ files: [file] })) {
+  const isPhone = window.matchMedia('(pointer: coarse)').matches;
+  if (isPhone && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file] });
       return;

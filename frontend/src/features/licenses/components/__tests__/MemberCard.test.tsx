@@ -62,6 +62,24 @@ describe('MemberCard', () => {
     expect(screen.getByText('Caducó el 31/12/2025')).toBeInTheDocument();
   });
 
+  it.each([
+    ['expired', { expiry_date: '2025-12-31T23:59:59' }],
+    ['deregistered', { member_status: 'inactive' }],
+    ['revoked', { status: 'revoked' as const }],
+  ])('offers no card image to keep when the licence is %s', (_state, overrides) => {
+    renderCard([licence(overrides)]);
+
+    expect(screen.queryByRole('img', { name: /carné de/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descargar' })).not.toBeInTheDocument();
+  });
+
+  it('keeps showing the image when a later refresh fails', () => {
+    imageQuery.mockReturnValue({ data: new Blob(['png']), isLoading: false, isError: true, refetch: refetchImage });
+    renderCard([licence()]);
+
+    expect(screen.getByRole('img', { name: 'Carné de Ana Pérez' })).toBeInTheDocument();
+  });
+
   it('shows a licence stored expired as expired', () => {
     renderCard([licence({ status: 'expired', expiry_date: '2025-12-31T23:59:59' })]);
 

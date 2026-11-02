@@ -24,6 +24,7 @@ export const useLicenseImageQuery = (licenseId: string | undefined) => {
     queryKey: ['license', licenseId, 'image'],
     queryFn: () => licenseService.getLicenseImage(licenseId as string),
     enabled: !!licenseId,
+    staleTime: 60 * 60 * 1000,
   });
 };
 

@@ -8,11 +8,16 @@ const offerShare = (canShare: boolean, share = vi.fn().mockResolvedValue(undefin
   return share;
 };
 
+const onPointer = (coarse: boolean) => {
+  vi.stubGlobal('matchMedia', () => ({ matches: coarse }));
+};
+
 describe('saveCardImage', () => {
   let clickedDownload: string | null;
 
   beforeEach(() => {
     clickedDownload = null;
+    onPointer(true);
     URL.createObjectURL = vi.fn(() => 'blob:card');
     URL.revokeObjectURL = vi.fn();
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
@@ -22,6 +27,7 @@ describe('saveCardImage', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     Object.assign(navigator, { canShare: undefined, share: undefined });
   });
 
@@ -39,6 +45,16 @@ describe('saveCardImage', () => {
 
     await saveCardImage(IMAGE, 'carne.png');
 
+    expect(clickedDownload).toBe('carne.png');
+  });
+
+  it('downloads the image on a computer, even if the browser can share', async () => {
+    onPointer(false);
+    const share = offerShare(true);
+
+    await saveCardImage(IMAGE, 'carne.png');
+
+    expect(share).not.toHaveBeenCalled();
     expect(clickedDownload).toBe('carne.png');
   });
 

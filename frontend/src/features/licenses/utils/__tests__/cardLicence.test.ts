@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { License } from '../../data/schemas/license.schema';
-import { cardTitle, pickCardLicence } from '../cardLicence';
+import { cardGrade, cardTitle, pickCardLicence } from '../cardLicence';
 
 const NOW = new Date('2026-11-02T10:00:00');
 
@@ -47,11 +47,31 @@ describe('pickCardLicence', () => {
     expect(pickCardLicence([grade, title], NOW)?.id).toBe('title');
   });
 
+  it('counts a licence without expiry as in force', () => {
+    const noExpiry = licence({ id: 'no-expiry', expiry_date: '' });
+    const expired = licence({ id: 'expired', expiry_date: '2025-12-31T23:59:59' });
+
+    expect(pickCardLicence([expired, noExpiry], NOW)?.id).toBe('no-expiry');
+  });
+
   it('leaves a revoked licence last', () => {
     const revoked = licence({ id: 'revoked', status: 'revoked' });
     const expired = licence({ id: 'expired', expiry_date: '2025-12-31T23:59:59' });
 
     expect(pickCardLicence([revoked, expired], NOW)?.id).toBe('expired');
+  });
+});
+
+describe('cardGrade', () => {
+  it('keeps the grade of a member whose grade licence expired and whose title is in force', () => {
+    const title = licence({ grade: 'Shidoin', dan_grade: 0, instructor_category: 'shidoin' });
+    const grade = licence({ grade: '3º Dan', expiry_date: '2025-12-31T23:59:59' });
+
+    expect(cardGrade([title, grade])).toBe('3º Dan');
+  });
+
+  it('has no grade with only a title', () => {
+    expect(cardGrade([licence({ grade: 'Shidoin', dan_grade: 0, instructor_category: 'shidoin' })])).toBeNull();
   });
 });
 
