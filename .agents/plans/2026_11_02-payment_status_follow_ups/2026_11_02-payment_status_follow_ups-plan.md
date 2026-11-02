@@ -46,15 +46,15 @@ No member holds two licence types in 2026. All 1104 `member_payments` in product
 
 ### Phase 1: the dialog shows only the licence paid
 
-- [ ] Test suite `MemberPaymentStatus`, cases:
+- [x] Test suite `MemberPaymentStatus`, cases:
   - with each paid licence type, only that line appears under "Licencias", in the success tone
   - without a licence, the group and one line "Sin licencia pagada" are amber
   - insurance lines are unchanged
-- [ ] Copy: add "Sin licencia pagada".
-- [ ] Change `MemberPaymentStatus.tsx`.
-- [ ] Delete `PaymentStatusBadge.tsx` and its exports.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Copy: add "Sin licencia pagada".
+- [x] Change `MemberPaymentStatus.tsx`.
+- [x] Delete `PaymentStatusBadge.tsx` and its exports.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: Transacciones shows the status with the shared tones
 
@@ -78,6 +78,6 @@ No member holds two licence types in 2026. All 1104 `member_payments` in product
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
 Fewer false alarms, courtesy of 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
