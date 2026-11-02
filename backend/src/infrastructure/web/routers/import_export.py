@@ -1,5 +1,6 @@
 """Import/Export routes."""
 
+import re
 from typing import Optional
 from io import BytesIO
 from datetime import datetime
@@ -264,6 +265,13 @@ def _split_last_name(last_name: str) -> tuple:
     return (parts[0], parts[1] if len(parts) > 1 else '')
 
 
+_NOT_STORABLE_IN_XLSX = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff]")
+
+
+def _storable_in_excel(value):
+    return _NOT_STORABLE_IN_XLSX.sub(" ", value) if isinstance(value, str) else value
+
+
 def _build_excel(title: str, column_registry: list, data_rows: list, columns: Optional[str] = None):
     """Build an Excel workbook using column registry and optional column filter.
 
@@ -292,7 +300,7 @@ def _build_excel(title: str, column_registry: list, data_rows: list, columns: Op
 
     for row_idx, item in enumerate(data_rows, 2):
         for col_idx, (_, _, extractor) in enumerate(registry, 1):
-            cell = ws.cell(row=row_idx, column=col_idx, value=extractor(item))
+            cell = ws.cell(row=row_idx, column=col_idx, value=_storable_in_excel(extractor(item)))
             if cell.data_type == "f":
                 cell.data_type = "s"
 

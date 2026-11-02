@@ -74,6 +74,11 @@ export function MemberPaymentEditModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (formData.amount === '') {
+      setErrors({ amount: 'Indica un importe válido' })
+      return
+    }
+
     const parsedAmount = Number(formData.amount)
     const parsedYear = Number(formData.payment_year)
 
@@ -110,7 +115,12 @@ export function MemberPaymentEditModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent
+        onOpenAutoFocus={(event) => {
+          event.preventDefault()
+          ;(event.currentTarget as HTMLElement).focus()
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editar línea de pago</DialogTitle>
           <DialogDescription className="sr-only">
@@ -168,9 +178,10 @@ export function MemberPaymentEditModal({
               type="number"
               step="0.01"
               value={formData.amount}
-              onChange={(e) =>
+              onChange={(e) => {
                 setFormData((prev) => ({ ...prev, amount: e.target.value }))
-              }
+                setErrors(({ amount: _cleared, ...others }) => others)
+              }}
             />
             {errors.amount && (
               <p className="text-sm text-destructive">{errors.amount}</p>
