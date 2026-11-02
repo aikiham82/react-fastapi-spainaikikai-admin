@@ -330,7 +330,7 @@ describe('ClubPaymentDetail — gap coverage', () => {
     it('a member with nothing paid is pending', () => {
       renderClub({ members: [memberUnpaid] })
 
-      expect(within(rowOf('Carlos Rodríguez')).getByText('Pendiente')).toBeInTheDocument()
+      expect(within(rowOf('Carlos Rodríguez')).getByText('Pendiente').closest('[data-tone]')).toHaveAttribute('data-tone', 'warn')
     })
 
     it('counts the members with the licence paid, whatever their insurance', () => {

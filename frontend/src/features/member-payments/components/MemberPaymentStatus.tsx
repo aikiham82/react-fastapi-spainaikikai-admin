@@ -57,7 +57,13 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
         </span>
       </div>
 
-      <PaymentGroup title="Licencias" complete={data.has_all_licenses} missingTone="bad" payments={licensePayments} />
+      <PaymentGroup
+        title="Licencias"
+        complete={data.has_all_licenses}
+        missingTone="warn"
+        payments={licensePayments.filter((status) => status.is_paid)}
+        emptyLabel={`Sin licencia pagada en ${data.payment_year}`}
+      />
       <PaymentGroup title="Seguros" complete={data.has_all_insurances} missingTone="neutral" payments={insurancePayments} />
     </div>
   );
@@ -81,9 +87,10 @@ interface PaymentGroupProps {
   complete: boolean;
   missingTone: StatusTone;
   payments: { payment_type: string; is_paid: boolean; amount?: number | null }[];
+  emptyLabel?: string;
 }
 
-const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, missingTone, payments }) => (
+const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, missingTone, payments, emptyLabel }) => (
   <div>
     <h4 className="mb-2 flex items-center text-sm font-medium">
       <ToneIcon tone={complete ? 'ok' : missingTone} />
@@ -91,43 +98,30 @@ const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, missingTon
     </h4>
     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
       {payments.map((status) => (
-        <PaymentTypeItem
+        <PaymentLine
           key={status.payment_type}
-          paymentType={status.payment_type}
-          isPaid={status.is_paid}
-          missingTone={missingTone}
-          amount={status.amount}
+          label={MEMBER_PAYMENT_TYPES[status.payment_type as MemberPaymentType] || status.payment_type}
+          tone={status.is_paid ? 'ok' : missingTone}
+          amount={status.is_paid ? status.amount : null}
         />
       ))}
+      {payments.length === 0 && emptyLabel && <PaymentLine label={emptyLabel} tone={missingTone} />}
     </div>
   </div>
 );
 
-interface PaymentTypeItemProps {
-  paymentType: string;
-  isPaid: boolean;
-  missingTone: StatusTone;
+interface PaymentLineProps {
+  label: string;
+  tone: StatusTone;
   amount?: number | null;
 }
 
-const PaymentTypeItem: React.FC<PaymentTypeItemProps> = ({
-  paymentType,
-  isPaid,
-  missingTone,
-  amount,
-}) => {
-  const label = MEMBER_PAYMENT_TYPES[paymentType as MemberPaymentType] || paymentType;
-  const tone = isPaid ? 'ok' : missingTone;
-
-  return (
-    <div className={cn('flex items-center justify-between rounded-md p-2', toneClasses[tone])}>
-      <div className="flex items-center">
-        <ToneIcon tone={tone} />
-        <span className="text-sm text-foreground">{label}</span>
-      </div>
-      {isPaid && amount != null && (
-        <span className="text-sm font-medium text-foreground">{formatCurrency(amount)}</span>
-      )}
+const PaymentLine: React.FC<PaymentLineProps> = ({ label, tone, amount }) => (
+  <div className={cn('flex items-center justify-between rounded-md p-2', toneClasses[tone])}>
+    <div className="flex items-center">
+      <ToneIcon tone={tone} />
+      <span className="text-sm text-foreground">{label}</span>
     </div>
-  );
-};
+    {amount != null && <span className="text-sm font-medium text-foreground">{formatCurrency(amount)}</span>}
+  </div>
+);

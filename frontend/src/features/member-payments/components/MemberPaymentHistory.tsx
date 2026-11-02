@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { StatusBadge, type StatusTone } from '@/components/ui/status-badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { AlertCircle, History } from 'lucide-react';
 import { useMemberPaymentHistoryQuery } from '../hooks/queries/useMemberPaymentQueries';
 import {
@@ -19,12 +19,7 @@ import {
   type MemberPaymentStatus,
 } from '../data/schemas/member-payment.schema';
 import { formatCurrency, formatDate } from '@/core/utils/format';
-
-const STATUS_TONES: Record<MemberPaymentStatus, StatusTone> = {
-  completed: 'ok',
-  pending: 'warn',
-  refunded: 'bad',
-};
+import { paymentStatusTone } from '@/core/utils/paymentStatusTone';
 
 interface MemberPaymentHistoryProps {
   memberId: string;
@@ -119,7 +114,7 @@ export const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({
                 </TableCell>
                 <TableCell>{formatCurrency(payment.amount)}</TableCell>
                 <TableCell>
-                  <StatusBadge tone={STATUS_TONES[payment.status as MemberPaymentStatus] ?? 'neutral'}>
+                  <StatusBadge tone={paymentStatusTone(payment.status)}>
                     {MEMBER_PAYMENT_STATUS[payment.status as MemberPaymentStatus] ?? payment.status}
                   </StatusBadge>
                 </TableCell>

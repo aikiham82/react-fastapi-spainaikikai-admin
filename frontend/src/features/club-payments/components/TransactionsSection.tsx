@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { paymentStatusTone } from '@/core/utils/paymentStatusTone'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -18,14 +19,6 @@ import { formatCurrency } from '@/core/utils/format'
 import { getPaidLabel, getPaidParts, getPaymentTypeLabel, getStatusLabel } from '../utils/payment-labels'
 import { LineActions } from './LineActions'
 import { useCanChangePaymentLine } from '../hooks/useCanChangePaymentLine'
-
-const getStatusVariant = (
-  status: string
-): 'default' | 'destructive' | 'secondary' | 'outline' => {
-  if (status === 'completed') return 'default'
-  if (status === 'refunded') return 'secondary'
-  return 'destructive'
-}
 
 function PaidOn({ line }: { line: MemberPayment }) {
   const parts = getPaidParts(line)
@@ -94,7 +87,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 </div>
                 <div className="text-right space-y-1">
                   <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
-                  <Badge variant={getStatusVariant(mp.status)}>{getStatusLabel(mp.status)}</Badge>
+                  <StatusBadge tone={paymentStatusTone(mp.status)}>{getStatusLabel(mp.status)}</StatusBadge>
                 </div>
               </div>
               {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
@@ -132,9 +125,9 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                   {formatCurrency(mp.amount)}
                 </TableCell>
                 <TableCell className="text-center">
-                  <Badge variant={getStatusVariant(mp.status)}>
+                  <StatusBadge tone={paymentStatusTone(mp.status)}>
                     {getStatusLabel(mp.status)}
-                  </Badge>
+                  </StatusBadge>
                 </TableCell>
                 <TableCell className="text-center">
                   {canChangeLine(mp) && (

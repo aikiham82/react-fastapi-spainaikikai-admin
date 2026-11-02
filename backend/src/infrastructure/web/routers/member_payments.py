@@ -248,7 +248,7 @@ async def get_unpaid_members(
     """
     Get list of members who haven't paid for a specific item type.
 
-    If payment_type is not specified, returns all members without any payment.
+    If payment_type is not specified, returns all members without a licence or title paid.
     """
     require_club_access(ctx, club_id)
     try:

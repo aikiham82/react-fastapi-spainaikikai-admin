@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { StatusBadge, type StatusTone } from '@/components/ui/status-badge'
+import { StatusBadge } from '@/components/ui/status-badge'
+import { paymentStatusTone } from '@/core/utils/paymentStatusTone'
 import { usePermissions } from '@/core/hooks/usePermissions'
 import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear'
 import { useMemberPaymentHistoryQuery } from '@/features/member-payments/hooks/queries/useMemberPaymentQueries'
@@ -21,8 +22,6 @@ interface MemberPaymentLinesProps {
   clubId: string
   clubName: string
 }
-
-const STATUS_TONES: Record<string, StatusTone> = { completed: 'ok', pending: 'warn', refunded: 'bad' }
 
 const groupByYear = (lines: MemberPayment[]): [number, MemberPayment[]][] =>
   [...new Set(lines.map((line) => line.payment_year))]
@@ -48,7 +47,7 @@ function PaymentLineItem({ line, onEdit, onDelete }: PaymentLineItemProps) {
           <p className="text-sm text-muted-foreground tabular-nums">{formatCurrency(line.amount)}</p>
           {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
         </div>
-        <StatusBadge tone={STATUS_TONES[line.status] ?? 'neutral'}>{getStatusLabel(line.status)}</StatusBadge>
+        <StatusBadge tone={paymentStatusTone(line.status)}>{getStatusLabel(line.status)}</StatusBadge>
       </div>
       {onEdit && onDelete && <LineActions onEdit={onEdit} onDelete={onDelete} />}
     </li>
