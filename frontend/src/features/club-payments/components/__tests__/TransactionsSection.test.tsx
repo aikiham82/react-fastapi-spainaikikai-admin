@@ -104,8 +104,8 @@ describe('TransactionsSection', () => {
 
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
-      expect(screen.getAllByRole('cell', { name: 'Licencia KYU' })).toHaveLength(1)
-      expect(screen.getAllByRole('cell', { name: 'Seguro RC' })).toHaveLength(1)
+      expect(screen.getByRole('cell', { name: 'Licencia KYU' })).toBeInTheDocument()
+      expect(screen.getByRole('cell', { name: 'Seguro RC' })).toBeInTheDocument()
     })
 
     it('does not show the stored concept, which holds internal keys', async () => {
