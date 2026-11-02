@@ -3,6 +3,7 @@
 from src.domain.entities.member import Member, is_club_account_placeholder_name
 from src.domain.exceptions.member import InvalidMemberDataError, MemberAlreadyExistsError, MemberNotFoundError
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.use_cases.apply_changes import apply_changes
 
 
 class UpdateMemberUseCase:
@@ -26,9 +27,4 @@ class UpdateMemberUseCase:
                 if holder and holder.id != member.id:
                     raise MemberAlreadyExistsError("Ya existe un miembro con ese DNI")
 
-        # Update fields
-        for key, value in kwargs.items():
-            if value is not None and hasattr(member, key):
-                setattr(member, key, value)
-
-        return await self.member_repository.update(member)
+        return await self.member_repository.update(apply_changes(member, kwargs))
