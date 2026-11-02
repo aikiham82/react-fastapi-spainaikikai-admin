@@ -102,7 +102,6 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
           <TableHeader>
             <TableRow>
               <TableHead>Miembro</TableHead>
-              <TableHead>Concepto</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="whitespace-nowrap">Fecha de pago</TableHead>
               <TableHead className="text-right">Importe</TableHead>
@@ -116,7 +115,6 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 <TableCell className="font-medium">
                   {mp.member_name || mp.member_id}
                 </TableCell>
-                <TableCell>{mp.concept}</TableCell>
                 <TableCell>{getPaymentTypeLabel(mp.payment_type)}</TableCell>
                 <TableCell>
                   <PaidOn line={mp} />

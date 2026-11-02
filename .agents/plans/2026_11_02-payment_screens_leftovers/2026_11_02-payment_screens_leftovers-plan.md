@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-11-02T15:30:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Payment screens leftovers
@@ -47,11 +57,11 @@ Public contracts:
 - Test cases: `TransactionsSection` does not print the stored concept and has no `Concepto` header; `MemberPaymentEditModal` has no `Concepto` field and does not send `concept`.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Remove the column and the input.
-- [ ] Measure the table at 768 and 1024 and fix whatever still scrolls.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Remove the column and the input.
+- [x] Measure the table at 768 and 1024 and fix whatever still scrolls.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: the dialog total adds up
 
@@ -84,6 +94,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
 Tidy tables delivered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

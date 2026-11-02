@@ -104,8 +104,25 @@ describe('TransactionsSection', () => {
 
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
-      expect(screen.getByText('Licencia KYU 2024')).toBeInTheDocument()
-      expect(screen.getByText('Seguro RC 2024')).toBeInTheDocument()
+      expect(screen.getAllByRole('cell', { name: 'Licencia KYU' })).toHaveLength(1)
+      expect(screen.getAllByRole('cell', { name: 'Seguro RC' })).toHaveLength(1)
+    })
+
+    it('does not show the stored concept, which holds internal keys', async () => {
+      const payments = [makeMemberPayment({ concept: 'licencia_kyu - 2026' })]
+
+      const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+      vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+        data: payments,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+      renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+      expect(screen.queryByText('licencia_kyu - 2026')).not.toBeInTheDocument()
+      expect(screen.queryByRole('columnheader', { name: 'Concepto' })).not.toBeInTheDocument()
     })
 
     it('shows the member name (not the raw member_id) when provided', async () => {
