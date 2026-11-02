@@ -309,7 +309,7 @@ def _build_excel(title: str, column_registry: list, data_rows: list, columns: Op
     for row_idx, item in enumerate(data_rows, 2):
         for col_idx, (_, _, extractor) in enumerate(registry, 1):
             cell = ws.cell(row=row_idx, column=col_idx, value=_storable_in_excel(extractor(item)))
-            if cell.data_type == "f":
+            if cell.data_type in ("f", "e"):
                 cell.data_type = "s"
 
     for col in ws.columns:

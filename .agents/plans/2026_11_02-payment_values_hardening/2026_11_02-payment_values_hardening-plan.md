@@ -69,10 +69,10 @@ Public contracts:
 - Test cases: both values read back as text; formulas stay text.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Extend the guard.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Extend the guard.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: the imported concept is bounded text
 
@@ -89,6 +89,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
-Infinity stopped at the door by ♾️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+No fake errors left, says 🧾 ♾️ 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

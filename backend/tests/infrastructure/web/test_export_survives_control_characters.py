@@ -37,6 +37,14 @@ def test_a_formula_is_still_exported_as_text():
     assert exported_value("=1+1") == "=1+1"
 
 
+@pytest.mark.parametrize("value", ["#REF!", "#N/A", "#DIV/0!"])
+def test_text_that_looks_like_an_excel_error_is_exported_as_text(value):
+    output = _build_excel("Pagos", [("concept", "Concepto", lambda row: row)], [value])
+    cell = openpyxl.load_workbook(output).active.cell(row=2, column=1)
+
+    assert (cell.value, cell.data_type) == (value, "s")
+
+
 def test_a_concept_of_200_characters_is_accepted():
     assert len(MemberPaymentUpdateRequest(concept="a" * 200).concept) == 200
 
