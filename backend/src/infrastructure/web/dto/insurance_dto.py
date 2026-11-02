@@ -7,6 +7,8 @@ from datetime import datetime
 from src.domain.entities.insurance import InsuranceType
 from src.infrastructure.web.dto.naive_datetime import NaiveDatetime
 
+from src.infrastructure.web.dto.money import Money
+
 
 class InsuranceBase(BaseModel):
     """Base Insurance DTO.
@@ -23,6 +25,7 @@ class InsuranceBase(BaseModel):
 
 class InsuranceCreate(InsuranceBase):
     """DTO for creating a new insurance."""
+    coverage_amount: Optional[Money] = None
     start_date: datetime
     end_date: datetime
 
@@ -34,7 +37,7 @@ class InsuranceUpdate(BaseModel):
     policy_number: Optional[str] = None
     start_date: Optional[NaiveDatetime] = None
     end_date: Optional[NaiveDatetime] = None
-    coverage_amount: Optional[float] = None
+    coverage_amount: Optional[Money] = None
     annulled: Optional[bool] = None
 
 

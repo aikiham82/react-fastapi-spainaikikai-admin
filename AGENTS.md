@@ -58,6 +58,7 @@ docs/
 │   ├── excel-import-cells-are-text.md
 │   ├── frontend.md
 │   ├── list-screens-share-one-pattern.md
+│   ├── money-is-limited-where-it-enters.md
 │   ├── navigation-groups-and-tabs.md
 │   ├── public-images-are-unignored.md
 │   ├── pwa-updates-without-service-worker.md

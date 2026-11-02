@@ -6,6 +6,8 @@ from pydantic import BaseModel, field_validator
 
 from src.infrastructure.web.dto.payment_dto import PaymentResponse
 
+from src.infrastructure.web.dto.money import Money
+
 
 class ManualMemberAssignmentDTO(BaseModel):
     """Assignment of payment types to a member (manual payment)."""
@@ -79,7 +81,7 @@ class ManualPaymentRequest(BaseModel):
 class PaymentUpdateRequest(BaseModel):
     """Request DTO for PUT /payments/{id}."""
 
-    amount: Optional[float] = None
+    amount: Optional[Money] = None
     payment_year: Optional[int] = None
     payment_method: Optional[Literal["cash", "transfer", "other"]] = None
     payer_name: Optional[str] = None

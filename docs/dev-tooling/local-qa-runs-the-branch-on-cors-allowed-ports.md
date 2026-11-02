@@ -9,6 +9,7 @@ Browser QA of a worktree runs **that worktree's** code against its **own** local
 - **Card app in dev calls `http://localhost:8000/api/v1` hard-coded.** Port 8000 is often taken by another session. After opening the app, patch `window.fetch` and `XMLHttpRequest.prototype.open` in the page to swap `localhost:8000` for your backend port, and re-apply after every reload (agent-browser routes cannot redirect).
 - **Expo with `CI=1` does not hot-reload.** After changing app code, stop and restart `expo start --web --clear`; a screenshot before that shows the old screen.
 - **Restart the backend after backend commits**: uvicorn runs without `--reload`, so QA otherwise tests stale code.
+- **QA writes invoices into the worktree.** Each payment generates a PDF in `backend/invoices/`, which is ignored for new files, but three old ones are tracked. Check `git status` before committing and stage by path, not with `git add -A`: on 2026-11-02 QA invoices slipped into a commit.
 - **No SMTP locally.** Read set-password links from the QA database (`password_reset_tokens`) instead of waiting for mail.
 - The shell is zsh with `noclobber`: overwrite logs with `>|`, or the command fails before starting.
 

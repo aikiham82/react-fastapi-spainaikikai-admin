@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
+from pydantic import TypeAdapter
 
 from src.infrastructure.web.dto.import_export_dto import (
     ImportMembersRequest,
@@ -17,6 +18,8 @@ from src.infrastructure.web.dto.import_export_dto import (
     ImportInsurancesRequest,
     ImportPaymentsRequest
 )
+from src.infrastructure.web.dto.member_payment_dto import MAX_CONCEPT_LENGTH
+from src.infrastructure.web.dto.money import Money
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
     get_create_member_use_case,
@@ -65,6 +68,13 @@ def _parse_date(value) -> Optional[datetime]:
 
 
 SPAIN_NAMES = {'españa', 'espana', 'spain'}
+
+
+_MONEY = TypeAdapter(Money)
+
+
+def _money(value) -> float:
+    return _MONEY.validate_python(float(str(value).replace(',', '.')))
 
 
 def _cell_text(value) -> str:
@@ -301,7 +311,7 @@ def _build_excel(title: str, column_registry: list, data_rows: list, columns: Op
     for row_idx, item in enumerate(data_rows, 2):
         for col_idx, (_, _, extractor) in enumerate(registry, 1):
             cell = ws.cell(row=row_idx, column=col_idx, value=_storable_in_excel(extractor(item)))
-            if cell.data_type == "f":
+            if cell.data_type in ("f", "e"):
                 cell.data_type = "s"
 
     for col in ws.columns:
@@ -767,7 +777,7 @@ async def import_insurances(
                         update_fields['end_date'] = end_date
                     if coverage_str:
                         try:
-                            update_fields['coverage_amount'] = float(str(coverage_str).replace(',', '.'))
+                            update_fields['coverage_amount'] = _money(coverage_str)
                         except (ValueError, TypeError):
                             pass
 
@@ -822,7 +832,7 @@ async def import_insurances(
             coverage_amount = None
             if coverage_str:
                 try:
-                    coverage_amount = float(str(coverage_str).replace(',', '.'))
+                    coverage_amount = _money(coverage_str)
                 except (ValueError, TypeError):
                     pass
 
@@ -959,13 +969,18 @@ async def import_payments(
             year_raw = row.get('ano') or row.get('Año') or row.get('Ano') or row.get('payment_year') or ''
             monto_raw = row.get('monto') or row.get('Monto') or row.get('amount') or 0
             estado = row.get('estado') or row.get('Estado') or row.get('status') or 'completed'
-            concepto = row.get('concepto') or row.get('Concepto') or row.get('concept') or ''
+            concepto = _cell_text(row.get('concepto') or row.get('Concepto') or row.get('concept'))
 
             if not dni:
                 if is_upsert:
                     # In upsert mode, skip rows without DNI (can't match member)
                     continue
                 errors.append(f"Fila {idx + 1}: DNI es obligatorio")
+                failed += 1
+                continue
+
+            if len(concepto) > MAX_CONCEPT_LENGTH:
+                errors.append(f"Fila {idx + 1}: Concepto demasiado largo")
                 failed += 1
                 continue
 
@@ -982,7 +997,7 @@ async def import_payments(
                 continue
 
             try:
-                amount = float(str(monto_raw).replace(',', '.'))
+                amount = _money(monto_raw)
             except (ValueError, TypeError):
                 errors.append(f"Fila {idx + 1}: Monto inválido '{monto_raw}'")
                 failed += 1

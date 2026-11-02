@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+from src.infrastructure.web.dto.money import Money
+
 
 class SeminarBase(BaseModel):
     """Base Seminar DTO."""
@@ -22,6 +24,7 @@ class SeminarBase(BaseModel):
 
 class SeminarCreate(SeminarBase):
     """DTO for creating a new seminar."""
+    price: Money = 0.0
     start_date: datetime
     end_date: datetime
 
@@ -37,7 +40,7 @@ class SeminarUpdate(BaseModel):
     province: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    price: Optional[float] = None
+    price: Optional[Money] = None
     max_participants: Optional[int] = None
 
 

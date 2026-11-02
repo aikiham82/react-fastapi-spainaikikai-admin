@@ -4,6 +4,8 @@ from pydantic import BaseModel, HttpUrl
 from typing import Optional, Dict, Any
 from datetime import datetime
 
+from src.infrastructure.web.dto.money import Money
+
 
 class PaymentBase(BaseModel):
     """Base Payment DTO."""
@@ -17,7 +19,7 @@ class PaymentBase(BaseModel):
 
 class PaymentCreate(PaymentBase):
     """DTO for creating a new payment."""
-    pass
+    amount: Money
 
 
 class PaymentResponse(PaymentBase):
@@ -41,7 +43,7 @@ class PaymentResponse(PaymentBase):
 
 class PaymentRefundRequest(BaseModel):
     """DTO for refunding a payment."""
-    refund_amount: Optional[float] = None
+    refund_amount: Optional[Money] = None
 
 
 class InitiatePaymentRequest(BaseModel):
@@ -49,7 +51,7 @@ class InitiatePaymentRequest(BaseModel):
     member_id: Optional[str] = None
     club_id: Optional[str] = None
     payment_type: str = "license_fee"
-    amount: float
+    amount: Money
     related_entity_id: Optional[str] = None
     description: Optional[str] = None
     payment_year: Optional[int] = None
@@ -86,6 +88,6 @@ class RedsysPaymentRequest(BaseModel):
     member_id: Optional[str] = None
     club_id: Optional[str] = None
     payment_type: str = "license_fee"
-    amount: float
+    amount: Money
     return_url: HttpUrl
     related_entity_id: Optional[str] = None

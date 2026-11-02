@@ -2,6 +2,8 @@
 
 from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -32,6 +34,12 @@ from src.config.sentry import configure_sentry
 from src.config.settings import AppSettings
 from dotenv import load_dotenv
 load_dotenv()
+
+
+async def request_validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    errors = [{key: value for key, value in error.items() if key != "input"} for error in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -69,6 +77,8 @@ def create_app() -> FastAPI:
 
     # Domain exception handlers — must be registered before CORS middleware
     # so FastAPI handles the response (CORS headers are added by the middleware)
+    app.add_exception_handler(RequestValidationError, request_validation_handler)
+
     @app.exception_handler(EntityNotFoundError)
     async def entity_not_found_handler(request: Request, exc: EntityNotFoundError):
         return JSONResponse(status_code=404, content={"detail": str(exc)})

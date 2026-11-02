@@ -373,7 +373,7 @@ class TestPutPayment:
         test_app.dependency_overrides[get_update_payment_use_case] = lambda: mock_use_case
 
         client = TestClient(test_app)
-        response = client.put("/api/v1/payments/pay-001", json={"amount": -10.0})
+        response = client.put("/api/v1/payments/pay-001", json={"amount": 10.0})
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 

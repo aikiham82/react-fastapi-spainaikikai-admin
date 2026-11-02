@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+from src.infrastructure.web.dto.money import Money
+
 
 class PriceConfigurationBase(BaseModel):
     """Base Price Configuration DTO."""
@@ -18,12 +20,12 @@ class PriceConfigurationBase(BaseModel):
 
 class PriceConfigurationCreate(PriceConfigurationBase):
     """DTO for creating a new price configuration."""
-    pass
+    price: Money
 
 
 class PriceConfigurationUpdate(BaseModel):
     """DTO for updating a price configuration."""
-    price: Optional[float] = None
+    price: Optional[Money] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
     valid_from: Optional[str] = None
