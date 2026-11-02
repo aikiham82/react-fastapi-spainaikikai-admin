@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-11-02T16:30:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Payment edit and export fixes
@@ -45,10 +55,10 @@ Public contracts:
 - Test cases: a value with a control character exports without it; tab, line break and non-text values stay; 200 characters accepted and 201 refused.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Strip the characters in `_build_excel` and limit `concept`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Strip the characters in `_build_excel` and limit `concept`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: an empty amount is not 0
 
@@ -75,6 +85,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Sturdier payments on the way from 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Exports standing tall thanks to 📤 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

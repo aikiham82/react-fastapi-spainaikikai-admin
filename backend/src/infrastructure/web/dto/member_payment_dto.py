@@ -154,7 +154,7 @@ class MemberPaymentUpdateRequest(BaseModel):
     """Request DTO for PUT /member-payments/{id}."""
 
     payment_type: Optional[str] = None
-    concept: Optional[str] = None
+    concept: Optional[str] = Field(default=None, max_length=200)
     amount: Optional[float] = None
     status: Optional[str] = None
     payment_year: Optional[int] = Field(default=None, ge=2000, le=2100)

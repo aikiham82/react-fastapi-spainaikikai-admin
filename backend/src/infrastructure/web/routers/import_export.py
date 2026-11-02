@@ -7,6 +7,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 import openpyxl
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Font, PatternFill, Alignment
 
 from src.infrastructure.web.dto.import_export_dto import (
@@ -264,6 +265,10 @@ def _split_last_name(last_name: str) -> tuple:
     return (parts[0], parts[1] if len(parts) > 1 else '')
 
 
+def _storable_in_excel(value):
+    return ILLEGAL_CHARACTERS_RE.sub("", value) if isinstance(value, str) else value
+
+
 def _build_excel(title: str, column_registry: list, data_rows: list, columns: Optional[str] = None):
     """Build an Excel workbook using column registry and optional column filter.
 
@@ -292,7 +297,7 @@ def _build_excel(title: str, column_registry: list, data_rows: list, columns: Op
 
     for row_idx, item in enumerate(data_rows, 2):
         for col_idx, (_, _, extractor) in enumerate(registry, 1):
-            cell = ws.cell(row=row_idx, column=col_idx, value=extractor(item))
+            cell = ws.cell(row=row_idx, column=col_idx, value=_storable_in_excel(extractor(item)))
             if cell.data_type == "f":
                 cell.data_type = "s"
 
