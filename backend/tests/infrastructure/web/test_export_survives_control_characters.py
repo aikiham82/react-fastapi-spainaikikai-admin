@@ -17,11 +17,11 @@ def exported_value(value):
 
 @pytest.mark.parametrize(
     "value",
-    ["qa\x0bmarker", "qa\x00marker", "qa\x08marker", "qa\x1fmarker"],
-    ids=["vertical-tab", "null", "backspace", "unit-separator"],
+    ["qa\x0bmarker", "qa\x00marker", "qa\x08marker", "qa\x1fmarker", "qa￾marker", "qa￿marker"],
+    ids=["vertical-tab", "null", "backspace", "unit-separator", "non-character-fffe", "non-character-ffff"],
 )
-def test_a_control_character_is_left_out_of_the_export(value):
-    assert exported_value(value) == "qamarker"
+def test_a_character_excel_cannot_store_becomes_a_space(value):
+    assert exported_value(value) == "qa marker"
 
 
 def test_tab_and_line_break_stay_because_excel_stores_them():

@@ -63,7 +63,7 @@ To-do:
 ### Phase 2: an empty amount is not 0
 
 Public contracts:
-- Spanish copy: "Indica el importe" under the amount field.
+- Spanish copy: "Indica un importe válido" under the amount field.
 - Test cases: an empty amount shows the error and does not call the mutation; an explicit 0 is saved.
 
 To-do:

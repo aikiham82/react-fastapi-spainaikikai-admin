@@ -174,7 +174,7 @@ describe('MemberPaymentEditModal', () => {
       fireEvent.change(screen.getByDisplayValue('50'), { target: { value: '' } })
       await user.click(screen.getByRole('button', { name: /guardar|actualizar/i }))
 
-      expect(screen.getByText('Indica el importe')).toBeInTheDocument()
+      expect(screen.getByText('Indica un importe válido')).toBeInTheDocument()
       expect(mockUpdateMemberPayment).not.toHaveBeenCalled()
     })
 

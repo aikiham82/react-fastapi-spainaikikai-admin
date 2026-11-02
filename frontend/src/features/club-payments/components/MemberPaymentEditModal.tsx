@@ -74,8 +74,8 @@ export function MemberPaymentEditModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (formData.amount.trim() === '') {
-      setErrors({ amount: 'Indica el importe' })
+    if (formData.amount === '') {
+      setErrors({ amount: 'Indica un importe válido' })
       return
     }
 

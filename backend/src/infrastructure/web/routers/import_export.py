@@ -6,8 +6,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
+import re
+
 import openpyxl
-from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Font, PatternFill, Alignment
 
 from src.infrastructure.web.dto.import_export_dto import (
@@ -265,8 +266,11 @@ def _split_last_name(last_name: str) -> tuple:
     return (parts[0], parts[1] if len(parts) > 1 else '')
 
 
+_NOT_STORABLE_IN_XLSX = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f￾￿]")
+
+
 def _storable_in_excel(value):
-    return ILLEGAL_CHARACTERS_RE.sub("", value) if isinstance(value, str) else value
+    return _NOT_STORABLE_IN_XLSX.sub(" ", value) if isinstance(value, str) else value
 
 
 def _build_excel(title: str, column_registry: list, data_rows: list, columns: Optional[str] = None):
