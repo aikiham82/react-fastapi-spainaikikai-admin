@@ -75,9 +75,7 @@ interface InsuranceTileProps {
 }
 
 function InsuranceTile({ code, name, has, rawStatus }: InsuranceTileProps) {
-  const presentation = insurancePresentation(has, rawStatus);
-  const { label } = presentation ?? NO_INSURANCE;
-  const tone = presentation?.tone ?? 'bad';
+  const { tone, label } = insurancePresentation(has, rawStatus) ?? NO_INSURANCE;
   const spoken = `${name}: ${tone === 'ok' ? 'al día' : label.toLowerCase()}`;
   return (
     <StateTile tone={tone} label={spoken}>

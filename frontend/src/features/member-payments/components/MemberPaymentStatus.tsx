@@ -1,5 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { toneClasses, toneIcons, type StatusTone } from '@/components/ui/status-badge';
+import { cn } from '@/lib/utils';
 import { useMemberPaymentStatusQuery } from '../hooks/queries/useMemberPaymentQueries';
 import { MEMBER_PAYMENT_TYPES, type MemberPaymentType } from '../data/schemas/member-payment.schema';
 import { formatCurrency } from '@/core/utils/format';
@@ -55,26 +57,36 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
         </span>
       </div>
 
-      <PaymentGroup title="Licencias" complete={data.has_all_licenses} payments={licensePayments} />
-      <PaymentGroup title="Seguros" complete={data.has_all_insurances} payments={insurancePayments} />
+      <PaymentGroup title="Licencias" complete={data.has_all_licenses} missingTone="bad" payments={licensePayments} />
+      <PaymentGroup title="Seguros" complete={data.has_all_insurances} missingTone="neutral" payments={insurancePayments} />
     </div>
+  );
+};
+
+interface ToneIconProps {
+  tone: StatusTone;
+}
+
+const ToneIcon = ({ tone }: ToneIconProps) => {
+  const Icon = toneIcons[tone];
+  return (
+    <span data-tone={tone} className={cn('mr-2 rounded-full', toneClasses[tone])}>
+      <Icon className="h-4 w-4" aria-hidden="true" />
+    </span>
   );
 };
 
 interface PaymentGroupProps {
   title: string;
   complete: boolean;
+  missingTone: StatusTone;
   payments: { payment_type: string; is_paid: boolean; amount?: number | null }[];
 }
 
-const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, payments }) => (
+const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, missingTone, payments }) => (
   <div>
     <h4 className="mb-2 flex items-center text-sm font-medium">
-      {complete ? (
-        <CheckCircle className="mr-2 h-4 w-4 text-success" />
-      ) : (
-        <XCircle className="mr-2 h-4 w-4 text-danger" />
-      )}
+      <ToneIcon tone={complete ? 'ok' : missingTone} />
       {title}
     </h4>
     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -83,6 +95,7 @@ const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, payments }
           key={status.payment_type}
           paymentType={status.payment_type}
           isPaid={status.is_paid}
+          missingTone={missingTone}
           amount={status.amount}
         />
       ))}
@@ -93,32 +106,27 @@ const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, payments }
 interface PaymentTypeItemProps {
   paymentType: string;
   isPaid: boolean;
+  missingTone: StatusTone;
   amount?: number | null;
 }
 
 const PaymentTypeItem: React.FC<PaymentTypeItemProps> = ({
   paymentType,
   isPaid,
+  missingTone,
   amount,
 }) => {
   const label = MEMBER_PAYMENT_TYPES[paymentType as MemberPaymentType] || paymentType;
+  const tone = isPaid ? 'ok' : missingTone;
 
   return (
-    <div
-      className={`flex items-center justify-between p-2 rounded-md ${
-        isPaid ? 'bg-success-soft' : 'bg-danger-soft'
-      }`}
-    >
+    <div className={cn('flex items-center justify-between rounded-md p-2', toneClasses[tone])}>
       <div className="flex items-center">
-        {isPaid ? (
-          <CheckCircle className="mr-2 h-4 w-4 text-success" />
-        ) : (
-          <XCircle className="mr-2 h-4 w-4 text-danger" />
-        )}
-        <span className="text-sm">{label}</span>
+        <ToneIcon tone={tone} />
+        <span className="text-sm text-foreground">{label}</span>
       </div>
       {isPaid && amount != null && (
-        <span className="text-sm font-medium">{formatCurrency(amount)}</span>
+        <span className="text-sm font-medium text-foreground">{formatCurrency(amount)}</span>
       )}
     </div>
   );
