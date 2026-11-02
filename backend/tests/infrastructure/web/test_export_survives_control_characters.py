@@ -17,7 +17,7 @@ def exported_value(value):
 
 @pytest.mark.parametrize(
     "value",
-    ["qa\x0bmarker", "qa\x00marker", "qa\x08marker", "qa\x1fmarker", "qa￾marker", "qa￿marker"],
+    ["qa\x0bmarker", "qa\x00marker", "qa\x08marker", "qa\x1fmarker", "qa\ufffemarker", "qa\uffffmarker"],
     ids=["vertical-tab", "null", "backspace", "unit-separator", "non-character-fffe", "non-character-ffff"],
 )
 def test_a_character_excel_cannot_store_becomes_a_space(value):

@@ -1,13 +1,12 @@
 """Import/Export routes."""
 
+import re
 from typing import Optional
 from io import BytesIO
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
-import re
-
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
@@ -266,7 +265,7 @@ def _split_last_name(last_name: str) -> tuple:
     return (parts[0], parts[1] if len(parts) > 1 else '')
 
 
-_NOT_STORABLE_IN_XLSX = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f￾￿]")
+_NOT_STORABLE_IN_XLSX = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff]")
 
 
 def _storable_in_excel(value):
