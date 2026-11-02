@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "medium"
 
 last_implementation_at: "2026-11-02T16:30:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # Payment edit and export fixes
@@ -67,10 +67,10 @@ Public contracts:
 - Test cases: an empty amount shows the error and does not call the mutation; an explicit 0 is saved.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Refuse the empty amount.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Refuse the empty amount.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: opening the editor focuses the dialog
 
@@ -78,13 +78,13 @@ Public contracts:
 - Test cases: on open, the focus is on the dialog and not on any field.
 
 To-do:
-- [ ] Write the failing test.
-- [ ] Move the focus to the dialog.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing test.
+- [x] Move the focus to the dialog.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2.
+All phases are complete.
 
-Exports standing tall thanks to 📤 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Keyboards stay put, signed 📱 0️⃣ 📤 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

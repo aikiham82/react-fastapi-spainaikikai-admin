@@ -74,6 +74,11 @@ export function MemberPaymentEditModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (formData.amount.trim() === '') {
+      setErrors({ amount: 'Indica el importe' })
+      return
+    }
+
     const parsedAmount = Number(formData.amount)
     const parsedYear = Number(formData.payment_year)
 
@@ -110,7 +115,12 @@ export function MemberPaymentEditModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent
+        onOpenAutoFocus={(event) => {
+          event.preventDefault()
+          ;(event.currentTarget as HTMLElement).focus()
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Editar línea de pago</DialogTitle>
           <DialogDescription className="sr-only">

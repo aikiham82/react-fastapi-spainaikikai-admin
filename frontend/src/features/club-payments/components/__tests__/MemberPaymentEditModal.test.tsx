@@ -167,6 +167,35 @@ describe('MemberPaymentEditModal', () => {
     })
   })
 
+  describe('validation — empty amount', () => {
+    it('asks for the amount instead of saving the line at 0', async () => {
+      renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
+
+      fireEvent.change(screen.getByDisplayValue('50'), { target: { value: '' } })
+      await user.click(screen.getByRole('button', { name: /guardar|actualizar/i }))
+
+      expect(screen.getByText('Indica el importe')).toBeInTheDocument()
+      expect(mockUpdateMemberPayment).not.toHaveBeenCalled()
+    })
+
+    it('still saves an amount of 0 written on purpose', async () => {
+      renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
+
+      fireEvent.change(screen.getByDisplayValue('50'), { target: { value: '0' } })
+      await user.click(screen.getByRole('button', { name: /guardar|actualizar/i }))
+
+      expect(mockUpdateMemberPayment.mock.calls[0][0].data.amount).toBe(0)
+    })
+  })
+
+  describe('focus on open', () => {
+    it('focuses the dialog, so a phone does not open its keyboard', async () => {
+      renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
+
+      await waitFor(() => expect(screen.getByRole('dialog')).toHaveFocus())
+    })
+  })
+
   describe('close on success', () => {
     it('calls onClose when the mutation reports isSuccess', async () => {
       const { useUpdateMemberPaymentMutation } = await import(
