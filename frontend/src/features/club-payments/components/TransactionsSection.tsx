@@ -106,7 +106,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
               <TableHead className="whitespace-nowrap">Fecha de pago</TableHead>
               <TableHead className="text-right">Importe</TableHead>
               <TableHead className="text-center">Estado</TableHead>
-              <TableHead className="text-center">Acciones</TableHead>
+              <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,7 +127,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                     {getStatusLabel(mp.status)}
                   </StatusBadge>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell>
                   {canChangeLine(mp) && (
                     <LineActions
                       onEdit={() => setEditingItem(mp)}
