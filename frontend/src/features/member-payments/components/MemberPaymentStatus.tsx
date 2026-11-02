@@ -48,6 +48,8 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
     (s) => s.payment_type.startsWith('seguro_')
   );
 
+  const paidClubFee = data.payment_statuses.find((s) => s.payment_type === 'cuota_club' && s.is_paid);
+
   return (
     <div className="space-y-5">
       <div className="flex items-baseline justify-between gap-3">
@@ -65,6 +67,7 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
         emptyLabel={`Sin licencia pagada en ${data.payment_year}`}
       />
       <PaymentGroup title="Seguros" complete={data.has_all_insurances} missingTone="neutral" payments={insurancePayments} />
+      {paidClubFee && <PaymentGroup title="Club" complete missingTone="neutral" payments={[paidClubFee]} />}
     </div>
   );
 };

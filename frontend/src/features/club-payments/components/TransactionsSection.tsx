@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { RowActions } from '@/components/ui/list-controls'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { paymentStatusTone } from '@/core/utils/paymentStatusTone'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -82,7 +83,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
             <li key={mp.id} className="rounded-md border p-3 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
+                  <p className="text-sm font-medium break-words">{mp.member_name || mp.member_id}</p>
                   <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
                 </div>
                 <div className="text-right space-y-1">
@@ -102,12 +103,11 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
           <TableHeader>
             <TableRow>
               <TableHead>Miembro</TableHead>
-              <TableHead>Concepto</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead className="whitespace-nowrap">Fecha de pago</TableHead>
               <TableHead className="text-right">Importe</TableHead>
               <TableHead className="text-center">Estado</TableHead>
-              <TableHead className="text-center">Acciones</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -116,7 +116,6 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 <TableCell className="font-medium">
                   {mp.member_name || mp.member_id}
                 </TableCell>
-                <TableCell>{mp.concept}</TableCell>
                 <TableCell>{getPaymentTypeLabel(mp.payment_type)}</TableCell>
                 <TableCell>
                   <PaidOn line={mp} />
@@ -129,11 +128,14 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                     {getStatusLabel(mp.status)}
                   </StatusBadge>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-right">
                   {canChangeLine(mp) && (
-                    <LineActions
-                      onEdit={() => setEditingItem(mp)}
-                      onDelete={() => setDeletingItem(mp)}
+                    <RowActions
+                      label={`${getPaymentTypeLabel(mp.payment_type)} de ${mp.member_name || mp.member_id}`}
+                      actions={[
+                        { label: 'Editar', onSelect: () => setEditingItem(mp) },
+                        { label: 'Eliminar', destructive: true, onSelect: () => setDeletingItem(mp) },
+                      ]}
                     />
                   )}
                 </TableCell>

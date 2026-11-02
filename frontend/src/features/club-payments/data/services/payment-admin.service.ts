@@ -67,7 +67,6 @@ export const updateMemberPayment = async (
   id: string,
   data: Partial<{
     payment_type: string;
-    concept: string;
     amount: number;
     status: string;
   }>

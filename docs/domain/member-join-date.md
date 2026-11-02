@@ -47,6 +47,7 @@ Saving any other field would turn the `created_at` fallback into a stored `regis
 - [`backend/src/application/use_cases/member_payment/get_club_payment_summary_use_case.py`](../../backend/src/application/use_cases/member_payment/get_club_payment_summary_use_case.py)
 - [`backend/src/application/use_cases/member_payment/get_all_clubs_payment_summary_use_case.py`](../../backend/src/application/use_cases/member_payment/get_all_clubs_payment_summary_use_case.py)
 - [`backend/src/application/use_cases/payment/prefill_annual_payment_use_case.py`](../../backend/src/application/use_cases/payment/prefill_annual_payment_use_case.py)
+- [`backend/src/application/use_cases/member_payment/get_unpaid_members_use_case.py`](../../backend/src/application/use_cases/member_payment/get_unpaid_members_use_case.py): only `joined_by`, since a member who paid is not unpaid anyway.
 - [`backend/src/infrastructure/web/dto/member_dto.py`](../../backend/src/infrastructure/web/dto/member_dto.py): `RegistrationDate`.
 - [`frontend/src/features/members/components/MemberForm.tsx`](../../frontend/src/features/members/components/MemberForm.tsx): `joinDateOf`.
 

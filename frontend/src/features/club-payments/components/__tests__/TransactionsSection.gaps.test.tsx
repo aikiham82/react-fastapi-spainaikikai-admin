@@ -81,8 +81,6 @@ describe('TransactionsSection — gap coverage', () => {
 
       renderWithProviders(<TransactionsSection {...defaultProps} />)
 
-      // The badge label appears in the DOM alongside the concept cell that may share words;
-      // use getAllByText to handle both the badge and any concept overlap
       expect(screen.getAllByText(/completado/i).length).toBeGreaterThan(0)
     })
   })

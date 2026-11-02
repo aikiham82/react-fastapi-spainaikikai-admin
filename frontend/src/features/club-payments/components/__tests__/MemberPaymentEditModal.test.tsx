@@ -69,10 +69,11 @@ describe('MemberPaymentEditModal', () => {
       expect(screen.getByText(/editar línea de pago/i)).toBeInTheDocument()
     })
 
-    it('pre-fills the concept field with the memberPayment concept', () => {
+    it('does not offer the stored concept, which holds internal keys', () => {
       renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
 
-      expect(screen.getByDisplayValue('Licencia KYU 2024')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Concepto')).not.toBeInTheDocument()
+      expect(screen.queryByDisplayValue('Licencia KYU 2024')).not.toBeInTheDocument()
     })
 
     it('pre-fills the amount field with the memberPayment amount', () => {
@@ -118,27 +119,15 @@ describe('MemberPaymentEditModal', () => {
     it('calls updateMemberPayment with the correct payload on submit', async () => {
       renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
 
-      // Change the concept field
-      const conceptInput = screen.getByDisplayValue('Licencia KYU 2024')
-      await user.clear(conceptInput)
-      await user.type(conceptInput, 'Licencia KYU actualizada')
-
       // Submit the form
       const submitBtn = screen.getByRole('button', { name: /guardar|actualizar/i })
       await user.click(submitBtn)
 
       expect(mockUpdateMemberPayment).toHaveBeenCalledTimes(1)
-      expect(mockUpdateMemberPayment).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'mp-123',
-          data: expect.objectContaining({
-            concept: 'Licencia KYU actualizada',
-            amount: 50,
-            payment_type: 'licencia_kyu',
-            status: 'pending',
-          }),
-        })
-      )
+      const { id, data } = mockUpdateMemberPayment.mock.calls[0][0]
+      expect(id).toBe('mp-123')
+      expect(data).toMatchObject({ amount: 50, payment_type: 'licencia_kyu', status: 'pending' })
+      expect(data).not.toHaveProperty('concept')
     })
 
     it('moves the payment line to another year', async () => {

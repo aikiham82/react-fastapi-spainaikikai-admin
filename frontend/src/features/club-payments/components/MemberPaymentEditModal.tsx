@@ -33,7 +33,6 @@ interface MemberPaymentEditModalProps {
 
 interface FormState {
   payment_type: string
-  concept: string
   amount: string
   status: string
   payment_year: string
@@ -41,7 +40,6 @@ interface FormState {
 
 const formStateOf = (memberPayment: MemberPayment): FormState => ({
   payment_type: memberPayment.payment_type,
-  concept: memberPayment.concept,
   amount: String(memberPayment.amount),
   status: memberPayment.status,
   payment_year: String(memberPayment.payment_year),
@@ -81,7 +79,6 @@ export function MemberPaymentEditModal({
 
     const payload = {
       payment_type: formData.payment_type || undefined,
-      concept: formData.concept || undefined,
       amount: isNaN(parsedAmount) ? undefined : parsedAmount,
       status: formData.status || undefined,
       payment_year: isNaN(parsedYear) ? undefined : parsedYear,
@@ -144,22 +141,6 @@ export function MemberPaymentEditModal({
             </Select>
             {errors.payment_type && (
               <p className="text-sm text-destructive">{errors.payment_type}</p>
-            )}
-          </div>
-
-          {/* Concept */}
-          <div className="grid gap-1.5">
-            <Label htmlFor="concept">Concepto</Label>
-            <Input
-              id="concept"
-              type="text"
-              value={formData.concept}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, concept: e.target.value }))
-              }
-            />
-            {errors.concept && (
-              <p className="text-sm text-destructive">{errors.concept}</p>
             )}
           </div>
 
