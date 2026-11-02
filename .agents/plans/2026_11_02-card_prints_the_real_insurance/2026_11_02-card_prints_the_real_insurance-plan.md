@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "high"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-11-02T11:32:46Z"
+has_completed_all_phases: "true"
 ---
 
 # The card prints the real insurance
@@ -48,15 +58,15 @@ Public contracts:
 
 To-do:
 
-- [ ] Write the failing tests.
-- [ ] Read the member's insurances in the use case and pick the latest end date of a non-cancelled accident insurance.
-- [ ] Rename the field and draw it.
-- [ ] Say it in the card doc.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Read the member's insurances in the use case and pick the latest end date of a non-cancelled accident insurance.
+- [x] Rename the field and draw it.
+- [x] Say it in the card doc.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases are done.
 
-An honest card, planned with 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+The card tells the truth, thanks to [Codely](https://codely.com) and Turbotuga™. 🪪 < 🐢 💨

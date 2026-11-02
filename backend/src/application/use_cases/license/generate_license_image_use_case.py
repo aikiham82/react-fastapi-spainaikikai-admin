@@ -1,11 +1,13 @@
 """Generate License Image use case."""
 
 from dataclasses import dataclass
-from datetime import date
-from typing import Tuple
+from datetime import date, datetime
+from typing import List, Optional
 
 from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import MemberNotFoundError
+from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
+from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.license_image_service import (
@@ -29,11 +31,26 @@ class GenerateLicenseImageUseCase:
         self,
         license_repository: LicenseRepositoryPort,
         member_repository: MemberRepositoryPort,
+        insurance_repository: InsuranceRepositoryPort,
         license_image_service: LicenseImageServicePort
     ):
         self.license_repository = license_repository
         self.member_repository = member_repository
+        self.insurance_repository = insurance_repository
         self.license_image_service = license_image_service
+
+    @staticmethod
+    def _latest_accident_insurance_end(insurances: List[Insurance]) -> Optional[datetime]:
+        return max(
+            (
+                insurance.end_date
+                for insurance in insurances
+                if insurance.insurance_type == InsuranceType.ACCIDENT
+                and insurance.status != InsuranceStatus.CANCELLED
+                and insurance.end_date
+            ),
+            default=None,
+        )
 
     def _calculate_license_year(self) -> int:
         """Calculate the current license year based on fiscal cutoff.
@@ -83,7 +100,9 @@ class GenerateLicenseImageUseCase:
             last_name=member.last_name,
             dni=member.dni,
             birth_date=member.birth_date,
-            expiration_date=license.expiration_date,
+            insurance_end_date=self._latest_accident_insurance_end(
+                await self.insurance_repository.find_by_member_id(license.member_id)
+            ),
             license_year=license_year
         )
 

@@ -74,6 +74,9 @@ class LicenseImageService(LicenseImageServicePort):
             return font
         return self._get_font(max(self.MIN_FONT_SIZE, int(size * max_width / width)))
 
+    def _insurance_text(self, end_date) -> str:
+        return self._format_date(end_date) if end_date else "SIN SEGURO"
+
     def _format_date(self, date) -> str:
         """Format date for display on license."""
         if date is None:
@@ -109,17 +112,10 @@ class LicenseImageService(LicenseImageServicePort):
                 fill=text_color
             )
 
-            # Draw insurance (expiration date or "SIN SEGURO")
-            insurance_font = self._get_font(self.FONT_SIZES["insurance"])
-            insurance_text = (
-                self._format_date(data.expiration_date)
-                if data.expiration_date
-                else "SIN SEGURO"
-            )
             draw.text(
                 self.POSITIONS["insurance"],
-                insurance_text,
-                font=insurance_font,
+                self._insurance_text(data.insurance_end_date),
+                font=self._get_font(self.FONT_SIZES["insurance"]),
                 fill=text_color
             )
 
