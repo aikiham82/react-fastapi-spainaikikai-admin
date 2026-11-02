@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { TransactionsSection } from '../TransactionsSection'
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema'
@@ -106,6 +106,24 @@ describe('TransactionsSection', () => {
 
       expect(screen.getByRole('cell', { name: 'Licencia KYU' })).toBeInTheDocument()
       expect(screen.getByRole('cell', { name: 'Seguro RC' })).toBeInTheDocument()
+    })
+
+    it('groups the table row actions in one menu', async () => {
+      const payments = [makeMemberPayment({ member_name: 'Ana Example' })]
+
+      const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+      vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+        data: payments,
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+      renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+      const table = within(screen.getByRole('table'))
+      expect(table.getByRole('button', { name: 'Acciones de Licencia KYU de Ana Example' })).toBeInTheDocument()
+      expect(table.queryByRole('button', { name: /eliminar/i })).not.toBeInTheDocument()
     })
 
     it('does not show the stored concept, which holds internal keys', async () => {

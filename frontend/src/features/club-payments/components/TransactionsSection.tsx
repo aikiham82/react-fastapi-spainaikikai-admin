@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { RowActions } from '@/components/ui/list-controls'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { paymentStatusTone } from '@/core/utils/paymentStatusTone'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -82,7 +83,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
             <li key={mp.id} className="rounded-md border p-3 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{mp.member_name || mp.member_id}</p>
+                  <p className="text-sm font-medium break-words">{mp.member_name || mp.member_id}</p>
                   <p className="text-sm text-muted-foreground">{getPaymentTypeLabel(mp.payment_type)}</p>
                 </div>
                 <div className="text-right space-y-1">
@@ -106,7 +107,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
               <TableHead className="whitespace-nowrap">Fecha de pago</TableHead>
               <TableHead className="text-right">Importe</TableHead>
               <TableHead className="text-center">Estado</TableHead>
-              <TableHead>Acciones</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,11 +128,14 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                     {getStatusLabel(mp.status)}
                   </StatusBadge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   {canChangeLine(mp) && (
-                    <LineActions
-                      onEdit={() => setEditingItem(mp)}
-                      onDelete={() => setDeletingItem(mp)}
+                    <RowActions
+                      label={`${getPaymentTypeLabel(mp.payment_type)} de ${mp.member_name || mp.member_id}`}
+                      actions={[
+                        { label: 'Editar', onSelect: () => setEditingItem(mp) },
+                        { label: 'Eliminar', destructive: true, onSelect: () => setDeletingItem(mp) },
+                      ]}
                     />
                   )}
                 </TableCell>
