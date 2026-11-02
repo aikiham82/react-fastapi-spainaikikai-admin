@@ -10,6 +10,7 @@ created_by:
     version: "5.5"
     reasoning_effort: "medium"
 
+
 implemented_by:
   tool: "Claude Code"
   model:
@@ -72,10 +73,10 @@ Public contracts:
 - Test cases: `MemberPaymentStatus` shows the line and its amount when `cuota_club` is paid; shows no line when it is not.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Render the line.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Render the line.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`npm run lint && npm run build && npx vitest run`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: the unpaid list follows the join date
 
@@ -94,6 +95,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
-Tidy tables delivered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Totals that add up, courtesy of 🧮 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

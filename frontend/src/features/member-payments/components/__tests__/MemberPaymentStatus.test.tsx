@@ -106,6 +106,39 @@ describe('MemberPaymentStatus', () => {
     expect(toneOf('Seguro de accidentes')).toBe('neutral')
   })
 
+  it('shows the club fee line and its amount when the member carries it', () => {
+    const status = statusWith('titulo_shidoin', false)
+    mockUseMemberPaymentStatusQuery.mockReturnValue({
+      data: {
+        ...status,
+        total_paid: 170,
+        payment_statuses: [...status.payment_statuses, { payment_type: 'cuota_club', is_paid: true, amount: 100 }],
+      },
+      isLoading: false,
+      error: null,
+    })
+    renderWithProviders(<MemberPaymentStatus memberId="mem-1" />)
+
+    expect(toneOf(MEMBER_PAYMENT_TYPES.cuota_club)).toBe('ok')
+    expect(screen.getByText(MEMBER_PAYMENT_TYPES.cuota_club).closest('.bg-success-soft')).toHaveTextContent('100,00')
+  })
+
+  it('shows nothing about the club fee when the member does not carry it', () => {
+    const status = statusWith('licencia_kyu', false)
+    mockUseMemberPaymentStatusQuery.mockReturnValue({
+      data: {
+        ...status,
+        payment_statuses: [...status.payment_statuses, { payment_type: 'cuota_club', is_paid: false, amount: null }],
+      },
+      isLoading: false,
+      error: null,
+    })
+    renderWithProviders(<MemberPaymentStatus memberId="mem-1" />)
+
+    expect(screen.queryByText(MEMBER_PAYMENT_TYPES.cuota_club)).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Club' })).not.toBeInTheDocument()
+  })
+
   it('with all insurances, the insurance group keeps the success tone', () => {
     renderWith('licencia_kyu', true)
 
