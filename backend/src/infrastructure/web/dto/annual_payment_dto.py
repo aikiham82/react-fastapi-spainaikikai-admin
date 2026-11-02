@@ -1,8 +1,10 @@
 """Annual Payment DTOs for request/response validation."""
 
-from pydantic import BaseModel, FiniteFloat, field_validator
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
 from datetime import datetime
+
+from src.infrastructure.web.dto.money import Money
 
 # Maximum quantity per item type
 MAX_QUANTITY_PER_ITEM = 200
@@ -13,8 +15,8 @@ class AnnualPaymentLineItem(BaseModel):
     item_type: str
     description: str
     quantity: int
-    unit_price: FiniteFloat
-    total: FiniteFloat
+    unit_price: Money
+    total: Money
 
 
 class MemberPaymentAssignment(BaseModel):

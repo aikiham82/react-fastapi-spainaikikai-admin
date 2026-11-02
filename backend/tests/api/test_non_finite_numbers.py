@@ -7,9 +7,10 @@ import pytest
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
-from pydantic import BaseModel, FiniteFloat, TypeAdapter, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from src.app import create_app, request_validation_handler
+from src.domain.entities.member import Member
 from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_member_payment_repository,
@@ -18,6 +19,7 @@ from src.infrastructure.web.dependencies import (
 from src.infrastructure.web.dto.annual_payment_dto import AnnualPaymentLineItem
 from src.infrastructure.web.dto.insurance_dto import InsuranceCreate, InsuranceUpdate
 from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
+from src.infrastructure.web.dto.money import Money
 from src.infrastructure.web.dto.member_payment_dto import MemberPaymentUpdateRequest
 from src.infrastructure.web.dto.payment_dto import (
     InitiatePaymentRequest,
@@ -27,7 +29,7 @@ from src.infrastructure.web.dto.payment_dto import (
 )
 from src.infrastructure.web.dto.price_configuration_dto import PriceConfigurationCreate, PriceConfigurationUpdate
 from src.infrastructure.web.dto.seminar_dto import SeminarCreate, SeminarUpdate
-from src.infrastructure.web.routers.import_export import _finite_number, router
+from src.infrastructure.web.routers.import_export import _money, router
 from tests.api.callers import super_admin
 
 pytestmark = [pytest.mark.api]
@@ -57,13 +59,13 @@ def field_adapter(model: type[BaseModel], field: str) -> TypeAdapter:
 
 @pytest.mark.parametrize(("model", "field"), MONEY_FIELDS, ids=FIELD_IDS)
 @pytest.mark.parametrize("value", [float("inf"), float("-inf"), float("nan")], ids=["inf", "minus-inf", "nan"])
-def test_a_money_field_refuses_a_non_finite_number(model, field, value):
+def test_a_money_field_refuses_a_non_money(model, field, value):
     with pytest.raises(ValidationError):
         field_adapter(model, field).validate_python(value)
 
 
 @pytest.mark.parametrize(("model", "field"), MONEY_FIELDS, ids=FIELD_IDS)
-@pytest.mark.parametrize("value", [0, 15.5], ids=["zero", "with-cents"])
+@pytest.mark.parametrize("value", [0, 15.5, 1_000_000], ids=["zero", "with-cents", "the-limit"])
 def test_a_money_field_accepts_a_normal_amount(model, field, value):
     assert field_adapter(model, field).validate_python(value) == value
 
@@ -71,7 +73,7 @@ def test_a_money_field_accepts_a_normal_amount(model, field, value):
 @pytest.fixture
 def validating_client() -> TestClient:
     class Body(BaseModel):
-        amount: FiniteFloat
+        amount: Money
 
     app = FastAPI()
     app.add_exception_handler(RequestValidationError, request_validation_handler)
@@ -103,24 +105,33 @@ def test_a_validation_error_says_what_failed_without_echoing_the_input(validatin
     assert "secret" not in response.text
 
 
-def test_the_application_uses_that_handler():
-    assert create_app().exception_handlers[RequestValidationError] is request_validation_handler
+def test_the_real_payment_line_route_answers_422_for_infinity():
+    app = create_app()
+    app.dependency_overrides[get_auth_context] = lambda: super_admin()
+
+    response = TestClient(app, raise_server_exceptions=False).put(
+        "/api/v1/member-payments/line-1",
+        content='{"amount":Infinity}',
+        headers={"content-type": "application/json"},
+    )
+
+    assert response.status_code == 422
 
 
-@pytest.mark.parametrize("raw", ["inf", "-inf", "nan", "Infinity", "1e400"])
-def test_an_imported_non_finite_number_is_invalid(raw):
+@pytest.mark.parametrize("raw", ["inf", "-inf", "nan", "Infinity", "1e400", "1e308", "1000001"])
+def test_an_imported_non_money_is_invalid(raw):
     with pytest.raises(ValueError):
-        _finite_number(raw)
+        _money(raw)
 
 
 @pytest.mark.parametrize(("raw", "expected"), [("15,5", 15.5), ("15.5", 15.5), (20, 20.0), ("0", 0.0)])
 def test_an_imported_number_is_read(raw, expected):
-    assert _finite_number(raw) == expected
+    assert _money(raw) == expected
 
 
 def test_a_payment_row_with_a_non_finite_amount_is_refused_and_not_stored():
     payments = SimpleNamespace(create=AsyncMock(), find_by_member_year=AsyncMock(return_value=[]))
-    members = SimpleNamespace(find_by_dni=AsyncMock(return_value=SimpleNamespace(id="member-ana")))
+    members = SimpleNamespace(find_by_dni=AsyncMock(return_value=Member(id="member-ana", first_name="Ana", last_name="Example", club_id="club-dojo")))
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
     app.dependency_overrides = {

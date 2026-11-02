@@ -1,8 +1,10 @@
 """Payment DTOs for request/response validation."""
 
-from pydantic import BaseModel, FiniteFloat, HttpUrl
+from pydantic import BaseModel, HttpUrl
 from typing import Optional, Dict, Any
 from datetime import datetime
+
+from src.infrastructure.web.dto.money import Money
 
 
 class PaymentBase(BaseModel):
@@ -10,7 +12,7 @@ class PaymentBase(BaseModel):
     member_id: Optional[str] = None
     club_id: Optional[str] = None
     payment_type: str = "license_fee"
-    amount: FiniteFloat
+    amount: Money
     related_entity_id: Optional[str] = None
     payment_year: Optional[int] = None
 
@@ -41,7 +43,7 @@ class PaymentResponse(PaymentBase):
 
 class PaymentRefundRequest(BaseModel):
     """DTO for refunding a payment."""
-    refund_amount: Optional[FiniteFloat] = None
+    refund_amount: Optional[Money] = None
 
 
 class InitiatePaymentRequest(BaseModel):
@@ -49,7 +51,7 @@ class InitiatePaymentRequest(BaseModel):
     member_id: Optional[str] = None
     club_id: Optional[str] = None
     payment_type: str = "license_fee"
-    amount: FiniteFloat
+    amount: Money
     related_entity_id: Optional[str] = None
     description: Optional[str] = None
     payment_year: Optional[int] = None
@@ -86,6 +88,6 @@ class RedsysPaymentRequest(BaseModel):
     member_id: Optional[str] = None
     club_id: Optional[str] = None
     payment_type: str = "license_fee"
-    amount: FiniteFloat
+    amount: Money
     return_url: HttpUrl
     related_entity_id: Optional[str] = None

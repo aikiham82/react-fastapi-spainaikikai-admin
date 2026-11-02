@@ -1,14 +1,16 @@
 """Price Configuration DTOs for request/response validation."""
 
-from pydantic import BaseModel, FiniteFloat
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+
+from src.infrastructure.web.dto.money import Money
 
 
 class PriceConfigurationBase(BaseModel):
     """Base Price Configuration DTO."""
     key: str
-    price: FiniteFloat
+    price: Money
     description: str = ""
     category: str = "license"
     is_active: bool = True
@@ -23,7 +25,7 @@ class PriceConfigurationCreate(PriceConfigurationBase):
 
 class PriceConfigurationUpdate(BaseModel):
     """DTO for updating a price configuration."""
-    price: Optional[FiniteFloat] = None
+    price: Optional[Money] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
     valid_from: Optional[str] = None

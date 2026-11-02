@@ -1,8 +1,10 @@
 """Member Payment DTOs for request/response validation."""
 
-from pydantic import BaseModel, FiniteFloat, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
+
+from src.infrastructure.web.dto.money import Money
 
 
 class MemberPaymentResponse(BaseModel):
@@ -158,6 +160,6 @@ class MemberPaymentUpdateRequest(BaseModel):
 
     payment_type: Optional[str] = None
     concept: Optional[str] = Field(default=None, max_length=MAX_CONCEPT_LENGTH)
-    amount: Optional[FiniteFloat] = None
+    amount: Optional[Money] = None
     status: Optional[str] = None
     payment_year: Optional[int] = Field(default=None, ge=2000, le=2100)

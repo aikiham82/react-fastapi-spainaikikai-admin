@@ -7,6 +7,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from src.domain.entities.member import Member
 from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_member_payment_repository,
@@ -25,7 +26,7 @@ def payments():
 
 @pytest.fixture
 def client(payments) -> TestClient:
-    members = SimpleNamespace(find_by_dni=AsyncMock(return_value=SimpleNamespace(id="member-ana")))
+    members = SimpleNamespace(find_by_dni=AsyncMock(return_value=Member(id="member-ana", first_name="Ana", last_name="Example", club_id="club-dojo")))
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
     app.dependency_overrides = {
@@ -65,6 +66,14 @@ def test_a_longer_concept_is_an_error_for_its_row(client, payments):
     assert result["failed"] == 1
     assert result["errors"] == ["Fila 1: Concepto demasiado largo"]
     payments.create.assert_not_called()
+
+
+def test_a_long_note_on_a_row_without_dni_is_still_skipped_in_upsert(client):
+    row = {"concepto": "a" * 201}
+
+    result = client.post("/api/v1/import-export/payments/import", json={"payments": [row], "mode": "upsert"}).json()
+
+    assert result["failed"] == 0
 
 
 def test_without_a_concept_it_is_still_built_from_the_type_and_year(client, payments):

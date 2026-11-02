@@ -19,6 +19,7 @@ from src.infrastructure.web.dto.import_export_dto import (
     ImportPaymentsRequest
 )
 from src.infrastructure.web.dto.member_payment_dto import MAX_CONCEPT_LENGTH
+from src.infrastructure.web.dto.money import MAX_MONEY
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
     get_create_member_use_case,
@@ -69,10 +70,10 @@ def _parse_date(value) -> Optional[datetime]:
 SPAIN_NAMES = {'españa', 'espana', 'spain'}
 
 
-def _finite_number(value) -> float:
+def _money(value) -> float:
     number = float(str(value).replace(',', '.'))
-    if not math.isfinite(number):
-        raise ValueError(f"Not a finite number: {value}")
+    if not math.isfinite(number) or abs(number) > MAX_MONEY:
+        raise ValueError(f"Not a valid amount: {value}")
     return number
 
 
@@ -776,7 +777,7 @@ async def import_insurances(
                         update_fields['end_date'] = end_date
                     if coverage_str:
                         try:
-                            update_fields['coverage_amount'] = _finite_number(coverage_str)
+                            update_fields['coverage_amount'] = _money(coverage_str)
                         except (ValueError, TypeError):
                             pass
 
@@ -831,7 +832,7 @@ async def import_insurances(
             coverage_amount = None
             if coverage_str:
                 try:
-                    coverage_amount = _finite_number(coverage_str)
+                    coverage_amount = _money(coverage_str)
                 except (ValueError, TypeError):
                     pass
 
@@ -970,16 +971,16 @@ async def import_payments(
             estado = row.get('estado') or row.get('Estado') or row.get('status') or 'completed'
             concepto = _cell_text(row.get('concepto') or row.get('Concepto') or row.get('concept'))
 
-            if len(concepto) > MAX_CONCEPT_LENGTH:
-                errors.append(f"Fila {idx + 1}: Concepto demasiado largo")
-                failed += 1
-                continue
-
             if not dni:
                 if is_upsert:
                     # In upsert mode, skip rows without DNI (can't match member)
                     continue
                 errors.append(f"Fila {idx + 1}: DNI es obligatorio")
+                failed += 1
+                continue
+
+            if len(concepto) > MAX_CONCEPT_LENGTH:
+                errors.append(f"Fila {idx + 1}: Concepto demasiado largo")
                 failed += 1
                 continue
 
@@ -996,7 +997,7 @@ async def import_payments(
                 continue
 
             try:
-                amount = _finite_number(monto_raw)
+                amount = _money(monto_raw)
             except (ValueError, TypeError):
                 errors.append(f"Fila {idx + 1}: Monto inválido '{monto_raw}'")
                 failed += 1
