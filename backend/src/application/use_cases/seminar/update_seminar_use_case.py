@@ -3,6 +3,7 @@
 from src.domain.entities.seminar import Seminar
 from src.domain.exceptions.seminar import SeminarNotFoundError
 from src.application.ports.seminar_repository import SeminarRepositoryPort
+from src.application.use_cases.apply_changes import apply_changes
 
 
 class UpdateSeminarUseCase:
@@ -17,9 +18,4 @@ class UpdateSeminarUseCase:
         if seminar is None:
             raise SeminarNotFoundError(seminar_id)
 
-        # Update fields
-        for key, value in kwargs.items():
-            if value is not None and hasattr(seminar, key):
-                setattr(seminar, key, value)
-
-        return await self.seminar_repository.update(seminar)
+        return await self.seminar_repository.update(apply_changes(seminar, kwargs))

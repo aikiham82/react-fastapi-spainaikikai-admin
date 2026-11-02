@@ -72,10 +72,10 @@ Public contracts:
 - Test cases: blank title, instructor or venue; negative participants; inverted dates by changing one or both; valid edits and `None` values still behave as before.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Add `apply_changes` and use it.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Add `apply_changes` and use it.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: the same for members and clubs
 
@@ -91,6 +91,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
-Refunds kept whole by 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Seminars checked at the door by 🥋 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
