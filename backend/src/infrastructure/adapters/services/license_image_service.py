@@ -75,7 +75,7 @@ class LicenseImageService(LicenseImageServicePort):
         return self._get_font(max(self.MIN_FONT_SIZE, int(size * max_width / width)))
 
     def _insurance_text(self, end_date) -> str:
-        return self._format_date(end_date) if end_date else "SIN SEGURO"
+        return self._format_date(end_date) or "SIN SEGURO"
 
     def _format_date(self, date) -> str:
         """Format date for display on license."""

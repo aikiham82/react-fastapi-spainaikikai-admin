@@ -8,6 +8,8 @@ import pytest
 
 from src.application.use_cases.license.generate_license_image_use_case import GenerateLicenseImageUseCase
 from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
+from src.domain.entities.license import License, LicenseType
+from src.domain.entities.member import Member
 
 pytestmark = [pytest.mark.unit, pytest.mark.asyncio]
 
@@ -29,8 +31,11 @@ def an_insurance(end_date, insurance_type=InsuranceType.ACCIDENT, status=Insuran
 
 
 def use_case_for(expiration_date=LICENCE_EXPIRY, insurances=()):
-    licence = SimpleNamespace(license_number="LIC-1", member_id="m1", expiration_date=expiration_date)
-    member = SimpleNamespace(first_name="Ana", last_name="Ejemplo", dni=None, birth_date=None)
+    licence = License(
+        id="lic", license_number="LIC-1", member_id="m1", license_type=LicenseType.KYU,
+        grade="3º Kyu", expiration_date=expiration_date,
+    )
+    member = Member(id="m1", first_name="Ana", last_name="Ejemplo", email="ana@example.com", club_id="club-1")
     images = SimpleNamespace(generate_license_image=AsyncMock(return_value=b"png"))
     insurance_repository = SimpleNamespace(find_by_member_id=AsyncMock(return_value=list(insurances)))
     return (
@@ -85,6 +90,8 @@ async def test_a_licence_without_expiry_falls_back_to_the_current_season(today, 
     ([an_insurance(IN_FORCE, status=InsuranceStatus.CANCELLED)], None),
     ([an_insurance(IN_FORCE, insurance_type=InsuranceType.CIVIL_LIABILITY)], None),
     ([an_insurance(None)], None),
+    ([an_insurance(IN_FORCE, status=InsuranceStatus.PENDING)], None),
+    ([an_insurance(ENDED, status=InsuranceStatus.EXPIRED)], ENDED),
 ], ids=[
     "no insurance",
     "only one that ended",
@@ -95,14 +102,10 @@ async def test_a_licence_without_expiry_falls_back_to_the_current_season(today, 
     "only a cancelled one",
     "only civil liability",
     "no end date",
+    "only a pending one",
+    "stored as expired",
 ])
 async def test_the_card_carries_the_end_of_the_accident_insurance(insurances, end_date):
     use_case, images = use_case_for(insurances=insurances)
 
     assert (await drawn(use_case, images)).insurance_end_date == end_date
-
-
-async def test_the_expiry_of_the_licence_never_stands_in_for_the_insurance():
-    use_case, images = use_case_for(LICENCE_EXPIRY, insurances=[])
-
-    assert (await drawn(use_case, images)).insurance_end_date != LICENCE_EXPIRY

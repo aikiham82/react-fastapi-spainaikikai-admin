@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, date
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 
 
@@ -26,6 +26,20 @@ def insurance_season(payment_year: int) -> tuple[datetime, datetime]:
 def insurance_season_year(on: datetime) -> int:
     """Payment year of the season in force on a date: from 1 October it is the following year."""
     return on.year + 1 if on.month >= 10 else on.year
+
+
+def latest_accident_insurance_end(insurances: "List[Insurance]") -> Optional[datetime]:
+    """End of the member's latest accident insurance that was really held, even if it has passed."""
+    return max(
+        (
+            insurance.end_date
+            for insurance in insurances
+            if insurance.insurance_type == InsuranceType.ACCIDENT
+            and insurance.status in (InsuranceStatus.ACTIVE, InsuranceStatus.EXPIRED)
+            and insurance.end_date
+        ),
+        default=None,
+    )
 
 
 @dataclass
