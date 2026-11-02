@@ -1,6 +1,5 @@
 """Import/Export routes."""
 
-import math
 import re
 from typing import Optional
 from io import BytesIO
@@ -10,6 +9,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
+from pydantic import TypeAdapter
 
 from src.infrastructure.web.dto.import_export_dto import (
     ImportMembersRequest,
@@ -19,7 +19,7 @@ from src.infrastructure.web.dto.import_export_dto import (
     ImportPaymentsRequest
 )
 from src.infrastructure.web.dto.member_payment_dto import MAX_CONCEPT_LENGTH
-from src.infrastructure.web.dto.money import MAX_MONEY
+from src.infrastructure.web.dto.money import Money
 from src.infrastructure.web.dependencies import (
     get_all_members_use_case,
     get_create_member_use_case,
@@ -70,11 +70,11 @@ def _parse_date(value) -> Optional[datetime]:
 SPAIN_NAMES = {'españa', 'espana', 'spain'}
 
 
+_MONEY = TypeAdapter(Money)
+
+
 def _money(value) -> float:
-    number = float(str(value).replace(',', '.'))
-    if not math.isfinite(number) or abs(number) > MAX_MONEY:
-        raise ValueError(f"Not a valid amount: {value}")
-    return number
+    return _MONEY.validate_python(float(str(value).replace(',', '.')))
 
 
 def _cell_text(value) -> str:

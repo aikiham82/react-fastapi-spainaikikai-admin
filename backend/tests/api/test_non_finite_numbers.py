@@ -1,8 +1,5 @@
 """Infinity and NaN cannot be stored: every JSON response holding one answers 500."""
 
-from types import SimpleNamespace
-from unittest.mock import AsyncMock
-
 import pytest
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -10,12 +7,7 @@ from fastapi.testclient import TestClient
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from src.app import create_app, request_validation_handler
-from src.domain.entities.member import Member
-from src.infrastructure.web.dependencies import (
-    get_auth_context,
-    get_member_payment_repository,
-    get_member_repository,
-)
+from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.dto.annual_payment_dto import AnnualPaymentLineItem
 from src.infrastructure.web.dto.insurance_dto import InsuranceCreate, InsuranceUpdate
 from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
@@ -29,7 +21,7 @@ from src.infrastructure.web.dto.payment_dto import (
 )
 from src.infrastructure.web.dto.price_configuration_dto import PriceConfigurationCreate, PriceConfigurationUpdate
 from src.infrastructure.web.dto.seminar_dto import SeminarCreate, SeminarUpdate
-from src.infrastructure.web.routers.import_export import _money, router
+from src.infrastructure.web.routers.import_export import _money
 from tests.api.callers import super_admin
 
 pytestmark = [pytest.mark.api]
@@ -127,23 +119,3 @@ def test_an_imported_non_money_is_invalid(raw):
 @pytest.mark.parametrize(("raw", "expected"), [("15,5", 15.5), ("15.5", 15.5), (20, 20.0), ("0", 0.0)])
 def test_an_imported_number_is_read(raw, expected):
     assert _money(raw) == expected
-
-
-def test_a_payment_row_with_a_non_finite_amount_is_refused_and_not_stored():
-    payments = SimpleNamespace(create=AsyncMock(), find_by_member_year=AsyncMock(return_value=[]))
-    members = SimpleNamespace(find_by_dni=AsyncMock(return_value=Member(id="member-ana", first_name="Ana", last_name="Example", club_id="club-dojo")))
-    app = FastAPI()
-    app.include_router(router, prefix="/api/v1")
-    app.dependency_overrides = {
-        get_auth_context: lambda: super_admin(),
-        get_member_payment_repository: lambda: payments,
-        get_member_repository: lambda: members,
-    }
-
-    response = TestClient(app).post(
-        "/api/v1/import-export/payments/import",
-        json={"payments": [{"dni": "00000000A", "tipo_pago": "licencia_kyu", "ano": 2026, "monto": "inf"}]},
-    )
-
-    assert response.json()["failed"] == 1
-    payments.create.assert_not_called()

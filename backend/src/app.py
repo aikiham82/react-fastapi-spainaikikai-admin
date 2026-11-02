@@ -12,11 +12,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-async def request_validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
-    errors = [{key: value for key, value in error.items() if key != "input"} for error in exc.errors()]
-    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
-
 from src.domain.exceptions.base import EntityNotFoundError, ValidationError, BusinessRuleViolationError, DomainException
 from src.infrastructure.web.routers.users import router as users_router
 from src.infrastructure.web.routers.clubs import router as clubs_router
@@ -39,6 +34,12 @@ from src.config.sentry import configure_sentry
 from src.config.settings import AppSettings
 from dotenv import load_dotenv
 load_dotenv()
+
+
+async def request_validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    errors = [{key: value for key, value in error.items() if key != "input"} for error in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(errors)})
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

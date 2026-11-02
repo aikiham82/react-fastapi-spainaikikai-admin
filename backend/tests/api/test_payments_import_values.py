@@ -1,4 +1,4 @@
-"""An imported concept is bounded text, so it cannot break the payments export."""
+"""An imported payment row holds a real amount and bounded text, so it cannot break the listings or the export."""
 
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -80,3 +80,12 @@ def test_without_a_concept_it_is_still_built_from_the_type_and_year(client, paym
     import_concept(client, None)
 
     assert payments.create.call_args.args[0].concept == "Licencia KYU 2026"
+
+
+def test_a_row_with_a_non_finite_amount_is_refused_and_not_stored(client, payments):
+    row = {"dni": "00000000A", "tipo_pago": "licencia_kyu", "ano": 2026, "monto": "inf"}
+
+    result = client.post("/api/v1/import-export/payments/import", json={"payments": [row]}).json()
+
+    assert result["failed"] == 1
+    payments.create.assert_not_called()
