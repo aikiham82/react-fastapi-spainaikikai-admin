@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-11-02T13:30:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Payment status follow-ups
@@ -67,17 +77,17 @@ No member holds two licence types in 2026. All 1104 `member_payments` in product
 
 `GetUnpaidMembersUseCase.execute` keeps its signature. Without `payment_type`, a member is unpaid when no completed line is a licence payment.
 
-- [ ] Test suite `test_get_unpaid_members_use_case`, cases:
+- [x] Test suite `test_get_unpaid_members_use_case`, cases:
   - insurance only is unpaid
   - club fee only is unpaid
   - each licence type and title is paid
   - with `payment_type` the behaviour is unchanged
-- [ ] Change `get_unpaid_members_use_case.py`.
-- [ ] Verify the changes with `cd backend && poetry run pytest`. Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Change `get_unpaid_members_use_case.py`.
+- [x] Verify the changes with `cd backend && poetry run pytest`. Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 3.
+All phases are implemented: review, QA and merge.
 
-Fewer false alarms, courtesy of 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Fewer false alarms and a green light at last: 🚦 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

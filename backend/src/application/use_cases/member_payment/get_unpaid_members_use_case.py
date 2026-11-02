@@ -51,7 +51,7 @@ class GetUnpaidMembersUseCase:
         Args:
             club_id: The club ID to check.
             payment_year: The year to check. Defaults to current year.
-            payment_type: The payment type to filter by (optional).
+            payment_type: The payment type to filter by. Without one, unpaid means no licence paid.
 
         Returns:
             UnpaidMembersResult with list of unpaid members.
@@ -90,7 +90,12 @@ class GetUnpaidMembersUseCase:
         # Find members who have paid
         paid_member_ids: Set[str] = set()
         for payment in payments:
-            if payment_type_enum is None or payment_type_enum in payment.covered_types:
+            pays_what_was_asked = (
+                payment.is_license_payment
+                if payment_type_enum is None
+                else payment_type_enum in payment.covered_types
+            )
+            if pays_what_was_asked:
                 paid_member_ids.add(payment.member_id)
 
         # Get unpaid member IDs
