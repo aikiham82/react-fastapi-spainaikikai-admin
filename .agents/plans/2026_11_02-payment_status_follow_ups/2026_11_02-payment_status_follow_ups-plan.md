@@ -58,10 +58,10 @@ No member holds two licence types in 2026. All 1104 `member_payments` in product
 
 ### Phase 2: Transacciones shows the status with the shared tones
 
-- [ ] Test suite `TransactionsSection`, cases: `completed` is `ok`, `pending` is `warn`, `refunded` is `bad`, on the table and on the mobile cards.
-- [ ] Replace `Badge` and `getStatusVariant` with `StatusBadge` and one shared mapping of statuses to tones.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Test suite `TransactionsSection`, cases: `completed` is `ok`, `pending` is `warn`, `refunded` is `bad`, on the table and on the mobile cards.
+- [x] Replace `Badge` and `getStatusVariant` with `StatusBadge` and one shared mapping of statuses to tones.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: the unpaid list is based on the licence
 
@@ -78,6 +78,6 @@ No member holds two licence types in 2026. All 1104 `member_payments` in product
 
 ## Next step
 
-Implement Phase 2.
+Implement Phase 3.
 
 Fewer false alarms, courtesy of 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

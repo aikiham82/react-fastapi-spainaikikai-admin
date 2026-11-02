@@ -104,6 +104,31 @@ describe('TransactionsSection — gap coverage', () => {
     })
   })
 
+  describe('status tone', () => {
+    it.each([
+      ['completed', 'Completado', 'ok'],
+      ['pending', 'Pendiente', 'warn'],
+      ['refunded', 'Reembolsado', 'bad'],
+      ['unknown_xyz', 'unknown_xyz', 'neutral'],
+    ])('shows %s with the same tone on the table and the mobile cards', async (status, label, tone) => {
+      const { useClubMemberPaymentsQuery } = await import('../../hooks/queries/useClubPaymentsQueries')
+      vi.mocked(useClubMemberPaymentsQuery).mockReturnValue({
+        data: [makeMemberPayment({ status, concept: 'Licencia' })],
+        isLoading: false,
+        isError: false,
+        error: null,
+      } as ReturnType<typeof useClubMemberPaymentsQuery>)
+
+      renderWithProviders(<TransactionsSection {...defaultProps} />)
+
+      const badges = screen.getAllByText(label)
+      expect(badges).toHaveLength(2)
+      for (const badge of badges) {
+        expect(badge.closest('[data-tone]')).toHaveAttribute('data-tone', tone)
+      }
+    })
+  })
+
   // ── Gap 3: Unknown status falls back to the raw value ─────────────────────
   describe('status label — unknown fallback', () => {
     it('renders the raw status string when the status has no label mapping', async () => {
