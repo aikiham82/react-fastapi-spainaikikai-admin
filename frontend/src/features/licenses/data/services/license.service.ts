@@ -23,9 +23,19 @@ export const deleteLicense = async (id: string): Promise<void> => {
   return await apiClient.delete<void>(`${BASE_URL}/${id}`);
 };
 
+export const getMemberLicenses = async (memberId: string): Promise<License[]> => {
+  return await apiClient.get<License[]>(`${BASE_URL}/member/${memberId}`);
+};
+
+export const getLicenseImage = async (id: string): Promise<Blob> => {
+  return await apiClient.get<Blob>(`${BASE_URL}/${id}/image`, { responseType: 'blob' });
+};
+
 export const licenseService = {
   getLicenses,
   getLicense,
+  getMemberLicenses,
+  getLicenseImage,
   createLicense,
   updateLicense,
   deleteLicense,

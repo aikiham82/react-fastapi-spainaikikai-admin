@@ -8,6 +8,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from src.app import create_app
+from src.domain.entities.license import License, LicenseType
 from src.domain.entities.member import ClubRole
 from src.domain.entities.user import GlobalRole, User
 from src.infrastructure.web.authorization import AuthContext
@@ -73,6 +74,29 @@ def test_a_member_lists_their_own_licences(client_as, use_cases):
 
     assert response.status_code == status.HTTP_200_OK
     assert use_cases.get_all.execute.call_args.kwargs["member_id"] == OWN_MEMBER
+
+
+def test_a_member_reads_their_name_and_status_with_their_licences(client_as, use_cases, monkeypatch):
+    client = client_as(plain_member())
+    use_cases.get_all.execute.return_value = [
+        License(
+            id="licence-id",
+            license_number="LIC-1",
+            member_id=OWN_MEMBER,
+            license_type=LicenseType.KYU,
+            grade="3º Kyu",
+        )
+    ]
+    members = SimpleNamespace(
+        find_one=AsyncMock(return_value={"first_name": "Ana", "last_name": "Pérez", "status": "inactive"})
+    )
+    monkeypatch.setattr("src.infrastructure.web.routers.licenses.get_database", lambda: {"members": members})
+
+    response = client.get(f"/api/v1/licenses/member/{OWN_MEMBER}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()[0]["member_name"] == "Ana Pérez"
+    assert response.json()[0]["member_status"] == "inactive"
 
 
 def test_a_member_is_refused_the_licences_of_another_member(client_as, use_cases):

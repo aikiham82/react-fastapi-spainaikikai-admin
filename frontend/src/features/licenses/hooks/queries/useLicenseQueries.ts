@@ -11,6 +11,22 @@ export const useLicensesQuery = (filters?: LicenseFilters) => {
   });
 };
 
+export const useMemberLicensesQuery = (memberId: string | undefined) => {
+  return useQuery({
+    queryKey: ['licenses', 'member', memberId],
+    queryFn: () => licenseService.getMemberLicenses(memberId as string),
+    enabled: !!memberId,
+  });
+};
+
+export const useLicenseImageQuery = (licenseId: string | undefined) => {
+  return useQuery({
+    queryKey: ['license', licenseId, 'image'],
+    queryFn: () => licenseService.getLicenseImage(licenseId as string),
+    enabled: !!licenseId,
+  });
+};
+
 export const useLicenseQuery = (id: string) => {
   return useQuery({
     queryKey: ['license', id],

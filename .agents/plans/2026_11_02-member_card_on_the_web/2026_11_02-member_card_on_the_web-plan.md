@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "high"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-11-02T09:24:41Z"
+has_completed_all_phases: "false"
 ---
 
 # Member card on the web
@@ -74,14 +84,14 @@ Public contracts:
 
 To-do:
 
-- [ ] Populate `member_name` and `member_status` in `GET /licenses/member/{member_id}`, with its test.
-- [ ] Add `pickCardLicence` to the licences feature, with its tests.
-- [ ] Add the licence image service and query hook, loading the PNG as a blob.
-- [ ] Add `MemberCard` and `card.page.tsx`, with its own scroll container, mobile first.
-- [ ] Route `/card` in `App.tsx` and redirect `userRole === null` to it in `AppLayout`.
-- [ ] Update the `/unauthorized` copy for the club admin it still receives.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Populate `member_name` and `member_status` in `GET /licenses/member/{member_id}`, with its test.
+- [x] Add `pickCardLicence` to the licences feature, with its tests.
+- [x] Add the licence image service and query hook, loading the PNG as a blob.
+- [x] Add `MemberCard` and `card.page.tsx`, with its own scroll container, mobile first.
+- [x] Route `/card` in `App.tsx` and redirect `userRole === null` to it in `AppLayout`.
+- [x] Update the `/unauthorized` copy for the club admin it still receives.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: activate and install without the app
 
@@ -126,6 +136,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-A card for every pocket, delivered by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+A card in every pocket, thanks to [Codely](https://codely.com) and Turbotuga™. 🪪 < 🐢 💨

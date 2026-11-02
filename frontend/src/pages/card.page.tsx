@@ -1,0 +1,72 @@
+import { Loader2, LogOut } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
+import { MemberCard } from '@/features/licenses/components/MemberCard';
+import { useMemberLicensesQuery } from '@/features/licenses/hooks/queries/useLicenseQueries';
+
+const Message = ({ title, children }: { title: string; children?: React.ReactNode }) => (
+  <div className="flex flex-col items-center gap-3 rounded-[18px] bg-card p-8 text-center shadow-card">
+    <p className="text-lg font-semibold text-foreground">{title}</p>
+    {children}
+  </div>
+);
+
+const CardContent = ({ memberId }: { memberId: string | undefined }) => {
+  const { data, isLoading, isError, refetch } = useMemberLicensesQuery(memberId);
+
+  if (!memberId) return <Message title="Sin miembro asociado" />;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="size-8 animate-spin text-primary" aria-label="Cargando carné" />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <Message title="No se pudo cargar tu carné">
+        <Button variant="outline" onClick={() => refetch()}>Reintentar</Button>
+      </Message>
+    );
+  }
+
+  return <MemberCard licenses={data} />;
+};
+
+export default function CardPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading, currentUser, logout } = useAuthContext();
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  const signOut = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="h-dvh overflow-y-auto bg-background">
+      <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-5 py-6">
+        <header className="flex items-center gap-3">
+          <img src="/logo.jpg" alt="" className="size-12 mix-blend-multiply" />
+          <h1 className="min-w-0 flex-1 text-2xl font-semibold tracking-tight text-foreground">Tu carné</h1>
+          <Button variant="ghost" className="min-h-11" onClick={signOut}>
+            <LogOut className="mr-2 size-4" aria-hidden="true" />
+            Cerrar sesión
+          </Button>
+        </header>
+
+        {isLoading || !currentUser ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="size-8 animate-spin text-primary" aria-label="Cargando carné" />
+          </div>
+        ) : (
+          <CardContent memberId={currentUser.member_id} />
+        )}
+      </main>
+    </div>
+  );
+}

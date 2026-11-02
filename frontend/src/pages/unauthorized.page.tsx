@@ -15,13 +15,16 @@ export default function UnauthorizedPage() {
   return (
     <AuthLayout>
       <div className="flex flex-col gap-6">
-        <AuthHeading title="El panel es para los responsables de club">
-          Tu carné está en la app Spain Aikikai: entra en ella con tu correo y tu contraseña.
-        </AuthHeading>
+        <AuthHeading title="No tienes acceso a esta página" />
         {isAuthenticated ? (
-          <Button size="lg" className="w-full" onClick={signOut}>
-            Cerrar sesión
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button size="lg" className="w-full" asChild>
+              <Link to="/">Ir al inicio</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="w-full" onClick={signOut}>
+              Cerrar sesión
+            </Button>
+          </div>
         ) : (
           <Button size="lg" className="w-full" asChild>
             <Link to="/login">Entrar</Link>

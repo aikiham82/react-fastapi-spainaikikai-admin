@@ -278,7 +278,7 @@ async def get_licenses_by_member(
 
     licenses = await get_all_use_case.execute(limit, club_id=None, member_id=member_id)
 
-    return LicenseMapper.to_response_list(licenses)
+    return await _populate_member_names(LicenseMapper.to_response_list(licenses))
 
 
 @router.post("", response_model=LicenseResponse, status_code=status.HTTP_201_CREATED)
