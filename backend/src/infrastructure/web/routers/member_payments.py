@@ -372,4 +372,6 @@ async def delete_member_payment(
         await use_case.execute(member_payment_id)
     except MemberPaymentNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return None

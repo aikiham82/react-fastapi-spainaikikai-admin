@@ -4,7 +4,7 @@ from pydantic import StrictInt, AfterValidator, BaseModel, EmailStr, Field, fiel
 from typing import Annotated, List, Literal, Optional
 from datetime import datetime, timedelta
 
-from src.infrastructure.web.dto.naive_datetime import as_naive_utc
+from src.infrastructure.web.dto.naive_datetime import NaiveDatetime, as_naive_utc
 
 
 def naive_past_registration_date(value: datetime) -> datetime:
@@ -63,9 +63,8 @@ class MemberUpdate(BaseModel):
     province: Optional[str] = None
     postal_code: Optional[str] = None
     country: Optional[str] = None
-    birth_date: Optional[datetime] = None
+    birth_date: Optional[NaiveDatetime] = None
     club_id: Optional[str] = None
-    status: Optional[str] = None
     registration_date: Optional[RegistrationDate] = None
 
     @field_validator('email', mode='before')

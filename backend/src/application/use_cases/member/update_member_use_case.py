@@ -1,8 +1,12 @@
 """Update Member use case."""
 
+from typing import Optional
+from datetime import datetime
+
 from src.domain.entities.member import Member, is_club_account_placeholder_name
 from src.domain.exceptions.member import InvalidMemberDataError, MemberAlreadyExistsError, MemberNotFoundError
 from src.application.ports.member_repository import MemberRepositoryPort
+from src.application.use_cases.apply_changes import apply_changes
 
 
 class UpdateMemberUseCase:
@@ -11,24 +15,52 @@ class UpdateMemberUseCase:
     def __init__(self, member_repository: MemberRepositoryPort):
         self.member_repository = member_repository
 
-    async def execute(self, member_id: str, **kwargs) -> Member:
+    async def execute(
+        self,
+        member_id: str,
+        first_name: Optional[str] = None,
+        last_name: Optional[str] = None,
+        dni: Optional[str] = None,
+        email: Optional[str] = None,
+        phone: Optional[str] = None,
+        address: Optional[str] = None,
+        city: Optional[str] = None,
+        province: Optional[str] = None,
+        postal_code: Optional[str] = None,
+        country: Optional[str] = None,
+        birth_date: Optional[datetime] = None,
+        club_id: Optional[str] = None,
+        registration_date: Optional[datetime] = None,
+    ) -> Member:
         """Execute the use case."""
         member = await self.member_repository.find_by_id(member_id)
         if member is None:
             raise MemberNotFoundError(member_id)
-        if is_club_account_placeholder_name(kwargs.get("last_name")) and not member.is_club_account_placeholder:
+        if is_club_account_placeholder_name(last_name) and not member.is_club_account_placeholder:
             raise InvalidMemberDataError("Ese apellido está reservado para las cuentas de club")
 
-        if kwargs.get("dni") is not None:
-            kwargs["dni"] = kwargs["dni"].strip()
-            if kwargs["dni"] and kwargs["dni"] != member.dni:
-                holder = await self.member_repository.find_by_dni(kwargs["dni"])
+        if dni is not None:
+            dni = dni.strip()
+            if dni and dni != member.dni:
+                holder = await self.member_repository.find_by_dni(dni)
                 if holder and holder.id != member.id:
                     raise MemberAlreadyExistsError("Ya existe un miembro con ese DNI")
 
-        # Update fields
-        for key, value in kwargs.items():
-            if value is not None and hasattr(member, key):
-                setattr(member, key, value)
-
-        return await self.member_repository.update(member)
+        return await self.member_repository.update(
+            apply_changes(
+                member,
+                first_name=first_name,
+                last_name=last_name,
+                dni=dni,
+                email=email,
+                phone=phone,
+                address=address,
+                city=city,
+                province=province,
+                postal_code=postal_code,
+                country=country,
+                birth_date=birth_date,
+                club_id=club_id,
+                registration_date=registration_date,
+            )
+        )

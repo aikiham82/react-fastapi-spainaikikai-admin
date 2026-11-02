@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from src.domain.entities.member_payment import MemberPaymentStatus
+from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus
 from src.domain.exceptions.payment import MemberPaymentNotFoundError
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
@@ -28,12 +28,25 @@ class DeleteMemberPaymentUseCase:
             raise MemberPaymentNotFoundError(member_payment_id)
 
         payment_id = mp.payment_id
+        await self._ensure_parent_covers_refund(mp)
         deleted = await self.member_payment_repository.delete(member_payment_id)
 
         if deleted:
             await self._recompute_parent_amount(payment_id)
 
         return deleted
+
+    async def _ensure_parent_covers_refund(self, deleted: MemberPayment) -> None:
+        parent = await self.payment_repository.find_by_id(deleted.payment_id)
+        if not parent or not parent.refund_amount:
+            return
+        lines = await self.member_payment_repository.find_by_payment_id(deleted.payment_id)
+        parent.ensure_covers_refund(
+            sum(
+                line.amount for line in lines
+                if line.id != deleted.id and line.status == MemberPaymentStatus.COMPLETED
+            )
+        )
 
     async def _recompute_parent_amount(self, payment_id: str) -> None:
         """Set Payment.amount = sum of all remaining COMPLETED MemberPayment.amount."""
