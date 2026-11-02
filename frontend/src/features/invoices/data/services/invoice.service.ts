@@ -1,4 +1,5 @@
 import { apiClient } from '@/core/data/apiClient';
+import { downloadBlob } from '@/core/utils/downloadBlob';
 import type { Invoice, InvoiceFilters } from '../schemas/invoice.schema';
 
 const BASE_URL = '/api/v1/invoices';
@@ -33,15 +34,7 @@ export const invoicePdfFileName = (invoiceNumber: string): string =>
   `factura_${invoiceNumber.replace('/', '-')}.pdf`;
 
 export const downloadAndSavePdf = async (invoiceId: string, invoiceNumber: string): Promise<void> => {
-  const blob = await downloadInvoicePdf(invoiceId);
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = invoicePdfFileName(invoiceNumber);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+  downloadBlob(await downloadInvoicePdf(invoiceId), invoicePdfFileName(invoiceNumber));
 };
 
 export const invoiceService = {

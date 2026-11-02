@@ -183,7 +183,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           getJwt,
           currentUser: effectiveUser ?? null,
           userLoadFailed,
-          retryLoadingUser: () => { refetchCurrentUser(); },
+          retryLoadingUser: refetchCurrentUser,
           userRole,
           clubId,
           loginFailed: Boolean(loginError),

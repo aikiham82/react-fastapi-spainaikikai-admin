@@ -1,13 +1,4 @@
-const download = (blob: Blob, fileName: string): void => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+import { downloadBlob } from '@/core/utils/downloadBlob';
 
 export const saveCardImage = async (blob: Blob, fileName: string): Promise<void> => {
   const file = new File([blob], fileName, { type: blob.type || 'image/png' });
@@ -20,5 +11,5 @@ export const saveCardImage = async (blob: Blob, fileName: string): Promise<void>
       if (error instanceof DOMException && error.name === 'AbortError') return;
     }
   }
-  download(blob, fileName);
+  downloadBlob(blob, fileName);
 };

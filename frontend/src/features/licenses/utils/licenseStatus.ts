@@ -19,6 +19,9 @@ export const getUrgency = (license: LicenseState, now: Date = new Date()): Licen
   return days <= EXPIRING_SOON_DAYS ? 'expiring' : 'other';
 };
 
+export const isLicenseInForce = (license: LicenseState, now: Date = new Date()): boolean =>
+  !isDeregistered(license) && license.status === 'active' && getUrgency(license, now) !== 'expired';
+
 export const getStatusPresentation = (
   license: LicenseState,
   now: Date = new Date(),

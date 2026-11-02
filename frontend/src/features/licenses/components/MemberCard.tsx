@@ -8,7 +8,7 @@ import { formatDate } from '@/core/utils/format';
 import type { License } from '../data/schemas/license.schema';
 import { useLicenseImageQuery } from '../hooks/queries/useLicenseQueries';
 import { cardGrade, cardTitle, pickCardLicence } from '../utils/cardLicence';
-import { getStatusPresentation } from '../utils/licenseStatus';
+import { getStatusPresentation, isLicenseInForce } from '../utils/licenseStatus';
 import { saveCardImage } from '../utils/saveCardImage';
 
 const useObjectUrl = (blob: Blob | undefined): string | null => {
@@ -24,20 +24,34 @@ const useObjectUrl = (blob: Blob | undefined): string | null => {
   return blob ? url : null;
 };
 
-const CardImage = ({ license }: { license: License }) => {
-  const { data, isLoading, isError, refetch } = useLicenseImageQuery(license.id);
-  const url = useObjectUrl(data);
+export const CardMessage = ({ title, children }: { title: string; children?: React.ReactNode }) => (
+  <div className="flex flex-col items-center gap-3 rounded-[18px] bg-card p-8 text-center shadow-card">
+    <IdCard className="size-10 text-muted-foreground" aria-hidden="true" />
+    <p className="text-lg font-semibold text-foreground">{title}</p>
+    {children}
+  </div>
+);
 
-  if (isError && !data) {
+interface CardImageProps {
+  image: Blob | undefined;
+  failed: boolean;
+  onRetry: () => void;
+  alt: string;
+}
+
+const CardImage = ({ image, failed, onRetry, alt }: CardImageProps) => {
+  const url = useObjectUrl(image);
+
+  if (failed && !image) {
     return (
       <div className="flex aspect-[1.586] flex-col items-center justify-center gap-3 rounded-[18px] bg-muted p-5 text-center">
         <p className="text-[15px] text-muted-foreground">No se pudo cargar la imagen</p>
-        <Button variant="outline" onClick={() => refetch()}>Reintentar</Button>
+        <Button variant="outline" onClick={onRetry}>Reintentar</Button>
       </div>
     );
   }
 
-  if (isLoading || !url) {
+  if (!url) {
     return (
       <div className="flex aspect-[1.586] items-center justify-center rounded-[18px] bg-muted">
         <Loader2 className="size-8 animate-spin text-primary" aria-label="Cargando carné" />
@@ -45,30 +59,7 @@ const CardImage = ({ license }: { license: License }) => {
     );
   }
 
-  return (
-    <img
-      src={url}
-      alt={`Carné de ${license.member_name || 'socio'}`}
-      className="aspect-[1.586] w-full rounded-[18px] object-contain shadow-card"
-    />
-  );
-};
-
-const DownloadCard = ({ license }: { license: License }) => {
-  const { data } = useLicenseImageQuery(license.id);
-
-  return (
-    <Button
-      variant="outline"
-      size="lg"
-      className="w-full"
-      disabled={!data}
-      onClick={() => data && saveCardImage(data, `carne-${license.license_number}.png`)}
-    >
-      <Download className="mr-2 size-4" aria-hidden="true" />
-      Descargar
-    </Button>
-  );
+  return <img src={url} alt={alt} className="aspect-[1.586] w-full rounded-[18px] object-contain shadow-card" />;
 };
 
 const Detail = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -85,24 +76,30 @@ interface MemberCardProps {
 
 export const MemberCard = ({ licenses, now = new Date() }: MemberCardProps) => {
   const license = pickCardLicence(licenses, now);
+  const isInForce = !!license && isLicenseInForce(license, now);
+  const { data: image, isError, refetch } = useLicenseImageQuery(isInForce ? license.id : undefined);
 
   if (!license) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-[18px] bg-card p-8 text-center shadow-card">
-        <IdCard className="size-10 text-muted-foreground" aria-hidden="true" />
-        <p className="text-lg font-semibold text-foreground">Sin licencia vigente</p>
+      <CardMessage title="Sin licencia vigente">
         <p className="text-[15px] text-muted-foreground">Pregunta a tu club.</p>
-      </div>
+      </CardMessage>
     );
   }
 
   const { tone, label, icon } = getStatusPresentation(license, now);
   const hasExpired = !!license.expiry_date && daysUntil(license.expiry_date, now) < 0;
-  const isInForce = tone === 'ok' || tone === 'warn';
 
   return (
     <div className="flex flex-col gap-5">
-      {isInForce && <CardImage license={license} />}
+      {isInForce && (
+        <CardImage
+          image={image}
+          failed={isError}
+          onRetry={() => refetch()}
+          alt={`Carné de ${license.member_name || 'socio'}`}
+        />
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <StatusBadge tone={tone} icon={icon}>{label}</StatusBadge>
@@ -121,7 +118,18 @@ export const MemberCard = ({ licenses, now = new Date() }: MemberCardProps) => {
         <Detail label="N.º de licencia">{license.license_number}</Detail>
       </dl>
 
-      {isInForce && <DownloadCard license={license} />}
+      {isInForce && (
+        <Button
+          variant="outline"
+          size="lg"
+          className="w-full"
+          disabled={!image}
+          onClick={() => image && saveCardImage(image, `carne-${license.license_number}.png`)}
+        >
+          <Download className="mr-2 size-4" aria-hidden="true" />
+          Descargar
+        </Button>
+      )}
     </div>
   );
 };
