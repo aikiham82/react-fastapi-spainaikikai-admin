@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, MinusCircle } from 'lucide-react';
 import { useMemberPaymentStatusQuery } from '../hooks/queries/useMemberPaymentQueries';
 import { MEMBER_PAYMENT_TYPES, type MemberPaymentType } from '../data/schemas/member-payment.schema';
 import { formatCurrency } from '@/core/utils/format';
@@ -56,24 +56,32 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
       </div>
 
       <PaymentGroup title="Licencias" complete={data.has_all_licenses} payments={licensePayments} />
-      <PaymentGroup title="Seguros" complete={data.has_all_insurances} payments={insurancePayments} />
+      <PaymentGroup title="Seguros" complete={data.has_all_insurances} optional payments={insurancePayments} />
     </div>
   );
 };
 
+const MissingIcon = ({ optional }: { optional: boolean }) =>
+  optional ? (
+    <MinusCircle className="mr-2 h-4 w-4 text-muted-foreground" />
+  ) : (
+    <XCircle className="mr-2 h-4 w-4 text-danger" />
+  );
+
 interface PaymentGroupProps {
   title: string;
   complete: boolean;
+  optional?: boolean;
   payments: { payment_type: string; is_paid: boolean; amount?: number | null }[];
 }
 
-const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, payments }) => (
+const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, optional = false, payments }) => (
   <div>
     <h4 className="mb-2 flex items-center text-sm font-medium">
       {complete ? (
         <CheckCircle className="mr-2 h-4 w-4 text-success" />
       ) : (
-        <XCircle className="mr-2 h-4 w-4 text-danger" />
+        <MissingIcon optional={optional} />
       )}
       {title}
     </h4>
@@ -83,6 +91,7 @@ const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, payments }
           key={status.payment_type}
           paymentType={status.payment_type}
           isPaid={status.is_paid}
+          optional={optional}
           amount={status.amount}
         />
       ))}
@@ -93,12 +102,16 @@ const PaymentGroup: React.FC<PaymentGroupProps> = ({ title, complete, payments }
 interface PaymentTypeItemProps {
   paymentType: string;
   isPaid: boolean;
+  optional: boolean;
   amount?: number | null;
 }
+
+const missingBackground = (optional: boolean) => (optional ? 'bg-muted' : 'bg-danger-soft');
 
 const PaymentTypeItem: React.FC<PaymentTypeItemProps> = ({
   paymentType,
   isPaid,
+  optional,
   amount,
 }) => {
   const label = MEMBER_PAYMENT_TYPES[paymentType as MemberPaymentType] || paymentType;
@@ -106,14 +119,14 @@ const PaymentTypeItem: React.FC<PaymentTypeItemProps> = ({
   return (
     <div
       className={`flex items-center justify-between p-2 rounded-md ${
-        isPaid ? 'bg-success-soft' : 'bg-danger-soft'
+        isPaid ? 'bg-success-soft' : missingBackground(optional)
       }`}
     >
       <div className="flex items-center">
         {isPaid ? (
           <CheckCircle className="mr-2 h-4 w-4 text-success" />
         ) : (
-          <XCircle className="mr-2 h-4 w-4 text-danger" />
+          <MissingIcon optional={optional} />
         )}
         <span className="text-sm">{label}</span>
       </div>

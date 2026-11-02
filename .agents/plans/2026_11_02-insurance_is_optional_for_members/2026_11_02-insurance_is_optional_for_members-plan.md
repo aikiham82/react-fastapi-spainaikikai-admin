@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "low"
 
 last_implementation_at: "2026-11-02T12:30:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # Insurance is optional for members
@@ -83,16 +83,16 @@ A club with every licence paid reads "N de N pagados", and insurance appears onl
 
 The "Seguros" group of the dialog no longer shows a red X when insurance is missing.
 
-- [ ] Test suite `MemberPaymentStatus`, cases:
+- [x] Test suite `MemberPaymentStatus`, cases:
   - without insurance, "Seguros" has no danger icon
   - with all insurances, "Seguros" keeps the success icon
   - without licence, "Licencias" keeps the danger icon
-- [ ] Change `PaymentGroup` in `MemberPaymentStatus.tsx`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Change `PaymentGroup` in `MemberPaymentStatus.tsx`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`cd frontend && npm run lint && npm run build && npm run test`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2.
+All phases are implemented: review, QA and merge.
 
 The licence crossed the line, the insurance waved from the stands: 🪪 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
