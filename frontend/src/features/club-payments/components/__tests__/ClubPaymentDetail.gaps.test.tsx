@@ -8,7 +8,7 @@
  *  6. useMembersQuery enabled-gating: called only when canManagePayments && clubDetail?.club_id
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { renderWithProviders, userEvent } from '@/test-utils'
 import { ClubPaymentDetail } from '../ClubPaymentDetail'
 import type { ClubPaymentSummaryResponse } from '@/features/member-payments/data/schemas/member-payment.schema'
@@ -288,5 +288,75 @@ describe('ClubPaymentDetail — gap coverage', () => {
 
     expect(screen.getByRole('button', { name: /Registrar pago manual/ })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Transacciones' })).toBeInTheDocument()
+  })
+
+  describe('insurance is optional for members', () => {
+    const memberWithLicenceOnly = {
+      ...memberPaid,
+      member_id: 'mem-licence',
+      member_name: 'Lucía Pérez',
+      insurance_paid: false,
+    }
+    const memberWithInsuranceOnly = {
+      ...memberPaid,
+      member_id: 'mem-insurance',
+      member_name: 'Iván Soto',
+      license_paid: false,
+    }
+
+    const renderClub = (detail: Partial<ClubPaymentSummaryResponse>) => {
+      mockUseClubPaymentsContext.mockReturnValue({
+        ...baseContextValue,
+        clubDetail: { ...baseClubDetail, ...detail },
+      })
+      renderWithProviders(<ClubPaymentDetail />)
+    }
+
+    const rowOf = (name: string) => screen.getByText(name).closest('li') as HTMLElement
+
+    it('a member with the licence and no insurance is up to date', () => {
+      renderClub({ members: [memberWithLicenceOnly] })
+
+      expect(within(rowOf('Lucía Pérez')).getByText('Al día')).toBeInTheDocument()
+      expect(screen.queryByText('Falta seguro')).not.toBeInTheDocument()
+    })
+
+    it('a member with insurance and no licence still lacks the licence', () => {
+      renderClub({ members: [memberWithInsuranceOnly] })
+
+      expect(within(rowOf('Iván Soto')).getByText('Falta licencia')).toBeInTheDocument()
+    })
+
+    it('a member with nothing paid is pending', () => {
+      renderClub({ members: [memberUnpaid] })
+
+      expect(within(rowOf('Carlos Rodríguez')).getByText('Pendiente')).toBeInTheDocument()
+    })
+
+    it('counts the members with the licence paid, whatever their insurance', () => {
+      renderClub({
+        total_members: 3,
+        members_with_license: 2,
+        members_with_insurance: 1,
+        members: [memberPaid, memberWithLicenceOnly, memberUnpaid],
+      })
+
+      expect(screen.getByText('2 de 3')).toBeInTheDocument()
+      expect(screen.getByText(/pagados$/)).toBeInTheDocument()
+      expect(screen.getByRole('progressbar', { name: 'Miembros pagados' })).toHaveAttribute('aria-valuenow', '2')
+    })
+
+    it('shows how many members hold insurance as information', () => {
+      renderClub({ members_with_insurance: 1 })
+
+      expect(screen.getByText('1 con seguro')).toBeInTheDocument()
+    })
+
+    it('labels a missing insurance as a fact, not as a debt', () => {
+      renderClub({ members: [memberWithLicenceOnly] })
+
+      expect(screen.getByLabelText('Sin seguro')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Seguro sin pagar')).not.toBeInTheDocument()
+    })
   })
 })

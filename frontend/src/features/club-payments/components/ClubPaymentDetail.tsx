@@ -20,8 +20,7 @@ interface MemberStatus {
 }
 
 const statusOf = (licensePaid: boolean, insurancePaid: boolean): MemberStatus => {
-  if (licensePaid && insurancePaid) return { tone: 'ok', label: 'Al día' };
-  if (licensePaid) return { tone: 'warn', label: 'Falta seguro' };
+  if (licensePaid) return { tone: 'ok', label: 'Al día' };
   if (insurancePaid) return { tone: 'warn', label: 'Falta licencia' };
   return { tone: 'neutral', label: 'Pendiente' };
 };
@@ -80,7 +79,6 @@ export const ClubPaymentDetail = () => {
   }
 
   const members = clubDetail.members ?? [];
-  const upToDate = members.filter((m) => m.license_paid && m.insurance_paid).length;
   const filtered = members.filter((m) => foldForSearch(m.member_name).includes(foldForSearch(searchTerm)));
 
   return (
@@ -108,11 +106,11 @@ export const ClubPaymentDetail = () => {
       </div>
 
       <div className="flex items-center gap-4 rounded-[18px] bg-card p-4 shadow-card sm:p-5">
-        <ProgressRing value={upToDate} max={clubDetail.total_members} label="Miembros pagados" />
+        <ProgressRing value={clubDetail.members_with_license} max={clubDetail.total_members} label="Miembros pagados" />
         <div className="flex min-w-0 flex-col items-start gap-1.5">
           <p className="text-[15px] text-foreground">
             <span className="text-2xl font-bold tabular-nums">
-              {upToDate} de {clubDetail.total_members}
+              {clubDetail.members_with_license} de {clubDetail.total_members}
             </span>{' '}
             pagados
           </p>
@@ -121,6 +119,8 @@ export const ClubPaymentDetail = () => {
               {clubDetail.has_club_fee ? 'Cuota pagada' : 'Cuota pendiente'}
             </StatusBadge>
             <span className="text-sm text-muted-foreground">Cobrado {formatCurrency(clubDetail.total_collected)}</span>
+            <span className="text-sm text-muted-foreground" aria-hidden="true">·</span>
+            <span className="text-sm text-muted-foreground">{clubDetail.members_with_insurance} con seguro</span>
           </div>
         </div>
       </div>
@@ -149,7 +149,7 @@ export const ClubPaymentDetail = () => {
                     <PaidMark
                       icon={HeartPulse}
                       paid={member.insurance_paid}
-                      label={member.insurance_paid ? 'Seguro pagado' : 'Seguro sin pagar'}
+                      label={member.insurance_paid ? 'Seguro pagado' : 'Sin seguro'}
                     />
                     {member.total_paid > 0 && (
                       <span className="text-sm tabular-nums text-muted-foreground">
