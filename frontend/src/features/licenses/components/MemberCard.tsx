@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IdCard, Loader2 } from 'lucide-react';
+import { Download, IdCard, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BeltBadge } from '@/components/ui/graphic';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -9,6 +9,7 @@ import type { License } from '../data/schemas/license.schema';
 import { useLicenseImageQuery } from '../hooks/queries/useLicenseQueries';
 import { cardTitle, holdsOnlyATitle, pickCardLicence } from '../utils/cardLicence';
 import { getStatusPresentation } from '../utils/licenseStatus';
+import { saveCardImage } from '../utils/saveCardImage';
 
 const useObjectUrl = (blob: Blob | undefined): string | null => {
   const [url, setUrl] = useState<string | null>(null);
@@ -50,6 +51,23 @@ const CardImage = ({ license }: { license: License }) => {
       alt={`Carné de ${license.member_name || 'socio'}`}
       className="aspect-[1.586] w-full rounded-[18px] object-contain shadow-card"
     />
+  );
+};
+
+const DownloadCard = ({ license }: { license: License }) => {
+  const { data } = useLicenseImageQuery(license.id);
+
+  return (
+    <Button
+      variant="outline"
+      size="lg"
+      className="w-full"
+      disabled={!data}
+      onClick={() => data && saveCardImage(data, `carne-${license.license_number}.png`)}
+    >
+      <Download className="mr-2 size-4" aria-hidden="true" />
+      Descargar
+    </Button>
   );
 };
 
@@ -101,6 +119,8 @@ export const MemberCard = ({ licenses, now = new Date() }: MemberCardProps) => {
         </Detail>
         <Detail label="N.º de licencia">{license.license_number}</Detail>
       </dl>
+
+      <DownloadCard license={license} />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { Loader2, LogOut } from 'lucide-react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { InstallAppButton } from '@/features/auth/components/InstallAppButton';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
@@ -39,7 +39,7 @@ const CardContent = ({ memberId }: { memberId: string | undefined }) => {
 
 export default function CardPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, currentUser, logout } = useAuthContext();
+  const { isAuthenticated, isLoading, currentUser, userRole, logout } = useAuthContext();
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
@@ -66,6 +66,12 @@ export default function CardPage() {
           </div>
         ) : (
           <CardContent memberId={currentUser.member_id} />
+        )}
+
+        {userRole && (
+          <Button variant="outline" size="lg" className="w-full" asChild>
+            <Link to="/">Volver al panel</Link>
+          </Button>
         )}
 
         <InstallAppButton />

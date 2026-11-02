@@ -4,9 +4,9 @@
 
 Seeing the card and running the club are two different accesses, held by the same kind of account:
 
-- **Card (app):** any member activates it alone with "¿Primera vez? Activa tu carné" (`POST /auth/card-access/request`). An account is created only when the email belongs to **exactly one active member** who has no account, is not a club manager, and whose email no login uses; the member is claimed atomically (`claim_card_access`) so parallel requests create one account. The answer is always the same and the work runs in the background (see [auth endpoints](../security/auth-endpoints.md)).
+- **Card (app or web):** the Android app and the web page `/card` show the same card, which also serves a phone without the app (an iPhone adds it to the home screen). Any member activates it alone with "¿Primera vez? Activa tu carné", in the app or at `/activate` (`POST /auth/card-access/request`). An account is created only when the email belongs to **exactly one active member** who has no account, is not a club manager, and whose email no login uses; the member is claimed atomically (`claim_card_access`) so parallel requests create one account. The answer is always the same and the work runs in the background (see [auth endpoints](../security/auth-endpoints.md)).
 - **No email of their own, no card:** a member without email, or sharing it with another member, gets nothing until their manager sets one. The member list marks them ("Sin correo propio: no puede ver su carné", `has_own_email`).
-- **Panel (web):** only managers and the super admin. A signed-in member who manages nothing lands on `/unauthorized`, which points to the app; the server already refuses them on every admin router. Giving web access is "Hacer responsable del club": it creates the account **and** makes the member manager, and fills an empty member email with the login email.
+- **Panel (web):** only managers and the super admin. A signed-in member who manages nothing lands on `/card`; the server already refuses them on every admin router. A club admin reaches their own card from "Mi carné" in Ajustes. Giving web access is "Hacer responsable del club": it creates the account **and** makes the member manager, and fills an empty member email with the login email.
 
 ## 🏆 Benefits
 
@@ -37,7 +37,8 @@ if not await self.user_repository.find_by_member_id(member.id):
 - [`request_card_access_use_case.py`](../../backend/src/application/use_cases/member_access/request_card_access_use_case.py)
 - [`set_password_link.py`](../../backend/src/application/use_cases/member_access/set_password_link.py)
 - [`activate.tsx`](../../mobile/app/activate.tsx)
-- [`unauthorized.page.tsx`](../../frontend/src/pages/unauthorized.page.tsx)
+- [`card.page.tsx`](../../frontend/src/pages/card.page.tsx)
+- [`ActivateCardForm.tsx`](../../frontend/src/features/auth/components/ActivateCardForm.tsx)
 
 ## 🔗 Related agreements
 

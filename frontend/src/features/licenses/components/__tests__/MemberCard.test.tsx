@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test-utils';
 import type { License } from '../../data/schemas/license.schema';
+import { saveCardImage } from '../../utils/saveCardImage';
 import { MemberCard } from '../MemberCard';
 
 const refetchImage = vi.fn();
@@ -11,6 +12,8 @@ const imageQuery = vi.fn();
 vi.mock('../../hooks/queries/useLicenseQueries', () => ({
   useLicenseImageQuery: () => imageQuery(),
 }));
+
+vi.mock('../../utils/saveCardImage', () => ({ saveCardImage: vi.fn() }));
 
 const NOW = new Date('2026-11-02T10:00:00');
 
@@ -107,7 +110,7 @@ describe('MemberCard', () => {
     expect(screen.getByText('Pregunta a tu club.')).toBeInTheDocument();
   });
 
-  it('offers a retry when the image fails', async () => {
+  it('offers a retry when the image fails, and nothing to download', async () => {
     imageQuery.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: refetchImage });
     renderCard([licence()]);
 
@@ -115,5 +118,16 @@ describe('MemberCard', () => {
 
     expect(screen.getByText('No se pudo cargar la imagen')).toBeInTheDocument();
     expect(refetchImage).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Descargar' })).toBeDisabled();
+  });
+
+  it('saves the image named after the licence', async () => {
+    const image = new Blob(['png']);
+    imageQuery.mockReturnValue({ data: image, isLoading: false, isError: false, refetch: refetchImage });
+    renderCard([licence()]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Descargar' }));
+
+    expect(saveCardImage).toHaveBeenCalledWith(image, 'carne-LIC-2026-0001.png');
   });
 });

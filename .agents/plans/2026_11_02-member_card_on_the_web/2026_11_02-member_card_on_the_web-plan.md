@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-11-02T09:26:54Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-11-02T09:28:31Z"
+has_completed_all_phases: "true"
 ---
 
 # Member card on the web
@@ -128,14 +128,14 @@ Public contracts:
 
 To-do:
 
-- [ ] Add the "Descargar" action, with its tests.
-- [ ] Add "Mi carné" to the manager menu, and "Volver al panel" on the card for managers.
-- [ ] Update both docs.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Add the "Descargar" action, with its tests.
+- [x] Add "Mi carné" to the manager menu, and "Volver al panel" on the card for managers.
+- [x] Update both docs.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 3.
+All phases are done. The App Store release follows in its own branch.
 
-Activated, installed and on the home screen, with [Codely](https://codely.com) and Turbotuga™. 📲 < 🪪 < 🐢 💨
+Every phase landed, saved to the home screen with [Codely](https://codely.com) and Turbotuga™. 🏁 < 📲 < 🪪 < 🐢 💨

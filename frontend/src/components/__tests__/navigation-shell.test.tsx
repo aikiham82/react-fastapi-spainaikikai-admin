@@ -34,6 +34,22 @@ vi.mock('@/features/dashboard/hooks/useNavCounters', () => ({
 
 const at = (path: string, ui: React.ReactNode) => render(<MemoryRouter initialEntries={[path]}>{ui}</MemoryRouter>)
 
+describe('the card of a manager', () => {
+  it('is in the menu of a club admin', () => {
+    signInAsClubAdmin()
+    at('/settings', <Header />)
+
+    expect(screen.getByRole('link', { name: 'Mi carné' })).toHaveAttribute('href', '/card')
+  })
+
+  it('is not in the menu of the super admin', () => {
+    signInAsSuperAdmin()
+    at('/settings', <Header />)
+
+    expect(screen.queryByRole('link', { name: 'Mi carné' })).not.toBeInTheDocument()
+  })
+})
+
 describe('Rail', () => {
   beforeEach(() => {
     signInAsSuperAdmin()
