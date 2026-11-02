@@ -35,6 +35,13 @@ class LicenseImageService(LicenseImageServicePort):
         "dni": 40,
     }
 
+    MAX_WIDTHS = {
+        "surname": 940,
+        "first_name": 425,
+    }
+
+    MIN_FONT_SIZE = 14
+
     def __init__(self):
         """Initialize the license image service."""
         self.assets_dir = Path(__file__).parent.parent.parent / "assets"
@@ -59,6 +66,13 @@ class LicenseImageService(LicenseImageServicePort):
             return ImageFont.truetype(str(self.font_path), size)
         except Exception as e:
             raise LicenseImageGenerationError(f"Failed to load font: {e}")
+
+    def _font_that_fits(self, text: str, size: int, max_width: int) -> ImageFont.FreeTypeFont:
+        font = self._get_font(size)
+        while size > self.MIN_FONT_SIZE and font.getlength(text) > max_width:
+            size -= 1
+            font = self._get_font(size)
+        return font
 
     def _format_date(self, date) -> str:
         """Format date for display on license."""
@@ -110,20 +124,20 @@ class LicenseImageService(LicenseImageServicePort):
             )
 
             # Draw surname (uppercase)
-            surname_font = self._get_font(self.FONT_SIZES["surname"])
+            surname = data.last_name.upper()
             draw.text(
                 self.POSITIONS["surname"],
-                data.last_name.upper(),
-                font=surname_font,
+                surname,
+                font=self._font_that_fits(surname, self.FONT_SIZES["surname"], self.MAX_WIDTHS["surname"]),
                 fill=text_color
             )
 
             # Draw first name (uppercase)
-            first_name_font = self._get_font(self.FONT_SIZES["first_name"])
+            first_name = data.first_name.upper()
             draw.text(
                 self.POSITIONS["first_name"],
-                data.first_name.upper(),
-                font=first_name_font,
+                first_name,
+                font=self._font_that_fits(first_name, self.FONT_SIZES["first_name"], self.MAX_WIDTHS["first_name"]),
                 fill=text_color
             )
 

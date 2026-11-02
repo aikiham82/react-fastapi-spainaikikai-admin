@@ -72,8 +72,9 @@ class GenerateLicenseImageUseCase:
         if member is None:
             raise MemberNotFoundError(license.member_id)
 
-        # Calculate license year
-        license_year = self._calculate_license_year()
+        license_year = (
+            license.expiration_date.year if license.expiration_date else self._calculate_license_year()
+        )
 
         # Prepare image data
         image_data = LicenseImageData(
