@@ -44,7 +44,9 @@ A club admin can no longer break global listings with a non-finite number, an ex
 | `price_configurations.price`, `seminars.price` | 5 to 100, 0 to 75 | Normal values accepted |
 | `concept` | All text, longest 28 | Number cell becomes text; over 200 refused for the row |
 
-No data to repair. The query on `payments.amount` returned no groups, so that collection is not covered by this check.
+| `transactions.amount` (the parent payments) | 79 numbers, 0 to 1950 | Stays under the `Money` limit of 1,000,000 added after review |
+
+No data to repair.
 
 ## Phases
 
