@@ -3,7 +3,6 @@ import { authService } from '../auth.service'
 import { apiClient } from '@/core/data/apiClient'
 import {
   createMockAuthRequest,
-  createMockRegisterRequest,
   createMockAuthResponse,
   createMockCurrentUser,
   createMockAxiosError,
@@ -153,92 +152,6 @@ describe('authService', () => {
       const [, formData] = mockApiClient.post.mock.calls[0]
       expect(formData.get('username')).toBe('test+user@example.com')
       expect(formData.get('password')).toBe('p@$$w0rd!@#')
-    })
-  })
-
-  describe('register', () => {
-    const mockUserData = createMockRegisterRequest()
-    const mockAuthResponse = createMockAuthResponse()
-
-    it('should successfully register with valid data', async () => {
-      // Arrange
-      mockApiClient.post.mockResolvedValue(mockAuthResponse)
-
-      // Act
-      const result = await authService.register(mockUserData)
-
-      // Assert
-      expect(result).toEqual(mockAuthResponse)
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/auth/register',
-        mockUserData
-      )
-    })
-
-    it('should send JSON data for registration (not form-encoded)', async () => {
-      // Arrange
-      mockApiClient.post.mockResolvedValue(mockAuthResponse)
-
-      // Act
-      await authService.register(mockUserData)
-
-      // Assert
-      const [url, data] = mockApiClient.post.mock.calls[0]
-      expect(url).toBe('/api/v1/auth/register')
-      expect(data).toEqual(mockUserData)
-      expect(data).not.toBeInstanceOf(URLSearchParams)
-    })
-
-    it('should handle user already exists error', async () => {
-      // Arrange
-      const mockError = createMockAxiosError('User already exists', 409, {
-        error: 'user_exists',
-      })
-      mockApiClient.post.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.register(mockUserData)).rejects.toThrow()
-    })
-
-    it('should handle validation errors', async () => {
-      // Arrange
-      const mockError = createMockAxiosError('Validation failed', 400, {
-        error: 'validation_error',
-        details: ['Invalid email format'],
-      })
-      mockApiClient.post.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.register(mockUserData)).rejects.toThrow()
-    })
-
-    it('should handle network errors during registration', async () => {
-      // Arrange
-      const networkError = new Error('Network Error')
-      mockApiClient.post.mockRejectedValue(networkError)
-
-      // Act & Assert
-      await expect(authService.register(mockUserData)).rejects.toThrow('Network Error')
-    })
-
-    it('should handle email validation errors', async () => {
-      // Arrange
-      const invalidEmailData = createMockRegisterRequest({ email: 'invalid-email' })
-      const mockError = createMockAxiosError('Invalid email format', 400)
-      mockApiClient.post.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.register(invalidEmailData)).rejects.toThrow()
-    })
-
-    it('should handle weak password errors', async () => {
-      // Arrange
-      const weakPasswordData = createMockRegisterRequest({ password: '123' })
-      const mockError = createMockAxiosError('Password too weak', 400)
-      mockApiClient.post.mockRejectedValue(mockError)
-
-      // Act & Assert
-      await expect(authService.register(weakPasswordData)).rejects.toThrow()
     })
   })
 
@@ -501,27 +414,6 @@ describe('authService', () => {
       expect(formData.get('username')).toBe('üser@tëst.com')
       expect(formData.get('password')).toBe('pássw🔑rd')
     })
-
-    it('should handle very long strings in user data', async () => {
-      // Arrange
-      const longEmail = 'a'.repeat(100) + '@example.com'
-      const longPassword = 'p'.repeat(200)
-      const userData = createMockRegisterRequest({
-        email: longEmail,
-        password: longPassword,
-      })
-      mockApiClient.post.mockResolvedValue(createMockAuthResponse())
-
-      // Act
-      await authService.register(userData)
-
-      // Assert
-      expect(mockApiClient.post).toHaveBeenCalledWith('/api/v1/auth/register', {
-        email: longEmail,
-        username: 'testuser',
-        password: longPassword,
-      })
-    })
   })
 
   describe('Error Response Handling', () => {
@@ -538,7 +430,7 @@ describe('authService', () => {
       mockApiClient.post.mockRejectedValue(detailedError)
 
       // Act & Assert
-      await expect(authService.register(createMockRegisterRequest())).rejects.toThrow()
+      await expect(authService.login(createMockAuthRequest())).rejects.toThrow()
     })
 
     it('should handle errors without response data', async () => {
@@ -564,7 +456,6 @@ describe('authService', () => {
     it('should have correct method signatures', () => {
       // Verify the service exports all expected methods
       expect(typeof authService.login).toBe('function')
-      expect(typeof authService.register).toBe('function')
       expect(typeof authService.logout).toBe('function')
       expect(typeof authService.updateOwnEmail).toBe('function')
       expect(typeof authService.getCurrentUser).toBe('function')
@@ -577,19 +468,17 @@ describe('authService', () => {
       mockApiClient.patch.mockResolvedValue(createMockAuthResponse())
 
       const loginResult = authService.login(createMockAuthRequest())
-      const registerResult = authService.register(createMockRegisterRequest())
       const logoutResult = authService.logout()
       const updateResult = authService.updateOwnEmail({ email: 'new@example.com', current_password: 'right' })
       const getCurrentResult = authService.getCurrentUser()
 
       expect(loginResult).toBeInstanceOf(Promise)
-      expect(registerResult).toBeInstanceOf(Promise)
       expect(logoutResult).toBeInstanceOf(Promise)
       expect(updateResult).toBeInstanceOf(Promise)
       expect(getCurrentResult).toBeInstanceOf(Promise)
 
       // Wait for all to complete
-      await Promise.all([loginResult, registerResult, logoutResult, updateResult, getCurrentResult])
+      await Promise.all([loginResult, logoutResult, updateResult, getCurrentResult])
     })
   })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { AuthProvider, useAuthContext } from '../useAuthContext'
@@ -36,7 +36,6 @@ const { mockAppStorage } = vi.hoisted(() => ({
 vi.mock('@/features/auth/data/auth.service', () => ({
   authService: {
     login: vi.fn(),
-    register: vi.fn(),
     logout: vi.fn()
   },
   getCurrentUser: vi.fn().mockResolvedValue(null)
@@ -71,26 +70,16 @@ vi.mock('../mutations/useLogout.mutation', () => ({
   }))
 }))
 
-vi.mock('../mutations/useRegister.mutation', () => ({
-  useRegisterMutation: vi.fn(() => ({
-    registerMutation: vi.fn(),
-    isPending: false,
-    error: null
-  }))
-}))
-
 import { jwtDecode } from 'jwt-decode'
 import { toast } from 'sonner'
 import { useLoginMutation } from '../mutations/useLogin.mutation'
 import { useLogoutMutation } from '../mutations/useLogout.mutation'
-import { useRegisterMutation } from '../mutations/useRegister.mutation'
 
 const mockJwtDecode = vi.mocked(jwtDecode)
 const mockToast = vi.mocked(toast)
 const mockToastError = vi.mocked(toast.error)
 const mockUseLoginMutation = vi.mocked(useLoginMutation)
 const mockUseLogoutMutation = vi.mocked(useLogoutMutation)
-const mockUseRegisterMutation = vi.mocked(useRegisterMutation)
 
 describe('useAuthContext', () => {
   let queryClient: QueryClient
@@ -125,12 +114,6 @@ describe('useAuthContext', () => {
       isLoading: false,
       error: null
     })
-    
-    mockUseRegisterMutation.mockReturnValue({
-      registerMutation: vi.fn(),
-      isPending: false,
-      error: null
-    })
   })
 
   afterEach(() => {
@@ -159,7 +142,6 @@ describe('useAuthContext', () => {
         isAuthenticated: expect.any(Boolean),
         isLoading: expect.any(Boolean),
         loginWithJWT: expect.any(Function),
-        registerUser: expect.any(Function),
         auth: null,
         login: expect.any(Function),
         logout: expect.any(Function),
@@ -264,19 +246,6 @@ describe('useAuthContext', () => {
       expect(result.current.isLoading).toBe(true)
     })
 
-    it('should show loading when registration is in progress', () => {
-      mockUseRegisterMutation.mockReturnValue({
-        registerMutation: vi.fn(),
-        isPending: true,
-        error: null
-      })
-
-      const { result } = renderHook(() => useAuthContext(), {
-        wrapper: createWrapper
-      })
-
-      expect(result.current.isLoading).toBe(true)
-    })
   })
 
   describe('Error Handling', () => {
@@ -316,24 +285,6 @@ describe('useAuthContext', () => {
       const { result } = renderHook(() => useAuthContext(), { wrapper: createWrapper })
 
       expect(result.current.loginFailure).toBeNull()
-    })
-
-    it('should display toast for register errors', async () => {
-      const registerError = new Error('Email already exists')
-      
-      mockUseRegisterMutation.mockReturnValue({
-        registerMutation: vi.fn(),
-        isPending: false,
-        error: registerError
-      })
-
-      renderHook(() => useAuthContext(), {
-        wrapper: createWrapper
-      })
-
-      await waitFor(() => {
-        expect(mockToastError).toHaveBeenCalled()
-      })
     })
   })
 
@@ -501,69 +452,6 @@ describe('useAuthContext', () => {
         })
 
         expect(result.current.loginFailed).toBe(true)
-      })
-    })
-
-    describe('registerUser', () => {
-      it('should successfully register and set authenticated state', async () => {
-        const mockCredentials = createMockAuthRequest()
-        const mockToken = createMockJWT({ 
-          sub: 'test@example.com',
-          exp: Math.floor(Date.now() / 1000) + 3600
-        })
-        const mockAuthResponse = createMockAuthResponse({ access_token: mockToken })
-        
-        const mockRegisterMutation = vi.fn()
-        mockUseRegisterMutation.mockReturnValue({
-          registerMutation: mockRegisterMutation,
-          isPending: false,
-          error: null
-        })
-
-        mockJwtDecode.mockReturnValue({
-          sub: 'test@example.com',
-          exp: Math.floor(Date.now() / 1000) + 3600
-        })
-
-        const { result } = renderHook(() => useAuthContext(), {
-          wrapper: createWrapper
-        })
-
-        await act(async () => {
-          await result.current.registerUser({ ...mockCredentials, username: 'testuser' })
-        })
-
-        expect(mockRegisterMutation).toHaveBeenCalledWith({ ...mockCredentials, username: 'testuser' }, {
-          onSuccess: expect.any(Function)
-        })
-
-        // Simulate successful registration
-        const onSuccessCallback = mockRegisterMutation.mock.calls[0][1].onSuccess
-        act(() => {
-          onSuccessCallback(mockAuthResponse)
-        })
-
-        expect(result.current.isAuthenticated).toBe(true)
-        expect(result.current.userEmail).toBe('test@example.com')
-        expect(mockAppStorage.local.setString).toHaveBeenCalledWith('access_token', mockToken)
-      })
-
-      it('should handle registration errors gracefully', async () => {
-        const registerError = new Error('Email already exists')
-        
-        mockUseRegisterMutation.mockReturnValue({
-          registerMutation: vi.fn(),
-          isPending: false,
-          error: registerError
-        })
-
-        renderHook(() => useAuthContext(), {
-          wrapper: createWrapper
-        })
-
-        await waitFor(() => {
-          expect(mockToastError).toHaveBeenCalled()
-        })
       })
     })
 

@@ -3,21 +3,12 @@ import type {
   AuthRequest, 
   AuthResponse, 
   CurrentUser, 
-  AuthUser,
-  RegisterRequest 
+  AuthUser
 } from '@/features/auth/data/auth.schema'
 
 // Factory for creating test auth requests
 export const createMockAuthRequest = (overrides: Partial<AuthRequest> = {}): AuthRequest => ({
   email: 'test@example.com',
-  password: 'password123',
-  ...overrides,
-})
-
-// Factory for creating test register requests
-export const createMockRegisterRequest = (overrides: Partial<RegisterRequest> = {}): RegisterRequest => ({
-  email: 'test@example.com',
-  username: 'testuser',
   password: 'password123',
   ...overrides,
 })
@@ -144,7 +135,6 @@ export const createMockDates = {
 // Form data factories
 export const createMockFormData = {
   login: (overrides: Partial<AuthRequest> = {}) => createMockAuthRequest(overrides),
-  register: (overrides: Partial<RegisterRequest> = {}) => createMockRegisterRequest(overrides),
 }
 
 // Test helper to create multiple items
@@ -158,7 +148,6 @@ export const createMockAuthContextValue = (overrides: any = {}) => ({
   isLoading: false,
   loginWithJWT: vi.fn(),
   startSession: vi.fn(),
-  registerUser: vi.fn(),
   auth: null,
   login: vi.fn(),
   logout: vi.fn(),

@@ -6,7 +6,9 @@ An endpoint anyone can reach without a token answers the **same way** whether th
 
 1. **One answer.** `POST /auth/password-reset/request` returns the same body for a real account, an unknown identifier, an inactive account, a rate-limited one and a failed delivery. Log the difference; never return it.
 2. **One failure.** Wrong password, unknown account and deactivated account all answer `401` with the same message. A different status confirms the account exists.
-3. **Bounded work.** Cap how many password hashes one request can cause. Bcrypt costs ~200 ms per check and runs synchronously, so an unbounded loop blocks the whole API, not just that request.
+3. **Bounded work.** Cap how many password hashes one request can cause. Bcrypt costs ~200 ms per check and runs synchronously, so an unbounded loop blocks the whole API, not just that request. A public endpoint that works in the background also limits each client (`rate_limit.py`, the last `X-Forwarded-For` address, the one the proxy added): over the limit it answers the same and does nothing.
+
+Nobody signs up alone: `POST /auth/register` was removed on 2026-11-02. An account comes from a manager granting access or from a member activating their card. Activation accepts only an ASCII email and creates the account with the email on the member's file, never the text typed: MongoDB's case-insensitive regex matches `ſ` as `s`, so a look-alike could claim someone else's member.
 
 ## 🏆 Benefits
 

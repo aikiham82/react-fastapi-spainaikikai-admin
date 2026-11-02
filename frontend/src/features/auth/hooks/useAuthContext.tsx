@@ -1,12 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthRequest, AuthResponse, RegisterRequest, CurrentUser, UserRole } from '../data/auth.schema';
+import type { AuthRequest, AuthResponse, CurrentUser, UserRole } from '../data/auth.schema';
 import { jwtDecode } from 'jwt-decode';
 import { useLoginMutation } from './mutations/useLogin.mutation';
 import { useLogoutMutation } from './mutations/useLogout.mutation';
 
 import { appStorage } from '@/core/data/appStorage';
-import { useRegisterMutation } from './mutations/useRegister.mutation';
 import { getCurrentUser } from '../data/auth.service';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -26,7 +25,6 @@ interface AuthContextType {
   isLoading: boolean;
   loginWithJWT: () => Promise<void>;
   startSession: (response: AuthResponse) => void;
-  registerUser: (data: RegisterRequest) => Promise<void>;
   auth: AuthResponse | null;
   login: (data: AuthRequest) => Promise<void>;
   logout: () => void;
@@ -58,7 +56,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const { login: loginMutation, isLoading: isLoggingIn, error: loginError } = useLoginMutation();
   const { logout: logoutMutation, isLoading: isLoggingOut } = useLogoutMutation();
-  const { registerMutation, isPending: isRegistering, error: registerError } = useRegisterMutation();
 
   const { data: currentUserData, refetch: refetchCurrentUser, isLoading: isLoadingUser, isError: userLoadFailed } = useQuery({
     queryKey: ['currentUser'],
@@ -88,12 +85,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ? 'club_admin'
       : null;
   const clubId: string | null = effectiveUser?.club_id || null;
-
-  useEffect(() => {
-    if (registerError) {
-      toast.error('No se ha podido crear la cuenta. Inténtalo de nuevo.');
-    }
-  }, [registerError]);
 
   const loginWithJWT = async () => {
     try {
@@ -126,14 +117,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUserEmail(sub || null);
     setIsAuthenticated(true);
     refetchCurrentUser();
-  };
-
-  const registerUser = async (data: RegisterRequest) => {
-    try {
-      registerMutation(data, { onSuccess: startSession });
-    } catch (error) {
-      toast(error instanceof Error ? error.message : 'An error occurred during register');
-    }
   };
 
   const login = async (data: AuthRequest) => {
@@ -173,10 +156,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         value={{
           isAuthenticated,
           userEmail,
-          isLoading: isLoggingIn || isLoggingOut || isRegistering || (isAuthenticated && isLoadingUser),
+          isLoading: isLoggingIn || isLoggingOut || (isAuthenticated && isLoadingUser),
           loginWithJWT,
           startSession,
-          registerUser,
           auth,
           login,
           logout,

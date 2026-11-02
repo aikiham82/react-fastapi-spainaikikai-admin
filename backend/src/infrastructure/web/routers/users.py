@@ -4,18 +4,16 @@ import logging
 from datetime import timedelta
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 
 from src.domain.exceptions.user import (
     UserNotFoundError,
-    UserAlreadyExistsError,
     EmailAlreadyInUseError,
     InvalidUserDataError,
 )
 from src.infrastructure.web.dto.user_dto import (
-    UserCreate,
     UserResponse,
     UserMeResponse,
     UpdateUserEmailDTO,
@@ -32,7 +30,6 @@ from src.infrastructure.web.dependencies import (
     get_request_card_access_use_case,
     get_all_users_use_case,
     get_user_by_id_use_case,
-    get_create_user_use_case,
     get_authenticate_user_use_case,
     get_login_with_identity_provider_use_case,
     get_auth_context,
@@ -52,9 +49,9 @@ from src.infrastructure.web.authorization import (
 )
 from src.infrastructure.web.audit import audit
 from src.infrastructure.web.mappers import UserMapper
+from src.infrastructure.web.rate_limit import SlidingWindowLimiter, client_ip
 from src.infrastructure.web.security import (
     verify_password,
-    get_password_hash,
     create_access_token,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
@@ -62,7 +59,6 @@ from src.application.use_cases.user_use_cases import (
     GetAllUsersUseCase,
     GetUserByIdUseCase,
     GetUserByMemberIdUseCase,
-    CreateUserUseCase,
     UpdateUserEmailUseCase,
     AuthenticateUserUseCase,
     LoginWithIdentityProviderUseCase,
@@ -78,34 +74,6 @@ router = APIRouter(tags=["users"])
 # resolve to accounts an attacker planted. Each password check is a bcrypt hash
 # that blocks the event loop, so the work one request can cause is capped.
 MAX_LOGIN_CANDIDATES = 5
-
-
-@router.post("/auth/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-async def register(
-    user_data: UserCreate,
-    create_user_use_case: CreateUserUseCase = Depends(get_create_user_use_case)
-):
-    """Register a new user."""
-    try:
-        hashed_password = get_password_hash(user_data.password)
-        user = await create_user_use_case.execute(
-            email=user_data.email,
-            username=user_data.username,
-            hashed_password=hashed_password
-        )
-        
-        # Create access token for the new user
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={"sub": user.email, "user_id": user.id}, expires_delta=access_token_expires
-        )
-        
-        return Token(access_token=access_token)
-    except UserAlreadyExistsError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
 
 
 def _login_failure_reason(candidates, active_candidates) -> str:
@@ -198,6 +166,8 @@ async def _issue_token(user, member_repository) -> Token:
 
 CARD_ACCESS_ANSWER = "Si tu correo está en tu ficha de miembro, te llegará un enlace para activar tu carné."
 
+card_access_limiter = SlidingWindowLimiter(max_requests=20, window_seconds=60)
+
 
 class CardAccessRequest(BaseModel):
     email: str = Field(..., min_length=3, max_length=254)
@@ -206,12 +176,16 @@ class CardAccessRequest(BaseModel):
 @router.post("/auth/card-access/request")
 async def request_card_access(
     request: CardAccessRequest,
+    http_request: Request,
     background_tasks: BackgroundTasks,
     use_case: RequestCardAccessUseCase = Depends(get_request_card_access_use_case),
 ):
     """Let a member activate their card; the answer is the same, and as fast, whatever happened."""
-    background_tasks.add_task(_grant_card_access, use_case, request.email)
-    audit("auth.card_access.requested")
+    if card_access_limiter.allow(client_ip(http_request)):
+        background_tasks.add_task(_grant_card_access, use_case, request.email)
+        audit("auth.card_access.requested")
+    else:
+        audit("auth.card_access.rate_limited", level="warning")
     return {"message": CARD_ACCESS_ANSWER}
 
 

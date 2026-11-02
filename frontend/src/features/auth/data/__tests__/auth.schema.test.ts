@@ -317,11 +317,9 @@ describe('Auth Schema Types', () => {
 
       // Act & Assert - These assignments should compile without errors
       const loginData = authRequest
-      const registerData = authRequest
       const updateData = authUser
 
       expect(loginData).toBeDefined()
-      expect(registerData).toBeDefined()
       expect(updateData).toBeDefined()
     })
 
@@ -507,7 +505,6 @@ describe('Auth Schema Types', () => {
       // Test that interfaces align with service method expectations
       const serviceExpectations = {
         login: { input: 'AuthRequest', output: 'AuthResponse' },
-        register: { input: 'AuthRequest', output: 'AuthResponse' },
         updateUser: { input: 'AuthUser', output: 'AuthUser' },
         getCurrentUser: { input: 'void', output: 'CurrentUser' },
       }

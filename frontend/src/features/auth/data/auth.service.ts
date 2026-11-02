@@ -1,5 +1,5 @@
 import { apiClient } from "@/core/data/apiClient"
-import type { AuthRequest, AuthResponse, CurrentUser, RegisterRequest, UpdateOwnEmailRequest } from "./auth.schema";
+import type { AuthRequest, AuthResponse, CurrentUser, UpdateOwnEmailRequest } from "./auth.schema";
 
 const BASE_URL = "/api/v1/auth";
 const logout = async (): Promise<string> => {
@@ -22,10 +22,6 @@ const socialLogin = async (token: string): Promise<AuthResponse> => {
   return await apiClient.post<AuthResponse>(`${BASE_URL}/social-login`, { token });
 };
 
-const register = async (userData: RegisterRequest): Promise<AuthResponse> => {
-  return await apiClient.post<AuthResponse>(`${BASE_URL}/register`, userData);
-};
-
 const updateOwnEmail = async (data: UpdateOwnEmailRequest): Promise<AuthResponse> => {
   return await apiClient.patch<AuthResponse>("/api/v1/users/me/email", data);
 };
@@ -42,7 +38,6 @@ export const authService = {
   logout,
   login,
   socialLogin,
-  register,
   updateOwnEmail,
   requestCardAccess,
   getCurrentUser
