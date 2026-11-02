@@ -69,10 +69,7 @@ class GetUnpaidMembersUseCase:
 
         # Get all active members for the club
         members = await self.member_repository.find_by_club_id(club_id)
-        all_member_ids = {
-            m.id for m in members
-            if m.id and m.status.value == "active" and m.joined_by(payment_year)
-        }
+        all_member_ids = {m.id for m in members if m.id and m.is_active and m.joined_by(payment_year)}
 
         if not all_member_ids:
             return UnpaidMembersResult(

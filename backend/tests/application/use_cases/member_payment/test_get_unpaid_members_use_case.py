@@ -1,5 +1,6 @@
 """Without a payment type, a member is unpaid when no completed line pays a licence."""
 
+from dataclasses import replace
 from datetime import datetime
 from unittest.mock import AsyncMock
 
@@ -35,12 +36,17 @@ def paid(payment_type: MemberPaymentType) -> MemberPayment:
     )
 
 
-async def unpaid_count(payments: list[MemberPayment], payment_type: str | None = None) -> int:
+async def unpaid_count(
+    payments: list[MemberPayment],
+    payment_type: str | None = None,
+    members: tuple[Member, ...] | list[Member] = (MEMBER,),
+    year: int = 2026,
+) -> int:
     use_case = GetUnpaidMembersUseCase(
         member_payment_repository=AsyncMock(find_by_member_ids_year=AsyncMock(return_value=payments)),
-        member_repository=AsyncMock(find_by_club_id=AsyncMock(return_value=[MEMBER])),
+        member_repository=AsyncMock(find_by_club_id=AsyncMock(return_value=list(members))),
     )
-    result = await use_case.execute(CLUB_ID, 2026, payment_type)
+    result = await use_case.execute(CLUB_ID, year, payment_type)
     return result.total_count
 
 
@@ -58,31 +64,21 @@ async def test_a_member_with_nothing_paid_is_unpaid():
     assert await unpaid_count([]) == 1
 
 
-def member_joined(registration_date: datetime | None, created_at: datetime = datetime(2026, 4, 17)) -> Member:
-    return Member(id="member-new", first_name="Nora", last_name="Example", club_id=CLUB_ID,
-                  registration_date=registration_date, created_at=created_at)
-
-
 @pytest.mark.parametrize(
-    ("member", "expected"),
+    ("registration_date", "created_at", "expected"),
     [
-        (member_joined(datetime(2024, 12, 31)), 1),
-        (member_joined(datetime(2025, 1, 1)), 1),
-        (member_joined(datetime(2026, 1, 1)), 0),
-        (member_joined(None, created_at=datetime(2025, 6, 1)), 1),
-        (member_joined(None, created_at=datetime(2026, 4, 17)), 0),
+        (datetime(2024, 12, 31), datetime(2026, 4, 17), 1),
+        (datetime(2025, 1, 1), datetime(2026, 4, 17), 1),
+        (datetime(2026, 1, 1), datetime(2026, 4, 17), 0),
+        (None, datetime(2025, 6, 1), 1),
+        (None, datetime(2026, 4, 17), 0),
     ],
     ids=["joined-before", "joined-that-year", "joined-after", "no-date-created-that-year", "no-date-created-after"],
 )
-async def test_a_member_is_listed_only_from_the_year_they_joined(member, expected):
-    use_case = GetUnpaidMembersUseCase(
-        member_payment_repository=AsyncMock(find_by_member_ids_year=AsyncMock(return_value=[])),
-        member_repository=AsyncMock(find_by_club_id=AsyncMock(return_value=[member])),
-    )
+async def test_a_member_is_listed_only_from_the_year_they_joined(registration_date, created_at, expected):
+    member = replace(MEMBER, registration_date=registration_date, created_at=created_at)
 
-    result = await use_case.execute(CLUB_ID, 2025)
-
-    assert result.total_count == expected
+    assert await unpaid_count([], members=[member], year=2025) == expected
 
 
 async def test_asking_for_a_type_still_looks_at_that_type_only():
