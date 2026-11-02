@@ -62,7 +62,7 @@ export const MemberPaymentStatus: React.FC<MemberPaymentStatusProps> = ({
         complete={data.has_all_licenses}
         missingTone="warn"
         payments={licensePayments.filter((status) => status.is_paid)}
-        emptyLabel="Sin licencia pagada"
+        emptyLabel={`Sin licencia pagada en ${data.payment_year}`}
       />
       <PaymentGroup title="Seguros" complete={data.has_all_insurances} missingTone="neutral" payments={insurancePayments} />
     </div>

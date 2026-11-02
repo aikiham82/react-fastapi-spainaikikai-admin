@@ -66,15 +66,16 @@ describe('MemberPaymentStatus', () => {
     }
   })
 
-  it('without a licence, shows one amber line and no licence type', () => {
+  it('without a licence, shows one amber line naming the year and no licence type', () => {
     renderWith(null, false)
 
     expect(toneOf('Licencias')).toBe('warn')
-    expect(toneOf('Sin licencia pagada')).toBe('warn')
+    expect(toneOf('Sin licencia pagada en 2026')).toBe('warn')
+    expect(screen.getByText('Sin licencia pagada en 2026').closest('.bg-warning-soft')).not.toBeNull()
     for (const type of LICENCE_TYPES) {
       expect(screen.queryByText(MEMBER_PAYMENT_TYPES[type])).not.toBeInTheDocument()
     }
-    expect(document.querySelector('[data-tone="bad"]')).toBeNull()
+    expect(document.querySelector('[data-tone="bad"], .bg-danger-soft')).toBeNull()
   })
 
   it('without insurance, the insurance group and its lines stay neutral', () => {
@@ -83,6 +84,26 @@ describe('MemberPaymentStatus', () => {
     expect(toneOf('Seguros')).toBe('neutral')
     expect(toneOf('Seguro de accidentes')).toBe('neutral')
     expect(toneOf('Seguro RC')).toBe('neutral')
+    expect(screen.getByText('Seguro RC').closest('.bg-muted')).not.toBeNull()
+  })
+
+  it('shows the RC included in a title as paid, without an amount of its own', () => {
+    const status = statusWith('titulo_shidoin', false)
+    mockUseMemberPaymentStatusQuery.mockReturnValue({
+      data: {
+        ...status,
+        payment_statuses: status.payment_statuses.map((line) =>
+          line.payment_type === 'seguro_rc' ? { ...line, is_paid: true, amount: null } : line,
+        ),
+      },
+      isLoading: false,
+      error: null,
+    })
+    renderWithProviders(<MemberPaymentStatus memberId="mem-1" />)
+
+    expect(toneOf('Seguro RC')).toBe('ok')
+    expect(screen.getByText('Seguro RC').closest('.bg-success-soft')).not.toHaveTextContent('€')
+    expect(toneOf('Seguro de accidentes')).toBe('neutral')
   })
 
   it('with all insurances, the insurance group keeps the success tone', () => {

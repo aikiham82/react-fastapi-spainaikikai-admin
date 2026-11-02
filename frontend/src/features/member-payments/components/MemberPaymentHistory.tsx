@@ -19,7 +19,7 @@ import {
   type MemberPaymentStatus,
 } from '../data/schemas/member-payment.schema';
 import { formatCurrency, formatDate } from '@/core/utils/format';
-import { memberPaymentStatusTone } from '../utils/memberPaymentStatusTone';
+import { paymentStatusTone } from '@/core/utils/paymentStatusTone';
 
 interface MemberPaymentHistoryProps {
   memberId: string;
@@ -114,7 +114,7 @@ export const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({
                 </TableCell>
                 <TableCell>{formatCurrency(payment.amount)}</TableCell>
                 <TableCell>
-                  <StatusBadge tone={memberPaymentStatusTone(payment.status)}>
+                  <StatusBadge tone={paymentStatusTone(payment.status)}>
                     {MEMBER_PAYMENT_STATUS[payment.status as MemberPaymentStatus] ?? payment.status}
                   </StatusBadge>
                 </TableCell>

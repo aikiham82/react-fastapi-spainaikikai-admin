@@ -34,7 +34,7 @@ A member with the licence paid (or a title, which counts as one) **is paid and "
 
 Pendientes is the exception on purpose: it lists what can still be bought, so a member with the licence paid keeps the insurance tick chips. "Al día" there means nothing is left to buy.
 
-The same reading applies elsewhere: without a payment type, the unpaid list means "no licence or title paid", so an insurance or a club fee alone does not take a member off it. A missing licence is amber on every screen. The member status endpoint lists every type because it does not know the member's grade, so the dialog shows only the licence paid, or one line "Sin licencia pagada"; showing the others as unpaid painted Dan and titles as debts for a Kyu member.
+The same reading applies elsewhere: without a payment type, the unpaid list means "no licence or title paid", so an insurance or a club fee alone does not take a member off it. A missing licence is amber on every screen. The member status endpoint lists every type because it does not know the member's grade, so the dialog shows only the licence paid, or one line "Sin licencia pagada en {year}", naming the year because a member may have paid only N+1 from October; showing the others as unpaid painted Dan and titles as debts for a Kyu member.
 
 ### A title includes the RC insurance
 

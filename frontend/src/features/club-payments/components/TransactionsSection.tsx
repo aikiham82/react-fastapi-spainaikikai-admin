@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { memberPaymentStatusTone } from '@/features/member-payments/utils/memberPaymentStatusTone'
+import { paymentStatusTone } from '@/core/utils/paymentStatusTone'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -87,7 +87,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                 </div>
                 <div className="text-right space-y-1">
                   <p className="text-sm font-medium tabular-nums">{formatCurrency(mp.amount)}</p>
-                  <StatusBadge tone={memberPaymentStatusTone(mp.status)}>{getStatusLabel(mp.status)}</StatusBadge>
+                  <StatusBadge tone={paymentStatusTone(mp.status)}>{getStatusLabel(mp.status)}</StatusBadge>
                 </div>
               </div>
               {paidLabel && <p className="text-sm text-muted-foreground">{paidLabel}</p>}
@@ -125,7 +125,7 @@ export function TransactionsSection({ clubId, paymentYear }: TransactionsSection
                   {formatCurrency(mp.amount)}
                 </TableCell>
                 <TableCell className="text-center">
-                  <StatusBadge tone={memberPaymentStatusTone(mp.status)}>
+                  <StatusBadge tone={paymentStatusTone(mp.status)}>
                     {getStatusLabel(mp.status)}
                   </StatusBadge>
                 </TableCell>

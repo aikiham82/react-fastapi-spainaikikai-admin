@@ -22,7 +22,7 @@ interface MemberStatus {
 const statusOf = (licensePaid: boolean, insurancePaid: boolean): MemberStatus => {
   if (licensePaid) return { tone: 'ok', label: 'Al día' };
   if (insurancePaid) return { tone: 'warn', label: 'Falta licencia' };
-  return { tone: 'neutral', label: 'Pendiente' };
+  return { tone: 'warn', label: 'Pendiente' };
 };
 
 interface PaidMarkProps {
