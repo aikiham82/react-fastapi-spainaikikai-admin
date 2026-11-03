@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-11-03T10:30:00Z"
+has_completed_all_phases: "false"
 ---
 
 # Payment lines and refund error
@@ -44,10 +54,10 @@ Public contracts:
 - Test cases: each refusal in both requests; a normal payment and exactly 500 members accepted; a member id repeated with different spaces is refused.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Add the validators.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Add the validators.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: a refund above the amount answers 400
 
@@ -65,6 +75,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Tidy payments planned by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+One line per concept thanks to 🧾 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

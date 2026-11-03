@@ -7,6 +7,7 @@ from pydantic import BaseModel, field_validator
 from src.infrastructure.web.dto.payment_dto import PaymentResponse
 
 from src.infrastructure.web.dto.money import Money
+from src.infrastructure.web.dto.payment_lines import refuse_repeated_or_too_many_members, refuse_repeated_types
 
 
 class ManualMemberAssignmentDTO(BaseModel):
@@ -35,7 +36,7 @@ class ManualMemberAssignmentDTO(BaseModel):
         for pt in v:
             if pt not in valid_types:
                 raise ValueError(f"Invalid payment type: {pt}")
-        return v
+        return refuse_repeated_types(v)
 
 
 class ManualPaymentRequest(BaseModel):
@@ -75,7 +76,7 @@ class ManualPaymentRequest(BaseModel):
     def validate_member_assignments(cls, v: List[ManualMemberAssignmentDTO]) -> List[ManualMemberAssignmentDTO]:
         if not v:
             raise ValueError("At least one member assignment is required")
-        return v
+        return refuse_repeated_or_too_many_members(v)
 
 
 class PaymentUpdateRequest(BaseModel):
