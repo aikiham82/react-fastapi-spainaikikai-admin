@@ -85,8 +85,6 @@ class Payment:
             raise ValueError("Payment amount cannot be negative")
         if self.refund_amount and self.refund_amount < 0:
             raise ValueError("Refund amount cannot be negative")
-        if self.refund_amount and self.refund_amount > self.amount:
-            raise ValueError("Refund amount cannot exceed payment amount")
         # Coerce payment_method string to enum
         if isinstance(self.payment_method, str):
             try:

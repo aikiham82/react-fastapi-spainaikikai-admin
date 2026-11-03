@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "medium"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "medium"
+
+last_implementation_at: "2026-11-03T09:30:00Z"
+has_completed_all_phases: "false"
 ---
 
 # No read breaks a list
@@ -42,10 +52,10 @@ Public contracts:
 - Test cases: such a payment can be built and listed; refunding above the amount and lowering below the refund are still refused; raising the amount of such a payment works.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Move the rule out of the read path.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Move the rule out of the read path.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: a made-up club id cannot break the members list
 
@@ -62,6 +72,6 @@ To-do:
 
 ## Next step
 
-Implement Phase 1.
+Implement Phase 2.
 
-Every row in its place, planned by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Refunds readable again thanks to 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
