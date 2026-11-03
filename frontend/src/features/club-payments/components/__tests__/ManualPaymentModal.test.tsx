@@ -97,6 +97,29 @@ describe('ManualPaymentModal', () => {
       expect(screen.getByText('2 seleccionados')).toBeInTheDocument()
     })
 
+    it.each([
+      { ticked: 'nowhere', clicks: [], total: /30,00\s€/ },
+      { ticked: 'the checkbox', clicks: ['checkbox'], total: /80,00\s€/ },
+      { ticked: 'one member', clicks: ['mem-1'], total: /80,00\s€/ },
+      { ticked: 'two members', clicks: ['mem-1', 'mem-2'], total: /80,00\s€/ },
+      { ticked: 'the checkbox and one member', clicks: ['checkbox', 'mem-2'], total: /80,00\s€/ },
+    ])('counts the club fee once when ticked on $ticked', async ({ clicks, total }) => {
+      renderWithProviders(<ManualPaymentModal {...defaultProps} />)
+
+      await user.click(screen.getByTestId('member-checkbox-mem-1'))
+      await user.click(screen.getByTestId('member-checkbox-mem-2'))
+      await user.click(screen.getByTestId('type-checkbox-mem-1-kyu'))
+      for (const place of clicks) {
+        await user.click(
+          place === 'checkbox'
+            ? screen.getByLabelText('Incluir cuota de club')
+            : screen.getByTestId(`type-checkbox-${place}-club_fee`)
+        )
+      }
+
+      expect(screen.getByText(/Total:/)).toHaveTextContent(total)
+    })
+
     it('renders the payer_name input', () => {
       renderWithProviders(<ManualPaymentModal {...defaultProps} />)
 

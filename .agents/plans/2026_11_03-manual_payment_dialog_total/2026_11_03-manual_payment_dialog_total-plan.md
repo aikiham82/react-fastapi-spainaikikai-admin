@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-11-03T12:00:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Manual payment dialog total
@@ -40,13 +50,13 @@ Matrix of cases, using the test prices (club fee 50 €, KYU 30 €):
 
 ### To do
 
-- [ ] Write the failing test with the rows of the matrix.
-- [ ] Count the club fee once in the `total` of `ManualPaymentModal.tsx`.
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Write the failing test with the rows of the matrix.
+- [x] Count the club fee once in the `total` of `ManualPaymentModal.tsx`.
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Next step
 
-Implement Phase 1.
+All phases are complete.
 
-Plan powered by [Codely](https://codely.com) 🐢
+Totals squared up thanks to [Codely](https://codely.com) AI tooling. 🧮 🐢
