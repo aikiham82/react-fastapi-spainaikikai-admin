@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "medium"
 
 last_implementation_at: "2026-11-03T10:30:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # Payment lines and refund error
@@ -68,13 +68,13 @@ Public contracts:
 - Test cases: above refused and not saved; equal and below saved; no amount refunds the whole payment.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Refuse it in the use case and map it in the route.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Refuse it in the use case and map it in the route.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2.
+All phases are complete.
 
-One line per concept thanks to 🧾 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+A clear answer on every refund from 💶 🧾 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
