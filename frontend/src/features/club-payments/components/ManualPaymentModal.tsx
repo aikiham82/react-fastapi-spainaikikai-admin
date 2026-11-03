@@ -93,8 +93,10 @@ export function ManualPaymentModal({
 
   const total = useMemo(() => {
     const priceOf = (type: string) => (prices as Record<string, number | undefined> | undefined)?.[type] ?? 0
-    const items = memberAssignments.reduce((sum, a) => sum + a.payment_types.reduce((acc, t) => acc + priceOf(t), 0), 0)
-    return items + (includeClubFee ? priceOf('club_fee') : 0)
+    const memberTypes = memberAssignments.flatMap((a) => a.payment_types)
+    const items = memberTypes.filter((t) => t !== 'club_fee').reduce((sum, t) => sum + priceOf(t), 0)
+    const clubFeeCharged = includeClubFee || memberTypes.includes('club_fee')
+    return items + (clubFeeCharged ? priceOf('club_fee') : 0)
   }, [memberAssignments, includeClubFee, prices])
 
   // Reset form when modal opens
