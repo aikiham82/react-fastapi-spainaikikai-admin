@@ -37,30 +37,6 @@ export const useRegisterManualPaymentMutation = () => {
   };
 };
 
-// ─── Update Payment ────────────────────────────────────────────────────────
-export const useUpdatePaymentMutation = () => {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof paymentAdminService.updatePayment>[1] }) =>
-      paymentAdminService.updatePayment(id, data),
-    onSuccess: () => {
-      toast.success('Pago actualizado correctamente');
-      invalidatePayments(queryClient);
-    },
-    onError: (error: { detail?: string; message?: string }) => {
-      toast.error(error.detail || 'Error al actualizar el pago');
-    },
-  });
-
-  return {
-    updatePayment: mutation.mutate,
-    isLoading: mutation.isPending,
-    error: mutation.error,
-    isSuccess: mutation.isSuccess,
-  };
-};
-
 // ─── Confirm an unfinished payment ─────────────────────────────────────────
 export const useConfirmPaymentMutation = () => {
   const queryClient = useQueryClient();

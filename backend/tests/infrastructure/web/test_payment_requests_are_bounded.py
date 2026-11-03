@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from src.infrastructure.web.dto.annual_payment_dto import InitiateAnnualPaymentRequest
-from src.infrastructure.web.dto.manual_payment_dto import ManualPaymentRequest, PaymentUpdateRequest
+from src.infrastructure.web.dto.manual_payment_dto import ManualPaymentRequest
 from src.infrastructure.web.dto.payment_dto import PaymentRefundRequest
 
 pytestmark = [pytest.mark.unit]
@@ -119,8 +119,3 @@ def test_a_longer_member_name_is_refused(request_type, fields):
 def test_a_longer_payer_name_is_refused(request_type, fields):
     with pytest.raises(ValidationError):
         build(request_type, {**fields, "payer_name": "a" * 201}, [assignment("a")])
-
-
-def test_a_payment_update_refuses_a_longer_payer_name():
-    with pytest.raises(ValidationError):
-        PaymentUpdateRequest(payer_name="a" * 201)

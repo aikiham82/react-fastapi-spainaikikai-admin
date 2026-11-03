@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-11-03T15:00:00Z"
+has_completed_all_phases: "true"
 ---
 
 # Remove the payment update endpoint
@@ -33,14 +43,14 @@ The change does not depend on tenant data. Production holds 62 completed, 10 fai
 
 ### To do
 
-- [ ] Write the failing test: `PUT /payments/{id}` answers `405` for a club admin and a super admin.
-- [ ] Delete the route, use case, DTO, frontend service function and hook, with the tests that only covered them.
-- [ ] Update `docs/domain/club-admins-manage-their-clubs-payments.md`.
-- [ ] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
-- [ ] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
+- [x] Write the failing test: `PUT /payments/{id}` answers `405` for a club admin and a super admin.
+- [x] Delete the route, use case, DTO, frontend service function and hook, with the tests that only covered them.
+- [x] Update `docs/domain/club-admins-manage-their-clubs-payments.md`.
+- [x] Verify typechecking, linting and tests with the project's verification commands. Fix issues if any.
+- [x] STOP. Present the changes and suggest commit messages. Do not continue without explicit approval.
 
 ## Next step
 
-Phase 1.
+All phases are complete.
 
-Plan powered by [Codely](https://codely.com) 🐢
+Less code to guard thanks to [Codely](https://codely.com) AI tooling. 🗑️ 🐢

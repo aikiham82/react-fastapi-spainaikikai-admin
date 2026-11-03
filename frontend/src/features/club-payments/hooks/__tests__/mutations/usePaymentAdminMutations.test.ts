@@ -15,7 +15,6 @@ vi.mock('sonner', () => ({
 vi.mock('@/features/club-payments/data/services/payment-admin.service', () => ({
   paymentAdminService: {
     registerManualPayment: vi.fn(),
-    updatePayment: vi.fn(),
     deletePayment: vi.fn(),
     getClubMemberPayments: vi.fn(),
     updateMemberPayment: vi.fn(),
@@ -29,7 +28,6 @@ import { toast } from 'sonner';
 import { paymentAdminService } from '@/features/club-payments/data/services/payment-admin.service';
 import {
   useRegisterManualPaymentMutation,
-  useUpdatePaymentMutation,
   useDeletePaymentMutation,
   useUpdateMemberPaymentMutation,
   useDeleteMemberPaymentMutation,
@@ -39,7 +37,6 @@ import {
 // ─── Typed mock helpers ──────────────────────────────────────────────
 const mockService = paymentAdminService as unknown as {
   registerManualPayment: ReturnType<typeof vi.fn>;
-  updatePayment: ReturnType<typeof vi.fn>;
   deletePayment: ReturnType<typeof vi.fn>;
   getClubMemberPayments: ReturnType<typeof vi.fn>;
   updateMemberPayment: ReturnType<typeof vi.fn>;
@@ -298,128 +295,6 @@ describe('useRegisterManualPaymentMutation', () => {
       await waitFor(() => expect(result.current.error).toBeTruthy());
 
       expect(mockToast.error).toHaveBeenCalledWith('Error al registrar el pago');
-    });
-  });
-});
-
-// ─── useUpdatePaymentMutation ─────────────────────────────────────────
-describe('useUpdatePaymentMutation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('Return shape', () => {
-    it('returns { updatePayment, isLoading, error, isSuccess }', () => {
-      const { wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => useUpdatePaymentMutation(),
-        { wrapper }
-      );
-
-      expect(result.current).toMatchObject({
-        updatePayment: expect.any(Function),
-        isLoading: expect.any(Boolean),
-        error: null,
-        isSuccess: expect.any(Boolean),
-      });
-    });
-  });
-
-  describe('Success path', () => {
-    it('calls updatePayment service with { id, data }', async () => {
-      const { wrapper } = createWrapper();
-      mockService.updatePayment.mockResolvedValue(mockPayment);
-
-      const { result } = renderHook(
-        () => useUpdatePaymentMutation(),
-        { wrapper }
-      );
-
-      const updateArg = { id: 'pay-001', data: { amount: 200, status: 'completed' } };
-
-      act(() => {
-        result.current.updatePayment(updateArg);
-      });
-
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-      expect(mockService.updatePayment).toHaveBeenCalledWith('pay-001', { amount: 200, status: 'completed' });
-    });
-
-    it('calls toast.success on success', async () => {
-      const { wrapper } = createWrapper();
-      mockService.updatePayment.mockResolvedValue(mockPayment);
-
-      const { result } = renderHook(
-        () => useUpdatePaymentMutation(),
-        { wrapper }
-      );
-
-      act(() => {
-        result.current.updatePayment({ id: 'pay-001', data: { amount: 200 } });
-      });
-
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-      expect(mockToast.success).toHaveBeenCalledTimes(1);
-    });
-
-    it('invalidates clubDetail, allClubsSummary, and clubMemberPayments keys on success', async () => {
-      const { wrapper, queryClient } = createWrapper();
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
-      mockService.updatePayment.mockResolvedValue(mockPayment);
-
-      const { result } = renderHook(
-        () => useUpdatePaymentMutation(),
-        { wrapper }
-      );
-
-      act(() => {
-        result.current.updatePayment({ id: 'pay-001', data: { amount: 200 } });
-      });
-
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['club-payments'] });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['member-payments'] });
-    });
-  });
-
-  describe('Error path', () => {
-    it('calls toast.error with detail when available', async () => {
-      const { wrapper } = createWrapper();
-      mockService.updatePayment.mockRejectedValue(apiErrorWithDetail);
-
-      const { result } = renderHook(
-        () => useUpdatePaymentMutation(),
-        { wrapper }
-      );
-
-      act(() => {
-        result.current.updatePayment({ id: 'pay-001', data: { amount: 999 } });
-      });
-
-      await waitFor(() => expect(result.current.error).toBeTruthy());
-
-      expect(mockToast.error).toHaveBeenCalledWith(apiErrorWithDetail.detail);
-    });
-
-    it('calls toast.error with fallback when no detail', async () => {
-      const { wrapper } = createWrapper();
-      mockService.updatePayment.mockRejectedValue(apiErrorWithoutDetail);
-
-      const { result } = renderHook(
-        () => useUpdatePaymentMutation(),
-        { wrapper }
-      );
-
-      act(() => {
-        result.current.updatePayment({ id: 'pay-001', data: {} });
-      });
-
-      await waitFor(() => expect(result.current.error).toBeTruthy());
-
-      expect(mockToast.error).toHaveBeenCalledWith('Error al actualizar el pago');
     });
   });
 });

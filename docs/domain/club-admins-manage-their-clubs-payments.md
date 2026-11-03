@@ -2,7 +2,9 @@
 
 ## 💡 Convention
 
-A club admin sees and changes the payments of **their own club** the same way the super admin does for every club: register a manual payment, edit or delete a transaction or a member's payment line, mark it paid or pending, and refund it. The owner decided this on 2026-10-29, knowing a club admin can now mark as paid something the federation never received.
+A club admin sees and changes the payments of **their own club** the same way the super admin does for every club: register a manual payment, delete a transaction, edit or delete a member's payment line, mark that line paid or pending, and refund a transaction. The owner decided this on 2026-10-29, knowing a club admin can now mark as paid something the federation never received.
+
+**A transaction has no edit.** `PUT /payments/{id}` was removed on 2026-11-03: it wrote any status with no lines, licences or invoice behind it, and nothing called it. A transaction's status changes only through its own path: `POST /payments/manual`, `POST /payments/{id}/confirm`, `PUT /payments/{id}/refund` and the Redsys webhook. Amounts are corrected on the lines.
 
 **Except card payments the federation received.** A Redsys payment that is `COMPLETED` or `REFUNDED` (`Payment.is_received_by_card`), and every line inside it, stays with the super admin: a club admin cannot edit, delete (not even with `force`) or refund it (`require_not_received_by_card`, answering "Los pagos con tarjeta solo los modifica la federación"). Each line in the history and club lists carries `received_by_card`, worked out from its transaction whatever the line's own status, and the panel hides Editar/Eliminar for those lines (`useCanChangePaymentLine`).
 

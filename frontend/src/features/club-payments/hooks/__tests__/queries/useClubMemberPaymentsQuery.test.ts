@@ -9,7 +9,6 @@ vi.mock(
   () => ({
     paymentAdminService: {
       registerManualPayment: vi.fn(),
-      updatePayment: vi.fn(),
       deletePayment: vi.fn(),
       getClubMemberPayments: vi.fn(),
       updateMemberPayment: vi.fn(),

@@ -54,13 +54,11 @@ from src.domain.exceptions.payment import (
 )
 from src.infrastructure.web.dto.manual_payment_dto import (
     ManualPaymentRequest,
-    PaymentUpdateRequest,
     ManualPaymentResponse,
     ConfirmPaymentRequest,
 )
 from src.infrastructure.web.dependencies import (
     get_register_manual_payment_use_case,
-    get_update_payment_use_case,
     get_confirm_payment_received_use_case,
 )
 from src.application.use_cases.payment.register_manual_payment_use_case import ManualMemberAssignment
@@ -433,35 +431,6 @@ async def confirm_payment_received(
     except InvalidPaymentDataError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return PaymentMapper.to_response_dto(completed.payment)
-
-
-@router.put("/{payment_id}", response_model=PaymentResponse)
-async def update_payment(
-    payment_id: str,
-    request: PaymentUpdateRequest,
-    use_case=Depends(get_update_payment_use_case),
-    payment_repository=Depends(get_payment_repository),
-    member_repository=Depends(get_member_repository),
-    ctx: AuthContext = Depends(get_auth_context),
-):
-    """Update a manual payment. Redsys COMPLETED payments are blocked. Super admin, or the admin of the payment's club."""
-    await _require_stored_payment_access(ctx, payment_id, payment_repository, member_repository)
-    try:
-        payment = await use_case.execute(
-            payment_id=payment_id,
-            amount=request.amount,
-            payment_year=request.payment_year,
-            payment_method=request.payment_method,
-            payer_name=request.payer_name,
-            status=request.status,
-        )
-    except PaymentNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except InvalidPaymentStatusError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-    except InvalidPaymentDataError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    return PaymentMapper.to_response_dto(payment)
 
 
 @router.delete("/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)

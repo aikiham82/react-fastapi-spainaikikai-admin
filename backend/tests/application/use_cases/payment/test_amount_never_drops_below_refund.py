@@ -6,7 +6,6 @@ import pytest
 
 from src.application.use_cases.payment.delete_member_payment_use_case import DeleteMemberPaymentUseCase
 from src.application.use_cases.payment.update_member_payment_use_case import UpdateMemberPaymentUseCase
-from src.application.use_cases.payment.update_payment_use_case import UpdatePaymentUseCase
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus
 from src.domain.exceptions.payment import InvalidPaymentDataError
@@ -14,9 +13,9 @@ from src.domain.exceptions.payment import InvalidPaymentDataError
 pytestmark = [pytest.mark.unit]
 
 
-def refunded_payment(refund_amount: float | None = 20.0) -> Payment:
+def refunded_payment() -> Payment:
     return Payment(
-        id="payment-1", club_id="club-dojo", amount=30.0, payment_year=2026, refund_amount=refund_amount,
+        id="payment-1", club_id="club-dojo", amount=30.0, payment_year=2026, refund_amount=20.0,
         payment_method=PaymentMethod.CASH, status=PaymentStatus.REFUNDED,
     )
 
@@ -48,32 +47,6 @@ def edit_line_use_case(lines: AsyncMock, payments: AsyncMock) -> UpdateMemberPay
         license_repository=AsyncMock(),
         insurance_repository=AsyncMock(),
     )
-
-
-class TestEditingThePayment:
-    @pytest.mark.parametrize("amount", [19.99, 0])
-    async def test_an_amount_below_the_refund_is_refused_and_not_saved(self, amount):
-        payments = payment_repository(refunded_payment())
-
-        with pytest.raises(InvalidPaymentDataError, match="menor que lo ya reembolsado"):
-            await UpdatePaymentUseCase(payment_repository=payments).execute("payment-1", amount=amount)
-
-        payments.update.assert_not_called()
-
-    @pytest.mark.parametrize("amount", [20.0, 25.0])
-    async def test_an_amount_that_still_covers_the_refund_is_saved(self, amount):
-        payments = payment_repository(refunded_payment())
-
-        saved = await UpdatePaymentUseCase(payment_repository=payments).execute("payment-1", amount=amount)
-
-        assert saved.amount == amount
-
-    async def test_a_payment_with_no_refund_can_drop_to_zero(self):
-        payments = payment_repository(refunded_payment(refund_amount=None))
-
-        saved = await UpdatePaymentUseCase(payment_repository=payments).execute("payment-1", amount=0)
-
-        assert saved.amount == 0
 
 
 class TestEditingALine:
@@ -171,10 +144,3 @@ class TestAPaymentAlreadyBelowItsRefund:
 
         with pytest.raises(InvalidPaymentDataError):
             await use_case.execute("a")
-
-    async def test_the_payment_can_be_raised_until_it_covers_the_refund(self):
-        payments = payment_repository(self.stored())
-
-        saved = await UpdatePaymentUseCase(payment_repository=payments).execute("payment-1", amount=100.0)
-
-        assert saved.amount == 100.0

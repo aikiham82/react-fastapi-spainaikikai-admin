@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field, field_validator
 
 from src.infrastructure.web.dto.payment_dto import PaymentResponse
 
-from src.infrastructure.web.dto.money import Money
 from src.infrastructure.web.dto.payment_lines import (
     MAX_MEMBERS_PER_PAYMENT,
     PersonName,
@@ -82,16 +81,6 @@ class ManualPaymentRequest(BaseModel):
         if not v:
             raise ValueError("At least one member assignment is required")
         return refuse_repeated_members_or_too_many_lines(v)
-
-
-class PaymentUpdateRequest(BaseModel):
-    """Request DTO for PUT /payments/{id}."""
-
-    amount: Optional[Money] = None
-    payment_year: Optional[int] = None
-    payment_method: Optional[Literal["cash", "transfer", "other"]] = None
-    payer_name: Optional[PersonName] = None
-    status: Optional[str] = None
 
 
 class ConfirmPaymentRequest(BaseModel):
