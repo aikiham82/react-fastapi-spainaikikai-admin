@@ -112,3 +112,17 @@ def test_reading_a_refund_above_the_amount_reports_it_without_personal_data(capl
     assert payment.refund_amount == 100.0
     assert "payment-1" in caplog.text
     assert "Ana" not in caplog.text
+
+
+def test_a_refund_above_the_amount_is_reported_once_however_often_it_is_read(caplog):
+    with patch(
+        "src.infrastructure.adapters.repositories.mongodb_payment_repository.get_database", return_value=MagicMock()
+    ):
+        repository = MongoDBPaymentRepository()
+    document = {"_id": "payment-read-twice", "amount": 80.0, "refund_amount": 100.0}
+
+    with caplog.at_level(logging.ERROR):
+        repository._to_domain(document)
+        repository._to_domain(document)
+
+    assert caplog.text.count("payment-read-twice") == 1
