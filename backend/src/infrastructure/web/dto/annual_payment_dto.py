@@ -1,8 +1,15 @@
 """Annual Payment DTOs for request/response validation."""
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
+
+from src.infrastructure.web.dto.payment_lines import (
+    MAX_MEMBERS_PER_PAYMENT,
+    PersonName,
+    refuse_repeated_members_or_too_many_lines,
+    refuse_repeated_types,
+)
 
 # Maximum quantity per item type
 MAX_QUANTITY_PER_ITEM = 200
@@ -20,7 +27,7 @@ class AnnualPaymentLineItem(BaseModel):
 class MemberPaymentAssignment(BaseModel):
     """Assignment of payment types to a specific member."""
     member_id: str
-    member_name: str  # For display purposes
+    member_name: PersonName
     payment_types: List[str]  # e.g., ["kyu", "seguro_accidentes"]
 
     @field_validator('member_id')
@@ -42,12 +49,12 @@ class MemberPaymentAssignment(BaseModel):
         for ptype in v:
             if ptype not in valid_types:
                 raise ValueError(f'Invalid payment type: {ptype}')
-        return v
+        return refuse_repeated_types(v)
 
 
 class InitiateAnnualPaymentRequest(BaseModel):
     """DTO for initiating an annual payment."""
-    payer_name: str
+    payer_name: PersonName
     club_id: str
     payment_year: int
     include_club_fee: bool = False
@@ -58,7 +65,14 @@ class InitiateAnnualPaymentRequest(BaseModel):
     shidoin_count: int = 0
     seguro_accidentes_count: int = 0
     seguro_rc_count: int = 0
-    member_assignments: Optional[List[MemberPaymentAssignment]] = None
+    member_assignments: Optional[List[MemberPaymentAssignment]] = Field(default=None, max_length=MAX_MEMBERS_PER_PAYMENT)
+
+    @field_validator('member_assignments')
+    @classmethod
+    def validate_member_assignments(
+        cls, v: Optional[List[MemberPaymentAssignment]]
+    ) -> Optional[List[MemberPaymentAssignment]]:
+        return refuse_repeated_members_or_too_many_lines(v) if v else v
 
     @field_validator('payment_year')
     @classmethod

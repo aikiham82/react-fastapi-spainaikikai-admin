@@ -2,18 +2,24 @@
 
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from src.infrastructure.web.dto.payment_dto import PaymentResponse
 
 from src.infrastructure.web.dto.money import Money
+from src.infrastructure.web.dto.payment_lines import (
+    MAX_MEMBERS_PER_PAYMENT,
+    PersonName,
+    refuse_repeated_members_or_too_many_lines,
+    refuse_repeated_types,
+)
 
 
 class ManualMemberAssignmentDTO(BaseModel):
     """Assignment of payment types to a member (manual payment)."""
 
     member_id: str
-    member_name: str
+    member_name: PersonName
     payment_types: List[str]
 
     @field_validator("member_id")
@@ -35,17 +41,17 @@ class ManualMemberAssignmentDTO(BaseModel):
         for pt in v:
             if pt not in valid_types:
                 raise ValueError(f"Invalid payment type: {pt}")
-        return v
+        return refuse_repeated_types(v)
 
 
 class ManualPaymentRequest(BaseModel):
     """Request DTO for POST /payments/manual."""
 
-    payer_name: str
+    payer_name: PersonName
     club_id: str
     payment_year: int
     payment_method: str  # must be "cash" | "transfer" | "other"
-    member_assignments: List[ManualMemberAssignmentDTO]
+    member_assignments: List[ManualMemberAssignmentDTO] = Field(max_length=MAX_MEMBERS_PER_PAYMENT)
     include_club_fee: bool = False
 
     @field_validator("payment_method")
@@ -75,7 +81,7 @@ class ManualPaymentRequest(BaseModel):
     def validate_member_assignments(cls, v: List[ManualMemberAssignmentDTO]) -> List[ManualMemberAssignmentDTO]:
         if not v:
             raise ValueError("At least one member assignment is required")
-        return v
+        return refuse_repeated_members_or_too_many_lines(v)
 
 
 class PaymentUpdateRequest(BaseModel):
@@ -84,7 +90,7 @@ class PaymentUpdateRequest(BaseModel):
     amount: Optional[Money] = None
     payment_year: Optional[int] = None
     payment_method: Optional[Literal["cash", "transfer", "other"]] = None
-    payer_name: Optional[str] = None
+    payer_name: Optional[PersonName] = None
     status: Optional[str] = None
 
 

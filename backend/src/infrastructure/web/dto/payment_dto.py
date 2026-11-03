@@ -1,7 +1,7 @@
 """Payment DTOs for request/response validation."""
 
-from pydantic import BaseModel, HttpUrl
-from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field, HttpUrl
+from typing import Annotated, Optional, Dict, Any
 from datetime import datetime
 
 from src.infrastructure.web.dto.money import Money
@@ -43,7 +43,7 @@ class PaymentResponse(PaymentBase):
 
 class PaymentRefundRequest(BaseModel):
     """DTO for refunding a payment."""
-    refund_amount: Optional[Money] = None
+    refund_amount: Optional[Annotated[Money, Field(gt=0)]] = None
 
 
 class InitiatePaymentRequest(BaseModel):

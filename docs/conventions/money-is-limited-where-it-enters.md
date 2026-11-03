@@ -6,6 +6,8 @@ Every money field of a **request** DTO uses `Money` ([`money.py`](../../backend/
 
 **Response** DTOs keep a plain `float`. When a base class is shared, the base stays `float` and the request class overrides the field. A total is a sum and can exceed what a single input may hold, and a stored value must always be readable.
 
+A payment request has a size too ([`payment_lines.py`](../../backend/src/infrastructure/web/dto/payment_lines.py)): no repeated type in a member, no repeated member, at most 500 members and 1000 lines, and names of at most 200 characters. A single request once stored 14,300 lines.
+
 A `422` never carries the submitted `input` (`request_validation_handler` in [`app.py`](../../backend/src/app.py)). The API client turns the resulting field list into one message, because a toast cannot render a list ([`readableDetail.ts`](../../frontend/src/core/data/readableDetail.ts)).
 
 ## 🏆 Benefits

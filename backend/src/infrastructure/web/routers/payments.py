@@ -50,6 +50,7 @@ from src.domain.exceptions.payment import (
     PaymentNotFoundError,
     InvalidPaymentStatusError,
     InvalidPaymentDataError,
+    InvalidRefundAmountError,
 )
 from src.infrastructure.web.dto.manual_payment_dto import (
     ManualPaymentRequest,
@@ -349,7 +350,10 @@ async def refund_payment(
 ):
     """Refund payment. Super admin, or the admin of the payment's club."""
     await _require_stored_payment_access(ctx, payment_id, payment_repository, member_repository)
-    payment = await get_refund_use_case.execute(payment_id, refund_data.refund_amount)
+    try:
+        payment = await get_refund_use_case.execute(payment_id, refund_data.refund_amount)
+    except InvalidRefundAmountError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return PaymentMapper.to_response_dto(payment)
 
 

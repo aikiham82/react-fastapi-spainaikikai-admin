@@ -4,7 +4,7 @@ import pytest
 from datetime import datetime, timedelta
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType, PaymentMethod
-from src.domain.exceptions.payment import InvalidPaymentDataError
+from src.domain.exceptions.payment import InvalidPaymentDataError, InvalidRefundAmountError
 
 
 class TestPaymentEntity:
@@ -300,7 +300,7 @@ class TestPaymentEntity:
             refund_date=None
         )
 
-        with pytest.raises(ValueError, match="Refund amount cannot exceed payment amount"):
+        with pytest.raises(InvalidRefundAmountError, match="no puede superar el importe"):
             payment.refund_payment(150.0)
 
     def test_payment_is_refundable(self):
