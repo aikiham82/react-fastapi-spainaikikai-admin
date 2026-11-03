@@ -1,9 +1,13 @@
 """What every payment request must respect: no repeated line, and a size."""
 
-from typing import List, Protocol
+from typing import Annotated, List, Protocol
+
+from pydantic import Field
 
 MAX_MEMBERS_PER_PAYMENT = 500
 MAX_LINES_PER_PAYMENT = 1000
+
+PersonName = Annotated[str, Field(max_length=200)]
 
 
 class PaymentAssignment(Protocol):

@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from src.infrastructure.web.dto.annual_payment_dto import InitiateAnnualPaymentRequest
-from src.infrastructure.web.dto.manual_payment_dto import ManualPaymentRequest
+from src.infrastructure.web.dto.manual_payment_dto import ManualPaymentRequest, PaymentUpdateRequest
 from src.infrastructure.web.dto.payment_dto import PaymentRefundRequest
 
 pytestmark = [pytest.mark.unit]
@@ -98,3 +98,29 @@ def test_a_refund_amount_out_of_range_is_refused(amount):
 @pytest.mark.parametrize("amount", [None, 0.01, 1_000_000], ids=["whole-payment", "smallest", "limit"])
 def test_a_refund_amount_within_the_range_is_accepted(amount):
     assert PaymentRefundRequest(refund_amount=amount).refund_amount == amount
+
+
+@pytest.mark.parametrize(("request_type", "fields"), REQUESTS, ids=IDS)
+def test_a_name_of_200_characters_is_accepted(request_type, fields):
+    named = assignment("a") | {"member_name": "a" * 200}
+
+    request = request_type(**{**fields, "payer_name": "a" * 200}, member_assignments=[named])
+
+    assert len(request.member_assignments[0].member_name) == 200
+
+
+@pytest.mark.parametrize(("request_type", "fields"), REQUESTS, ids=IDS)
+def test_a_longer_member_name_is_refused(request_type, fields):
+    with pytest.raises(ValidationError):
+        build(request_type, fields, [assignment("a") | {"member_name": "a" * 201}])
+
+
+@pytest.mark.parametrize(("request_type", "fields"), REQUESTS, ids=IDS)
+def test_a_longer_payer_name_is_refused(request_type, fields):
+    with pytest.raises(ValidationError):
+        build(request_type, {**fields, "payer_name": "a" * 201}, [assignment("a")])
+
+
+def test_a_payment_update_refuses_a_longer_payer_name():
+    with pytest.raises(ValidationError):
+        PaymentUpdateRequest(payer_name="a" * 201)

@@ -6,6 +6,7 @@ from datetime import datetime
 
 from src.infrastructure.web.dto.payment_lines import (
     MAX_MEMBERS_PER_PAYMENT,
+    PersonName,
     refuse_repeated_members_or_too_many_lines,
     refuse_repeated_types,
 )
@@ -26,7 +27,7 @@ class AnnualPaymentLineItem(BaseModel):
 class MemberPaymentAssignment(BaseModel):
     """Assignment of payment types to a specific member."""
     member_id: str
-    member_name: str  # For display purposes
+    member_name: PersonName
     payment_types: List[str]  # e.g., ["kyu", "seguro_accidentes"]
 
     @field_validator('member_id')
@@ -53,7 +54,7 @@ class MemberPaymentAssignment(BaseModel):
 
 class InitiateAnnualPaymentRequest(BaseModel):
     """DTO for initiating an annual payment."""
-    payer_name: str
+    payer_name: PersonName
     club_id: str
     payment_year: int
     include_club_fee: bool = False

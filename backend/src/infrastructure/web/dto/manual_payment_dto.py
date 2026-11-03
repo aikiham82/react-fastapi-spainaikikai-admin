@@ -9,6 +9,7 @@ from src.infrastructure.web.dto.payment_dto import PaymentResponse
 from src.infrastructure.web.dto.money import Money
 from src.infrastructure.web.dto.payment_lines import (
     MAX_MEMBERS_PER_PAYMENT,
+    PersonName,
     refuse_repeated_members_or_too_many_lines,
     refuse_repeated_types,
 )
@@ -18,7 +19,7 @@ class ManualMemberAssignmentDTO(BaseModel):
     """Assignment of payment types to a member (manual payment)."""
 
     member_id: str
-    member_name: str
+    member_name: PersonName
     payment_types: List[str]
 
     @field_validator("member_id")
@@ -46,7 +47,7 @@ class ManualMemberAssignmentDTO(BaseModel):
 class ManualPaymentRequest(BaseModel):
     """Request DTO for POST /payments/manual."""
 
-    payer_name: str
+    payer_name: PersonName
     club_id: str
     payment_year: int
     payment_method: str  # must be "cash" | "transfer" | "other"
@@ -89,7 +90,7 @@ class PaymentUpdateRequest(BaseModel):
     amount: Optional[Money] = None
     payment_year: Optional[int] = None
     payment_method: Optional[Literal["cash", "transfer", "other"]] = None
-    payer_name: Optional[str] = None
+    payer_name: Optional[PersonName] = None
     status: Optional[str] = None
 
 
