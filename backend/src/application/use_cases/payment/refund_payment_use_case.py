@@ -3,7 +3,7 @@
 from typing import Optional
 
 from src.domain.entities.payment import Payment, PaymentStatus
-from src.domain.exceptions.payment import InvalidRefundAmountError, PaymentNotFoundError, PaymentNotRefundableError
+from src.domain.exceptions.payment import PaymentNotFoundError, PaymentNotRefundableError
 from src.application.ports.payment_repository import PaymentRepositoryPort
 
 
@@ -21,9 +21,6 @@ class RefundPaymentUseCase:
 
         if not payment.is_refundable():
             raise PaymentNotRefundableError(f"Payment {payment_id} is not refundable")
-
-        if refund_amount and refund_amount > payment.amount:
-            raise InvalidRefundAmountError("El reembolso no puede superar el importe del pago")
 
         # TODO: Implement actual Redsys refund integration
         # This would involve:

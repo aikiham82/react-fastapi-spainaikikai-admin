@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from src.infrastructure.web.dto.annual_payment_dto import InitiateAnnualPaymentRequest
 from src.infrastructure.web.dto.manual_payment_dto import ManualPaymentRequest
+from src.infrastructure.web.dto.payment_dto import PaymentRefundRequest
 
 pytestmark = [pytest.mark.unit]
 
@@ -57,3 +58,43 @@ def test_500_members_are_accepted(request_type, fields):
 def test_more_than_500_members_are_refused(request_type, fields):
     with pytest.raises(ValidationError):
         build(request_type, fields, [assignment(f"member-{index}") for index in range(501)])
+
+
+@pytest.mark.parametrize(("request_type", "fields"), REQUESTS, ids=IDS)
+def test_1000_lines_are_accepted(request_type, fields):
+    assignments = [assignment(f"member-{index}", "kyu", "seguro_rc") for index in range(500)]
+
+    assert len(build(request_type, fields, assignments).member_assignments) == 500
+
+
+@pytest.mark.parametrize(("request_type", "fields"), REQUESTS, ids=IDS)
+def test_more_than_1000_lines_are_refused(request_type, fields):
+    assignments = [assignment(f"member-{index}", "kyu", "seguro_rc", "seguro_accidentes") for index in range(334)]
+
+    with pytest.raises(ValidationError):
+        build(request_type, fields, assignments)
+
+
+@pytest.mark.parametrize(("request_type", "fields"), REQUESTS, ids=IDS)
+def test_too_many_members_stops_before_validating_each_one(request_type, fields):
+    assignments = [assignment("") for _ in range(100_000)]
+
+    with pytest.raises(ValidationError) as refused:
+        build(request_type, fields, assignments)
+
+    assert refused.value.error_count() <= 500
+
+
+@pytest.mark.parametrize(
+    "amount",
+    [0, -1, float("inf"), float("nan"), 1_000_001],
+    ids=["zero-would-refund-everything", "negative", "inf", "nan", "over-the-limit"],
+)
+def test_a_refund_amount_out_of_range_is_refused(amount):
+    with pytest.raises(ValidationError):
+        PaymentRefundRequest(refund_amount=amount)
+
+
+@pytest.mark.parametrize("amount", [None, 0.01, 1_000_000], ids=["whole-payment", "smallest", "limit"])
+def test_a_refund_amount_within_the_range_is_accepted(amount):
+    assert PaymentRefundRequest(refund_amount=amount).refund_amount == amount

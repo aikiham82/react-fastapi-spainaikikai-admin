@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from enum import Enum
 
-from src.domain.exceptions.payment import InvalidPaymentDataError
+from src.domain.exceptions.payment import InvalidPaymentDataError, InvalidRefundAmountError
 
 
 class PaymentStatus(str, Enum):
@@ -142,11 +142,11 @@ class Payment:
         if self.status != PaymentStatus.COMPLETED:
             raise ValueError("Only completed payments can be refunded")
         if refund_amount and refund_amount > self.amount:
-            raise ValueError("Refund amount cannot exceed payment amount")
+            raise InvalidRefundAmountError("El reembolso no puede superar el importe del pago")
 
         self.status = PaymentStatus.REFUNDED
         self.refund_amount = refund_amount if refund_amount else self.amount
-        self.refund_date = datetime.now()
+        self.refund_date = datetime.utcnow()
 
     @property
     def is_received_by_card(self) -> bool:

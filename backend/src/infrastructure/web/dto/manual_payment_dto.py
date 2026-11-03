@@ -2,12 +2,16 @@
 
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from src.infrastructure.web.dto.payment_dto import PaymentResponse
 
 from src.infrastructure.web.dto.money import Money
-from src.infrastructure.web.dto.payment_lines import refuse_repeated_or_too_many_members, refuse_repeated_types
+from src.infrastructure.web.dto.payment_lines import (
+    MAX_MEMBERS_PER_PAYMENT,
+    refuse_repeated_members_or_too_many_lines,
+    refuse_repeated_types,
+)
 
 
 class ManualMemberAssignmentDTO(BaseModel):
@@ -46,7 +50,7 @@ class ManualPaymentRequest(BaseModel):
     club_id: str
     payment_year: int
     payment_method: str  # must be "cash" | "transfer" | "other"
-    member_assignments: List[ManualMemberAssignmentDTO]
+    member_assignments: List[ManualMemberAssignmentDTO] = Field(max_length=MAX_MEMBERS_PER_PAYMENT)
     include_club_fee: bool = False
 
     @field_validator("payment_method")
@@ -76,7 +80,7 @@ class ManualPaymentRequest(BaseModel):
     def validate_member_assignments(cls, v: List[ManualMemberAssignmentDTO]) -> List[ManualMemberAssignmentDTO]:
         if not v:
             raise ValueError("At least one member assignment is required")
-        return refuse_repeated_or_too_many_members(v)
+        return refuse_repeated_members_or_too_many_lines(v)
 
 
 class PaymentUpdateRequest(BaseModel):

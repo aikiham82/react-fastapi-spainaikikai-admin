@@ -16,7 +16,6 @@ from src.infrastructure.web.dto.member_payment_dto import MemberPaymentUpdateReq
 from src.infrastructure.web.dto.payment_dto import (
     InitiatePaymentRequest,
     PaymentCreate,
-    PaymentRefundRequest,
     PaymentResponse,
     RedsysPaymentRequest,
 )
@@ -38,7 +37,6 @@ MONEY_FIELDS = [
     (MemberPaymentUpdateRequest, "amount"),
     (InitiatePaymentRequest, "amount"),
     (PaymentCreate, "amount"),
-    (PaymentRefundRequest, "refund_amount"),
     (RedsysPaymentRequest, "amount"),
     (PriceConfigurationCreate, "price"),
     (PriceConfigurationUpdate, "price"),
