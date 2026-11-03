@@ -19,20 +19,6 @@ export const registerManualPayment = async (
   return await apiClient.post<Payment>(`${PAYMENTS_URL}/manual`, data);
 };
 
-// PUT /api/v1/payments/{id}
-export const updatePayment = async (
-  id: string,
-  data: Partial<{
-    amount: number;
-    payment_year: number;
-    payment_method: string;
-    payer_name: string;
-    status: string;
-  }>
-): Promise<Payment> => {
-  return await apiClient.put<Payment>(`${PAYMENTS_URL}/${id}`, data);
-};
-
 // GET /api/v1/payments?club_id={club_id}&payment_year={year}
 export const getClubPayments = async (clubId: string, paymentYear: number): Promise<Payment[]> => {
   return await apiClient.get<Payment[]>(PAYMENTS_URL, { params: { club_id: clubId, payment_year: paymentYear } });
@@ -81,7 +67,6 @@ export const deleteMemberPayment = async (id: string): Promise<void> => {
 
 export const paymentAdminService = {
   registerManualPayment,
-  updatePayment,
   deletePayment,
   getClubPayments,
   confirmPayment,

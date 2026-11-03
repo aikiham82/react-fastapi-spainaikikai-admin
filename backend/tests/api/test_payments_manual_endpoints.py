@@ -1,4 +1,4 @@
-"""API tests for payments manual, update, and cascade-delete endpoints.
+"""API tests for payments manual and cascade-delete endpoints.
 
 TDD: Tests are written before implementation.
 
@@ -63,12 +63,11 @@ def _make_regular_ctx() -> AuthContext:
 
 
 def _make_payment(
-    payment_id: str = "pay-001",
     status_val: PaymentStatus = PaymentStatus.COMPLETED,
     method: PaymentMethod = PaymentMethod.CASH,
 ) -> Payment:
     return Payment(
-        id=payment_id,
+        id="pay-001",
         club_id="club-001",
         payment_type=PaymentType.ANNUAL_QUOTA,
         amount=150.0,
@@ -284,122 +283,6 @@ class TestPostManualPayment:
         response = client.post("/api/v1/payments/manual", json=payload)
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-
-
-# ---------------------------------------------------------------------------
-# PUT /{payment_id}
-# ---------------------------------------------------------------------------
-
-@pytest.mark.api
-@pytest.mark.unit
-class TestPutPayment:
-    """Tests for PUT /api/v1/payments/{payment_id}."""
-
-    def test_super_admin_updates_payment_returns_200(self, test_app):
-        """Super admin can update a manual payment → 200."""
-        from src.infrastructure.web.dependencies import get_update_payment_use_case
-
-        updated_payment = _make_payment(payment_id="pay-001")
-
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = updated_payment
-
-        test_app.dependency_overrides[get_auth_context] = lambda: _make_super_admin_ctx()
-        test_app.dependency_overrides[get_update_payment_use_case] = lambda: mock_use_case
-
-        client = TestClient(test_app)
-        response = client.put(
-            "/api/v1/payments/pay-001",
-            json={"payer_name": "Updated Name", "amount": 200.0},
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        mock_use_case.execute.assert_awaited_once()
-
-    def test_non_super_admin_update_is_forbidden_403(self, test_app):
-        """Regular user trying PUT /{id} → 403."""
-        from src.infrastructure.web.dependencies import get_update_payment_use_case
-
-        mock_use_case = AsyncMock()
-        test_app.dependency_overrides[get_auth_context] = lambda: _make_regular_ctx()
-        test_app.dependency_overrides[get_update_payment_use_case] = lambda: mock_use_case
-
-        client = TestClient(test_app)
-        response = client.put("/api/v1/payments/pay-001", json={"amount": 100.0})
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        mock_use_case.execute.assert_not_called()
-
-    def test_update_redsys_completed_returns_409(self, test_app):
-        """Redsys COMPLETED payment update → InvalidPaymentStatusError → 409."""
-        from src.infrastructure.web.dependencies import get_update_payment_use_case
-
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.side_effect = InvalidPaymentStatusError(
-            "Los pagos completados por Redsys no son editables"
-        )
-
-        test_app.dependency_overrides[get_auth_context] = lambda: _make_super_admin_ctx()
-        test_app.dependency_overrides[get_update_payment_use_case] = lambda: mock_use_case
-
-        client = TestClient(test_app)
-        response = client.put("/api/v1/payments/pay-redsys", json={"amount": 100.0})
-
-        assert response.status_code == status.HTTP_409_CONFLICT
-
-    def test_update_nonexistent_payment_returns_404(self, test_app):
-        """Payment not found → PaymentNotFoundError → 404."""
-        from src.infrastructure.web.dependencies import get_update_payment_use_case
-
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.side_effect = PaymentNotFoundError("pay-nonexistent")
-
-        test_app.dependency_overrides[get_auth_context] = lambda: _make_super_admin_ctx()
-        test_app.dependency_overrides[get_update_payment_use_case] = lambda: mock_use_case
-
-        client = TestClient(test_app)
-        response = client.put("/api/v1/payments/pay-nonexistent", json={"amount": 100.0})
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_update_invalid_data_returns_400(self, test_app):
-        """InvalidPaymentDataError → 400."""
-        from src.infrastructure.web.dependencies import get_update_payment_use_case
-
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.side_effect = InvalidPaymentDataError("Importe negativo")
-
-        test_app.dependency_overrides[get_auth_context] = lambda: _make_super_admin_ctx()
-        test_app.dependency_overrides[get_update_payment_use_case] = lambda: mock_use_case
-
-        client = TestClient(test_app)
-        response = client.put("/api/v1/payments/pay-001", json={"amount": 10.0})
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_update_passes_correct_fields_to_use_case(self, test_app):
-        """PUT body fields are forwarded to use case correctly."""
-        from src.infrastructure.web.dependencies import get_update_payment_use_case
-
-        updated_payment = _make_payment(payment_id="pay-001")
-
-        mock_use_case = AsyncMock()
-        mock_use_case.execute.return_value = updated_payment
-
-        test_app.dependency_overrides[get_auth_context] = lambda: _make_super_admin_ctx()
-        test_app.dependency_overrides[get_update_payment_use_case] = lambda: mock_use_case
-
-        client = TestClient(test_app)
-        client.put(
-            "/api/v1/payments/pay-001",
-            json={"payer_name": "New Name", "amount": 300.0, "payment_method": "transfer"},
-        )
-
-        call_kwargs = mock_use_case.execute.call_args.kwargs
-        assert call_kwargs["payment_id"] == "pay-001"
-        assert call_kwargs["payer_name"] == "New Name"
-        assert call_kwargs["amount"] == 300.0
-        assert call_kwargs["payment_method"] == "transfer"
 
 
 # ---------------------------------------------------------------------------

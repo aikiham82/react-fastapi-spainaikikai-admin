@@ -20,7 +20,6 @@ from src.infrastructure.web.dependencies import (
     get_refund_payment_use_case,
     get_register_manual_payment_use_case,
     get_update_member_payment_use_case,
-    get_update_payment_use_case,
 )
 from src.infrastructure.web.routers.member_payments import router as member_payments_router
 from src.infrastructure.web.routers.payments import router as payments_router
@@ -74,7 +73,6 @@ def use_cases():
         update_line=AsyncMock(**{"execute.return_value": LINES["mp-own"]}),
         delete_line=AsyncMock(**{"execute.return_value": None}),
         manual=AsyncMock(**{"execute.return_value": manual_result}),
-        update_payment=AsyncMock(**{"execute.return_value": PAYMENTS["pay-own"]}),
         delete_payment=AsyncMock(**{"execute.return_value": None}),
         refund=AsyncMock(**{"execute.return_value": PAYMENTS["pay-own"]}),
     )
@@ -95,7 +93,6 @@ def client_as(use_cases):
             get_update_member_payment_use_case: lambda: use_cases.update_line,
             get_delete_member_payment_use_case: lambda: use_cases.delete_line,
             get_register_manual_payment_use_case: lambda: use_cases.manual,
-            get_update_payment_use_case: lambda: use_cases.update_payment,
             get_delete_payment_use_case: lambda: use_cases.delete_payment,
             get_refund_payment_use_case: lambda: use_cases.refund,
         }
@@ -117,14 +114,13 @@ def calls(client: TestClient, line_id: str, payment_id: str, club_id: str, membe
         "update_line": client.put(f"/api/v1/member-payments/{line_id}", json={"status": "completed"}).status_code,
         "delete_line": client.delete(f"/api/v1/member-payments/{line_id}").status_code,
         "manual": client.post("/api/v1/payments/manual", json=manual_body(club_id, member_id)).status_code,
-        "update_payment": client.put(f"/api/v1/payments/{payment_id}", json={"status": "completed"}).status_code,
         "delete_payment": client.delete(f"/api/v1/payments/{payment_id}").status_code,
         "refund": client.put(f"/api/v1/payments/{payment_id}/refund", json={}).status_code,
     }
 
 
 OK = {"list": 200, "update_line": 200, "delete_line": 204, "manual": 201,
-      "update_payment": 200, "delete_payment": 204, "refund": 200}
+      "delete_payment": 204, "refund": 200}
 
 
 def test_a_club_admin_changes_their_own_clubs_payments(client_as):
@@ -179,7 +175,6 @@ def test_a_card_payment_the_federation_received_is_left_to_the_super_admin(clien
     answered = {
         "update_line": client.put("/api/v1/member-payments/mp-card", json={"status": "pending"}).status_code,
         "delete_line": client.delete("/api/v1/member-payments/mp-card").status_code,
-        "update_payment": client.put("/api/v1/payments/pay-card", json={"status": "pending"}).status_code,
         "delete_payment": client.delete("/api/v1/payments/pay-card?force=true").status_code,
         "refund": client.put("/api/v1/payments/pay-card/refund", json={}).status_code,
     }
@@ -194,3 +189,10 @@ def test_a_super_admin_still_changes_a_card_payment(client_as):
 
     assert client.put("/api/v1/member-payments/mp-card", json={"status": "pending"}).status_code == 200
     assert client.put("/api/v1/payments/pay-card/refund", json={}).status_code == 200
+
+
+@pytest.mark.parametrize("caller", [club_admin, super_admin], ids=["club-admin", "super-admin"])
+def test_the_payment_cannot_be_edited_through_the_api_whoever_asks(client_as, caller):
+    response = client_as(caller()).put("/api/v1/payments/pay-own", json={"status": "completed"})
+
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED

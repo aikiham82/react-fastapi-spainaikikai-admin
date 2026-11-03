@@ -10,7 +10,6 @@ from src.app import create_app, request_validation_handler
 from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.dto.annual_payment_dto import AnnualPaymentLineItem
 from src.infrastructure.web.dto.insurance_dto import InsuranceCreate, InsuranceResponse, InsuranceUpdate
-from src.infrastructure.web.dto.manual_payment_dto import PaymentUpdateRequest
 from src.infrastructure.web.dto.money import Money
 from src.infrastructure.web.dto.member_payment_dto import MemberPaymentUpdateRequest
 from src.infrastructure.web.dto.payment_dto import (
@@ -33,7 +32,6 @@ pytestmark = [pytest.mark.api]
 MONEY_FIELDS = [
     (InsuranceCreate, "coverage_amount"),
     (InsuranceUpdate, "coverage_amount"),
-    (PaymentUpdateRequest, "amount"),
     (MemberPaymentUpdateRequest, "amount"),
     (InitiatePaymentRequest, "amount"),
     (PaymentCreate, "amount"),

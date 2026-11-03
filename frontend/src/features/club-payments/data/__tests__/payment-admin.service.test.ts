@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   registerManualPayment,
-  updatePayment,
   deletePayment,
   getClubMemberPayments,
   updateMemberPayment,
@@ -105,40 +104,6 @@ describe('paymentAdminService', () => {
       mockApiClient.post.mockRejectedValue(apiError);
 
       await expect(registerManualPayment(mockManualPaymentData)).rejects.toEqual(apiError);
-    });
-  });
-
-  // ─── updatePayment ───────────────────────────────────────────────
-  describe('updatePayment', () => {
-    const updateData = { payer_name: 'María López', amount: 200 };
-
-    it('calls PUT /api/v1/payments/{id} with the correct body', async () => {
-      mockApiClient.put.mockResolvedValue({ ...mockPayment, ...updateData });
-
-      const result = await updatePayment('payment-123', updateData);
-
-      expect(mockApiClient.put).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.put).toHaveBeenCalledWith(
-        '/api/v1/payments/payment-123',
-        updateData
-      );
-      expect(result.payer_name).toBe('María López');
-    });
-
-    it('uses the correct payment id in the URL', async () => {
-      mockApiClient.put.mockResolvedValue(mockPayment);
-
-      await updatePayment('payment-xyz-999', {});
-
-      const [url] = mockApiClient.put.mock.calls[0];
-      expect(url).toBe('/api/v1/payments/payment-xyz-999');
-    });
-
-    it('propagates errors from apiClient', async () => {
-      const apiError = { message: 'Not Found', detail: 'Payment not found', status: 404 };
-      mockApiClient.put.mockRejectedValue(apiError);
-
-      await expect(updatePayment('payment-123', updateData)).rejects.toEqual(apiError);
     });
   });
 
@@ -308,7 +273,6 @@ describe('paymentAdminService', () => {
   describe('paymentAdminService (named export object)', () => {
     it('exposes all expected service methods', () => {
       expect(typeof paymentAdminService.registerManualPayment).toBe('function');
-      expect(typeof paymentAdminService.updatePayment).toBe('function');
       expect(typeof paymentAdminService.deletePayment).toBe('function');
       expect(typeof paymentAdminService.getClubMemberPayments).toBe('function');
       expect(typeof paymentAdminService.updateMemberPayment).toBe('function');
@@ -317,7 +281,6 @@ describe('paymentAdminService', () => {
 
     it('service object methods are the same references as the named exports', () => {
       expect(paymentAdminService.registerManualPayment).toBe(registerManualPayment);
-      expect(paymentAdminService.updatePayment).toBe(updatePayment);
       expect(paymentAdminService.deletePayment).toBe(deletePayment);
       expect(paymentAdminService.getClubMemberPayments).toBe(getClubMemberPayments);
       expect(paymentAdminService.updateMemberPayment).toBe(updateMemberPayment);

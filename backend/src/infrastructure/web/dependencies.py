@@ -129,7 +129,6 @@ from src.application.use_cases.member_payment import (
 from src.application.use_cases.member_payment.get_all_clubs_payment_summary_use_case import GetAllClubsPaymentSummaryUseCase
 from src.application.use_cases.payment.prefill_annual_payment_use_case import PrefillAnnualPaymentUseCase
 from src.application.use_cases.payment.register_manual_payment_use_case import RegisterManualPaymentUseCase
-from src.application.use_cases.payment.update_payment_use_case import UpdatePaymentUseCase
 from src.application.use_cases.payment.complete_payment_use_case import CompletePaymentUseCase
 from src.application.use_cases.payment.confirm_payment_received_use_case import ConfirmPaymentReceivedUseCase
 from src.application.use_cases.payment.update_member_payment_use_case import UpdateMemberPaymentUseCase
@@ -473,12 +472,6 @@ def get_register_manual_payment_use_case() -> RegisterManualPaymentUseCase:
         insurance_repository=get_insurance_repository(),
         club_repository=get_club_repository(),
     )
-
-
-@lru_cache()
-def get_update_payment_use_case() -> UpdatePaymentUseCase:
-    """Update payment use case."""
-    return UpdatePaymentUseCase(get_payment_repository())
 
 
 @lru_cache()
