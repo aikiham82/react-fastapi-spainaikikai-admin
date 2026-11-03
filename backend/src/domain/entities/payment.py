@@ -133,7 +133,8 @@ class Payment:
         self.status = PaymentStatus.CANCELLED
 
     def ensure_covers_refund(self, amount: float) -> None:
-        if self.refund_amount and amount < self.refund_amount:
+        lowers_the_amount = amount < self.amount
+        if self.refund_amount and lowers_the_amount and amount < self.refund_amount:
             raise InvalidPaymentDataError("El importe no puede ser menor que lo ya reembolsado")
 
     def refund_payment(self, refund_amount: Optional[float] = None) -> None:

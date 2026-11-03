@@ -132,3 +132,49 @@ class TestDeletingALine:
 
         assert await use_case.execute("a") is True
         lines.delete.assert_called_once_with("a")
+
+
+class TestAPaymentAlreadyBelowItsRefund:
+    """Two simultaneous edits can still store one; it has to stay correctable."""
+
+    def stored(self) -> Payment:
+        return Payment(
+            id="payment-1", club_id="club-dojo", amount=80.0, payment_year=2026, refund_amount=100.0,
+            payment_method=PaymentMethod.CASH, status=PaymentStatus.REFUNDED,
+        )
+
+    async def test_an_edit_that_leaves_the_total_as_it_is_works(self):
+        lines = lines_repository([line("a", 50.0), line("b", 30.0)])
+
+        saved = await edit_line_use_case(lines, payment_repository(self.stored())).execute("a", concept="Licencia")
+
+        assert saved.concept == "Licencia"
+
+    async def test_raising_a_line_works_even_if_it_is_not_enough_yet(self):
+        lines = lines_repository([line("a", 50.0), line("b", 30.0)])
+
+        saved = await edit_line_use_case(lines, payment_repository(self.stored())).execute("a", amount=60.0)
+
+        assert saved.amount == 60.0
+
+    async def test_lowering_a_line_is_still_refused(self):
+        lines = lines_repository([line("a", 50.0), line("b", 30.0)])
+
+        with pytest.raises(InvalidPaymentDataError):
+            await edit_line_use_case(lines, payment_repository(self.stored())).execute("a", amount=40.0)
+
+    async def test_deleting_a_line_is_still_refused(self):
+        lines = lines_repository([line("a", 50.0), line("b", 30.0)])
+        use_case = DeleteMemberPaymentUseCase(
+            member_payment_repository=lines, payment_repository=payment_repository(self.stored())
+        )
+
+        with pytest.raises(InvalidPaymentDataError):
+            await use_case.execute("a")
+
+    async def test_the_payment_can_be_raised_until_it_covers_the_refund(self):
+        payments = payment_repository(self.stored())
+
+        saved = await UpdatePaymentUseCase(payment_repository=payments).execute("payment-1", amount=100.0)
+
+        assert saved.amount == 100.0

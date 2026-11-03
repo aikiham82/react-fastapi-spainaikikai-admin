@@ -50,7 +50,6 @@ class TestPaymentEntity:
             )
 
     def test_a_stored_refund_above_the_amount_can_still_be_read(self):
-        """Repositories rebuild the entity on every read, so refusing here would take the whole list down."""
         payment = Payment(member_id="member-id", club_id="club-id", amount=100.0, refund_amount=200.0)
 
         assert payment.refund_amount == 200.0
@@ -58,9 +57,10 @@ class TestPaymentEntity:
     def test_a_payment_with_that_refund_can_be_corrected_by_raising_its_amount(self):
         payment = Payment(member_id="member-id", club_id="club-id", amount=100.0, refund_amount=200.0)
 
-        payment.ensure_covers_refund(200.0)
+        payment.ensure_covers_refund(100.0)
+        payment.ensure_covers_refund(150.0)
         with pytest.raises(InvalidPaymentDataError):
-            payment.ensure_covers_refund(150.0)
+            payment.ensure_covers_refund(50.0)
 
     def test_payment_creation_with_refund_amount(self):
         """Test payment creation with refund amount."""

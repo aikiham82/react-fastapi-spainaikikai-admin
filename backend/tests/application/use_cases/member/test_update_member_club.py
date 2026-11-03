@@ -1,14 +1,21 @@
 """A member cannot point at a club that does not exist: reading its name broke the members list."""
 
+import logging
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from bson import ObjectId
+from fastapi.testclient import TestClient
 
+from src.app import create_app
 from src.application.use_cases.member.update_member_use_case import UpdateMemberUseCase
 from src.domain.entities.member import Member
 from src.domain.exceptions.member import InvalidClubForMemberError
 from src.infrastructure.adapters.repositories.mongodb_club_repository import MongoDBClubRepository
+from src.infrastructure.adapters.repositories.mongodb_payment_repository import MongoDBPaymentRepository
+from src.infrastructure.web.dependencies import get_auth_context, get_member_use_case, get_update_member_use_case
+from tests.api.callers import super_admin
 
 pytestmark = [pytest.mark.unit]
 
@@ -73,3 +80,35 @@ async def test_reading_clubs_ignores_an_id_that_could_never_exist():
 
     assert [club.id for club in clubs] == [valid_id]
     assert collection.find.call_args.args[0] == {"_id": {"$in": [ObjectId(valid_id)]}}
+
+
+async def test_the_route_answers_409_and_saves_nothing():
+    members = members_repository(member())
+    app = create_app()
+    app.dependency_overrides = {
+        get_auth_context: lambda: super_admin(),
+        get_member_use_case: lambda: SimpleNamespace(execute=AsyncMock(return_value=member())),
+        get_update_member_use_case: lambda: UpdateMemberUseCase(members, clubs_repository(False)),
+    }
+
+    response = TestClient(app).put("/api/v1/members/member-1", json={"club_id": "nope"})
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "El club indicado no existe"
+    members.update.assert_not_called()
+
+
+def test_reading_a_refund_above_the_amount_reports_it_without_personal_data(caplog):
+    with patch(
+        "src.infrastructure.adapters.repositories.mongodb_payment_repository.get_database", return_value=MagicMock()
+    ):
+        repository = MongoDBPaymentRepository()
+
+    with caplog.at_level(logging.ERROR):
+        payment = repository._to_domain(
+            {"_id": "payment-1", "amount": 80.0, "refund_amount": 100.0, "payer_name": "Ana Example"}
+        )
+
+    assert payment.refund_amount == 100.0
+    assert "payment-1" in caplog.text
+    assert "Ana" not in caplog.text
