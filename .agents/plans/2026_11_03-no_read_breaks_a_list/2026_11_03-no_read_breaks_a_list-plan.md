@@ -18,7 +18,7 @@ implemented_by:
     reasoning_effort: "medium"
 
 last_implementation_at: "2026-11-03T09:30:00Z"
-has_completed_all_phases: "false"
+has_completed_all_phases: "true"
 ---
 
 # No read breaks a list
@@ -65,13 +65,13 @@ Public contracts:
 - Test cases: unknown and malformed ids refused and not stored; a valid club and no club still work; `find_by_ids` with a malformed id returns the valid ones.
 
 To-do:
-- [ ] Write the failing tests.
-- [ ] Apply the check and the guard.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests.
+- [x] Apply the check and the guard.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages. Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2.
+All phases are complete.
 
-Refunds readable again thanks to 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+No list left behind by 📋 💶 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

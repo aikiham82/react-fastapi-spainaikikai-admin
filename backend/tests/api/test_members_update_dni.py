@@ -36,7 +36,7 @@ def client(repository) -> TestClient:
     app.dependency_overrides = {
         get_auth_context: lambda: super_admin(),
         get_member_use_case: lambda: SimpleNamespace(execute=AsyncMock(return_value=ANA)),
-        get_update_member_use_case: lambda: UpdateMemberUseCase(repository),
+        get_update_member_use_case: lambda: UpdateMemberUseCase(repository, AsyncMock()),
     }
     return TestClient(app)
 

@@ -71,7 +71,7 @@ class MongoDBClubRepository(ClubRepositoryPort):
     async def find_by_ids(self, club_ids: List[str]) -> List[Club]:
         if not club_ids:
             return []
-        object_ids = [ObjectId(cid) for cid in club_ids if cid]
+        object_ids = [ObjectId(cid) for cid in club_ids if ObjectId.is_valid(cid)]
         cursor = self.collection.find({"_id": {"$in": object_ids}})
         documents = await cursor.to_list(length=len(object_ids))
         return [self._to_domain(doc) for doc in documents]

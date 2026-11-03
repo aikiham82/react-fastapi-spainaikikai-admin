@@ -207,7 +207,7 @@ def get_create_member_use_case() -> CreateMemberUseCase:
 @lru_cache()
 def get_update_member_use_case() -> UpdateMemberUseCase:
     """Update member use case."""
-    return UpdateMemberUseCase(get_member_repository())
+    return UpdateMemberUseCase(get_member_repository(), get_club_repository())
 
 @lru_cache()
 def get_delete_member_use_case() -> DeleteMemberUseCase:
