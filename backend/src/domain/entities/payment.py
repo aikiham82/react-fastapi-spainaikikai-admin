@@ -85,8 +85,6 @@ class Payment:
             raise ValueError("Payment amount cannot be negative")
         if self.refund_amount and self.refund_amount < 0:
             raise ValueError("Refund amount cannot be negative")
-        if self.refund_amount and self.refund_amount > self.amount:
-            raise ValueError("Refund amount cannot exceed payment amount")
         # Coerce payment_method string to enum
         if isinstance(self.payment_method, str):
             try:
@@ -135,7 +133,8 @@ class Payment:
         self.status = PaymentStatus.CANCELLED
 
     def ensure_covers_refund(self, amount: float) -> None:
-        if self.refund_amount and amount < self.refund_amount:
+        lowers_the_amount = amount < self.amount
+        if self.refund_amount and lowers_the_amount and amount < self.refund_amount:
             raise InvalidPaymentDataError("El importe no puede ser menor que lo ya reembolsado")
 
     def refund_payment(self, refund_amount: Optional[float] = None) -> None:

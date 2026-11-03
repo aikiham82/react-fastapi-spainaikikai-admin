@@ -1,5 +1,6 @@
 """MongoDB Payment Repository Adapter."""
 
+import logging
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
@@ -7,6 +8,10 @@ from datetime import datetime
 from src.domain.entities.payment import UNFINISHED_PAYMENT_STATUSES, Payment, PaymentMethod, PaymentStatus, PaymentType
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.infrastructure.database import get_database
+
+logger = logging.getLogger(__name__)
+
+_reported_refunds_above_amount: set[str] = set()
 
 
 class MongoDBPaymentRepository(PaymentRepositoryPort):
@@ -19,7 +24,7 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
     def _to_domain(self, doc: dict) -> Optional[Payment]:
         if doc is None:
             return None
-        return Payment(
+        payment = Payment(
             id=str(doc.get("_id")),
             member_id=doc.get("member_id"),
             club_id=doc.get("club_id"),
@@ -41,6 +46,14 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
             created_at=doc.get("created_at"),
             updated_at=doc.get("updated_at")
         )
+        if (
+            payment.refund_amount
+            and payment.refund_amount > payment.amount
+            and payment.id not in _reported_refunds_above_amount
+        ):
+            _reported_refunds_above_amount.add(payment.id)
+            logger.error("Payment %s has a refund above its amount", payment.id)
+        return payment
 
     def _to_document(self, payment: Payment) -> dict:
         doc = {

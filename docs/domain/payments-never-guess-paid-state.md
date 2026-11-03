@@ -7,6 +7,7 @@ The Pagos page offers "Pagar con tarjeta" only when it **knows** what the club h
 - If the prefill (paid items) or the club's members fail to load, it shows "No hemos podido comprobar lo que ya está pagado" with "Reintentar", and renders no checklist, no total and no pay button.
 - Its state is keyed on `club_id:payment_year`: switching club resets the ticks and applies the new club's prefill only once that club's members (not the previous club's placeholder data) are loaded.
 - A ticked concept without a configured price blocks payment with a visible message; it is never shown as `0,00 €`.
+- A list read never hides a stored row to stay up. A missing payment line shows a paid member as unpaid and passes the duplicate checks, so a rule that should not stop a read belongs on the write path instead, as the refund rule does (`Payment.ensure_covers_refund`). Considered and rejected on 2026-11-03.
 - The counts sent to the backend (`kyu_count`, `seguro_rc_count`, …) are **derived** from the ticked members (`member_assignments`); the request contract stays the one in [`annual-payment.schema.ts`](../../frontend/src/features/annual-payments/data/schemas/annual-payment.schema.ts).
 
 ## 🏆 Benefits

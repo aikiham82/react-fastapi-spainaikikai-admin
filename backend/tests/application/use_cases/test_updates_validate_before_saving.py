@@ -99,14 +99,14 @@ class TestMember:
         members = repository(member())
 
         with pytest.raises(ValidationError, match="Hay datos no válidos"):
-            await UpdateMemberUseCase(members).execute("member-1", **changes)
+            await UpdateMemberUseCase(members, AsyncMock()).execute("member-1", **changes)
 
         members.update.assert_not_called()
 
     async def test_a_valid_edit_is_saved(self):
         members = repository(member())
 
-        saved = await UpdateMemberUseCase(members).execute("member-1", first_name="Berta", city="Madrid", email="")
+        saved = await UpdateMemberUseCase(members, AsyncMock()).execute("member-1", first_name="Berta", city="Madrid", email="")
 
         assert (saved.first_name, saved.city, saved.email) == ("Berta", "Madrid", "")
 
