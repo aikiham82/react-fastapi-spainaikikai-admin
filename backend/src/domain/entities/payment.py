@@ -141,11 +141,13 @@ class Payment:
         """Refund the payment."""
         if self.status != PaymentStatus.COMPLETED:
             raise ValueError("Only completed payments can be refunded")
-        if refund_amount and refund_amount > self.amount:
+        if refund_amount is not None and refund_amount <= 0:
+            raise InvalidRefundAmountError("El reembolso debe ser mayor que cero")
+        if refund_amount is not None and refund_amount > self.amount:
             raise InvalidRefundAmountError("El reembolso no puede superar el importe del pago")
 
         self.status = PaymentStatus.REFUNDED
-        self.refund_amount = refund_amount if refund_amount else self.amount
+        self.refund_amount = refund_amount if refund_amount is not None else self.amount
         self.refund_date = datetime.utcnow()
 
     @property

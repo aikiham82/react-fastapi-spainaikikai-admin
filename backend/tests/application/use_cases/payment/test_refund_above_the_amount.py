@@ -52,6 +52,16 @@ async def test_a_refund_within_the_amount_is_saved(requested, refunded):
     assert saved.refund_amount == refunded
 
 
+@pytest.mark.parametrize("amount", [0, -5], ids=["zero", "negative"])
+async def test_a_refund_of_nothing_never_refunds_the_whole_payment(amount):
+    payments = repository()
+
+    with pytest.raises(InvalidRefundAmountError, match="mayor que cero"):
+        await RefundPaymentUseCase(payments).execute("payment-1", amount)
+
+    payments.update.assert_not_called()
+
+
 def test_the_route_answers_400():
     payments = repository()
     app = create_app()
