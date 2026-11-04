@@ -1,6 +1,7 @@
 """Repository port interfaces for Payment domain."""
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import List, Optional
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
@@ -42,6 +43,11 @@ class PaymentRepositoryPort(ABC):
     @abstractmethod
     async def find_by_transaction_id(self, transaction_id: str) -> Optional[Payment]:
         """Find a payment by transaction ID."""
+        pass
+
+    @abstractmethod
+    async def find_unfinished_annual(self, club_id: str, since: datetime) -> List[Payment]:
+        """Find a club's annual payments started since a moment and not finished yet."""
         pass
 
     @abstractmethod

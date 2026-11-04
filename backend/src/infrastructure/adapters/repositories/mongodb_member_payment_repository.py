@@ -1,16 +1,24 @@
 """MongoDB MemberPayment Repository Adapter."""
 
+import logging
 from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
+
+from pymongo.errors import BulkWriteError, DuplicateKeyError
 
 from src.domain.entities.member_payment import (
     MemberPayment,
     MemberPaymentStatus,
     MemberPaymentType
 )
+from src.domain.exceptions.base import BusinessRuleViolationError
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.infrastructure.database import get_database
+
+logger = logging.getLogger(__name__)
+
+DUPLICATE_KEY = 11000
 
 
 class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
@@ -85,10 +93,22 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
                 del doc["_id"]
             docs.append(doc)
 
-        result = await self.collection.insert_many(docs)
-        created_docs = await self.collection.find(
-            {"_id": {"$in": result.inserted_ids}}
-        ).to_list(length=len(result.inserted_ids))
+        try:
+            await self.collection.insert_many(docs, ordered=False)
+            repeated = set()
+        except BulkWriteError as error:
+            write_errors = error.details.get("writeErrors", [])
+            if any(write_error["code"] != DUPLICATE_KEY for write_error in write_errors):
+                raise
+            repeated = {write_error["index"] for write_error in write_errors}
+            logger.error(
+                "Lines already completed were not recorded, a card payment needs a refund by hand: %s",
+                [(docs[index]["payment_id"], docs[index]["member_id"], docs[index]["payment_year"],
+                  docs[index]["payment_type"]) for index in repeated],
+            )
+
+        inserted_ids = [doc["_id"] for index, doc in enumerate(docs) if index not in repeated]
+        created_docs = await self.collection.find({"_id": {"$in": inserted_ids}}).to_list(length=len(inserted_ids))
 
         return [self._to_domain(doc) for doc in created_docs]
 
@@ -163,10 +183,13 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
         doc = self._to_document(member_payment)
         if "_id" in doc:
             del doc["_id"]
-        await self.collection.update_one(
-            {"_id": ObjectId(member_payment.id)},
-            {"$set": doc}
-        )
+        try:
+            await self.collection.update_one(
+                {"_id": ObjectId(member_payment.id)},
+                {"$set": doc}
+            )
+        except DuplicateKeyError:
+            raise BusinessRuleViolationError("Este miembro ya tiene ese pago completado en ese año")
         updated_doc = await self.collection.find_one(
             {"_id": ObjectId(member_payment.id)}
         )

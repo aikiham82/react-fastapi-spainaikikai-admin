@@ -363,8 +363,34 @@ class CompletePaymentUseCase:
             except (json.JSONDecodeError, TypeError):
                 pass
 
-        # Bulk create all member payments
-        if member_payments:
-            await self.member_payment_repository.create_bulk(member_payments)
+        new_lines = await self._without_lines_already_paid(payment, member_payments)
+        if new_lines:
+            await self.member_payment_repository.create_bulk(new_lines)
 
-        return member_payments
+        return new_lines
+
+    async def _without_lines_already_paid(
+        self, payment: Payment, lines: List[MemberPayment]
+    ) -> List[MemberPayment]:
+        """The bank has already charged, so a repeated line is left out and reported for a manual refund."""
+        paid = set()
+        for year in {line.payment_year for line in lines}:
+            member_ids = list({line.member_id for line in lines if line.payment_year == year})
+            paid |= {
+                (line.member_id, line.payment_year, line.payment_type)
+                for line in await self.member_payment_repository.find_by_member_ids_year(
+                    member_ids, year, status=MemberPaymentStatus.COMPLETED
+                )
+            }
+
+        def already_paid(line: MemberPayment) -> bool:
+            return (line.member_id, line.payment_year, line.payment_type) in paid
+
+        repeated = [line for line in lines if already_paid(line)]
+        if repeated:
+            logger.error(
+                "Payment %s charged lines already paid, refund by hand: %s",
+                payment.id,
+                [(line.member_id, line.payment_year, line.payment_type.value) for line in repeated],
+            )
+        return [line for line in lines if not already_paid(line)]
