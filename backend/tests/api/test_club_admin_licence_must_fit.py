@@ -40,12 +40,13 @@ LICENCES = [
     License(license_number="QA-2", member_id=KYU, grade="2 kyu", technical_grade=TechnicalGrade.KYU,
             instructor_category=InstructorCategory.NONE, age_category=AgeCategory.ADULTO),
 ]
+THIS_YEAR = datetime.utcnow().year
 COUNT_FIELD = {"kyu": "kyu_count", "dan": "dan_count", "shidoin": "shidoin_count", "seguro_rc": "seguro_rc_count"}
 
 
 def line_of(payment_type: MemberPaymentType) -> MemberPayment:
     return MemberPayment(
-        id="line-1", payment_id="pay-1", member_id=KYU, payment_year=2026, payment_type=payment_type,
+        id="line-1", payment_id="pay-1", member_id=KYU, payment_year=THIS_YEAR, payment_type=payment_type,
         concept="line", amount=15, status=MemberPaymentStatus.COMPLETED,
     )
 
@@ -92,14 +93,14 @@ def assignment(member_id: str, item: str) -> list:
 
 def initiate(client: TestClient, member_id: str, item: str):
     return client.post("/api/v1/payments/annual/initiate", json={
-        "payer_name": "Club Example", "club_id": OWN_CLUB, "payment_year": 2026,
+        "payer_name": "Club Example", "club_id": OWN_CLUB, "payment_year": THIS_YEAR,
         COUNT_FIELD[item]: 1, "member_assignments": assignment(member_id, item),
     })
 
 
 def manual(client: TestClient, member_id: str, item: str):
     return client.post("/api/v1/payments/manual", json={
-        "payer_name": "Club Example", "club_id": OWN_CLUB, "payment_year": 2026, "payment_method": "cash",
+        "payer_name": "Club Example", "club_id": OWN_CLUB, "payment_year": THIS_YEAR, "payment_method": "cash",
         "member_assignments": assignment(member_id, item),
     })
 

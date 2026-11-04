@@ -9,7 +9,7 @@ from src.domain.entities.license import (
     License, LicenseType, LicenseStatus,
     TechnicalGrade, InstructorCategory, AgeCategory
 )
-from src.domain.entities.member_payment import MemberPayment, MemberPaymentType
+from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPayment, MemberPaymentType
 from src.application.ports.license_repository import LicenseRepositoryPort
 
 logger = logging.getLogger(__name__)
@@ -119,6 +119,13 @@ class GenerateLicensesFromPaymentUseCase:
                 logger.info(
                     "Renewed license %s for member %s (type: %s, year: %d)",
                     renewable.license_number, mp.member_id, mp.payment_type.value, payment_year
+                )
+            elif mp.payment_type not in TITLE_PAYMENT_TYPES and any(
+                lic.expiration_date and lic.expiration_date > expiration_date for lic in member_licenses
+            ):
+                logger.info(
+                    "Member %s holds a licence later than %s of %d — recorded as history, no licence created",
+                    mp.member_id, mp.payment_type.value, payment_year
                 )
             else:
                 # No existing license — create a new one

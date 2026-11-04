@@ -50,6 +50,8 @@ The grade lives on the member's licence and only a super admin may edit a licenc
 
 The server enforces these choices for a club admin (`payable_licence_items`), when paying by card, registering a manual payment or changing a line's type: until November 2026 they lived only in the browser, so a direct request could pay a kyu licence for an instructor or create a Shidoin licence for a kyu. It decides as the screen does (`_build_license_summary`): among the active licences a title wins, so the five members holding a Dan and a title may pay only the title, since paying Dan would renew neither the title nor its RC. A super admin is not checked, because the federation names instructors; the first title of a new instructor is therefore recorded by a super admin.
 
+A year before the current one also accepts any grade licence (`payable_licence_items_for_year`), because a member may have held another grade then: someone who is Dan today can have Kyu of 2024 recorded. Titles stay limited to the one held today, or a past year would create a false instructor. Such a line is history: when the member already holds a later licence it creates none (a title still does), since it used to add a `LIC-2024-…` Kyu next to their Dan. Moving a line to another year is judged by the year it lands in, so a past Kyu cannot be carried to the current year. The price of this choice, accepted on 2026-11-04: a club can record the cheaper licence for a past year.
+
 ### Paid status comes from payments, never from entities
 
 `license_paid` and `insurance_paid` derive **only** from completed `MemberPayment` records for the year (`is_license_payment` / `is_insurance_payment`). The federation `License` entity is used **only** for `grade_group` classification.

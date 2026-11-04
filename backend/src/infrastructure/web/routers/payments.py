@@ -249,6 +249,7 @@ async def initiate_annual_payment(
                 license_repository,
                 club_members,
                 [(a.member_id, item) for a in payment_request.member_assignments for item in a.payment_types],
+                payment_request.payment_year,
                 datetime.utcnow(),
             )
         except InvalidPaymentDataError as e:
@@ -406,6 +407,7 @@ async def register_manual_payment(
                 license_repository,
                 club_members,
                 [(a.member_id, item) for a in request.member_assignments for item in a.payment_types],
+                request.payment_year,
                 datetime.utcnow(),
             )
         result = await use_case.execute(
