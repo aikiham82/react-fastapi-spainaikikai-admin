@@ -48,6 +48,8 @@ Whatever the channel, a payment that completes calls [`GenerateLicensesAndInsura
 
 The grade lives on the member's licence and only a super admin may edit a licence. A club reflects a promotion by choosing "Licencia Dan" for a kyu member in Pendientes: a member without licence chooses Kyu, Kyu infantil or Dan; an adult kyu only Kyu or Dan (never the cheaper child licence); a child kyu only Kyu infantil or Dan; a dan or an instructor has no choice. When that payment completes, the member's own kyu licence becomes "1º Dan" (same number and age category) and is renewed; no second licence is created. It is promoted only when the member holds no dan licence at all and the kyu licence has no instructor category (14 such inconsistent records exist): anything else is left for the federation to correct by editing the licence, as is a different dan number.
 
+The server enforces these choices for a club admin (`payable_licence_items`), when paying by card, registering a manual payment or changing a line's type: until November 2026 they lived only in the browser, so a direct request could pay a kyu licence for an instructor or create a Shidoin licence for a kyu. A member holding several licences may pay what any of them allows. A super admin is not checked, because the federation names instructors; the first title of a new instructor is therefore recorded by a super admin.
+
 ### Paid status comes from payments, never from entities
 
 `license_paid` and `insurance_paid` derive **only** from completed `MemberPayment` records for the year (`is_license_payment` / `is_insurance_payment`). The federation `License` entity is used **only** for `grade_group` classification.

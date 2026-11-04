@@ -203,3 +203,29 @@ def grade_licence_among(licences: List[License]) -> Optional[License]:
 def title_among(licences: List[License]) -> InstructorCategory:
     """The highest instructor title held on any of the licences."""
     return max((l.instructor_category for l in licences), key=lambda c: c.rank, default=InstructorCategory.NONE)
+
+
+CHILD_MAX_AGE = 14
+LICENCE_ITEMS = frozenset({"kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin"})
+
+
+def _is_child(licence: License, birth_date: Optional[datetime], today: datetime) -> bool:
+    if birth_date is None:
+        return licence.age_category == AgeCategory.INFANTIL
+    birthday_pending = (today.month, today.day) < (birth_date.month, birth_date.day)
+    return today.year - birth_date.year - birthday_pending <= CHILD_MAX_AGE
+
+
+def payable_licence_items(licences: List[License], birth_date: Optional[datetime], today: datetime) -> frozenset:
+    """Licence and title items a member may pay, the same ones the payment screen offers."""
+    if not licences:
+        return frozenset({"kyu", "kyu_infantil", "dan"})
+
+    def items_of(licence: License) -> set:
+        if licence.instructor_category != InstructorCategory.NONE:
+            return {licence.instructor_category.value}
+        if licence.technical_grade == TechnicalGrade.DAN:
+            return {"dan"}
+        return {"kyu_infantil" if _is_child(licence, birth_date, today) else "kyu", "dan"}
+
+    return frozenset().union(*(items_of(licence) for licence in licences))

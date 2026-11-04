@@ -2,6 +2,7 @@
 
 import logging
 
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Form
@@ -36,7 +37,12 @@ from src.infrastructure.web.dependencies import (
     get_delete_payment_use_case,
     get_process_redsys_webhook_use_case
 )
-from src.infrastructure.web.dependencies import get_auth_context, get_member_repository, get_payment_repository
+from src.infrastructure.web.dependencies import (
+    get_auth_context,
+    get_license_repository,
+    get_member_repository,
+    get_payment_repository,
+)
 from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
@@ -44,6 +50,7 @@ from src.infrastructure.web.authorization import (
     require_not_received_by_card,
     require_super_admin,
 )
+from src.application.use_cases.payment.refuse_licences_that_do_not_fit import refuse_licences_that_do_not_fit
 from src.domain.exceptions.payment import (
     DuplicatePaymentForYearError,
     PaymentAlreadyCompletedError,
@@ -224,6 +231,7 @@ async def initiate_annual_payment(
     payment_request: InitiateAnnualPaymentRequest,
     get_initiate_use_case = Depends(get_initiate_annual_payment_use_case),
     member_repository = Depends(get_member_repository),
+    license_repository = Depends(get_license_repository),
     ctx: AuthContext = Depends(get_auth_context)
 ):
     """Initiate annual payment through Redsys."""
@@ -236,6 +244,15 @@ async def initiate_annual_payment(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied to this member"
             )
+        try:
+            await refuse_licences_that_do_not_fit(
+                license_repository,
+                club_members,
+                [(a.member_id, item) for a in payment_request.member_assignments for item in a.payment_types],
+                datetime.utcnow(),
+            )
+        except InvalidPaymentDataError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     app_settings = get_app_settings()
 
@@ -373,15 +390,24 @@ async def register_manual_payment(
     request: ManualPaymentRequest,
     use_case=Depends(get_register_manual_payment_use_case),
     member_repository=Depends(get_member_repository),
+    license_repository=Depends(get_license_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Register a manual payment (cash/transfer/other). Super admin, or the admin of that club for its own members."""
     require_club_access(ctx, request.club_id)
     if not ctx.is_super_admin:
-        club_member_ids = {m.id for m in await member_repository.find_by_club_id(request.club_id)}
+        club_members = await member_repository.find_by_club_id(request.club_id)
+        club_member_ids = {m.id for m in club_members}
         if any(a.member_id not in club_member_ids for a in request.member_assignments):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this member")
     try:
+        if not ctx.is_super_admin:
+            await refuse_licences_that_do_not_fit(
+                license_repository,
+                club_members,
+                [(a.member_id, item) for a in request.member_assignments for item in a.payment_types],
+                datetime.utcnow(),
+            )
         result = await use_case.execute(
             payer_name=request.payer_name,
             club_id=request.club_id,

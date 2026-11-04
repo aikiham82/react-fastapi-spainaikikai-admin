@@ -29,6 +29,7 @@ from src.infrastructure.web.dependencies import (
     get_update_member_payment_use_case,
     get_delete_member_payment_use_case,
     get_auth_context,
+    get_license_repository,
     get_member_repository,
     get_member_payment_repository,
     get_payment_repository,
@@ -40,12 +41,16 @@ from src.infrastructure.web.authorization import (
     require_not_received_by_card,
     require_super_admin,
 )
+from src.application.use_cases.payment.refuse_licences_that_do_not_fit import refuse_licences_that_do_not_fit
+from src.domain.entities.member_payment import ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
 from src.domain.exceptions.payment import (
     MemberPaymentNotFoundError,
     InvalidPaymentDataError,
 )
 
 router = APIRouter(prefix="/member-payments", tags=["member-payments"])
+
+MEMBER_PAYMENT_TYPE_TO_ITEM = {line_type.value: item for item, line_type in ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.items()}
 
 
 async def _require_line_access(
@@ -326,11 +331,21 @@ async def update_member_payment(
     member_payment_repository=Depends(get_member_payment_repository),
     payment_repository=Depends(get_payment_repository),
     member_repository=Depends(get_member_repository),
+    license_repository=Depends(get_license_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
     await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
     try:
+        if request.payment_type and not ctx.is_super_admin:
+            line = await member_payment_repository.find_by_id(member_payment_id)
+            if line and request.payment_type != line.payment_type.value:
+                await refuse_licences_that_do_not_fit(
+                    license_repository,
+                    [await member_repository.find_by_id(line.member_id)],
+                    [(line.member_id, MEMBER_PAYMENT_TYPE_TO_ITEM.get(request.payment_type))],
+                    datetime.utcnow(),
+                )
         mp = await use_case.execute(
             member_payment_id=member_payment_id,
             payment_type=request.payment_type,
