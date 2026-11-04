@@ -47,6 +47,23 @@ describe('renewalAssignments', () => {
     expect(renewalAssignments(rows, 'm-1', 'accidentes')[0].payment_types).toEqual(['seguro_accidentes'])
   })
 
+  describe('of an instructor, whose title includes the RC', () => {
+    const instructor = (licence: 'shidoin' | 'fukushidoin', overrides: Partial<ChecklistRow> = {}) =>
+      row({ licence, licenceChoices: [], offersRc: false, rcPaid: true, ...overrides })
+
+    it.each(['shidoin', 'fukushidoin'] as const)('ticks the pending %s title when renewing the RC', (licence) => {
+      expect(renewalAssignments([instructor(licence)], 'm-1', 'rc')[0].payment_types).toEqual([licence])
+    })
+
+    it('ticks nothing when the title is already paid', () => {
+      expect(renewalAssignments([instructor('shidoin', { licencePaid: true })], 'm-1', 'rc')).toEqual([])
+    })
+
+    it('does not tick the title when renewing the accident insurance', () => {
+      expect(renewalAssignments([instructor('shidoin')], 'm-1', 'accidentes')[0].payment_types).toEqual(['seguro_accidentes'])
+    })
+  })
+
   it('ticks nothing when that item is already paid or the member is not in the list', () => {
     expect(renewalAssignments([row({ rcPaid: true })], 'm-1', 'rc')).toEqual([])
     expect(renewalAssignments(rows, 'm-9', 'licencia')).toEqual([])

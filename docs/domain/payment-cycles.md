@@ -38,7 +38,7 @@ The same reading applies elsewhere: without a payment type, the unpaid list mean
 
 ### A title includes the RC insurance
 
-A completed `titulo_shidoin` or `titulo_fukushidoin` line of year N covers the RC insurance of season N (`MemberPayment.covered_types`), wherever paid status is derived: summaries, member status, unpaid lists, prefill and the duplicate check when a payment starts. Since the form proposes N+1 from October, a title and its RC land in the same year. Moving a title line to another year also moves the RC insurance it generated, unless that season is already covered by another one. An instructor who already paid the season's RC apart and still owes the title sees "El seguro RC de esta temporada ya está pagado" in Pendientes, not "El título ya incluye el seguro RC".
+A completed `titulo_shidoin` or `titulo_fukushidoin` line of year N covers the RC insurance of season N (`MemberPayment.covered_types`), wherever paid status is derived: summaries, member status, unpaid lists, prefill and the duplicate check when a payment starts. Since the form proposes N+1 from October, a title and its RC land in the same year. Moving a title line to another year also moves the RC insurance it generated, unless that season is already covered by another one. An instructor who already paid the season's RC apart and still owes the title sees "El seguro RC de esta temporada ya está pagado" in Pendientes, not "El título ya incluye el seguro RC". Since the title is how an instructor pays the RC, "Renovar" on an instructor's RC row ticks the pending title; on 2026-11-04 it answered "no tiene nada pendiente" to 51 instructors with an expired RC and the title unpaid.
 
 ### Every completed payment generates its licences and insurance
 

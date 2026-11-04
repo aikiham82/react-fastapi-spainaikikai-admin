@@ -199,7 +199,7 @@ export type RenewKind = 'licencia' | 'accidentes' | 'rc';
 const RENEWED_ITEMS: Record<RenewKind, (item: MemberItem) => boolean> = {
   licencia: (item) => LICENCE_ITEMS.includes(item as LicenceItem),
   accidentes: (item) => item === 'seguro_accidentes',
-  rc: (item) => item === 'seguro_rc',
+  rc: (item) => item === 'seguro_rc' || INSTRUCTOR_ITEMS.includes(item as LicenceItem),
 };
 
 export const renewalAssignments = (
