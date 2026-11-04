@@ -1,12 +1,16 @@
 """Initiate Annual Payment use case."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Callable, Optional, List, Dict
 from dataclasses import dataclass
 
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
-from src.domain.entities.member_payment import MemberPaymentStatus, ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
+from src.domain.entities.member_payment import (
+    INSURANCE_PAYMENT_TYPES,
+    ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE,
+    MemberPaymentStatus,
+)
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.use_cases.payment.completed_member_payments import find_completed_member_payments
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
@@ -16,6 +20,9 @@ from src.application.ports.redsys_service import (
     RedsysPaymentRequest,
     RedsysPaymentFormData
 )
+
+IN_FLIGHT_MINUTES = 20
+IN_FLIGHT_WINDOW = timedelta(minutes=IN_FLIGHT_MINUTES)
 
 # Maps annual payment item_type to price_configuration key
 PAYMENT_TYPE_TO_PRICE_KEY = {
@@ -128,6 +135,47 @@ class InitiateAnnualPaymentUseCase:
             if price_key in key_to_config
         }
 
+    async def _refuse_what_is_being_paid(
+        self,
+        club_id: str,
+        payment_year: int,
+        include_club_fee: bool,
+        member_assignments: List[MemberAssignment],
+    ) -> None:
+        """Refuse an item another card payment of the club is paying right now: the bank would charge it twice."""
+        in_flight = await self.payment_repository.find_unfinished_annual(club_id, self._clock() - IN_FLIGHT_WINDOW)
+        if not in_flight:
+            return
+
+        def same_period(item: str, payment: Payment) -> bool:
+            is_insurance = ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.get(item) in INSURANCE_PAYMENT_TYPES
+            return is_insurance or payment.payment_year == payment_year
+
+        being_paid = {
+            (assignment["member_id"], item)
+            for payment in in_flight
+            for assignment in json.loads(payment.member_assignments or "[]")
+            for item in assignment.get("payment_types", [])
+            if same_period(item, payment)
+        }
+        names = [
+            assignment.member_name
+            for assignment in member_assignments
+            if any((assignment.member_id, item) in being_paid for item in assignment.payment_types)
+        ]
+        if include_club_fee and any(
+            line.get("item_type") == "club_fee"
+            for payment in in_flight
+            if payment.payment_year == payment_year
+            for line in json.loads(payment.line_items_data or "[]")
+        ):
+            names.append("la cuota del club")
+        if names:
+            raise ValueError(
+                f"Ya hay un pago con tarjeta en curso para {', '.join(names)}. "
+                f"Si lo has dejado a medias, inténtalo de nuevo en {IN_FLIGHT_MINUTES} minutos."
+            )
+
     async def execute(
         self,
         payer_name: str,
@@ -202,6 +250,8 @@ class InitiateAnnualPaymentUseCase:
                     f"{', '.join(conflicts)}"
                 )
 
+        await self._refuse_what_is_being_paid(club_id, payment_year, include_club_fee, member_assignments or [])
+
         # Fetch prices from database
         prices = await self._get_prices()
         descriptions = await self._get_descriptions()
@@ -264,7 +314,8 @@ class InitiateAnnualPaymentUseCase:
             payment_year=payment_year,
             payer_name=payer_name,
             line_items_data=line_items_data,
-            member_assignments=member_assignments_data
+            member_assignments=member_assignments_data,
+            created_at=self._clock(),
         )
         payment = await self.payment_repository.create(payment)
 
