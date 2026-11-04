@@ -335,14 +335,20 @@ async def update_member_payment(
     """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
     await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
     try:
-        if request.payment_type and not ctx.is_super_admin:
+        if (request.payment_type or request.payment_year) and not ctx.is_super_admin:
             line = await member_payment_repository.find_by_id(member_payment_id)
-            if line and request.payment_type != line.payment_type.value:
+            target_type = request.payment_type or line.payment_type.value
+            target_year = request.payment_year or line.payment_year
+            now = datetime.utcnow()
+            type_changes = target_type != line.payment_type.value
+            enters_a_live_year = target_year != line.payment_year and target_year >= now.year
+            if type_changes or enters_a_live_year:
                 await refuse_licences_that_do_not_fit(
                     license_repository,
                     [await member_repository.find_by_id(line.member_id)],
-                    [(line.member_id, MEMBER_PAYMENT_TYPE_TO_ITEM.get(request.payment_type))],
-                    datetime.utcnow(),
+                    [(line.member_id, MEMBER_PAYMENT_TYPE_TO_ITEM.get(target_type))],
+                    target_year,
+                    now,
                 )
         mp = await use_case.execute(
             member_payment_id=member_payment_id,

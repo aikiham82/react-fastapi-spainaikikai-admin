@@ -9,7 +9,7 @@ from src.domain.entities.license import (
     License, LicenseType, LicenseStatus,
     TechnicalGrade, InstructorCategory, AgeCategory
 )
-from src.domain.entities.member_payment import MemberPayment, MemberPaymentType
+from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPayment, MemberPaymentType
 from src.application.ports.license_repository import LicenseRepositoryPort
 
 logger = logging.getLogger(__name__)
@@ -79,6 +79,7 @@ class GenerateLicensesFromPaymentUseCase:
         created_licenses: List[License] = []
         issue_date = datetime(payment_year, 1, 1)
         expiration_date = datetime(payment_year, 12, 31, 23, 59, 59)
+        past_year = payment_year < datetime.utcnow().year
 
         for mp in member_payments:
             attrs = PAYMENT_TYPE_TO_LICENSE_ATTRS.get(mp.payment_type)
@@ -102,7 +103,7 @@ class GenerateLicensesFromPaymentUseCase:
             # Try to find an existing license for this member to renew
             member_licenses = await self.license_repository.find_by_member_id(mp.member_id)
             renewable = self._find_renewable_license(member_licenses, attrs)
-            if not renewable and mp.payment_type == MemberPaymentType.LICENCIA_DAN:
+            if not renewable and mp.payment_type == MemberPaymentType.LICENCIA_DAN and not past_year:
                 renewable = self._promote_to_first_dan(member_licenses)
 
             if renewable:
@@ -119,6 +120,11 @@ class GenerateLicensesFromPaymentUseCase:
                 logger.info(
                     "Renewed license %s for member %s (type: %s, year: %d)",
                     renewable.license_number, mp.member_id, mp.payment_type.value, payment_year
+                )
+            elif past_year and member_licenses and mp.payment_type not in TITLE_PAYMENT_TYPES:
+                logger.info(
+                    "Member %s holds another licence: %s of %d recorded as history, no licence created",
+                    mp.member_id, mp.payment_type.value, payment_year
                 )
             else:
                 # No existing license — create a new one

@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Iterable, Tuple
 
 from src.application.ports.license_repository import LicenseRepositoryPort
-from src.domain.entities.license import LICENCE_ITEMS, payable_licence_items
+from src.domain.entities.license import LICENCE_ITEMS, payable_licence_items_for_year
 from src.domain.entities.member import Member
 from src.domain.entities.member_payment import ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE, PAYMENT_TYPE_LABELS
 from src.domain.exceptions.payment import InvalidPaymentDataError
@@ -15,6 +15,7 @@ async def refuse_licences_that_do_not_fit(
     license_repository: LicenseRepositoryPort,
     members: Iterable[Member],
     lines: Iterable[Tuple[str, str]],
+    payment_year: int,
     today: datetime,
 ) -> None:
     """Raise InvalidPaymentDataError for the first (member_id, item_type) the member's licences do not allow."""
@@ -29,7 +30,7 @@ async def refuse_licences_that_do_not_fit(
 
     for member_id, item in licence_lines:
         member = members_by_id[member_id]
-        if item not in payable_licence_items(held[member_id], member.birth_date, today):
+        if item not in payable_licence_items_for_year(held[member_id], member.birth_date, today, payment_year):
             concept = PAYMENT_TYPE_LABELS[ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE[item].value]
             raise InvalidPaymentDataError(
                 f"{member.first_name} {member.last_name} no puede pagar {concept}: no corresponde a su licencia"
