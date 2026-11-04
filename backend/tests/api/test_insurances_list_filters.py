@@ -1,5 +1,7 @@
 """The insurance list honours the type and status filters, status following the dates."""
 
+import sys
+from dataclasses import replace
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -107,6 +109,16 @@ def test_no_filter_lists_every_insurance(client):
 
 def test_limit_applies_after_the_filter(client):
     assert ids(listed(client, insurance_type="civil_liability", limit=1)) == {"rc-in-force"}
+
+
+def test_expired_filter_still_knows_the_member_holds_a_later_insurance(client, monkeypatch):
+    same_member = [
+        replace(insurance("old", InsuranceType.CIVIL_LIABILITY, PAST), member_id="member-1"),
+        replace(insurance("new", InsuranceType.CIVIL_LIABILITY, IN_FORCE), member_id="member-1"),
+    ]
+    monkeypatch.setattr(sys.modules[__name__], "STORED", same_member)
+
+    assert [(item["id"], item["renewed"]) for item in listed(client, status="expired")["items"]] == [("old", True)]
 
 
 def test_unknown_type_is_rejected(client):

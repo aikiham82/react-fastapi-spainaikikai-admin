@@ -211,6 +211,13 @@ describe('InsuranceList', () => {
     expect(screen.getAllByRole('link', { name: /^Renovar \S+ Ana Example$/ })[0]).toHaveAttribute('href', expect.stringMatching(/^\/payments\?renovar=member-1&que=rc&anio=\d{4}$/))
   })
 
+  it('does not offer Renovar on an insurance the member has already renewed', () => {
+    context.insuranceList = [{ ...insurance, renewed: true }]
+    renderWithProviders(<InsuranceList />)
+
+    expect(screen.queryByRole('link', { name: /^Renovar / })).not.toBeInTheDocument()
+  })
+
   it('offers a Club filter to the super admin', async () => {
     renderWithProviders(<InsuranceList />)
 

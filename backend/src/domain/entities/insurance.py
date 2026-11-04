@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, date
-from typing import List, Optional
+from typing import Iterable, List, Optional
 from enum import Enum
 
 
@@ -26,6 +26,22 @@ def insurance_season(payment_year: int) -> tuple[datetime, datetime]:
 def insurance_season_year(on: datetime) -> int:
     """Payment year of the season in force on a date: from 1 October it is the following year."""
     return on.year + 1 if on.month >= 10 else on.year
+
+
+def renewed_insurance_ids(insurances: Iterable["Insurance"]) -> set[str]:
+    """Insurances whose member holds a later one of the same type: renewing them would pay nothing new."""
+    held = [
+        insurance for insurance in insurances
+        if insurance.member_id and insurance.end_date and insurance.status != InsuranceStatus.CANCELLED
+    ]
+    latest_end: dict[tuple[str, InsuranceType], datetime] = {}
+    for insurance in held:
+        key = (insurance.member_id, insurance.insurance_type)
+        latest_end[key] = max(latest_end.get(key, insurance.end_date), insurance.end_date)
+    return {
+        insurance.id for insurance in held
+        if insurance.end_date < latest_end[(insurance.member_id, insurance.insurance_type)]
+    }
 
 
 @dataclass
