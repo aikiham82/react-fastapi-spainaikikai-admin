@@ -53,12 +53,51 @@ async def test_a_title_still_creates_its_licence_beside_a_later_dan():
     repo.create.assert_awaited_once()
 
 
-async def test_a_kyu_line_of_the_same_year_as_the_dan_still_creates_its_licence():
-    repo = repository([held(TechnicalGrade.DAN, datetime(2024, 12, 31))])
+@pytest.mark.parametrize(
+    "expires",
+    [datetime(2020, 12, 31), datetime(2024, 12, 31), None],
+    ids=["dan expired before that year", "dan of the same year", "dan without a date"],
+)
+async def test_a_past_kyu_line_never_creates_a_licence_for_who_holds_another(expires):
+    repo = repository([held(TechnicalGrade.DAN, expires)])
 
     await GenerateLicensesFromPaymentUseCase(repo).execute([line(MemberPaymentType.LICENCIA_KYU, 2024)], "pay-1", 2024)
 
+    repo.create.assert_not_awaited()
+
+
+async def test_a_kyu_line_of_the_current_year_still_creates_its_licence():
+    this_year = datetime.utcnow().year
+    repo = repository([held(TechnicalGrade.DAN, datetime(this_year + 1, 12, 31))])
+
+    await GenerateLicensesFromPaymentUseCase(repo).execute(
+        [line(MemberPaymentType.LICENCIA_KYU, this_year)], "pay-1", this_year
+    )
+
     repo.create.assert_awaited_once()
+
+
+async def test_a_past_dan_line_does_not_promote_todays_kyu():
+    this_year = datetime.utcnow().year
+    repo = repository([held(TechnicalGrade.KYU, datetime(this_year, 12, 31))])
+
+    await GenerateLicensesFromPaymentUseCase(repo).execute(
+        [line(MemberPaymentType.LICENCIA_DAN, this_year - 1)], "pay-1", this_year - 1
+    )
+
+    repo.update.assert_not_awaited()
+    repo.create.assert_not_awaited()
+
+
+async def test_a_dan_line_of_the_current_year_promotes_the_kyu():
+    this_year = datetime.utcnow().year
+    repo = repository([held(TechnicalGrade.KYU, datetime(this_year, 12, 31))])
+
+    await GenerateLicensesFromPaymentUseCase(repo).execute(
+        [line(MemberPaymentType.LICENCIA_DAN, this_year)], "pay-1", this_year
+    )
+
+    assert repo.update.await_args.args[0].technical_grade == TechnicalGrade.DAN
 
 
 async def test_a_member_without_licences_still_gets_one_for_a_past_year():

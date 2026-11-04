@@ -142,6 +142,18 @@ def test_moving_a_fitting_line_to_another_year_is_allowed(client):
     assert edit(client, {"payment_year": THIS_YEAR}) == 200
 
 
+def test_a_past_title_line_can_be_moved_between_past_years_though_the_title_is_gone(client, stored):
+    stored.line = line_of(MemberPaymentType.TITULO_FUKUSHIDOIN, LAST_YEAR)
+
+    assert edit(client, {"payment_year": LAST_YEAR - 1}) == 200
+
+
+def test_a_past_title_line_cannot_be_moved_to_the_current_year_once_the_title_is_gone(client, stored):
+    stored.line = line_of(MemberPaymentType.TITULO_FUKUSHIDOIN, LAST_YEAR)
+
+    assert edit(client, {"payment_year": THIS_YEAR}) == 400
+
+
 def test_an_old_line_that_no_longer_fits_can_still_have_its_amount_edited(client, stored):
     stored.line = line_of(MemberPaymentType.LICENCIA_KYU, LAST_YEAR)
 

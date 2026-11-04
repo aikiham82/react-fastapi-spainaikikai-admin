@@ -339,13 +339,16 @@ async def update_member_payment(
             line = await member_payment_repository.find_by_id(member_payment_id)
             target_type = request.payment_type or line.payment_type.value
             target_year = request.payment_year or line.payment_year
-            if (target_type, target_year) != (line.payment_type.value, line.payment_year):
+            now = datetime.utcnow()
+            type_changes = target_type != line.payment_type.value
+            enters_a_live_year = target_year != line.payment_year and target_year >= now.year
+            if type_changes or enters_a_live_year:
                 await refuse_licences_that_do_not_fit(
                     license_repository,
                     [await member_repository.find_by_id(line.member_id)],
                     [(line.member_id, MEMBER_PAYMENT_TYPE_TO_ITEM.get(target_type))],
                     target_year,
-                    datetime.utcnow(),
+                    now,
                 )
         mp = await use_case.execute(
             member_payment_id=member_payment_id,
