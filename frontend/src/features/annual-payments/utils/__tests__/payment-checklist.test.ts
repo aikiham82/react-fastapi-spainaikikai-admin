@@ -9,6 +9,7 @@ const row = (overrides: Partial<ChecklistRow> = {}): ChecklistRow => ({
   licence: 'kyu',
   licenceChoices: ['kyu', 'kyu_infantil', 'dan'],
   offersRc: true,
+  rcPaidApart: false,
   licencePaid: false,
   accidentPaid: false,
   rcPaid: false,

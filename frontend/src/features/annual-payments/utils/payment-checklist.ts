@@ -47,6 +47,7 @@ export interface ChecklistRow {
   licence: LicenceItem;
   licenceChoices: readonly LicenceItem[];
   offersRc: boolean;
+  rcPaidApart: boolean;
   licencePaid: boolean;
   accidentPaid: boolean;
   rcPaid: boolean;
@@ -110,6 +111,7 @@ export const buildChecklistRows = (
       licence,
       licenceChoices: licenceChoicesOf(member, licence),
       offersRc,
+      rcPaidApart: !offersRc && !licencePaid && paidTypes.has('seguro_rc'),
       licencePaid,
       accidentPaid,
       rcPaid,

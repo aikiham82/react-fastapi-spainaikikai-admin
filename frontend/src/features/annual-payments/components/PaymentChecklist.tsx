@@ -119,7 +119,7 @@ const MemberRow = ({ row }: { row: ChecklistRow }) => {
       {!row.offersRc && (
         <p className="flex items-center gap-1.5 text-[13px] text-muted-foreground sm:pl-[52px]">
           <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
-          El título ya incluye el seguro RC
+          {row.rcPaidApart ? 'El seguro RC de esta temporada ya está pagado' : 'El título ya incluye el seguro RC'}
         </p>
       )}
     </div>

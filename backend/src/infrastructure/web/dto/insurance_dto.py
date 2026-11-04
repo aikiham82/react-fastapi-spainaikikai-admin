@@ -50,6 +50,7 @@ class InsuranceResponse(InsuranceBase):
     documents: Optional[str] = None
     member_name: Optional[str] = None
     member_dni: Optional[str] = None
+    renewed: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
