@@ -153,17 +153,17 @@ describe('PaymentChecklist', () => {
 
     const row = within(rowOf('Shi'))
     expect(row.getByText('El seguro RC de esta temporada ya está pagado')).toBeInTheDocument()
-    expect(row.queryByText(/ya incluye el seguro RC/i)).not.toBeInTheDocument()
+    expect(row.queryByText(/incluye el seguro RC/i)).not.toBeInTheDocument()
   })
 
   it('does not offer RC for fukushidoin or shidoin', () => {
     renderChecklist()
 
-    for (const name of ['Fuku', 'Shi']) {
+    for (const [name, licence] of [['Fuku', 'Licencia Fukushidoin'], ['Shi', 'Licencia Shidoin']]) {
       const row = within(rowOf(name))
       expect(row.getByRole('checkbox', { name: chip('Accidentes') })).toBeInTheDocument()
       expect(row.queryByRole('checkbox', { name: /RC/ })).not.toBeInTheDocument()
-      expect(row.getByText(/ya incluye el seguro RC/i)).toBeInTheDocument()
+      expect(row.getByText(`${licence} incluye el seguro RC`)).toBeInTheDocument()
     }
     expect(within(rowOf('Kira')).getByRole('checkbox', { name: chip('RC') })).toBeInTheDocument()
   })
