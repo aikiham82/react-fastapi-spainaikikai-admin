@@ -146,6 +146,16 @@ describe('PaymentChecklist', () => {
     })
   })
 
+  it('says the RC is already paid when an instructor paid it apart and the title is still pending', () => {
+    prefill = makePrefill({ paid_assignments: [assignment('shi', 'Shi Ejemplo', ['seguro_rc'])] })
+    members = [member('shi', 'Shi', { technical_grade: 'dan', instructor_category: 'shidoin' })]
+    renderChecklist()
+
+    const row = within(rowOf('Shi'))
+    expect(row.getByText('El seguro RC de esta temporada ya está pagado')).toBeInTheDocument()
+    expect(row.queryByText(/ya incluye el seguro RC/i)).not.toBeInTheDocument()
+  })
+
   it('does not offer RC for fukushidoin or shidoin', () => {
     renderChecklist()
 
