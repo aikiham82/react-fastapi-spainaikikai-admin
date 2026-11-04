@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { usePermissions } from '@/core/hooks/usePermissions'
 import { memberPaymentUpdateSchema } from '../data/schemas/payment-admin.schema'
 import { useUpdateMemberPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
 import {
@@ -52,6 +53,7 @@ export function MemberPaymentEditModal({
 }: MemberPaymentEditModalProps) {
   const [formData, setFormData] = useState<FormState>(() => formStateOf(memberPayment))
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const canChangeAmount = usePermissions().isAssociationAdmin()
 
   const { updateMemberPayment, isLoading, isSuccess } =
     useUpdateMemberPaymentMutation()
@@ -178,11 +180,19 @@ export function MemberPaymentEditModal({
               type="number"
               step="0.01"
               value={formData.amount}
+              readOnly={!canChangeAmount}
+              aria-describedby={canChangeAmount ? undefined : 'amount-locked'}
+              className={canChangeAmount ? undefined : 'bg-muted text-muted-foreground'}
               onChange={(e) => {
                 setFormData((prev) => ({ ...prev, amount: e.target.value }))
                 setErrors(({ amount: _cleared, ...others }) => others)
               }}
             />
+            {!canChangeAmount && (
+              <p id="amount-locked" className="text-sm text-muted-foreground">
+                Solo la federación puede cambiar el importe
+              </p>
+            )}
             {errors.amount && (
               <p className="text-sm text-destructive">{errors.amount}</p>
             )}

@@ -138,7 +138,7 @@ def test_a_club_admin_cannot_change_a_line_to_a_licence_that_does_not_fit(client
     use_cases.update_line.execute.assert_not_awaited()
 
 
-@pytest.mark.parametrize("body", [{"payment_type": "licencia_dan"}, {"payment_type": "seguro_rc"}, {"amount": 10}])
+@pytest.mark.parametrize("body", [{"payment_type": "licencia_dan"}, {"payment_type": "seguro_rc"}, {"amount": 15}])
 def test_a_club_admin_can_make_any_other_line_edit(client_as, body):
     assert client_as(club_admin()).put("/api/v1/member-payments/line-1", json=body).status_code == 200
 

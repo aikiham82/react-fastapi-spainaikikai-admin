@@ -334,9 +334,14 @@ async def update_member_payment(
 ):
     """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
     await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
+    line = None if ctx.is_super_admin else await member_payment_repository.find_by_id(member_payment_id)
+    if line and request.amount is not None and request.amount != line.amount:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo la federación puede cambiar el importe de una línea de pago",
+        )
     try:
-        if (request.payment_type or request.payment_year) and not ctx.is_super_admin:
-            line = await member_payment_repository.find_by_id(member_payment_id)
+        if line and (request.payment_type or request.payment_year):
             target_type = request.payment_type or line.payment_type.value
             target_year = request.payment_year or line.payment_year
             now = datetime.utcnow()

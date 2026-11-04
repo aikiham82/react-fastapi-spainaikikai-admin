@@ -6,6 +6,11 @@ import type { MemberPayment } from '@/features/member-payments/data/schemas/memb
 
 // Mock the mutation hook
 const mockUpdateMemberPayment = vi.fn()
+const permissions = vi.hoisted(() => ({ superAdmin: true }))
+
+vi.mock('@/core/hooks/usePermissions', () => ({
+  usePermissions: () => ({ isAssociationAdmin: () => permissions.superAdmin }),
+}))
 
 vi.mock('../../hooks/mutations/usePaymentAdminMutations', () => ({
   useUpdateMemberPaymentMutation: vi.fn(() => ({
@@ -41,6 +46,29 @@ describe('MemberPaymentEditModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    permissions.superAdmin = true
+  })
+
+  describe('the amount', () => {
+    it('is read-only for a club admin, who is told why, and saves unchanged', async () => {
+      permissions.superAdmin = false
+      renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
+
+      const amount = screen.getByLabelText(/importe/i)
+      expect(amount).toHaveAttribute('readonly')
+      expect(amount).toHaveAccessibleDescription('Solo la federación puede cambiar el importe')
+
+      await user.click(screen.getByRole('button', { name: /guardar/i }))
+
+      expect(mockUpdateMemberPayment.mock.calls[0][0].data.amount).toBe(50)
+    })
+
+    it('stays editable for a super admin', () => {
+      renderWithProviders(<MemberPaymentEditModal {...defaultProps} />)
+
+      expect(screen.getByLabelText(/importe/i)).not.toHaveAttribute('readonly')
+      expect(screen.queryByText('Solo la federación puede cambiar el importe')).not.toBeInTheDocument()
+    })
   })
 
   describe('when isOpen is false', () => {

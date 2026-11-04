@@ -154,7 +154,7 @@ def test_a_past_title_line_cannot_be_moved_to_the_current_year_once_the_title_is
     assert edit(client, {"payment_year": THIS_YEAR}) == 400
 
 
-def test_an_old_line_that_no_longer_fits_can_still_have_its_amount_edited(client, stored):
+def test_an_old_line_that_no_longer_fits_can_still_be_saved_with_its_amount(client, stored):
     stored.line = line_of(MemberPaymentType.LICENCIA_KYU, LAST_YEAR)
 
-    assert edit(client, {"amount": 10}) == 200
+    assert edit(client, {"amount": 15, "status": "completed"}) == 200

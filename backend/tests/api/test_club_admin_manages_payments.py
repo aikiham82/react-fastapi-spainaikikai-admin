@@ -127,6 +127,25 @@ def test_a_club_admin_changes_their_own_clubs_payments(client_as):
     assert calls(client_as(club_admin()), "mp-own", "pay-own", OWN_CLUB, OWN_MEMBER) == OK
 
 
+def test_a_club_admin_cannot_change_a_lines_amount(client_as, use_cases):
+    response = client_as(club_admin()).put("/api/v1/member-payments/mp-own", json={"amount": 0})
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Solo la federación puede cambiar el importe de una línea de pago"
+    use_cases.update_line.execute.assert_not_awaited()
+
+
+def test_a_club_admin_saves_a_line_sending_its_same_amount(client_as, use_cases):
+    response = client_as(club_admin()).put("/api/v1/member-payments/mp-own", json={"amount": 20, "status": "completed"})
+
+    assert response.status_code == 200
+    use_cases.update_line.execute.assert_awaited_once()
+
+
+def test_a_super_admin_changes_a_lines_amount(client_as):
+    assert client_as(super_admin()).put("/api/v1/member-payments/mp-own", json={"amount": 0}).status_code == 200
+
+
 def test_a_club_admin_is_refused_another_clubs_payments(client_as, use_cases):
     answered = calls(client_as(club_admin()), "mp-foreign", "pay-foreign", OTHER_CLUB, FOREIGN_MEMBER)
 
