@@ -8,6 +8,7 @@ from src.domain.entities.license import (
     AgeCategory,
     InstructorCategory,
     License,
+    LicenseStatus,
     TechnicalGrade,
     payable_licence_items,
 )
@@ -23,10 +24,13 @@ def licence(
     grade: TechnicalGrade = TechnicalGrade.DAN,
     instructor: InstructorCategory = InstructorCategory.NONE,
     age: AgeCategory = AgeCategory.ADULTO,
+    status: LicenseStatus = LicenseStatus.ACTIVE,
+    text: str = "1º",
+    expires: datetime = datetime(2026, 12, 31),
 ) -> License:
     return License(
-        license_number="QA-1", member_id="member-1", grade="1", technical_grade=grade,
-        instructor_category=instructor, age_category=age,
+        license_number="QA-1", member_id="member-1", grade=text, technical_grade=grade,
+        instructor_category=instructor, age_category=age, status=status, expiration_date=expires,
     )
 
 
@@ -42,14 +46,20 @@ FUKUSHIDOIN = InstructorCategory.FUKUSHIDOIN
         pytest.param([licence(KYU)], ADULT, {"kyu", "dan"}, id="adult kyu"),
         pytest.param([licence(KYU, age=AgeCategory.INFANTIL)], CHILD, {"kyu_infantil", "dan"}, id="child kyu"),
         pytest.param([licence(KYU, age=AgeCategory.INFANTIL)], ADULT, {"kyu", "dan"}, id="child licence, adult by birth date"),
-        pytest.param([licence(KYU, age=AgeCategory.INFANTIL)], None, {"kyu_infantil", "dan"}, id="child licence, no birth date"),
-        pytest.param([licence(KYU)], None, {"kyu", "dan"}, id="adult licence, no birth date"),
+        pytest.param([licence(KYU, text="3º Kyu Infantil")], None, {"kyu_infantil", "dan"}, id="child grade text, no birth date"),
+        pytest.param([licence(KYU, text="3º Kyu")], None, {"kyu", "dan"}, id="adult grade text, no birth date"),
+        pytest.param([licence(KYU, age=AgeCategory.INFANTIL, text="3º Kyu")], None, {"kyu", "dan"}, id="grade number changed on a child, no birth date"),
         pytest.param([licence()], ADULT, {"dan"}, id="dan"),
         pytest.param([licence(age=AgeCategory.INFANTIL)], CHILD, {"dan"}, id="child dan"),
         pytest.param([licence(instructor=SHIDOIN)], ADULT, {"shidoin"}, id="shidoin"),
         pytest.param([licence(instructor=FUKUSHIDOIN)], ADULT, {"fukushidoin"}, id="fukushidoin"),
         pytest.param([licence(KYU, SHIDOIN)], ADULT, {"shidoin"}, id="inconsistent kyu with shidoin"),
-        pytest.param([licence(), licence(instructor=SHIDOIN)], ADULT, {"dan", "shidoin"}, id="dan and a title"),
+        pytest.param([licence(text="5º Dan"), licence(instructor=SHIDOIN, text="Shidoin")], ADULT, {"shidoin"}, id="dan and a title"),
+        pytest.param([licence(text="2º Dan"), licence(instructor=FUKUSHIDOIN, text="Fukushidoin")], ADULT, {"fukushidoin"}, id="dan and a lower title"),
+        pytest.param([licence(KYU, status=LicenseStatus.EXPIRED), licence(instructor=SHIDOIN)], ADULT, {"shidoin"}, id="expired kyu and a title"),
+        pytest.param([licence(KYU, status=LicenseStatus.EXPIRED), licence()], ADULT, {"dan"}, id="expired kyu and a dan"),
+        pytest.param([licence(instructor=SHIDOIN, status=LicenseStatus.REVOKED), licence()], ADULT, {"dan"}, id="revoked title and a dan"),
+        pytest.param([licence(KYU, status=LicenseStatus.EXPIRED)], ADULT, {"kyu", "dan"}, id="only an expired kyu"),
     ],
 )
 def test_payable_licence_items(licences, birth_date, expected):

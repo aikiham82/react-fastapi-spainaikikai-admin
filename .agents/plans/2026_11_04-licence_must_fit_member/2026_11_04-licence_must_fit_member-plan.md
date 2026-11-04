@@ -39,7 +39,8 @@ Real varieties in production on 2026-11-04, each a test case:
 | shidoin | 53 + 4 child | shidoin |
 | fukushidoin | 33 | fukushidoin |
 | kyu with shidoin, inconsistent | 13 | shidoin |
-| two licences, dan and a title | 5 members hold several | anything either licence allows |
+| two licences, dan and a title | 5 | the title only, as the screen offers (changed after QA: allowing either let a club pay Dan for an instructor) |
+| no birth date | 686 members | decided by the grade text, as the screen does |
 
 ## Phases
 
