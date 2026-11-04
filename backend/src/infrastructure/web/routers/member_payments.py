@@ -42,15 +42,13 @@ from src.infrastructure.web.authorization import (
     require_super_admin,
 )
 from src.application.use_cases.payment.refuse_licences_that_do_not_fit import refuse_licences_that_do_not_fit
-from src.domain.entities.member_payment import ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
+from src.domain.entities.member_payment import MEMBER_PAYMENT_TYPE_TO_ITEM
 from src.domain.exceptions.payment import (
     MemberPaymentNotFoundError,
     InvalidPaymentDataError,
 )
 
 router = APIRouter(prefix="/member-payments", tags=["member-payments"])
-
-MEMBER_PAYMENT_TYPE_TO_ITEM = {line_type.value: item for item, line_type in ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.items()}
 
 
 async def _require_line_access(

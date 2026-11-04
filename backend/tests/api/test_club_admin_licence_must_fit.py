@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.domain.entities.license import AgeCategory, InstructorCategory, License, TechnicalGrade
+from src.domain.entities.member import Member
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus
 from src.infrastructure.web.dependencies import (
@@ -30,8 +31,8 @@ pytestmark = [pytest.mark.api, pytest.mark.auth]
 INSTRUCTOR = "member-instructor"
 KYU = "member-kyu"
 MEMBERS = [
-    SimpleNamespace(id=INSTRUCTOR, club_id=OWN_CLUB, first_name="Ana", last_name="Example", birth_date=datetime(1980, 1, 1)),
-    SimpleNamespace(id=KYU, club_id=OWN_CLUB, first_name="Beto", last_name="Example", birth_date=datetime(1990, 1, 1)),
+    Member(id=INSTRUCTOR, club_id=OWN_CLUB, first_name="Ana", last_name="Example", birth_date=datetime(1980, 1, 1)),
+    Member(id=KYU, club_id=OWN_CLUB, first_name="Beto", last_name="Example", birth_date=datetime(1990, 1, 1)),
 ]
 LICENCES = [
     License(license_number="QA-1", member_id=INSTRUCTOR, grade="3 dan", technical_grade=TechnicalGrade.DAN,

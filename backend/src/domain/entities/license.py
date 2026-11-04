@@ -190,6 +190,11 @@ class License:
         self.updated_at = datetime.now()
 
 
+def current_licences(licences: List[License]) -> List[License]:
+    """The licences that speak for a member: the active ones, or all of them when none is active."""
+    return [licence for licence in licences if licence.status == LicenseStatus.ACTIVE] or licences
+
+
 def grade_licence_among(licences: List[License]) -> Optional[License]:
     """The licence that carries a member's grade: one holding a grade over a title, then the latest."""
     if not licences:
@@ -220,7 +225,7 @@ def payable_licence_items(licences: List[License], birth_date: Optional[datetime
     """Licence and title items a member may pay, the same ones the payment screen offers."""
     if not licences:
         return frozenset({"kyu", "kyu_infantil", "dan"})
-    current = [licence for licence in licences if licence.status == LicenseStatus.ACTIVE] or licences
+    current = current_licences(licences)
     title = title_among(current)
     if title != InstructorCategory.NONE:
         return frozenset({title.value})
