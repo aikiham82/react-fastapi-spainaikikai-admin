@@ -343,7 +343,11 @@ class InitiateAnnualPaymentUseCase:
         )
 
         # Generate form data
-        form_data = await self.redsys_service.create_payment_form_data(redsys_request)
+        try:
+            form_data = await self.redsys_service.create_payment_form_data(redsys_request)
+        except Exception:
+            await self.payment_repository.claim_unfinished(payment.id, PaymentStatus.FAILED)
+            raise
 
         return InitiateAnnualPaymentResult(
             payment_id=payment.id,

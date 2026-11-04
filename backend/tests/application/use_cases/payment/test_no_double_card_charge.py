@@ -109,6 +109,17 @@ async def test_a_new_payment_is_dated_by_the_same_clock():
     assert payments.create.await_args.args[0].created_at == NOW
 
 
+async def test_a_payment_that_never_reached_the_bank_does_not_block_a_retry():
+    use_case, payments = initiate_use_case([])
+    use_case.redsys_service.create_payment_form_data.side_effect = RuntimeError("bank form failed")
+
+    with pytest.raises(RuntimeError):
+        await start(use_case)
+
+    created = payments.create.await_args.args[0]
+    payments.claim_unfinished.assert_awaited_once_with(created.id, PaymentStatus.FAILED)
+
+
 def completed_line(payment_type, year=2027, status=MemberPaymentStatus.COMPLETED):
     return MemberPayment(
         id="line-paid", payment_id="payment-first", member_id="member-1", payment_year=year,

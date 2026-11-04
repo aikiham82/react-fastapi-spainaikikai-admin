@@ -102,7 +102,7 @@ class MongoDBMemberPaymentRepository(MemberPaymentRepositoryPort):
                 raise
             repeated = {write_error["index"] for write_error in write_errors}
             logger.error(
-                "Lines already paid were not recorded, refund by hand: %s",
+                "Lines already completed were not recorded, a card payment needs a refund by hand: %s",
                 [(docs[index]["payment_id"], docs[index]["member_id"], docs[index]["payment_year"],
                   docs[index]["payment_type"]) for index in repeated],
             )

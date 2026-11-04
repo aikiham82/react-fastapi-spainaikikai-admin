@@ -73,7 +73,7 @@ Public contracts:
 
 To-do:
 
-- [x] Write the failing tests against a local Mongo.
+- [x] Write the failing tests with a fake collection, and check the index once by hand against a local Mongo.
 - [x] Handle duplicates in the adapter and add the script.
 - [x] Record the rule in `docs/domain/a-payment-is-fulfilled-once.md`.
 - [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (`poetry run pytest`). Fix issues if any.
