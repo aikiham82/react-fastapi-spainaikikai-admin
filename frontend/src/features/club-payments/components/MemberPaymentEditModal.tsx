@@ -86,7 +86,7 @@ export function MemberPaymentEditModal({
 
     const payload = {
       payment_type: formData.payment_type || undefined,
-      amount: isNaN(parsedAmount) ? undefined : parsedAmount,
+      amount: !canChangeAmount || isNaN(parsedAmount) ? undefined : parsedAmount,
       status: formData.status || undefined,
       payment_year: isNaN(parsedYear) ? undefined : parsedYear,
     }
@@ -190,7 +190,7 @@ export function MemberPaymentEditModal({
             />
             {!canChangeAmount && (
               <p id="amount-locked" className="text-sm text-muted-foreground">
-                Solo la federación puede cambiar el importe
+                Solo la federación puede cambiar el importe. Si cambias el tipo, se aplica su precio.
               </p>
             )}
             {errors.amount && (

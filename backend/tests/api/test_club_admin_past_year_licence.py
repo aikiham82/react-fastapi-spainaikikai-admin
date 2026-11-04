@@ -12,6 +12,7 @@ from src.domain.entities.license import AgeCategory, InstructorCategory, License
 from src.domain.entities.member import Member
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus
+from src.domain.entities.price_configuration import PriceConfiguration
 from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_initiate_annual_payment_use_case,
@@ -19,6 +20,7 @@ from src.infrastructure.web.dependencies import (
     get_member_payment_repository,
     get_member_repository,
     get_payment_repository,
+    get_price_configuration_repository,
     get_register_manual_payment_use_case,
     get_update_member_payment_use_case,
 )
@@ -70,6 +72,9 @@ def client(stored):
         get_register_manual_payment_use_case: lambda: AsyncMock(**{"execute.return_value": SimpleNamespace(payment=payment, member_payments=[], invoice=None)}),
         get_update_member_payment_use_case: lambda: AsyncMock(**{"execute.return_value": stored.line}),
         get_license_repository: lambda: SimpleNamespace(find_by_member_ids=AsyncMock(return_value=LICENCES)),
+        get_price_configuration_repository: lambda: SimpleNamespace(
+            find_by_key=AsyncMock(side_effect=lambda key: PriceConfiguration(key=key, price=15.0, category="license"))
+        ),
         get_member_repository: lambda: SimpleNamespace(
             find_by_club_id=AsyncMock(return_value=MEMBERS),
             find_by_id=AsyncMock(side_effect={m.id: m for m in MEMBERS}.get),

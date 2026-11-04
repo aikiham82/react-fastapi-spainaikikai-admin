@@ -33,6 +33,7 @@ from src.infrastructure.web.dependencies import (
     get_member_repository,
     get_member_payment_repository,
     get_payment_repository,
+    get_price_configuration_repository,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -41,6 +42,7 @@ from src.infrastructure.web.authorization import (
     require_not_received_by_card,
     require_super_admin,
 )
+from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
 from src.application.use_cases.payment.refuse_licences_that_do_not_fit import refuse_licences_that_do_not_fit
 from src.domain.entities.member_payment import MEMBER_PAYMENT_TYPE_TO_ITEM
 from src.domain.exceptions.payment import (
@@ -64,6 +66,14 @@ async def _require_line_access(
     if parent:
         require_club_access(ctx, parent.club_id)
         require_not_received_by_card(ctx, parent)
+
+
+async def _price_of(price_repository, payment_type: str) -> float:
+    price_key = PAYMENT_TYPE_TO_PRICE_KEY.get(MEMBER_PAYMENT_TYPE_TO_ITEM.get(payment_type))
+    price = await price_repository.find_by_key(price_key) if price_key else None
+    if not price:
+        raise InvalidPaymentDataError(f"Tipo de pago sin precio: {payment_type}")
+    return price.price
 
 
 @router.get("/member/{member_id}", response_model=MemberPaymentStatusResponse)
@@ -330,22 +340,27 @@ async def update_member_payment(
     payment_repository=Depends(get_payment_repository),
     member_repository=Depends(get_member_repository),
     license_repository=Depends(get_license_repository),
+    price_repository=Depends(get_price_configuration_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    """Edit a MemberPayment line. Parent Payment amount is recomputed. Super admin, or the admin of the member's club."""
+    """Edit a MemberPayment line. Parent Payment amount is recomputed.
+
+    Super admin, or the admin of the member's club, who cannot set the amount: a new type takes its price.
+    """
     await _require_line_access(ctx, member_payment_id, member_payment_repository, payment_repository, member_repository)
-    line = None if ctx.is_super_admin else await member_payment_repository.find_by_id(member_payment_id)
-    if line and request.amount is not None and request.amount != line.amount:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo la federación puede cambiar el importe de una línea de pago",
-        )
+    amount = request.amount
     try:
-        if line and (request.payment_type or request.payment_year):
+        if not ctx.is_super_admin:
+            line = await member_payment_repository.find_by_id(member_payment_id)
             target_type = request.payment_type or line.payment_type.value
+            type_changes = target_type != line.payment_type.value
+            if amount is not None and amount != line.amount and not type_changes:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Solo la federación puede cambiar el importe de una línea de pago",
+                )
             target_year = request.payment_year or line.payment_year
             now = datetime.utcnow()
-            type_changes = target_type != line.payment_type.value
             enters_a_live_year = target_year != line.payment_year and target_year >= now.year
             if type_changes or enters_a_live_year:
                 await refuse_licences_that_do_not_fit(
@@ -355,11 +370,13 @@ async def update_member_payment(
                     target_year,
                     now,
                 )
+            if type_changes:
+                amount = await _price_of(price_repository, target_type)
         mp = await use_case.execute(
             member_payment_id=member_payment_id,
             payment_type=request.payment_type,
             concept=request.concept,
-            amount=request.amount,
+            amount=amount,
             status=request.status,
             payment_year=request.payment_year,
         )

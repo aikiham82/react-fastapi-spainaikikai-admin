@@ -12,6 +12,7 @@ from src.domain.entities.license import AgeCategory, InstructorCategory, License
 from src.domain.entities.member import Member
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus
+from src.domain.entities.price_configuration import PriceConfiguration
 from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_initiate_annual_payment_use_case,
@@ -19,6 +20,7 @@ from src.infrastructure.web.dependencies import (
     get_member_payment_repository,
     get_member_repository,
     get_payment_repository,
+    get_price_configuration_repository,
     get_register_manual_payment_use_case,
     get_update_member_payment_use_case,
 )
@@ -75,6 +77,12 @@ def client_as(use_cases):
             get_register_manual_payment_use_case: lambda: use_cases.manual,
             get_update_member_payment_use_case: lambda: use_cases.update_line,
             get_license_repository: lambda: SimpleNamespace(find_by_member_ids=AsyncMock(return_value=LICENCES)),
+            get_price_configuration_repository: lambda: SimpleNamespace(
+                find_by_key=AsyncMock(side_effect={
+                    "dan-none-adulto": PriceConfiguration(key="dan-none-adulto", price=20.0, category="license"),
+                    "seguro_rc": PriceConfiguration(key="seguro_rc", price=35.0, category="insurance"),
+                }.get)
+            ),
             get_member_repository: lambda: SimpleNamespace(
                 find_by_club_id=AsyncMock(return_value=MEMBERS),
                 find_by_id=AsyncMock(side_effect={m.id: m for m in MEMBERS}.get),
@@ -138,9 +146,32 @@ def test_a_club_admin_cannot_change_a_line_to_a_licence_that_does_not_fit(client
     use_cases.update_line.execute.assert_not_awaited()
 
 
-@pytest.mark.parametrize("body", [{"payment_type": "licencia_dan"}, {"payment_type": "seguro_rc"}, {"amount": 15}])
-def test_a_club_admin_can_make_any_other_line_edit(client_as, body):
-    assert client_as(club_admin()).put("/api/v1/member-payments/line-1", json=body).status_code == 200
+@pytest.mark.parametrize(("payment_type", "price"), [("licencia_dan", 20.0), ("seguro_rc", 35.0)])
+def test_a_club_admin_changing_a_lines_type_pays_the_price_of_the_new_type(client_as, use_cases, payment_type, price):
+    response = client_as(club_admin()).put(
+        "/api/v1/member-payments/line-1", json={"payment_type": payment_type, "amount": 15}
+    )
+
+    assert response.status_code == 200
+    assert use_cases.update_line.execute.await_args.kwargs["amount"] == price
+
+
+def test_a_club_admin_cannot_set_a_type_without_a_price(client_as, use_cases):
+    response = client_as(club_admin()).put("/api/v1/member-payments/line-1", json={"payment_type": "seguro_accidentes"})
+
+    assert response.status_code == 400
+    use_cases.update_line.execute.assert_not_awaited()
+
+
+def test_a_club_admin_keeps_the_amount_when_the_type_stays(client_as, use_cases):
+    assert client_as(club_admin()).put("/api/v1/member-payments/line-1", json={"status": "pending"}).status_code == 200
+    assert use_cases.update_line.execute.await_args.kwargs["amount"] is None
+
+
+def test_a_super_admin_keeps_the_amount_they_send_with_a_new_type(client_as, use_cases):
+    client_as(super_admin()).put("/api/v1/member-payments/line-1", json={"payment_type": "licencia_dan", "amount": 15})
+
+    assert use_cases.update_line.execute.await_args.kwargs["amount"] == 15
 
 
 def test_a_super_admin_can_change_a_line_to_any_licence(client_as):
