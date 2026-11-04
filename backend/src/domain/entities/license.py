@@ -190,6 +190,11 @@ class License:
         self.updated_at = datetime.now()
 
 
+def current_licences(licences: List[License]) -> List[License]:
+    """The licences that speak for a member: the active ones, or all of them when none is active."""
+    return [licence for licence in licences if licence.status == LicenseStatus.ACTIVE] or licences
+
+
 def grade_licence_among(licences: List[License]) -> Optional[License]:
     """The licence that carries a member's grade: one holding a grade over a title, then the latest."""
     if not licences:
@@ -203,3 +208,28 @@ def grade_licence_among(licences: List[License]) -> Optional[License]:
 def title_among(licences: List[License]) -> InstructorCategory:
     """The highest instructor title held on any of the licences."""
     return max((l.instructor_category for l in licences), key=lambda c: c.rank, default=InstructorCategory.NONE)
+
+
+CHILD_MAX_AGE = 14
+LICENCE_ITEMS = frozenset({"kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin"})
+
+
+def _is_child(licence: License, birth_date: Optional[datetime], today: datetime) -> bool:
+    if birth_date is None:
+        return "infantil" in licence.grade.lower()
+    birthday_pending = (today.month, today.day) < (birth_date.month, birth_date.day)
+    return today.year - birth_date.year - birthday_pending <= CHILD_MAX_AGE
+
+
+def payable_licence_items(licences: List[License], birth_date: Optional[datetime], today: datetime) -> frozenset:
+    """Licence and title items a member may pay, the same ones the payment screen offers."""
+    if not licences:
+        return frozenset({"kyu", "kyu_infantil", "dan"})
+    current = current_licences(licences)
+    title = title_among(current)
+    if title != InstructorCategory.NONE:
+        return frozenset({title.value})
+    primary = grade_licence_among(current)
+    if primary.technical_grade == TechnicalGrade.DAN:
+        return frozenset({"dan"})
+    return frozenset({"kyu_infantil" if _is_child(primary, birth_date, today) else "kyu", "dan"})

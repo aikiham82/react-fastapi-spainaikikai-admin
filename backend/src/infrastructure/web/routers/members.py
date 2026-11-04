@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
-from src.domain.entities.license import License, LicenseStatus, grade_licence_among, title_among
+from src.domain.entities.license import License, LicenseStatus, current_licences, grade_licence_among, title_among
 from src.domain.entities.insurance import Insurance
 from src.domain.entities.member import ClubRole
 from src.domain.exceptions.license import LicenseNotFoundError
@@ -71,7 +71,7 @@ async def _load_member_in_callers_club(ctx: AuthContext, member_id: str, get_mem
 
 def _build_license_summary(licenses: List[License]) -> Optional[LicenseSummary]:
     """Build a LicenseSummary for one member: grade from the grade licence, title from any current licence."""
-    current = [l for l in licenses if l.status.value == "active"] or licenses
+    current = current_licences(licenses)
     primary = grade_licence_among(current)
     if not primary:
         return None

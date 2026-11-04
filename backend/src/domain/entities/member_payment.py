@@ -36,6 +36,7 @@ ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE = {
     "seguro_rc": MemberPaymentType.SEGURO_RC,
     "club_fee": MemberPaymentType.CUOTA_CLUB,
 }
+MEMBER_PAYMENT_TYPE_TO_ITEM = {line_type.value: item for item, line_type in ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE.items()}
 
 PAYMENT_TYPE_LABELS = {
     "licencia_kyu": "Licencia KYU",
