@@ -81,3 +81,12 @@ async def test_a_title_with_its_redsys_rc_line_is_counted_once():
 
     assert status.total_paid == 70
     assert [s.payment_type for s in status.payment_statuses].count("seguro_rc") == 1
+
+
+async def test_an_exam_paid_this_year_counts_in_the_member_total_but_not_as_a_status_row():
+    repos = repositories([paid(MemberPaymentType.TITULO_SHIDOIN, 70), paid(MemberPaymentType.EXAMEN_DAN_2, 175)])
+
+    status = await GetMemberPaymentStatusUseCase(repos.member_payment, repos.member).execute(SENSEI.id, 2026)
+
+    assert status.total_paid == 245
+    assert all(not s.payment_type.startswith("examen_") for s in status.payment_statuses)

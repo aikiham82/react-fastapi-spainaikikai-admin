@@ -50,4 +50,11 @@ describe('payment result pages', () => {
     expect(screen.getByText('Pago recibido. Te hemos enviado la factura por correo.')).toBeInTheDocument()
     expect(screen.getByTestId('path')).toHaveTextContent('/payment/success')
   })
+
+  it('PaymentSuccessPage talks about the exam, not licences, after an exam payment', () => {
+    renderAt('/payment/success?concept=exam', <PaymentSuccessPage />)
+
+    expect(screen.getByText('El examen queda registrado como pagado en unos minutos.')).toBeInTheDocument()
+    expect(screen.queryByText(/licencias y los seguros/)).not.toBeInTheDocument()
+  })
 })

@@ -164,6 +164,15 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         })
         return [self._to_domain(doc) async for doc in cursor]
 
+    async def find_unfinished_exams(self, member_id: str, since: datetime) -> List[Payment]:
+        cursor = self.collection.find({
+            "member_id": member_id,
+            "payment_type": PaymentType.EXAM_FEE.value,
+            "status": {"$in": [status.value for status in UNFINISHED_PAYMENT_STATUSES]},
+            "created_at": {"$gte": since},
+        })
+        return [self._to_domain(doc) async for doc in cursor]
+
     async def claim_unfinished(self, payment_id: str, status: PaymentStatus = PaymentStatus.COMPLETED) -> bool:
         result = await self.collection.update_one(
             {"_id": ObjectId(payment_id), "status": {"$in": [status.value for status in UNFINISHED_PAYMENT_STATUSES]}},

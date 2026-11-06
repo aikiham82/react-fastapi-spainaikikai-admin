@@ -129,6 +129,8 @@ from src.application.use_cases.member_payment import (
 from src.application.use_cases.member_payment.get_all_clubs_payment_summary_use_case import GetAllClubsPaymentSummaryUseCase
 from src.application.use_cases.payment.prefill_annual_payment_use_case import PrefillAnnualPaymentUseCase
 from src.application.use_cases.payment.register_manual_payment_use_case import RegisterManualPaymentUseCase
+from src.application.use_cases.payment.register_manual_exam_payment_use_case import RegisterManualExamPaymentUseCase
+from src.application.use_cases.payment.initiate_exam_payment_use_case import InitiateExamPaymentUseCase
 from src.application.use_cases.payment.complete_payment_use_case import CompletePaymentUseCase
 from src.application.use_cases.payment.confirm_payment_received_use_case import ConfirmPaymentReceivedUseCase
 from src.application.use_cases.payment.update_member_payment_use_case import UpdateMemberPaymentUseCase
@@ -470,6 +472,28 @@ def get_register_manual_payment_use_case() -> RegisterManualPaymentUseCase:
         pdf_service=get_pdf_service(),
         license_repository=get_license_repository(),
         insurance_repository=get_insurance_repository(),
+        club_repository=get_club_repository(),
+    )
+
+
+def get_initiate_exam_payment_use_case() -> InitiateExamPaymentUseCase:
+    return InitiateExamPaymentUseCase(
+        payment_repository=get_payment_repository(),
+        member_payment_repository=get_member_payment_repository(),
+        member_repository=get_member_repository(),
+        price_configuration_repository=get_price_configuration_repository(),
+        redsys_service=get_redsys_service(),
+    )
+
+
+def get_register_manual_exam_payment_use_case() -> RegisterManualExamPaymentUseCase:
+    return RegisterManualExamPaymentUseCase(
+        payment_repository=get_payment_repository(),
+        member_payment_repository=get_member_payment_repository(),
+        invoice_repository=get_invoice_repository(),
+        member_repository=get_member_repository(),
+        price_configuration_repository=get_price_configuration_repository(),
+        pdf_service=get_pdf_service(),
         club_repository=get_club_repository(),
     )
 

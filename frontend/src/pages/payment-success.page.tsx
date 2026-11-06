@@ -5,13 +5,18 @@ import { AuthHeading, AuthLayout } from '@/features/auth/components/AuthLayout';
 export const PaymentSuccessPage = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('Ds_Order') || searchParams.get('orderId');
+  const isExam = searchParams.get('concept') === 'exam';
 
   return (
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <AuthHeading title="Pago completado">
           <p>Pago recibido. Te hemos enviado la factura por correo.</p>
-          <p className="mt-2">Las licencias y los seguros quedan activos en unos minutos.</p>
+          <p className="mt-2">
+            {isExam
+              ? 'El examen queda registrado como pagado en unos minutos.'
+              : 'Las licencias y los seguros quedan activos en unos minutos.'}
+          </p>
         </AuthHeading>
 
         <div className="flex flex-col gap-3">

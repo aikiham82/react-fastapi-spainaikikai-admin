@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
-from src.domain.entities.member_payment import MemberPayment, MemberPaymentType
+from src.domain.entities.member_payment import ANNUAL_PAYMENT_TYPES, MemberPayment, MemberPaymentType
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 
@@ -82,7 +82,7 @@ class GetMemberPaymentStatusUseCase:
 
         # Check all payment types
         payment_statuses = []
-        total_paid = 0.0
+        total_paid = sum(payment.amount for payment in paid_types.values())
 
         license_types = [
             MemberPaymentType.LICENCIA_KYU,
@@ -98,17 +98,14 @@ class GetMemberPaymentStatusUseCase:
         ]
 
         # Check all payment types
-        all_types = list(MemberPaymentType)
         has_license = False
         has_insurance_accidentes = False
         has_insurance_rc = False
 
-        for ptype in all_types:
+        for ptype in ANNUAL_PAYMENT_TYPES:
             payment = paid_types.get(ptype.value)
             is_paid = ptype in covered_types
 
-            if payment is not None:
-                total_paid += payment.amount
             if is_paid:
                 if ptype in license_types:
                     has_license = True

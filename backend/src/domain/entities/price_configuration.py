@@ -23,7 +23,7 @@ class PriceConfiguration:
     key: str = ""
     price: float = 0.0
     description: str = ""
-    category: str = "license"  # "license", "insurance", or "club_fee"
+    category: str = "license"
     is_active: bool = True
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
@@ -31,7 +31,7 @@ class PriceConfiguration:
     updated_at: Optional[datetime] = None
 
     # Valid categories
-    VALID_CATEGORIES = {"license", "insurance", "club_fee", "seminar"}
+    VALID_CATEGORIES = {"license", "insurance", "club_fee", "seminar", "exam"}
 
     # Valid values for license category keys (using English names internally)
     VALID_TECHNICAL_GRADE = {"dan", "kyu"}

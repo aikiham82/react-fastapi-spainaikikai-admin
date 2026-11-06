@@ -24,6 +24,7 @@ class PaymentType(str, Enum):
     ANNUAL_QUOTA = "annual_quota"
     SEMINAR = "seminar"
     SEMINAR_OFICIALIDAD = "seminar_oficialidad"
+    EXAM_FEE = "exam_fee"
 
 
 PAYMENT_TYPE_LABELS = {
@@ -33,10 +34,11 @@ PAYMENT_TYPE_LABELS = {
     PaymentType.ANNUAL_QUOTA: "Pago anual",
     PaymentType.SEMINAR: "Seminario",
     PaymentType.SEMINAR_OFICIALIDAD: "Oficialidad de seminario",
+    PaymentType.EXAM_FEE: "Tasa de examen",
 }
 
 UNFINISHED_PAYMENT_STATUSES = (PaymentStatus.PENDING, PaymentStatus.PROCESSING)
-CONFIRMABLE_PAYMENT_TYPES = (PaymentType.ANNUAL_QUOTA, PaymentType.SEMINAR_OFICIALIDAD)
+CONFIRMABLE_PAYMENT_TYPES = (PaymentType.ANNUAL_QUOTA, PaymentType.SEMINAR_OFICIALIDAD, PaymentType.EXAM_FEE)
 
 
 class PaymentMethod(str, Enum):

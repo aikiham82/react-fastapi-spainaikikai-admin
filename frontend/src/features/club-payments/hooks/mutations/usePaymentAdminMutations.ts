@@ -1,3 +1,4 @@
+import { submitRedsysForm } from '@/core/utils/redsys';
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { paymentAdminService } from '../../data/services/payment-admin.service';
@@ -34,6 +35,42 @@ export const useRegisterManualPaymentMutation = () => {
     isLoading: mutation.isPending,
     error: mutation.error,
     isSuccess: mutation.isSuccess,
+  };
+};
+
+export const useRegisterManualExamPaymentMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: paymentAdminService.registerManualExamPayment,
+    onSuccess: () => {
+      toast.success('Examen registrado como pagado');
+      invalidatePayments(queryClient);
+      queryClient.invalidateQueries({ queryKey: [INVOICES_QUERY_KEY] });
+    },
+    onError: (error: { detail?: string; message?: string }) => {
+      toast.error(error.detail || 'Error al registrar el examen');
+    },
+  });
+
+  return {
+    registerExamPayment: mutation.mutate,
+    isLoading: mutation.isPending,
+  };
+};
+
+export const useInitiateExamPaymentMutation = () => {
+  const mutation = useMutation({
+    mutationFn: paymentAdminService.initiateExamPayment,
+    onSuccess: submitRedsysForm,
+    onError: (error: { detail?: string; message?: string }) => {
+      toast.error(error.detail || 'No se pudo iniciar el pago con tarjeta');
+    },
+  });
+
+  return {
+    payExamByCard: mutation.mutate,
+    isLoading: mutation.isPending,
   };
 };
 

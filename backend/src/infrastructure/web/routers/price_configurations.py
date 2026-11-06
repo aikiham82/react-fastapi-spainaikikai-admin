@@ -32,7 +32,7 @@ from src.domain.exceptions.price_configuration import (
 router = APIRouter(prefix="/price-configurations", tags=["price-configurations"])
 
 
-def _to_response(p) -> PriceConfigurationResponse:
+def price_configuration_response(p) -> PriceConfigurationResponse:
     """Map domain entity to response DTO."""
     return PriceConfigurationResponse(
         id=p.id,
@@ -58,7 +58,7 @@ async def get_all_prices(
     """Get all price configurations. Requires super_admin."""
     require_super_admin(ctx)
     prices = await get_all_use_case.execute(active_only=active_only, limit=limit)
-    return [_to_response(p) for p in prices]
+    return [price_configuration_response(p) for p in prices]
 
 
 @router.get("/license-price", response_model=LicensePriceResponse)
@@ -96,7 +96,7 @@ async def get_annual_payment_prices(
     """Get all prices needed for the annual payment form."""
     try:
         prices = await use_case.execute()
-        return {key: _to_response(p) for key, p in prices.items()}
+        return {key: price_configuration_response(p) for key, p in prices.items()}
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -116,7 +116,7 @@ async def get_seminar_oficialidad_price(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Precio de oficialidad no configurado. Contacta con Spain Aikikai.",
         )
-    return _to_response(price_config)
+    return price_configuration_response(price_config)
 
 
 @router.get("/{price_id}", response_model=PriceConfigurationResponse)
@@ -129,7 +129,7 @@ async def get_price_configuration(
     require_super_admin(ctx)
     try:
         price_config = await get_price_use_case.execute(price_id)
-        return _to_response(price_config)
+        return price_configuration_response(price_config)
     except PriceConfigurationNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -155,7 +155,7 @@ async def create_price_configuration(
             valid_from=price_data.valid_from,
             valid_until=price_data.valid_until
         )
-        return _to_response(price_config)
+        return price_configuration_response(price_config)
     except PriceConfigurationAlreadyExistsError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -181,7 +181,7 @@ async def update_price_configuration(
             valid_from=price_data.valid_from,
             valid_until=price_data.valid_until
         )
-        return _to_response(price_config)
+        return price_configuration_response(price_config)
     except PriceConfigurationNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

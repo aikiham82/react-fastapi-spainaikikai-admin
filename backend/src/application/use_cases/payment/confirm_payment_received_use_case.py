@@ -41,7 +41,7 @@ class ConfirmPaymentReceivedUseCase:
         if payment.status not in UNFINISHED_PAYMENT_STATUSES:
             raise InvalidPaymentStatusError("Solo se puede confirmar un pago sin terminar")
         if payment.payment_type not in CONFIRMABLE_PAYMENT_TYPES:
-            raise InvalidPaymentDataError("Solo se confirman pagos anuales y de oficialidad de seminario")
+            raise InvalidPaymentDataError("Solo se confirman pagos anuales, de oficialidad de seminario y de examen")
         await refuse_lines_already_paid(
             self.member_payment_repository,
             [

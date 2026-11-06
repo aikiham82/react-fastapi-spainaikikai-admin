@@ -23,6 +23,13 @@ class MemberPaymentType(str, Enum):
     SEGURO_ACCIDENTES = "seguro_accidentes"
     SEGURO_RC = "seguro_rc"
     CUOTA_CLUB = "cuota_club"
+    EXAMEN_DAN_1_HOMBU = "examen_dan_1_hombu"
+    EXAMEN_DAN_1 = "examen_dan_1"
+    EXAMEN_DAN_2 = "examen_dan_2"
+    EXAMEN_DAN_3 = "examen_dan_3"
+    EXAMEN_DAN_4 = "examen_dan_4"
+    EXAMEN_DAN_5 = "examen_dan_5"
+    EXAMEN_DAN_6 = "examen_dan_6"
 
 
 # Mapping from annual payment item types to member payment types
@@ -47,10 +54,29 @@ PAYMENT_TYPE_LABELS = {
     "seguro_accidentes": "Seguro Accidentes",
     "seguro_rc": "Seguro RC",
     "cuota_club": "Cuota Club",
+    "examen_dan_1_hombu": "Examen 1.er Dan (con nº Hombu)",
+    "examen_dan_1": "Examen 1.er Dan (sin nº Hombu)",
+    "examen_dan_2": "Examen 2.º Dan",
+    "examen_dan_3": "Examen 3.er Dan",
+    "examen_dan_4": "Examen 4.º Dan",
+    "examen_dan_5": "Examen 5.º Dan",
+    "examen_dan_6": "Examen 6.º Dan",
 }
 
 INSURANCE_PAYMENT_TYPES = frozenset({MemberPaymentType.SEGURO_ACCIDENTES, MemberPaymentType.SEGURO_RC})
 TITLE_PAYMENT_TYPES = frozenset({MemberPaymentType.TITULO_FUKUSHIDOIN, MemberPaymentType.TITULO_SHIDOIN})
+EXAM_ORDER = (
+    MemberPaymentType.EXAMEN_DAN_1_HOMBU,
+    MemberPaymentType.EXAMEN_DAN_1,
+    MemberPaymentType.EXAMEN_DAN_2,
+    MemberPaymentType.EXAMEN_DAN_3,
+    MemberPaymentType.EXAMEN_DAN_4,
+    MemberPaymentType.EXAMEN_DAN_5,
+    MemberPaymentType.EXAMEN_DAN_6,
+)
+EXAM_PAYMENT_TYPES = frozenset(EXAM_ORDER)
+ANNUAL_PAYMENT_TYPES = tuple(line_type for line_type in MemberPaymentType if line_type not in EXAM_PAYMENT_TYPES)
+LINE_TYPE_OF_ITEM = {**ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE, **{exam.value: exam for exam in EXAM_ORDER}}
 
 
 @dataclass

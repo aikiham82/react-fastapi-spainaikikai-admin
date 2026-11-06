@@ -2,10 +2,12 @@
 
 import logging
 
+from dataclasses import asdict
 from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi.responses import HTMLResponse
 
 from src.infrastructure.web.dto.payment_dto import (
     PaymentCreate,
@@ -42,6 +44,7 @@ from src.infrastructure.web.dependencies import (
     get_license_repository,
     get_member_repository,
     get_payment_repository,
+    get_price_configuration_repository,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
@@ -54,6 +57,7 @@ from src.application.use_cases.payment.refuse_licences_that_do_not_fit import re
 from src.domain.exceptions.payment import (
     DuplicatePaymentForYearError,
     PaymentAlreadyCompletedError,
+    PaymentAlreadyExistsError,
     PaymentNotFoundError,
     InvalidPaymentStatusError,
     InvalidPaymentDataError,
@@ -64,7 +68,20 @@ from src.infrastructure.web.dto.manual_payment_dto import (
     ManualPaymentResponse,
     ConfirmPaymentRequest,
 )
+from src.infrastructure.web.dto.exam_payment_dto import (
+    ExamPaymentRequest,
+    InitiateExamPaymentResponse,
+    ManualExamPaymentRequest,
+    ManualExamPaymentResponse,
+)
+from src.infrastructure.web.redsys_redirect import PAGE_HEADERS, make_redirect_token, message_page, read_redirect_token, redirect_page
+from src.domain.entities.payment import UNFINISHED_PAYMENT_STATUSES
+from src.domain.entities.member_payment import EXAM_ORDER
+from src.infrastructure.web.dto.price_configuration_dto import PriceConfigurationResponse
+from src.infrastructure.web.routers.price_configurations import price_configuration_response
 from src.infrastructure.web.dependencies import (
+    get_initiate_exam_payment_use_case,
+    get_register_manual_exam_payment_use_case,
     get_register_manual_payment_use_case,
     get_confirm_payment_received_use_case,
 )
@@ -74,6 +91,7 @@ from src.config.settings import get_app_settings
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/payments", tags=["payments"])
 public_router = APIRouter(prefix="/payments", tags=["payments"])
+self_service_router = APIRouter(prefix="/payments", tags=["payments"])
 
 PAYMENT_DENIED = "Access denied to this payment"
 SEMINAR_PAYMENT_TYPES = {"seminar", "seminar_oficialidad"}
@@ -321,6 +339,26 @@ async def initiate_annual_payment(
     )
 
 
+@public_router.get("/exam/return", response_class=HTMLResponse)
+async def return_from_exam_payment(result: str = ""):
+    """Public page the bank sends a member back to after paying an exam from the card app."""
+    if result == "ok":
+        return HTMLResponse(message_page("Pago completado. Ya puedes volver a la app."), headers=PAGE_HEADERS)
+    return HTMLResponse(message_page("El pago no se ha completado. No se ha cobrado nada."), headers=PAGE_HEADERS)
+
+
+@public_router.get("/{payment_id}/redsys-redirect", response_class=HTMLResponse)
+async def open_redsys_form(payment_id: str, token: str, payment_repository=Depends(get_payment_repository)):
+    """Public page the card app opens: it posts the signed form to the bank."""
+    form = read_redirect_token(token, payment_id)
+    if form is None:
+        return HTMLResponse(message_page("Este enlace de pago no es válido o ha caducado."), status_code=status.HTTP_403_FORBIDDEN, headers=PAGE_HEADERS)
+    payment = await payment_repository.find_by_id(payment_id)
+    if payment is None or payment.status not in UNFINISHED_PAYMENT_STATUSES:
+        return HTMLResponse(message_page("Este pago ya no está pendiente."), status_code=status.HTTP_409_CONFLICT, headers=PAGE_HEADERS)
+    return HTMLResponse(redirect_page(form), headers=PAGE_HEADERS)
+
+
 @public_router.post("/webhook", response_model=RedsysWebhookResponse)
 async def redsys_webhook(
     Ds_SignatureVersion: str = Form(...),
@@ -435,6 +473,87 @@ async def register_manual_payment(
     return ManualPaymentResponse(
         payment=PaymentMapper.to_response_dto(result.payment),
         member_payment_count=len(result.member_payments),
+        invoice_number=result.invoice.invoice_number if result.invoice else None,
+    )
+
+
+@self_service_router.get("/exam-prices", response_model=List[PriceConfigurationResponse])
+async def get_exam_prices(
+    repository=Depends(get_price_configuration_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Active exam fee prices, in grade order, for any signed-in caller."""
+    prices = {p.key: p for p in await repository.find_by_keys([exam.value for exam in EXAM_ORDER])}
+    return [price_configuration_response(prices[exam.value]) for exam in EXAM_ORDER if exam.value in prices]
+
+
+@self_service_router.post("/exam/initiate", response_model=InitiateExamPaymentResponse)
+async def initiate_exam_payment(
+    request: ExamPaymentRequest,
+    use_case=Depends(get_initiate_exam_payment_use_case),
+    member_repository=Depends(get_member_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Start a card payment for an exam: a manager for a member of their club, or a member for themselves."""
+    app_settings = get_app_settings()
+    if ctx.is_super_admin or ctx.is_club_admin:
+        await require_member_access(ctx, request.member_id, member_repository)
+        success_url = f"{app_settings.frontend_base_url}/payment/success?concept=exam"
+        failure_url = f"{app_settings.frontend_base_url}/payment/failure?concept=exam"
+    elif request.member_id == ctx.user.member_id:
+        success_url = f"{app_settings.backend_base_url}/api/v1/payments/exam/return?result=ok"
+        failure_url = f"{app_settings.backend_base_url}/api/v1/payments/exam/return?result=ko"
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Solo puedes pagar tu propio examen")
+    try:
+        result = await use_case.execute(
+            member_id=request.member_id,
+            exam=request.exam,
+            exam_date=request.exam_date,
+            venue=request.venue,
+            payer_name=request.payer_name,
+            success_url=success_url,
+            failure_url=failure_url,
+            webhook_url=f"{app_settings.backend_base_url}/api/v1/payments/webhook",
+        )
+    except PaymentAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    form = asdict(result.form_data)
+    token = make_redirect_token(result.payment_id, form)
+    return InitiateExamPaymentResponse(
+        payment_id=result.payment_id,
+        order_id=result.order_id,
+        redirect_url=f"{app_settings.backend_base_url}/api/v1/payments/{result.payment_id}/redsys-redirect?token={token}",
+        **form,
+    )
+
+
+@router.post("/exam", response_model=ManualExamPaymentResponse, status_code=status.HTTP_201_CREATED)
+async def register_manual_exam_payment(
+    request: ManualExamPaymentRequest,
+    use_case=Depends(get_register_manual_exam_payment_use_case),
+    member_repository=Depends(get_member_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Register an exam fee paid by transfer, cash or other. Super admin, or the admin of the member's club."""
+    await require_member_access(ctx, request.member_id, member_repository)
+    try:
+        result = await use_case.execute(
+            member_id=request.member_id,
+            exam=request.exam,
+            exam_date=request.exam_date,
+            venue=request.venue,
+            payer_name=request.payer_name,
+            payment_method=request.payment_method,
+        )
+    except PaymentAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return ManualExamPaymentResponse(
+        payment=PaymentMapper.to_response_dto(result.payment),
         invoice_number=result.invoice.invoice_number if result.invoice else None,
     )
 

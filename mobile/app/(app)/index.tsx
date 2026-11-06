@@ -7,13 +7,14 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { Image } from "expo-image";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as Haptics from "expo-haptics";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
@@ -241,6 +242,21 @@ export default function LicenseScreen() {
           )}
         </View>
 
+        <Pressable
+          onPress={() => router.push("/exam")}
+          accessibilityRole="button"
+          style={styles.examCard}
+        >
+          <View style={styles.examIcon}>
+            <Text style={styles.examIconText}>Dan</Text>
+          </View>
+          <View style={styles.examText}>
+            <Text style={styles.examTitle}>Pagar examen</Text>
+            <Text style={styles.examSubtitle}>Tasa de examen de grado Dan</Text>
+          </View>
+          <Text style={styles.examChevron}>›</Text>
+        </Pressable>
+
         {/* Download Button */}
         {imageUri && (
           <Button
@@ -265,6 +281,28 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  examCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.surfaceCard,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginTop: spacing.md,
+  },
+  examIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.accentSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  examIconText: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.accent },
+  examText: { flex: 1 },
+  examTitle: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: colors.primary },
+  examSubtitle: { fontFamily: fonts.body, fontSize: 14, color: colors.textMuted },
+  examChevron: { fontSize: 24, color: colors.textMuted },
   safe: {
     flex: 1,
     backgroundColor: colors.surface,

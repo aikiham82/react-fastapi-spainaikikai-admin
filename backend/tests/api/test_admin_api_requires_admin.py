@@ -27,6 +27,10 @@ OPEN_TO_ANY_CALLER = {
     ("GET", "/api/v1/users/me"),
     ("PATCH", "/api/v1/users/me/email"),
     ("POST", "/api/v1/payments/webhook"),
+    ("GET", "/api/v1/payments/{payment_id}/redsys-redirect"),
+    ("GET", "/api/v1/payments/exam/return"),
+    ("GET", "/api/v1/payments/exam-prices"),
+    ("POST", "/api/v1/payments/exam/initiate"),
 }
 REPRESENTATIVE_ADMIN_ROUTES = [
     "/api/v1/clubs",
