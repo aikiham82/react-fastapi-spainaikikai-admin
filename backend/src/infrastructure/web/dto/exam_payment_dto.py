@@ -1,6 +1,6 @@
 """DTOs for paying an exam fee."""
 
-from datetime import date
+from datetime import date, timedelta
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -25,6 +25,14 @@ class ExamPaymentRequest(BaseModel):
     exam_date: date
     venue: str = Field(..., max_length=200)
     payer_name: PersonName
+
+    @field_validator("exam_date")
+    @classmethod
+    def exam_date_is_plausible(cls, exam_date: date) -> date:
+        today = date.today()
+        if not today - timedelta(days=366) <= exam_date <= today + timedelta(days=731):
+            raise ValueError("La fecha del examen no es válida")
+        return exam_date
 
     @field_validator("venue")
     @classmethod

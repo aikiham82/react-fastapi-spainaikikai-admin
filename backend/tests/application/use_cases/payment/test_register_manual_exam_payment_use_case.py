@@ -14,7 +14,7 @@ from src.domain.entities.member import Member
 from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.payment import PaymentMethod, PaymentStatus, PaymentType
 from src.domain.entities.price_configuration import PriceConfiguration
-from src.domain.exceptions.payment import InvalidPaymentDataError
+from src.domain.exceptions.payment import InvalidPaymentDataError, PaymentAlreadyExistsError
 
 EXAM_PRICES = {
     "examen_dan_1_hombu": 110.0,
@@ -52,6 +52,7 @@ def repos():
     payment_repo.create = AsyncMock(side_effect=create_payment)
     member_payment_repo = AsyncMock()
     member_payment_repo.create_bulk = AsyncMock(side_effect=lambda lines: lines)
+    member_payment_repo.exists_for_member_year_type = AsyncMock(return_value=False)
     invoice_repo = AsyncMock()
     invoice_repo.get_next_invoice_number = AsyncMock(return_value="2026-000001")
     invoice_repo.create = AsyncMock(side_effect=lambda invoice: invoice)
@@ -133,6 +134,32 @@ class TestRegisterManualExamPayment:
         with pytest.raises(InvalidPaymentDataError):
             await _pay(repos)
         repos["payment"].create.assert_not_awaited()
+
+    async def test_an_exam_already_paid_this_year_is_refused(self, repos):
+        repos["member_payment"].exists_for_member_year_type = AsyncMock(return_value=True)
+
+        with pytest.raises(PaymentAlreadyExistsError, match="Examen 2.º Dan ya está pagado en 2026"):
+            await _pay(repos)
+        repos["payment"].create.assert_not_awaited()
+        kwargs = repos["member_payment"].exists_for_member_year_type.await_args.kwargs
+        assert (kwargs["member_id"], kwargs["payment_year"], kwargs["payment_type"]) == ("m1", 2026, MemberPaymentType.EXAMEN_DAN_2)
+
+    async def test_an_inactive_price_is_not_charged(self, repos):
+        async def inactive(key):
+            return PriceConfiguration(key=key, price=175, description=key, category="exam", is_active=False)
+
+        repos["price"].find_by_key = AsyncMock(side_effect=inactive)
+
+        with pytest.raises(InvalidPaymentDataError):
+            await _pay(repos)
+
+    async def test_a_line_the_database_refuses_still_returns_the_payment(self, repos):
+        repos["member_payment"].create_bulk = AsyncMock(return_value=[])
+
+        result = await _pay(repos)
+
+        assert result.payment.id == "pay1"
+        assert result.member_payment is None
 
     async def test_an_unknown_exam_is_refused(self, repos):
         with pytest.raises(InvalidPaymentDataError):

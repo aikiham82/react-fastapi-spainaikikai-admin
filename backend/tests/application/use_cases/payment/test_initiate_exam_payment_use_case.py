@@ -47,15 +47,18 @@ def repos():
         side_effect=lambda key: PriceConfiguration(key=key, price=175, description=key, category="exam")
         if key == "examen_dan_2" else None
     )
+    member_payment_repo = AsyncMock()
+    member_payment_repo.exists_for_member_year_type = AsyncMock(return_value=False)
     redsys = AsyncMock()
     redsys.generate_order_id = lambda payment_id: "000123"
     redsys.create_payment_form_data = AsyncMock(return_value=FORM)
-    return {"payment": payment_repo, "member": member_repo, "price": price_repo, "redsys": redsys}
+    return {"payment": payment_repo, "member": member_repo, "price": price_repo, "redsys": redsys, "member_payment": member_payment_repo}
 
 
 async def _start(repos, exam="examen_dan_2"):
     return await InitiateExamPaymentUseCase(
         payment_repository=repos["payment"],
+        member_payment_repository=repos["member_payment"],
         member_repository=repos["member"],
         price_configuration_repository=repos["price"],
         redsys_service=repos["redsys"],
@@ -107,6 +110,13 @@ class TestInitiateExamPayment:
         result = await _start(repos)
 
         assert result.payment_id == "pay-new"
+
+    async def test_an_exam_already_paid_this_year_never_reaches_the_bank(self, repos):
+        repos["member_payment"].exists_for_member_year_type = AsyncMock(return_value=True)
+
+        with pytest.raises(PaymentAlreadyExistsError):
+            await _start(repos)
+        repos["payment"].create.assert_not_awaited()
 
     async def test_a_missing_price_is_refused(self, repos):
         with pytest.raises(InvalidPaymentDataError):

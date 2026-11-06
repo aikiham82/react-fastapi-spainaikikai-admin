@@ -207,3 +207,19 @@ async def test_an_oficialidad_invoice_names_the_concept_in_spanish(use_case, rep
     completed = await use_case.execute(payment_id="pay2", payment_method="cash")
 
     assert [item.description for item in completed.invoice.line_items] == ["Oficialidad de seminario 2026"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_a_stuck_exam_already_paid_another_way_is_not_confirmed(use_case, repos):
+    repos["payment"].find_by_id = AsyncMock(return_value=Payment(
+        id="pay4", member_id="m1", club_id="club1", payment_type=PaymentType.EXAM_FEE,
+        amount=175.0, status=PaymentStatus.PROCESSING, payment_year=2026,
+        line_items_data=json.dumps([{"item_type": "examen_dan_2", "description": "x", "quantity": 1, "unit_price": 175.0}]),
+        member_assignments=json.dumps([{"member_id": "m1", "member_name": "Ana Example", "payment_types": ["examen_dan_2"]}]),
+    ))
+    repos["member_payment"].exists_for_member_year_type = AsyncMock(return_value=True)
+
+    with pytest.raises(DuplicatePaymentForYearError):
+        await use_case.execute(payment_id="pay4", payment_method="transfer")
+    repos["member_payment"].create_bulk.assert_not_called()

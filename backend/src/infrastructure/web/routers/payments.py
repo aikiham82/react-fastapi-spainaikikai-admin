@@ -338,6 +338,14 @@ async def initiate_annual_payment(
     )
 
 
+@public_router.get("/exam/return", response_class=HTMLResponse)
+async def return_from_exam_payment(result: str = ""):
+    """Public page the bank sends a member back to after paying an exam from the card app."""
+    if result == "ok":
+        return HTMLResponse(message_page("Pago completado. Ya puedes volver a la app."))
+    return HTMLResponse(message_page("El pago no se ha completado. No se ha cobrado nada."))
+
+
 @public_router.get("/{payment_id}/redsys-redirect", response_class=HTMLResponse)
 async def open_redsys_form(payment_id: str, token: str, payment_repository=Depends(get_payment_repository)):
     """Public page the card app opens: it posts the signed form to the bank."""
@@ -474,8 +482,8 @@ async def get_exam_prices(
     ctx: AuthContext = Depends(get_auth_context),
 ):
     """Active exam fee prices, in grade order, for any signed-in caller."""
-    prices = [await repository.find_by_key(exam.value) for exam in EXAM_ORDER]
-    return [price_configuration_response(p) for p in prices if p is not None and p.is_active]
+    prices = {p.key: p for p in await repository.find_by_keys([exam.value for exam in EXAM_ORDER])}
+    return [price_configuration_response(prices[exam.value]) for exam in EXAM_ORDER if exam.value in prices]
 
 
 @self_service_router.post("/exam/initiate", response_model=InitiateExamPaymentResponse)
@@ -489,11 +497,16 @@ async def initiate_exam_payment(
 
     Mounted without the admin guard because the card app calls it; it checks access itself.
     """
+    app_settings = get_app_settings()
     if ctx.is_super_admin or ctx.is_club_admin:
         await require_member_access(ctx, request.member_id, member_repository)
-    elif request.member_id != ctx.user.member_id:
+        success_url = f"{app_settings.frontend_base_url}/payment/success?concept=exam"
+        failure_url = f"{app_settings.frontend_base_url}/payment/failure?concept=exam"
+    elif request.member_id == ctx.user.member_id:
+        success_url = f"{app_settings.backend_base_url}/api/v1/payments/exam/return?result=ok"
+        failure_url = f"{app_settings.backend_base_url}/api/v1/payments/exam/return?result=ko"
+    else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Solo puedes pagar tu propio examen")
-    app_settings = get_app_settings()
     try:
         result = await use_case.execute(
             member_id=request.member_id,
@@ -501,8 +514,8 @@ async def initiate_exam_payment(
             exam_date=request.exam_date,
             venue=request.venue,
             payer_name=request.payer_name,
-            success_url=f"{app_settings.frontend_base_url}/payment/success",
-            failure_url=f"{app_settings.frontend_base_url}/payment/failure",
+            success_url=success_url,
+            failure_url=failure_url,
             webhook_url=f"{app_settings.backend_base_url}/api/v1/payments/webhook",
         )
     except PaymentAlreadyExistsError as e:
@@ -542,6 +555,8 @@ async def register_manual_exam_payment(
             payer_name=request.payer_name,
             payment_method=request.payment_method,
         )
+    except PaymentAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except InvalidPaymentDataError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return ManualExamPaymentResponse(

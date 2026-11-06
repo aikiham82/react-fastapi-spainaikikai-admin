@@ -52,7 +52,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { data: prices = [] } = useExamPricesQuery(isOpen)
-  const { registerExamPayment, isLoading: isRegistering, isSuccess } = useRegisterManualExamPaymentMutation()
+  const { registerExamPayment, isLoading: isRegistering } = useRegisterManualExamPaymentMutation()
   const { payExamByCard, isLoading: isGoingToBank } = useInitiateExamPaymentMutation()
   const isLoading = isRegistering || isGoingToBank
 
@@ -71,10 +71,6 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
       setErrors({})
     }
   }, [isOpen])
-
-  useEffect(() => {
-    if (isSuccess) onClose()
-  }, [isSuccess, onClose])
 
   const found = members.filter((m) => foldForSearch(m.name).includes(foldForSearch(search)))
 
@@ -102,7 +98,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     const data = validExam()
-    if (data) registerExamPayment({ ...data, payment_method: method })
+    if (data) registerExamPayment({ ...data, payment_method: method }, { onSuccess: onClose })
   }
 
   const handlePayByCard = () => {

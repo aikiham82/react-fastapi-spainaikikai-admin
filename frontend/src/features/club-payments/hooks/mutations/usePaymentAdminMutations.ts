@@ -56,7 +56,6 @@ export const useRegisterManualExamPaymentMutation = () => {
   return {
     registerExamPayment: mutation.mutate,
     isLoading: mutation.isPending,
-    isSuccess: mutation.isSuccess,
   };
 };
 

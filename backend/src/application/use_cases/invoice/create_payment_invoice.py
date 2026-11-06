@@ -32,7 +32,6 @@ async def create_payment_invoice(
     invoice_number = await invoice_repository.get_next_invoice_number(invoice_year)
     invoice_settings = get_invoice_settings()
 
-    # Build line items from line_items_data JSON stored on the payment
     line_items: List[InvoiceLineItem] = []
     if payment.line_items_data:
         try:
@@ -42,7 +41,7 @@ async def create_payment_invoice(
                     description=item.get("description", ""),
                     quantity=item.get("quantity", 1),
                     unit_price=item.get("unit_price", 0),
-                    tax_rate=invoice_settings.tax_rate * 100,  # convert fraction -> percentage
+                    tax_rate=invoice_settings.tax_rate * 100,
                 ))
         except (json.JSONDecodeError, KeyError):
             line_items = [InvoiceLineItem(
@@ -59,9 +58,6 @@ async def create_payment_invoice(
             tax_rate=invoice_settings.tax_rate * 100,
         )]
 
-    # Construct Invoice using only actual entity fields.
-    # Use club_id as member_id fallback: manual payments are at club level and have no member_id.
-    # Invoice.__post_init__ requires non-empty member_id; club_id is always set on execute().
     invoice_member_id = payment.member_id or payment.club_id
 
     invoice = Invoice(
@@ -79,7 +75,6 @@ async def create_payment_invoice(
         payment_date=payment.payment_date or datetime.utcnow(),
         payment_method=payment.payment_method.value,
     )
-    # Populate tax_total and total fields from line items
     invoice.calculate_totals()
 
     if pdf_service:

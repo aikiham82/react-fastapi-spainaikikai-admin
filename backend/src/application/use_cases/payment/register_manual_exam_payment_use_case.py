@@ -23,7 +23,8 @@ from src.domain.entities.member_payment import (
     MemberPaymentType,
 )
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
-from src.domain.exceptions.payment import InvalidPaymentDataError
+from src.application.use_cases.payment.refuse_lines_already_paid import refuse_lines_already_paid
+from src.domain.exceptions.payment import DuplicatePaymentForYearError, InvalidPaymentDataError, PaymentAlreadyExistsError
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class ExamCharge:
 
 async def exam_charge(
     member_repository: MemberRepositoryPort,
+    member_payment_repository: MemberPaymentRepositoryPort,
     price_configuration_repository: PriceConfigurationRepositoryPort,
     member_id: str,
     exam: str,
@@ -56,8 +58,12 @@ async def exam_charge(
     member = await member_repository.find_by_id(member_id)
     if member is None:
         raise InvalidPaymentDataError("Miembro no encontrado")
+    try:
+        await refuse_lines_already_paid(member_payment_repository, [(member_id, exam)], exam_date.year, datetime.utcnow())
+    except DuplicatePaymentForYearError:
+        raise PaymentAlreadyExistsError(f"{PAYMENT_TYPE_LABELS[exam]} ya está pagado en {exam_date.year}")
     price = await price_configuration_repository.find_by_key(exam)
-    if price is None:
+    if price is None or not price.is_active:
         raise InvalidPaymentDataError(f"Falta el precio de {PAYMENT_TYPE_LABELS[exam]}")
     return ExamCharge(
         member=member,
@@ -108,7 +114,7 @@ def exam_line(payment: Payment) -> MemberPayment:
 @dataclass
 class RegisterManualExamPaymentResult:
     payment: Payment
-    member_payment: MemberPayment
+    member_payment: Optional[MemberPayment]
     invoice: Optional[Invoice]
 
 
@@ -143,13 +149,16 @@ class RegisterManualExamPaymentUseCase:
         if payment_method not in MANUAL_METHODS:
             raise InvalidPaymentDataError("Un pago manual es en efectivo, por transferencia u otro")
         charge = await exam_charge(
-            self.member_repository, self.price_configuration_repository, member_id, exam, exam_date, venue
+            self.member_repository, self.member_payment_repository, self.price_configuration_repository,
+            member_id, exam, exam_date, venue,
         )
         payment = exam_payment(charge, exam_date, payer_name, PaymentMethod(payment_method), PaymentStatus.COMPLETED)
         payment.payment_date = datetime.utcnow()
         payment = await self.payment_repository.create(payment)
 
-        [line] = await self.member_payment_repository.create_bulk([exam_line(payment)])
+        lines = await self.member_payment_repository.create_bulk([exam_line(payment)])
+        if not lines:
+            logger.error("Exam payment %s saved without its member line", payment.id)
 
         invoice = None
         try:
@@ -159,4 +168,4 @@ class RegisterManualExamPaymentUseCase:
         except Exception:
             logger.exception("Failed to create invoice for exam payment %s", payment.id)
 
-        return RegisterManualExamPaymentResult(payment=payment, member_payment=line, invoice=invoice)
+        return RegisterManualExamPaymentResult(payment=payment, member_payment=lines[0] if lines else None, invoice=invoice)

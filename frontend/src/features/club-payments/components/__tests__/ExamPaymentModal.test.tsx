@@ -15,7 +15,6 @@ vi.mock('../../hooks/mutations/usePaymentAdminMutations', () => ({
   useRegisterManualExamPaymentMutation: () => ({
     registerExamPayment: mockRegisterExamPayment,
     isLoading: false,
-    isSuccess: false,
   }),
   useInitiateExamPaymentMutation: () => ({
     payExamByCard: mockPayExamByCard,
@@ -38,9 +37,11 @@ const ALL_PRICES = [
   { key: 'examen_dan_6', price: 515 },
 ]
 
+const mockOnClose = vi.fn()
+
 const renderModal = () =>
   renderWithProviders(
-    <ExamPaymentModal isOpen onClose={vi.fn()} clubName="Club Prueba" members={members} isLoadingMembers={false} />
+    <ExamPaymentModal isOpen onClose={mockOnClose} clubName="Club Prueba" members={members} isLoadingMembers={false} />
   )
 
 describe('ExamPaymentModal', () => {
@@ -92,14 +93,17 @@ describe('ExamPaymentModal', () => {
     await user.click(screen.getByRole('radio', { name: 'Efectivo' }))
     await user.click(screen.getByRole('button', { name: 'Registrar pago' }))
 
-    expect(mockRegisterExamPayment).toHaveBeenCalledWith({
-      member_id: 'm-dan',
-      exam: 'examen_dan_2',
-      exam_date: '2026-11-14',
-      venue: 'Madrid',
-      payer_name: 'Club Prueba',
-      payment_method: 'cash',
-    })
+    expect(mockRegisterExamPayment).toHaveBeenCalledWith(
+      {
+        member_id: 'm-dan',
+        exam: 'examen_dan_2',
+        exam_date: '2026-11-14',
+        venue: 'Madrid',
+        payer_name: 'Club Prueba',
+        payment_method: 'cash',
+      },
+      { onSuccess: expect.any(Function) }
+    )
   })
 
   it('pays the exam by card without a manual method', async () => {
@@ -127,6 +131,18 @@ describe('ExamPaymentModal', () => {
 
     expect(screen.getByText('Indica la fecha del examen')).toBeInTheDocument()
     expect(mockPayExamByCard).not.toHaveBeenCalled()
+  })
+
+  it('closes only when the registration succeeds', async () => {
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Lucía Prueba/ }))
+    fireEvent.change(screen.getByLabelText('Fecha del examen'), { target: { value: '2026-11-14' } })
+    await user.type(screen.getByLabelText('Lugar del examen'), 'Madrid')
+    await user.click(screen.getByRole('button', { name: 'Registrar pago' }))
+
+    expect(mockOnClose).not.toHaveBeenCalled()
+    mockRegisterExamPayment.mock.calls[0][1].onSuccess()
+    expect(mockOnClose).toHaveBeenCalledOnce()
   })
 
   it('asks for the venue instead of sending an empty one', async () => {

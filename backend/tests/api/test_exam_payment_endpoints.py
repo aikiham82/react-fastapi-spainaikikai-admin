@@ -60,6 +60,10 @@ FORM_FIELDS = {
 }
 
 
+async def active_prices(keys):
+    return [PRICES[key] for key in keys if key in PRICES and PRICES[key].is_active]
+
+
 @pytest.fixture
 def exam_use_case():
     return AsyncMock(**{"execute.return_value": SimpleNamespace(payment=PAID, member_payment=LINE, invoice=None)})
@@ -87,7 +91,7 @@ def client_as(exam_use_case, card_use_case):
             get_register_manual_exam_payment_use_case: lambda: exam_use_case,
             get_initiate_exam_payment_use_case: lambda: card_use_case,
             get_payment_repository: lambda: SimpleNamespace(find_by_id=AsyncMock(side_effect=PAYMENTS.get)),
-            get_price_configuration_repository: lambda: SimpleNamespace(find_by_key=AsyncMock(side_effect=PRICES.get)),
+            get_price_configuration_repository: lambda: SimpleNamespace(find_by_keys=AsyncMock(side_effect=active_prices)),
         }
         return TestClient(app)
 
@@ -135,6 +139,8 @@ def test_a_plain_member_cannot_register_a_manual_exam(client_as, exam_use_case):
 
 @pytest.mark.parametrize("changes", [
     {"exam": "examen_dan_9"},
+    {"exam_date": "0202-11-14"},
+    {"exam_date": "2099-01-01"},
     {"venue": "   "},
     {"venue": "x" * 201},
     {"payment_method": "redsys"},
@@ -257,10 +263,42 @@ def test_the_admin_guard_lets_a_member_reach_their_own_card_exam(card_use_case):
         get_auth_context: lambda: plain_member(OWN_MEMBER),
         get_member_repository: lambda: MembersByClub(),
         get_initiate_exam_payment_use_case: lambda: card_use_case,
-        get_price_configuration_repository: lambda: SimpleNamespace(find_by_key=AsyncMock(side_effect=PRICES.get)),
+        get_price_configuration_repository: lambda: SimpleNamespace(find_by_keys=AsyncMock(side_effect=active_prices)),
     }
     client = TestClient(app)
 
     assert client.post("/api/v1/payments/exam/initiate", json=card_body()).status_code == 200
     assert client.get("/api/v1/payments/exam-prices").status_code == 200
     assert client.post("/api/v1/payments/exam", json=body()).status_code == 403
+
+
+def test_an_exam_already_paid_answers_409_on_both_paths(client_as, exam_use_case, card_use_case):
+    exam_use_case.execute.side_effect = PaymentAlreadyExistsError("Examen 2.º Dan ya está pagado en 2026")
+    card_use_case.execute.side_effect = PaymentAlreadyExistsError("Examen 2.º Dan ya está pagado en 2026")
+    client = client_as(super_admin())
+
+    assert client.post("/api/v1/payments/exam", json=body()).status_code == 409
+    assert client.post("/api/v1/payments/exam/initiate", json=card_body()).status_code == 409
+
+
+def test_a_member_comes_back_from_the_bank_to_a_page_about_the_app(client_as, card_use_case):
+    client_as(plain_member(OWN_MEMBER)).post("/api/v1/payments/exam/initiate", json=card_body())
+
+    kwargs = card_use_case.execute.await_args.kwargs
+    assert kwargs["success_url"].endswith("/api/v1/payments/exam/return?result=ok")
+    assert kwargs["failure_url"].endswith("/api/v1/payments/exam/return?result=ko")
+
+
+def test_a_manager_comes_back_from_the_bank_to_the_panel_exam_page(client_as, card_use_case):
+    client_as(club_admin()).post("/api/v1/payments/exam/initiate", json=card_body())
+
+    kwargs = card_use_case.execute.await_args.kwargs
+    assert kwargs["success_url"].endswith("/payment/success?concept=exam")
+
+
+@pytest.mark.parametrize("result,text", [("ok", "Ya puedes volver a la app"), ("ko", "No se ha cobrado nada")])
+def test_the_return_page_tells_the_member_what_happened(client_as, result, text):
+    response = TestClient(client_as(super_admin()).app).get(f"/api/v1/payments/exam/return?result={result}")
+
+    assert response.status_code == 200
+    assert text in response.text

@@ -79,16 +79,17 @@ export default function ExamPaymentScreen() {
         <Stack.Screen options={{ title: "Pagar examen" }} />
         <View style={styles.done}>
           <View style={styles.okCircle}>
-            <Text style={styles.okMark}>✓</Text>
+            <Text style={styles.okMark}>€</Text>
           </View>
-          <Text style={styles.doneTitle}>Pago enviado</Text>
+          <Text style={styles.doneTitle}>Has vuelto del banco</Text>
           <Text style={styles.doneText}>
-            Cuando el banco lo confirme, tu club verá el examen de {examGradeLabel(exam)} como pagado y recibirás la
-            factura por correo.
+            Si has completado el pago, tu club verá el examen de {examGradeLabel(exam)} como pagado en unos minutos y
+            recibirás la factura por correo. Si lo has cancelado, no se ha cobrado nada.
           </Text>
         </View>
         <View style={styles.footer}>
-          <Button title="Volver al carnet" variant="outline" onPress={() => router.back()} />
+          <Button title="Volver al carnet" onPress={() => router.back()} />
+          <Button title="Intentarlo de nuevo" variant="outline" onPress={() => setSent(false)} />
         </View>
       </SafeAreaView>
     );

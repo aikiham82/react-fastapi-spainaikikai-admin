@@ -479,6 +479,7 @@ def get_register_manual_payment_use_case() -> RegisterManualPaymentUseCase:
 def get_initiate_exam_payment_use_case() -> InitiateExamPaymentUseCase:
     return InitiateExamPaymentUseCase(
         payment_repository=get_payment_repository(),
+        member_payment_repository=get_member_payment_repository(),
         member_repository=get_member_repository(),
         price_configuration_repository=get_price_configuration_repository(),
         redsys_service=get_redsys_service(),

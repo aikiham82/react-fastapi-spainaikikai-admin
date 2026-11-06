@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Callable
 
+from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
@@ -29,12 +30,14 @@ class InitiateExamPaymentUseCase:
     def __init__(
         self,
         payment_repository: PaymentRepositoryPort,
+        member_payment_repository: MemberPaymentRepositoryPort,
         member_repository: MemberRepositoryPort,
         price_configuration_repository: PriceConfigurationRepositoryPort,
         redsys_service: RedsysServicePort,
         clock: Callable[[], datetime] = datetime.utcnow,
     ):
         self.payment_repository = payment_repository
+        self.member_payment_repository = member_payment_repository
         self.member_repository = member_repository
         self.price_configuration_repository = price_configuration_repository
         self.redsys_service = redsys_service
@@ -52,7 +55,8 @@ class InitiateExamPaymentUseCase:
         webhook_url: str,
     ) -> InitiateExamPaymentResult:
         charge = await exam_charge(
-            self.member_repository, self.price_configuration_repository, member_id, exam, exam_date, venue
+            self.member_repository, self.member_payment_repository, self.price_configuration_repository,
+            member_id, exam, exam_date, venue,
         )
         in_flight = await self.payment_repository.find_unfinished_exams(member_id, self._clock() - IN_FLIGHT_WINDOW)
         if any(exam in _exams_of(payment) for payment in in_flight):
