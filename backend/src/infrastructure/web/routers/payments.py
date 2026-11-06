@@ -74,7 +74,7 @@ from src.infrastructure.web.dto.exam_payment_dto import (
     ManualExamPaymentRequest,
     ManualExamPaymentResponse,
 )
-from src.infrastructure.web.redsys_redirect import make_redirect_token, message_page, read_redirect_token, redirect_page
+from src.infrastructure.web.redsys_redirect import PAGE_HEADERS, make_redirect_token, message_page, read_redirect_token, redirect_page
 from src.domain.entities.payment import UNFINISHED_PAYMENT_STATUSES
 from src.domain.entities.member_payment import EXAM_ORDER
 from src.infrastructure.web.dto.price_configuration_dto import PriceConfigurationResponse
@@ -343,8 +343,8 @@ async def initiate_annual_payment(
 async def return_from_exam_payment(result: str = ""):
     """Public page the bank sends a member back to after paying an exam from the card app."""
     if result == "ok":
-        return HTMLResponse(message_page("Pago completado. Ya puedes volver a la app."))
-    return HTMLResponse(message_page("El pago no se ha completado. No se ha cobrado nada."))
+        return HTMLResponse(message_page("Pago completado. Ya puedes volver a la app."), headers=PAGE_HEADERS)
+    return HTMLResponse(message_page("El pago no se ha completado. No se ha cobrado nada."), headers=PAGE_HEADERS)
 
 
 @public_router.get("/{payment_id}/redsys-redirect", response_class=HTMLResponse)
@@ -352,11 +352,11 @@ async def open_redsys_form(payment_id: str, token: str, payment_repository=Depen
     """Public page the card app opens: it posts the signed form to the bank."""
     form = read_redirect_token(token, payment_id)
     if form is None:
-        return HTMLResponse(message_page("Este enlace de pago no es válido o ha caducado."), status_code=status.HTTP_403_FORBIDDEN)
+        return HTMLResponse(message_page("Este enlace de pago no es válido o ha caducado."), status_code=status.HTTP_403_FORBIDDEN, headers=PAGE_HEADERS)
     payment = await payment_repository.find_by_id(payment_id)
     if payment is None or payment.status not in UNFINISHED_PAYMENT_STATUSES:
-        return HTMLResponse(message_page("Este pago ya no está pendiente."), status_code=status.HTTP_409_CONFLICT)
-    return HTMLResponse(redirect_page(form))
+        return HTMLResponse(message_page("Este pago ya no está pendiente."), status_code=status.HTTP_409_CONFLICT, headers=PAGE_HEADERS)
+    return HTMLResponse(redirect_page(form), headers=PAGE_HEADERS)
 
 
 @public_router.post("/webhook", response_model=RedsysWebhookResponse)

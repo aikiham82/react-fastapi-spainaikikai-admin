@@ -142,6 +142,15 @@ class TestRegisterManualExamPayment:
         kwargs = repos["member_payment"].exists_for_member_year_type.await_args.kwargs
         assert (kwargs["member_id"], kwargs["payment_year"], kwargs["payment_type"]) == ("m1", 2026, MemberPaymentType.EXAMEN_DAN_2)
 
+    async def test_first_dan_with_and_without_hombu_number_is_one_exam(self, repos):
+        async def paid(member_id, payment_year, payment_type):
+            return payment_type == MemberPaymentType.EXAMEN_DAN_1
+
+        repos["member_payment"].exists_for_member_year_type = AsyncMock(side_effect=paid)
+
+        with pytest.raises(PaymentAlreadyExistsError):
+            await _pay(repos, exam="examen_dan_1_hombu")
+
     async def test_an_inactive_price_is_not_charged(self, repos):
         async def inactive(key):
             return PriceConfiguration(key=key, price=175, description=key, category="exam", is_active=False)

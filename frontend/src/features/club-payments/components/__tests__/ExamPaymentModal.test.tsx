@@ -6,9 +6,11 @@ import { ExamPaymentModal } from '../ExamPaymentModal'
 const mockRegisterExamPayment = vi.fn()
 const mockPayExamByCard = vi.fn()
 let mockPrices: { key: string; price: number }[] = []
+let mockPricesFailed = false
+const mockRetryPrices = vi.fn()
 
 vi.mock('../../hooks/queries/useExamPricesQuery', () => ({
-  useExamPricesQuery: () => ({ data: mockPrices, isLoading: false, isError: false }),
+  useExamPricesQuery: () => ({ data: mockPricesFailed ? undefined : mockPrices, isLoading: false, isError: mockPricesFailed, refetch: mockRetryPrices }),
 }))
 
 vi.mock('../../hooks/mutations/usePaymentAdminMutations', () => ({
@@ -50,6 +52,28 @@ describe('ExamPaymentModal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockPrices = ALL_PRICES
+    mockPricesFailed = false
+  })
+
+  it('offers a retry instead of claiming every exam has no price when prices fail to load', async () => {
+    mockPricesFailed = true
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Lucía Prueba/ }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('No se han podido cargar los precios.')
+    expect(screen.queryByText(/no tiene precio/)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Pagar con tarjeta' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }))
+    expect(mockRetryPrices).toHaveBeenCalled()
+  })
+
+  it('marks the empty venue as invalid and says paying does not change the grade', async () => {
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Lucía Prueba/ }))
+    await user.click(screen.getByRole('button', { name: 'Registrar pago' }))
+
+    expect(screen.getByLabelText('Lugar del examen')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText('Pagar el examen no cambia el grado del miembro.')).toBeInTheDocument()
   })
 
   it('opens with its title and the club name', () => {

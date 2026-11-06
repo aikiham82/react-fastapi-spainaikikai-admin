@@ -82,7 +82,7 @@ class GetMemberPaymentStatusUseCase:
 
         # Check all payment types
         payment_statuses = []
-        total_paid = 0.0
+        total_paid = sum(payment.amount for payment in paid_types.values())
 
         license_types = [
             MemberPaymentType.LICENCIA_KYU,
@@ -106,8 +106,6 @@ class GetMemberPaymentStatusUseCase:
             payment = paid_types.get(ptype.value)
             is_paid = ptype in covered_types
 
-            if payment is not None:
-                total_paid += payment.amount
             if is_paid:
                 if ptype in license_types:
                     has_license = True

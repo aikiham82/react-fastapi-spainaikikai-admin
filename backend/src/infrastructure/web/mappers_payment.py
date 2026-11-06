@@ -1,11 +1,23 @@
 """Payment mapper for DTO to Entity conversion."""
 
+import json
+from typing import Optional
+
 from src.domain.entities.payment import Payment, PaymentStatus, PaymentType
 from src.infrastructure.web.dto.payment_dto import (
     PaymentCreate,
     PaymentRefundRequest,
     PaymentResponse
 )
+
+
+def exam_concept(entity: Payment) -> Optional[str]:
+    if entity.payment_type != PaymentType.EXAM_FEE:
+        return None
+    lines = json.loads(entity.line_items_data or "[]")
+    members = json.loads(entity.member_assignments or "[]")
+    parts = [members[0].get("member_name") if members else None, lines[0].get("description") if lines else None]
+    return " · ".join(part for part in parts if part) or None
 
 
 class PaymentMapper:
@@ -44,6 +56,7 @@ class PaymentMapper:
             related_entity_id=entity.related_entity_id,
             payment_year=entity.payment_year,
             payer_name=entity.payer_name,
+            concept=exam_concept(entity),
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )

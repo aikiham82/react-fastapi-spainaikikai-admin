@@ -84,12 +84,12 @@ export default function ExamPaymentScreen() {
           <Text style={styles.doneTitle}>Has vuelto del banco</Text>
           <Text style={styles.doneText}>
             Si has completado el pago, tu club verá el examen de {examGradeLabel(exam)} como pagado en unos minutos y
-            recibirás la factura por correo. Si lo has cancelado, no se ha cobrado nada.
+            recibirás la factura por correo. Si lo has cancelado, no se ha cobrado nada y podrás volver a
+            intentarlo dentro de 20 minutos.
           </Text>
         </View>
         <View style={styles.footer}>
           <Button title="Volver al carnet" onPress={() => router.back()} />
-          <Button title="Intentarlo de nuevo" variant="outline" onPress={() => setSent(false)} />
         </View>
       </SafeAreaView>
     );
@@ -155,10 +155,12 @@ export default function ExamPaymentScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>{price === undefined ? "-" : formatEuros(price)}</Text>
-        </View>
+        {price !== undefined && (
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>{formatEuros(price)}</Text>
+          </View>
+        )}
         {exam && price === undefined && !prices.isLoading && (
           <Text style={styles.error}>Este examen no tiene precio. Avisa a tu club.</Text>
         )}
@@ -194,12 +196,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surfaceCard,
   },
-  gradeOn: { borderColor: colors.accent, backgroundColor: "#F8E7E7" },
+  gradeOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   gradeText: { flexShrink: 1 },
   gradeName: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.primary },
   gradeNameOn: { color: colors.accent },
   gradeNote: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted },
-  gradePrice: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: colors.primary },
+  gradePrice: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: colors.primary, flexShrink: 0 },
   retry: { gap: spacing.sm },
   error: { fontFamily: fonts.body, fontSize: 13, color: colors.expired },
   footer: {
@@ -220,11 +222,13 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.successBg,
+    backgroundColor: colors.surfaceCard,
+    borderWidth: 1.5,
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
-  okMark: { fontSize: 34, color: colors.success, fontFamily: fonts.bodySemiBold },
+  okMark: { fontSize: 30, color: colors.primary, fontFamily: fonts.bodySemiBold },
   doneTitle: { fontFamily: fonts.headingBold, fontSize: 26, color: colors.primary },
   doneText: { fontFamily: fonts.body, fontSize: 15, color: colors.textMuted, textAlign: "center", lineHeight: 21 },
 });

@@ -23,6 +23,10 @@ def exam_line_description(exam: str, exam_date: date, venue: str) -> str:
     return f"{PAYMENT_TYPE_LABELS[exam]} · {exam_date:%d/%m/%Y} · {venue}"
 
 
+FIRST_DAN = (MemberPaymentType.EXAMEN_DAN_1.value, MemberPaymentType.EXAMEN_DAN_1_HOMBU.value)
+SAME_EXAM = {exam: FIRST_DAN for exam in FIRST_DAN}
+
+
 @dataclass(frozen=True)
 class ExamCharge:
     member: Member
@@ -46,7 +50,9 @@ async def exam_charge(
     if member is None:
         raise InvalidPaymentDataError("Miembro no encontrado")
     try:
-        await refuse_lines_already_paid(member_payment_repository, [(member_id, exam)], exam_date.year, datetime.utcnow())
+        await refuse_lines_already_paid(
+            member_payment_repository, [(member_id, same) for same in SAME_EXAM.get(exam, (exam,))], exam_date.year, datetime.utcnow()
+        )
     except DuplicatePaymentForYearError:
         raise PaymentAlreadyExistsError(f"{PAYMENT_TYPE_LABELS[exam]} ya está pagado en {exam_date.year}")
     price = await price_configuration_repository.find_by_key(exam)

@@ -20,6 +20,7 @@ from src.infrastructure.web.dependencies import (
     get_payment_repository,
     get_register_manual_exam_payment_use_case,
 )
+from src.config.settings import get_redsys_settings
 from src.infrastructure.web.redsys_redirect import make_redirect_token
 from src.infrastructure.web.routers.payments import public_router as payments_public_router
 from src.infrastructure.web.routers.payments import router as payments_router
@@ -222,7 +223,11 @@ def test_the_redirect_page_posts_the_signed_form_to_the_bank(client_as):
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     html = response.text
-    assert 'action="https://bank.example.com/pay"' in html
+    assert f'action="{get_redsys_settings().payment_url}"' in html
+    assert "bank.example.com" not in html
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["cache-control"] == "no-store"
+    assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert 'name="Ds_Signature" value="sig"' in html
     assert "<script>" not in html.split("</form>")[0].split("Ds_MerchantParameters")[1]
     assert ".submit()" in html

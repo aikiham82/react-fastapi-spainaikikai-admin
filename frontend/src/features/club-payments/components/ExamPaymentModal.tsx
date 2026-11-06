@@ -49,14 +49,14 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
   const [method, setMethod] = useState<OfflinePaymentMethod>('transfer')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const { data: prices = [] } = useExamPricesQuery(isOpen)
+  const { data: prices = [], isError: pricesFailed, refetch: retryPrices } = useExamPricesQuery(isOpen)
   const { registerExamPayment, isLoading: isRegistering } = useRegisterManualExamPaymentMutation()
   const { payExamByCard, isLoading: isGoingToBank } = useInitiateExamPaymentMutation()
   const isLoading = isRegistering || isGoingToBank
 
   const priceOf = useMemo(() => new Map(prices.map((p) => [p.key, p.price])), [prices])
   const price = exam ? priceOf.get(exam) : undefined
-  const priceMissing = exam !== null && price === undefined
+  const priceMissing = !pricesFailed && exam !== null && price === undefined
 
   useEffect(() => {
     if (isOpen) {
@@ -112,7 +112,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
           <DialogDescription>{clubName}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-4">
           {member ? (
             <div className="flex items-center gap-3 rounded-xl p-2.5 ring-1 ring-inset ring-border">
               <Avatar name={member.name} />
@@ -156,8 +156,16 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
 
           {member && (
             <>
-              <fieldset className="grid gap-1.5">
+              <fieldset className="grid min-w-0 gap-1.5">
                 <legend className="mb-1.5 text-sm font-medium">Grado al que se presenta</legend>
+                {pricesFailed ? (
+                  <div role="alert" className="flex items-center justify-between gap-3 rounded-xl p-3 ring-1 ring-inset ring-border">
+                    <p className="text-sm text-destructive">No se han podido cargar los precios.</p>
+                    <Button type="button" variant="outline" size="sm" onClick={() => retryPrices()}>
+                      Reintentar
+                    </Button>
+                  </div>
+                ) : (
                 <div role="radiogroup" aria-label="Grado al que se presenta" className="grid grid-cols-2 gap-2">
                   {EXAM_KEYS.map((key) => {
                     const keyPrice = priceOf.get(key)
@@ -182,6 +190,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
                     )
                   })}
                 </div>
+                )}
                 {errors.exam && <p className="text-sm text-destructive">{errors.exam}</p>}
                 {priceMissing && (
                   <p className="text-sm text-destructive">Este examen no tiene precio. Avisa a Spain Aikikai.</p>
@@ -191,17 +200,31 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label htmlFor="exam-date">Fecha del examen</Label>
-                  <Input id="exam-date" type="date" value={examDate} onChange={(event) => setExamDate(event.target.value)} />
-                  {errors.exam_date && <p className="text-sm text-destructive">{errors.exam_date}</p>}
+                  <Input
+                    id="exam-date"
+                    type="date"
+                    value={examDate}
+                    aria-invalid={!!errors.exam_date}
+                    aria-describedby={errors.exam_date ? 'exam-date-error' : undefined}
+                    onChange={(event) => setExamDate(event.target.value)}
+                  />
+                  {errors.exam_date && <p id="exam-date-error" className="text-sm text-destructive">{errors.exam_date}</p>}
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="exam-venue">Lugar del examen</Label>
-                  <Input id="exam-venue" value={venue} maxLength={200} onChange={(event) => setVenue(event.target.value)} />
-                  {errors.venue && <p className="text-sm text-destructive">{errors.venue}</p>}
+                  <Input
+                    id="exam-venue"
+                    value={venue}
+                    maxLength={200}
+                    aria-invalid={!!errors.venue}
+                    aria-describedby={errors.venue ? 'exam-venue-error' : undefined}
+                    onChange={(event) => setVenue(event.target.value)}
+                  />
+                  {errors.venue && <p id="exam-venue-error" className="text-sm text-destructive">{errors.venue}</p>}
                 </div>
               </div>
 
-              <fieldset className="grid gap-1.5">
+              <fieldset className="grid min-w-0 gap-1.5">
                 <legend className="mb-1.5 text-sm font-medium">Si ya está pagado, ¿cómo?</legend>
                 <div role="radiogroup" aria-label="Método de pago" className="flex gap-1 rounded-xl bg-muted p-1">
                   {OFFLINE_PAYMENT_METHODS.map((option) => (
@@ -221,14 +244,15 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
                   ))}
                 </div>
               </fieldset>
+              <p className="text-xs text-muted-foreground">Pagar el examen no cambia el grado del miembro.</p>
             </>
           )}
 
           <DialogFooter className="pt-2 sm:items-center">
-            <Button type="submit" variant="outline" disabled={isLoading || !member || priceMissing}>
+            <Button type="submit" variant="outline" disabled={isLoading || !member || priceMissing || pricesFailed}>
               {isRegistering ? 'Registrando...' : 'Registrar pago'}
             </Button>
-            <Button type="button" onClick={handlePayByCard} disabled={isLoading || !member || priceMissing}>
+            <Button type="button" onClick={handlePayByCard} disabled={isLoading || !member || priceMissing || pricesFailed}>
               {isGoingToBank ? 'Abriendo el banco...' : 'Pagar con tarjeta'}
             </Button>
             <p className="text-[15px] text-foreground sm:order-first sm:mr-auto">

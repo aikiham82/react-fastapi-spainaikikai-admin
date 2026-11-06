@@ -70,6 +70,14 @@ describe('UnfinishedPaymentsSection', () => {
     expect(screen.queryByText(/Iniciado/)).not.toBeInTheDocument()
   })
 
+  it('names who an unfinished exam payment is for and which exam', () => {
+    withPayments([makePayment({ payment_type: 'exam_fee', concept: 'Lucía Prueba · Examen 2.º Dan · 14/11/2026 · Madrid' })])
+
+    renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2026} />)
+
+    expect(screen.getByText('Lucía Prueba · Examen 2.º Dan · 14/11/2026 · Madrid')).toBeInTheDocument()
+  })
+
   it('tells what confirming an oficialidad does, without licences', async () => {
     withPayments([makePayment({ payment_type: 'seminar_oficialidad', amount: 20 })])
     renderWithProviders(<UnfinishedPaymentsSection clubId="club-1" paymentYear={2026} />)

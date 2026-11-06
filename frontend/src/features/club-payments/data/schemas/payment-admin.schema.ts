@@ -27,6 +27,7 @@ export const paymentSchema = z.object({
   amount: z.number(),
   payment_year: z.number(),
   payer_name: z.string(),
+  concept: z.string().nullable().optional(),
   payment_date: z.string().nullable().optional(),
   created_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),

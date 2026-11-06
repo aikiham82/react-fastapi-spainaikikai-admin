@@ -33,7 +33,7 @@ interface UnfinishedPaymentsSectionProps {
 }
 
 const conceptOf = (payment: Payment): string =>
-  `${getPaymentTypeLabel(payment.payment_type)} ${payment.payment_year}`
+  payment.concept || `${getPaymentTypeLabel(payment.payment_type)} ${payment.payment_year}`
 
 const startedOn = (payment: Payment): string | null =>
   payment.created_at ? `Iniciado el ${formatDate(payment.created_at)} · ` : null
