@@ -37,6 +37,28 @@ export const useRegisterManualPaymentMutation = () => {
   };
 };
 
+export const useRegisterManualExamPaymentMutation = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: paymentAdminService.registerManualExamPayment,
+    onSuccess: () => {
+      toast.success('Examen registrado como pagado');
+      invalidatePayments(queryClient);
+      queryClient.invalidateQueries({ queryKey: [INVOICES_QUERY_KEY] });
+    },
+    onError: (error: { detail?: string; message?: string }) => {
+      toast.error(error.detail || 'Error al registrar el examen');
+    },
+  });
+
+  return {
+    registerExamPayment: mutation.mutate,
+    isLoading: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+  };
+};
+
 // ─── Confirm an unfinished payment ─────────────────────────────────────────
 export const useConfirmPaymentMutation = () => {
   const queryClient = useQueryClient();

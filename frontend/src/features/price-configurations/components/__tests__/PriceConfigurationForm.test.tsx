@@ -52,6 +52,13 @@ describe('PriceConfigurationForm', () => {
       'Seguro de accidentes',
       'Seguro de responsabilidad civil (ya tiene precio)',
       'Oficialidad de seminario',
+      'Examen 1.er Dan (con nº Hombu)',
+      'Examen 1.er Dan (sin nº Hombu)',
+      'Examen 2.º Dan',
+      'Examen 3.er Dan',
+      'Examen 4.º Dan',
+      'Examen 5.º Dan',
+      'Examen 6.º Dan',
     ])
     expect(options[7]).toHaveAttribute('aria-disabled', 'true')
     expect(options[0]).not.toHaveAttribute('aria-disabled', 'true')

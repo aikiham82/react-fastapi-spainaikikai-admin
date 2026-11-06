@@ -4,9 +4,10 @@ import { useClubPaymentsContext } from '../hooks/useClubPaymentsContext';
 import { usePermissions } from '@/core/hooks/usePermissions';
 import { useMembersQuery } from '@/features/members/hooks/queries/useMemberQueries';
 import { ManualPaymentModal } from './ManualPaymentModal';
+import { ExamPaymentModal } from './ExamPaymentModal';
 import { TransactionsSection } from './TransactionsSection';
 import { UnfinishedPaymentsSection } from './UnfinishedPaymentsSection';
-import { ArrowLeft, HeartPulse, IdCard, Plus, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, GraduationCap, HeartPulse, IdCard, Plus, type LucideIcon } from 'lucide-react';
 import { Avatar, ProgressRing, StateTile } from '@/components/ui/graphic';
 import { Button } from '@/components/ui/button';
 import { ListToolbar, EmptyState, ListLoading, ListError } from '@/components/ui/list-controls';
@@ -52,16 +53,18 @@ export const ClubPaymentDetail = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isManualPaymentOpen, setIsManualPaymentOpen] = useState(false);
+  const [isExamPaymentOpen, setIsExamPaymentOpen] = useState(false);
 
   const { data: membersData, isLoading: isLoadingMembers } = useMembersQuery(
     { club_id: clubDetail?.club_id ?? '', status: 'active', limit: 0 },
-    { enabled: canManagePayments && !!clubDetail?.club_id && isManualPaymentOpen }
+    { enabled: canManagePayments && !!clubDetail?.club_id && (isManualPaymentOpen || isExamPaymentOpen) }
   );
   const modalMembers = useMemo(
     () =>
       (membersData ?? []).map((m) => ({
         id: m.id,
         name: `${m.first_name} ${m.last_name}`.trim(),
+        grade: m.license_summary?.grade ?? null,
       })),
     [membersData],
   );
@@ -98,10 +101,16 @@ export const ClubPaymentDetail = () => {
           </p>
         </div>
         {canManagePayments && (
-          <Button onClick={() => setIsManualPaymentOpen(true)} className="gap-2">
-            <Plus className="size-4" />
-            Registrar pago manual
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setIsExamPaymentOpen(true)} className="gap-2">
+              <GraduationCap className="size-4" />
+              Pagar examen
+            </Button>
+            <Button onClick={() => setIsManualPaymentOpen(true)} className="gap-2">
+              <Plus className="size-4" />
+              Registrar pago manual
+            </Button>
+          </div>
         )}
       </div>
 
@@ -180,6 +189,15 @@ export const ClubPaymentDetail = () => {
           clubId={clubDetail.club_id}
           clubName={clubDetail.club_name}
           paymentYear={defaultPaymentYear(new Date())}
+          members={modalMembers}
+          isLoadingMembers={isLoadingMembers}
+        />
+      )}
+      {canManagePayments && (
+        <ExamPaymentModal
+          isOpen={isExamPaymentOpen}
+          onClose={() => setIsExamPaymentOpen(false)}
+          clubName={clubDetail.club_name}
           members={modalMembers}
           isLoadingMembers={isLoadingMembers}
         />

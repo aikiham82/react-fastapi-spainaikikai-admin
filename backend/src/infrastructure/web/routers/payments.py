@@ -64,7 +64,9 @@ from src.infrastructure.web.dto.manual_payment_dto import (
     ManualPaymentResponse,
     ConfirmPaymentRequest,
 )
+from src.infrastructure.web.dto.exam_payment_dto import ManualExamPaymentRequest, ManualExamPaymentResponse
 from src.infrastructure.web.dependencies import (
+    get_register_manual_exam_payment_use_case,
     get_register_manual_payment_use_case,
     get_confirm_payment_received_use_case,
 )
@@ -435,6 +437,32 @@ async def register_manual_payment(
     return ManualPaymentResponse(
         payment=PaymentMapper.to_response_dto(result.payment),
         member_payment_count=len(result.member_payments),
+        invoice_number=result.invoice.invoice_number if result.invoice else None,
+    )
+
+
+@router.post("/exam", response_model=ManualExamPaymentResponse, status_code=status.HTTP_201_CREATED)
+async def register_manual_exam_payment(
+    request: ManualExamPaymentRequest,
+    use_case=Depends(get_register_manual_exam_payment_use_case),
+    member_repository=Depends(get_member_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Register an exam fee paid by transfer, cash or other. Super admin, or the admin of the member's club."""
+    await require_member_access(ctx, request.member_id, member_repository)
+    try:
+        result = await use_case.execute(
+            member_id=request.member_id,
+            exam=request.exam,
+            exam_date=request.exam_date,
+            venue=request.venue,
+            payer_name=request.payer_name,
+            payment_method=request.payment_method,
+        )
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return ManualExamPaymentResponse(
+        payment=PaymentMapper.to_response_dto(result.payment),
         invoice_number=result.invoice.invoice_number if result.invoice else None,
     )
 

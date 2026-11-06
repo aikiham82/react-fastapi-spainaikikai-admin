@@ -10,6 +10,13 @@ export const MEMBER_PAYMENT_TYPES = {
   seguro_accidentes: 'Seguro de accidentes',
   seguro_rc: 'Seguro RC',
   cuota_club: 'Cuota de Club',
+  examen_dan_1_hombu: 'Examen 1.er Dan (con nº Hombu)',
+  examen_dan_1: 'Examen 1.er Dan (sin nº Hombu)',
+  examen_dan_2: 'Examen 2.º Dan',
+  examen_dan_3: 'Examen 3.er Dan',
+  examen_dan_4: 'Examen 4.º Dan',
+  examen_dan_5: 'Examen 5.º Dan',
+  examen_dan_6: 'Examen 6.º Dan',
 } as const;
 
 export type MemberPaymentType = keyof typeof MEMBER_PAYMENT_TYPES;

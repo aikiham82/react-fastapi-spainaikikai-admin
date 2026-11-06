@@ -63,6 +63,12 @@ vi.mock('../ManualPaymentModal', () => ({
   ),
 }))
 
+vi.mock('../ExamPaymentModal', () => ({
+  ExamPaymentModal: vi.fn(({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div role="dialog" data-testid="exam-payment-modal">ExamPaymentModal</div> : null
+  ),
+}))
+
 // ─── Stub TransactionsSection to isolate gating logic ─────────────────────
 vi.mock('../TransactionsSection', () => ({
   TransactionsSection: vi.fn(() => (
@@ -159,6 +165,13 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
       ).not.toBeInTheDocument()
     })
 
+    it('does NOT render the "Pagar examen" button', () => {
+      mockAsPlainUser()
+      renderWithProviders(<ClubPaymentDetail />)
+
+      expect(screen.queryByRole('button', { name: /pagar examen/i })).not.toBeInTheDocument()
+    })
+
     it('does NOT render the TransactionsSection', () => {
       mockAsPlainUser()
       renderWithProviders(<ClubPaymentDetail />)
@@ -174,6 +187,15 @@ describe('ClubPaymentDetail — admin gating (Task 24)', () => {
 
       expect(screen.getByRole('button', { name: /registrar pago manual/i })).toBeInTheDocument()
       expect(screen.getByTestId('transactions-section')).toBeInTheDocument()
+    })
+
+    it('opens the exam payment dialog from "Pagar examen"', async () => {
+      mockAsClubAdmin()
+      renderWithProviders(<ClubPaymentDetail />)
+
+      await userEvent.click(screen.getByRole('button', { name: /pagar examen/i }))
+
+      expect(screen.getByTestId('exam-payment-modal')).toBeInTheDocument()
     })
   })
 

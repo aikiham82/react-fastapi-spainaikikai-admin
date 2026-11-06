@@ -1,4 +1,4 @@
-import { BadgeCheck, Building2, HeartPulse, IdCard, ShieldCheck, Tag, type LucideIcon } from 'lucide-react';
+import { BadgeCheck, Building2, GraduationCap, HeartPulse, IdCard, ShieldCheck, Tag, type LucideIcon } from 'lucide-react';
 
 const KEY_ICONS: Record<string, LucideIcon> = {
   club_fee: Building2,
@@ -8,4 +8,4 @@ const KEY_ICONS: Record<string, LucideIcon> = {
 };
 
 export const priceIconOf = (key: string, category?: string): LucideIcon =>
-  KEY_ICONS[key] ?? (category === 'license' ? IdCard : Tag);
+  KEY_ICONS[key] ?? (category === 'license' ? IdCard : category === 'exam' ? GraduationCap : Tag);

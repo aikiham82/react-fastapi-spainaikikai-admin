@@ -15,6 +15,7 @@ const PAYMENT_TYPES = {
   seminar: 'Seminario',
   accident_insurance: 'Seguro de accidentes',
   civil_liability_insurance: 'Seguro RC',
+  exam_fee: 'Tasa de examen',
 }
 
 export const getPaymentTypeLabel = (paymentType: string): string =>

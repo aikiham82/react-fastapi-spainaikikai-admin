@@ -1,7 +1,9 @@
+import { EXAM_KEYS } from '@/features/club-payments/data/schemas/exam-payment.schema';
+import { MEMBER_PAYMENT_TYPES } from '@/features/member-payments/data/schemas/member-payment.schema';
 export type TechnicalGrade = 'dan' | 'kyu';
 export type InstructorCategory = 'none' | 'fukushidoin' | 'shidoin';
 export type AgeCategory = 'infantil' | 'adulto';
-export type PriceCategory = 'license' | 'insurance' | 'club_fee' | 'seminar';
+export type PriceCategory = 'license' | 'insurance' | 'club_fee' | 'seminar' | 'exam';
 
 export interface PriceConfiguration {
   id: string;
@@ -56,6 +58,7 @@ export const PRICE_CATEGORY_LABELS: Record<PriceCategory, string> = {
   insurance: 'Seguro',
   club_fee: 'Cuota de club',
   seminar: 'Seminario',
+  exam: 'Examen',
 };
 
 // Labels in Spanish
@@ -107,6 +110,7 @@ export const PRICE_CONCEPTS: readonly PriceConcept[] = [
   { key: 'seguro_accidentes', label: 'Seguro de accidentes', category: 'insurance' },
   { key: 'seguro_rc', label: 'Seguro de responsabilidad civil', category: 'insurance' },
   { key: 'oficialidad_seminar', label: 'Oficialidad de seminario', category: 'seminar' },
+  ...EXAM_KEYS.map((key) => ({ key, label: MEMBER_PAYMENT_TYPES[key], category: 'exam' as const })),
 ];
 
 // Helper to get human-readable price description

@@ -22,6 +22,7 @@ from src.infrastructure.web.dependencies import (
     get_price_configuration_repository,
 )
 from src.infrastructure.web.dependencies import get_auth_context
+from src.domain.entities.member_payment import EXAM_ORDER
 from src.infrastructure.web.authorization import AuthContext, require_super_admin
 from src.domain.exceptions.price_configuration import (
     PriceConfigurationNotFoundError,
@@ -117,6 +118,16 @@ async def get_seminar_oficialidad_price(
             detail="Precio de oficialidad no configurado. Contacta con Spain Aikikai.",
         )
     return _to_response(price_config)
+
+
+@router.get("/exam-prices", response_model=List[PriceConfigurationResponse])
+async def get_exam_prices(
+    repository=Depends(get_price_configuration_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Active exam fee prices, in grade order. Accessible to all authenticated users."""
+    prices = [await repository.find_by_key(exam.value) for exam in EXAM_ORDER]
+    return [_to_response(p) for p in prices if p is not None and p.is_active]
 
 
 @router.get("/{price_id}", response_model=PriceConfigurationResponse)

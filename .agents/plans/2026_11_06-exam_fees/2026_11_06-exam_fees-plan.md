@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "high"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "high"
+
+last_implementation_at: "2026-11-06T20:30:00Z"
+has_completed_all_phases: false
 ---
 
 # Exam fees
@@ -48,14 +58,14 @@ Payment methods: card (22), transfer (15). Payers: super admin, club admin for a
 
 Super admin sets the seven exam prices; a super admin or club admin registers a paid exam (transfer, cash, other) for a member from the club's payments screen. The payment shows in the member's payment history and produces an invoice line with grade, date and venue.
 
-- [ ] Draw the «Pagar examen» dialog and the exam rows of the Precios screen in Claude Design (project "Spain Aikikai admin - rediseño"), on the shared data sheet, before writing UI code.
-- [ ] Domain: `PaymentType.EXAM_FEE = "exam_fee"` (label «Tasa de examen»); `MemberPaymentType` `examen_dan_1_hombu`, `examen_dan_1`, `examen_dan_2` … `examen_dan_6` with labels «Examen 1er Dan (con nº Hombu)», «Examen 1er Dan (sin nº Hombu)», «Examen 2º Dan» … «Examen 6º Dan»; `EXAM_ITEMS`; price category `exam` whose keys are the exam item types.
-- [ ] `RegisterManualExamPaymentUseCase.execute(member_id, exam, exam_date, venue, payer_name, payment_method)`: price from the `exam` configuration (missing price → error), a COMPLETED `Payment` of type `EXAM_FEE`, one `MemberPayment` line, an invoice line «Examen 2º Dan · 14/11/2026 · Madrid». No licence or insurance generated.
-- [ ] `GET /price-configurations/exam-prices` and `POST /payments/exam` (request: member_id, exam, exam_date, venue (1-200 chars), payer_name, payment_method cash|transfer|other). Super admin any member; club admin only members of their club (403 otherwise).
-- [ ] Test suites: `test_register_manual_exam_payment_use_case.py` (one case per exam item with its price, missing price refused, no licence created, invoice line text), `test_exam_payment_endpoints.py` (super admin, club admin own club, club admin other club 403, plain member 403, unknown exam 422, empty venue 422).
-- [ ] Frontend: exam concepts in `PRICE_CONCEPTS` and category «Examen»; labels in `payment-labels.ts`; `ExamPaymentModal` («Pagar examen»: «Miembro», «Grado al que se presenta», «Fecha del examen», «Lugar del examen», «Método de pago», «Registrar pago») opened from a «Pagar examen» button in `ClubPaymentDetail`; price shown with `formatCurrency`, payment blocked when the price is missing. Tests for the modal and the mutation.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Draw the «Pagar examen» dialog and the exam rows of the Precios screen in Claude Design (project "Spain Aikikai admin - rediseño"), on the shared data sheet, before writing UI code.
+- [x] Domain: `PaymentType.EXAM_FEE = "exam_fee"` (label «Tasa de examen»); `MemberPaymentType` `examen_dan_1_hombu`, `examen_dan_1`, `examen_dan_2` … `examen_dan_6` with labels «Examen 1er Dan (con nº Hombu)», «Examen 1er Dan (sin nº Hombu)», «Examen 2º Dan» … «Examen 6º Dan»; `EXAM_ITEMS`; price category `exam` whose keys are the exam item types.
+- [x] `RegisterManualExamPaymentUseCase.execute(member_id, exam, exam_date, venue, payer_name, payment_method)`: price from the `exam` configuration (missing price → error), a COMPLETED `Payment` of type `EXAM_FEE`, one `MemberPayment` line, an invoice line «Examen 2º Dan · 14/11/2026 · Madrid». No licence or insurance generated.
+- [x] `GET /price-configurations/exam-prices` and `POST /payments/exam` (request: member_id, exam, exam_date, venue (1-200 chars), payer_name, payment_method cash|transfer|other). Super admin any member; club admin only members of their club (403 otherwise).
+- [x] Test suites: `test_register_manual_exam_payment_use_case.py` (one case per exam item with its price, missing price refused, no licence created, invoice line text), `test_exam_payment_endpoints.py` (super admin, club admin own club, club admin other club 403, plain member 403, unknown exam 422, empty venue 422).
+- [x] Frontend: exam concepts in `PRICE_CONCEPTS` and category «Examen»; labels in `payment-labels.ts`; `ExamPaymentModal` («Pagar examen»: «Miembro», «Grado al que se presenta», «Fecha del examen», «Lugar del examen», «Método de pago», «Registrar pago») opened from a «Pagar examen» button in `ClubPaymentDetail`; price shown with `formatCurrency`, payment blocked when the price is missing. Tests for the modal and the mutation.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: card exam payment for admins
 
@@ -83,6 +93,6 @@ The card app gets a «Pagar examen» button: the member picks grade, date and ve
 
 ## Next step
 
-Implement Phase 1, starting with the Claude Design mockup of the «Pagar examen» dialog.
+Implement Phase 2: card exam payment for admins. Mockups: Claude Design project "Spain Aikikai · Tasas de examen", file `Pagar examen.dc.html` (option 1b chosen).
 
-Exams graded, fees collected, belts untouched: plan by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Exams graded, fees collected, belts untouched, the first receipt printed: 🧾 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

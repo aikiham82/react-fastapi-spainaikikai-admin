@@ -18,7 +18,7 @@ from src.domain.entities.member_payment import (
     MemberPaymentStatus,
     ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE,
 )
-from src.domain.entities.invoice import Invoice, InvoiceLineItem, InvoiceStatus
+from src.domain.entities.invoice import Invoice
 from src.domain.exceptions.payment import DuplicatePaymentForYearError, InvalidPaymentDataError
 from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
@@ -29,13 +29,12 @@ from src.application.ports.pdf_service import PDFServicePort
 from src.application.ports.license_repository import LicenseRepositoryPort
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
-from src.application.use_cases.invoice.invoice_customer import build_invoice_customer
+from src.application.use_cases.invoice.create_payment_invoice import create_payment_invoice
 from src.application.use_cases.payment.refuse_lines_already_paid import refuse_lines_already_paid
 from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
     GenerateLicensesAndInsuranceFromPaymentUseCase,
 )
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
-from src.config.settings import get_invoice_settings
 
 logger = logging.getLogger(__name__)
 
@@ -289,91 +288,6 @@ class RegisterManualPaymentUseCase:
         return config.price
 
     async def _create_invoice(self, payment: Payment) -> Optional[Invoice]:
-        """Create an invoice for the manual payment.
-
-        Mirrors ProcessRedsysWebhookUseCase._create_invoice but avoids
-        the pre-existing bug that passes non-existent kwargs (license_id, paid_date)
-        to the Invoice constructor.
-
-        Invoice entity fields used: invoice_number, payment_id, member_id, club_id,
-        customer_*, line_items, status, issue_date, payment_date, payment_method.
-        Totals (tax_total, total) are computed by invoice.calculate_totals().
-        """
-        if not self.invoice_repository:
-            return None
-
-        customer = await build_invoice_customer(payment, self.member_repository, self.club_repository)
-
-        invoice_year = payment.payment_year or datetime.utcnow().year
-        invoice_number = await self.invoice_repository.get_next_invoice_number(invoice_year)
-        invoice_settings = get_invoice_settings()
-
-        # Build line items from line_items_data JSON stored on the payment
-        line_items: List[InvoiceLineItem] = []
-        if payment.line_items_data:
-            try:
-                items_data = json.loads(payment.line_items_data)
-                for item in items_data:
-                    line_items.append(InvoiceLineItem(
-                        description=item.get("description", ""),
-                        quantity=item.get("quantity", 1),
-                        unit_price=item.get("unit_price", 0),
-                        tax_rate=invoice_settings.tax_rate * 100,  # convert fraction -> percentage
-                    ))
-            except (json.JSONDecodeError, KeyError):
-                line_items = [InvoiceLineItem(
-                    description=f"Pago manual - {payment.payment_year}",
-                    quantity=1,
-                    unit_price=payment.amount,
-                    tax_rate=invoice_settings.tax_rate * 100,
-                )]
-        else:
-            line_items = [InvoiceLineItem(
-                description=f"Pago manual - {payment.payment_year}",
-                quantity=1,
-                unit_price=payment.amount,
-                tax_rate=invoice_settings.tax_rate * 100,
-            )]
-
-        # Construct Invoice using only actual entity fields.
-        # Use club_id as member_id fallback: manual payments are at club level and have no member_id.
-        # Invoice.__post_init__ requires non-empty member_id; club_id is always set on execute().
-        invoice_member_id = payment.member_id or payment.club_id
-
-        invoice = Invoice(
-            invoice_number=invoice_number,
-            payment_id=payment.id,
-            member_id=invoice_member_id,
-            club_id=payment.club_id,
-            customer_name=customer.name,
-            customer_email=customer.email,
-            customer_address=customer.address,
-            customer_phone=customer.phone,
-            line_items=line_items,
-            status=InvoiceStatus.ISSUED,
-            issue_date=datetime.utcnow(),
-            payment_date=payment.payment_date or datetime.utcnow(),
-            payment_method=payment.payment_method.value,
+        return await create_payment_invoice(
+            payment, self.invoice_repository, self.member_repository, self.club_repository, self.pdf_service
         )
-        # Populate tax_total and total fields from line items
-        invoice.calculate_totals()
-
-        if self.pdf_service:
-            try:
-                pdf_path = await self.pdf_service.save_invoice_pdf(
-                    invoice=invoice,
-                    output_dir=invoice_settings.output_dir,
-                    company_name=invoice_settings.company_name,
-                    company_address=invoice_settings.company_address,
-                    company_tax_id=invoice_settings.company_tax_id,
-                    logo_path=invoice_settings.logo_path if invoice_settings.logo_path else None,
-                )
-                invoice.pdf_path = pdf_path
-            except Exception:
-                logger.warning(
-                    "PDF generation failed for invoice %s",
-                    invoice.invoice_number,
-                    exc_info=True,
-                )
-
-        return await self.invoice_repository.create(invoice)
