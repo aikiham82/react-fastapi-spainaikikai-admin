@@ -76,6 +76,37 @@ describe('ExamPaymentModal', () => {
     expect(screen.getByText('Pagar el examen no cambia el grado del miembro.')).toBeInTheDocument()
   })
 
+  it('pays the own exam of a member by card, without choosing a member or registering by hand', async () => {
+    renderWithProviders(
+      <ExamPaymentModal
+        isOpen
+        onClose={vi.fn()}
+        clubName="Lucía Prueba"
+        members={[]}
+        isLoadingMembers={false}
+        forMember={{ id: 'm-dan', name: 'Lucía Prueba', grade: '1st Dan' }}
+      />
+    )
+
+    expect(screen.queryByLabelText('Buscar miembro')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cambiar' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Registrar pago' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Método de pago' })).not.toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /2\.º Dan/ })).toBeChecked()
+
+    fireEvent.change(screen.getByLabelText('Fecha del examen'), { target: { value: '2026-11-14' } })
+    await user.type(screen.getByLabelText('Lugar del examen'), 'Madrid')
+    await user.click(screen.getByRole('button', { name: 'Pagar con tarjeta' }))
+
+    expect(mockPayExamByCard).toHaveBeenCalledWith({
+      member_id: 'm-dan',
+      exam: 'examen_dan_2',
+      exam_date: '2026-11-14',
+      venue: 'Madrid',
+      payer_name: 'Lucía Prueba',
+    })
+  })
+
   it('opens with its title and the club name', () => {
     renderModal()
 

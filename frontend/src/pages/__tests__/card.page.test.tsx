@@ -20,12 +20,40 @@ vi.mock('@/features/auth/hooks/useAuthContext', () => ({
 
 vi.mock('@/features/auth/components/InstallAppButton', () => ({ InstallAppButton: () => null }));
 
+vi.mock('@/features/club-payments/components/ExamPaymentModal', () => ({
+  ExamPaymentModal: ({ isOpen, forMember }: { isOpen: boolean; forMember?: { id: string } }) =>
+    isOpen ? <div role="dialog" data-testid="own-exam">{forMember?.id}</div> : null,
+}));
+
 const licensesQuery = vi.fn();
 
 vi.mock('@/features/licenses/hooks/queries/useLicenseQueries', () => ({
   useMemberLicensesQuery: () => licensesQuery(),
   useLicenseImageQuery: () => ({ data: undefined, isLoading: true, isError: false, refetch: vi.fn() }),
 }));
+
+describe('CardPage exam payment', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.assign(authContext, { currentUser: { member_id: 'member-1' }, userLoadFailed: false, userRole: null });
+    licensesQuery.mockReturnValue({ data: [], isLoading: false, refetch: vi.fn() });
+  });
+
+  it('lets a member pay their own exam from the card', async () => {
+    renderWithProviders(<CardPage />);
+
+    await userEvent.click(screen.getByRole('button', { name: /Pagar examen/ }));
+
+    expect(screen.getByTestId('own-exam')).toHaveTextContent('member-1');
+  });
+
+  it('offers no exam payment to an account without a member', () => {
+    Object.assign(authContext, { currentUser: { member_id: undefined } });
+    renderWithProviders(<CardPage />);
+
+    expect(screen.queryByRole('button', { name: /Pagar examen/ })).not.toBeInTheDocument();
+  });
+});
 
 describe('CardPage', () => {
   beforeEach(() => {

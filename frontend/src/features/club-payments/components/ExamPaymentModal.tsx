@@ -20,7 +20,7 @@ import { OFFLINE_PAYMENT_METHODS, PAYMENT_METHOD_LABELS, type OfflinePaymentMeth
 import { useExamPricesQuery } from '../hooks/queries/useExamPricesQuery'
 import { useInitiateExamPaymentMutation, useRegisterManualExamPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
 
-interface ExamMember {
+export interface ExamMember {
   id: string
   name: string
   grade: string | null
@@ -32,6 +32,7 @@ interface ExamPaymentModalProps {
   clubName: string
   members: ExamMember[]
   isLoadingMembers: boolean
+  forMember?: ExamMember
 }
 
 const radioTile = (checked: boolean) =>
@@ -40,7 +41,8 @@ const radioTile = (checked: boolean) =>
     checked ? 'bg-primary-soft text-primary ring-primary' : 'bg-card text-foreground ring-border hover:bg-muted/40'
   )
 
-export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoadingMembers }: ExamPaymentModalProps) {
+export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoadingMembers, forMember }: ExamPaymentModalProps) {
+  const ownExam = forMember !== undefined
   const [search, setSearch] = useState('')
   const [member, setMember] = useState<ExamMember | null>(null)
   const [exam, setExam] = useState<ExamKey | null>(null)
@@ -61,14 +63,14 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
   useEffect(() => {
     if (isOpen) {
       setSearch('')
-      setMember(null)
-      setExam(null)
+      setMember(forMember ?? null)
+      setExam(forMember ? nextExamOf(forMember.grade) : null)
       setExamDate('')
       setVenue('')
       setMethod('transfer')
       setErrors({})
     }
-  }, [isOpen])
+  }, [isOpen, forMember])
 
   const found = members.filter((m) => foldForSearch(m.name).includes(foldForSearch(search)))
 
@@ -119,9 +121,11 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
               <p className="min-w-0 flex-1 basis-40 text-sm font-medium text-foreground">{member.name}</p>
               <div className="ml-auto flex items-center gap-2">
                 <BeltBadge grade={member.grade} />
-                <Button type="button" variant="ghost" size="sm" onClick={() => setMember(null)}>
-                  Cambiar
-                </Button>
+                {!ownExam && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setMember(null)}>
+                    Cambiar
+                  </Button>
+                )}
               </div>
             </div>
           ) : (
@@ -223,6 +227,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
                 </div>
               </div>
 
+              {!ownExam && (
               <fieldset className="grid min-w-0 gap-1.5">
                 <legend className="mb-1.5 text-sm font-medium">Si ya está pagado, ¿cómo?</legend>
                 <div role="radiogroup" aria-label="Método de pago" className="flex gap-1 rounded-xl bg-muted p-1">
@@ -243,14 +248,17 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
                   ))}
                 </div>
               </fieldset>
+              )}
               <p className="text-xs text-muted-foreground">Pagar el examen no cambia el grado del miembro.</p>
             </>
           )}
 
           <DialogFooter className="pt-2 sm:items-center">
-            <Button type="submit" variant="outline" disabled={isLoading || !member || priceMissing || pricesFailed}>
-              {isRegistering ? 'Registrando...' : 'Registrar pago'}
-            </Button>
+            {!ownExam && (
+              <Button type="submit" variant="outline" disabled={isLoading || !member || priceMissing || pricesFailed}>
+                {isRegistering ? 'Registrando...' : 'Registrar pago'}
+              </Button>
+            )}
             <Button type="button" onClick={handlePayByCard} disabled={isLoading || !member || priceMissing || pricesFailed}>
               {isGoingToBank ? 'Abriendo el banco...' : 'Pagar con tarjeta'}
             </Button>
