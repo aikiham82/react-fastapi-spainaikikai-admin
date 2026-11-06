@@ -51,6 +51,11 @@ class PaymentRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_unfinished_exams(self, member_id: str, since: datetime) -> List[Payment]:
+        """Find a member's exam payments started since a moment and not finished yet."""
+        pass
+
+    @abstractmethod
     async def find_by_date_range(
         self,
         start_date: Optional[str],

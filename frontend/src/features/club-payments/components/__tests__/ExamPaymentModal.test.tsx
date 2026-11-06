@@ -4,6 +4,7 @@ import { renderWithProviders, userEvent } from '@/test-utils'
 import { ExamPaymentModal } from '../ExamPaymentModal'
 
 const mockRegisterExamPayment = vi.fn()
+const mockPayExamByCard = vi.fn()
 let mockPrices: { key: string; price: number }[] = []
 
 vi.mock('../../hooks/queries/useExamPricesQuery', () => ({
@@ -15,6 +16,10 @@ vi.mock('../../hooks/mutations/usePaymentAdminMutations', () => ({
     registerExamPayment: mockRegisterExamPayment,
     isLoading: false,
     isSuccess: false,
+  }),
+  useInitiateExamPaymentMutation: () => ({
+    payExamByCard: mockPayExamByCard,
+    isLoading: false,
   }),
 }))
 
@@ -97,6 +102,33 @@ describe('ExamPaymentModal', () => {
     })
   })
 
+  it('pays the exam by card without a manual method', async () => {
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Lucía Prueba/ }))
+    fireEvent.change(screen.getByLabelText('Fecha del examen'), { target: { value: '2026-11-14' } })
+    await user.type(screen.getByLabelText('Lugar del examen'), 'Madrid')
+    await user.click(screen.getByRole('button', { name: 'Pagar con tarjeta' }))
+
+    expect(mockPayExamByCard).toHaveBeenCalledWith({
+      member_id: 'm-dan',
+      exam: 'examen_dan_2',
+      exam_date: '2026-11-14',
+      venue: 'Madrid',
+      payer_name: 'Club Prueba',
+    })
+    expect(mockRegisterExamPayment).not.toHaveBeenCalled()
+  })
+
+  it('does not go to the bank without the exam date', async () => {
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Lucía Prueba/ }))
+    await user.type(screen.getByLabelText('Lugar del examen'), 'Madrid')
+    await user.click(screen.getByRole('button', { name: 'Pagar con tarjeta' }))
+
+    expect(screen.getByText('Indica la fecha del examen')).toBeInTheDocument()
+    expect(mockPayExamByCard).not.toHaveBeenCalled()
+  })
+
   it('asks for the venue instead of sending an empty one', async () => {
     renderModal()
     await user.click(screen.getByRole('button', { name: /Lucía Prueba/ }))
@@ -114,6 +146,7 @@ describe('ExamPaymentModal', () => {
 
     expect(screen.getByText('Este examen no tiene precio. Avisa a Spain Aikikai.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Registrar pago' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Pagar con tarjeta' })).toBeDisabled()
   })
 
   it('lets the member be changed after choosing one', async () => {

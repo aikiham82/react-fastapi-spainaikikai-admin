@@ -1,3 +1,4 @@
+import { submitRedsysForm } from '@/core/utils/redsys';
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { paymentAdminService } from '../../data/services/payment-admin.service';
@@ -56,6 +57,21 @@ export const useRegisterManualExamPaymentMutation = () => {
     registerExamPayment: mutation.mutate,
     isLoading: mutation.isPending,
     isSuccess: mutation.isSuccess,
+  };
+};
+
+export const useInitiateExamPaymentMutation = () => {
+  const mutation = useMutation({
+    mutationFn: paymentAdminService.initiateExamPayment,
+    onSuccess: submitRedsysForm,
+    onError: (error: { detail?: string; message?: string }) => {
+      toast.error(error.detail || 'No se pudo iniciar el pago con tarjeta');
+    },
+  });
+
+  return {
+    payExamByCard: mutation.mutate,
+    isLoading: mutation.isPending,
   };
 };
 

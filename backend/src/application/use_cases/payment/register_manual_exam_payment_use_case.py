@@ -92,6 +92,19 @@ def exam_payment(charge: ExamCharge, exam_date: date, payer_name: str, payment_m
     )
 
 
+def exam_line(payment: Payment) -> MemberPayment:
+    [item] = json.loads(payment.line_items_data)
+    return MemberPayment(
+        payment_id=payment.id,
+        member_id=payment.member_id,
+        payment_year=payment.payment_year,
+        payment_type=MemberPaymentType(item["item_type"]),
+        concept=item["description"],
+        amount=item["unit_price"],
+        status=MemberPaymentStatus.COMPLETED,
+    )
+
+
 @dataclass
 class RegisterManualExamPaymentResult:
     payment: Payment
@@ -136,17 +149,7 @@ class RegisterManualExamPaymentUseCase:
         payment.payment_date = datetime.utcnow()
         payment = await self.payment_repository.create(payment)
 
-        [line] = await self.member_payment_repository.create_bulk([
-            MemberPayment(
-                payment_id=payment.id,
-                member_id=charge.member.id,
-                payment_year=exam_date.year,
-                payment_type=charge.exam,
-                concept=charge.description,
-                amount=charge.price,
-                status=MemberPaymentStatus.COMPLETED,
-            )
-        ])
+        [line] = await self.member_payment_repository.create_bulk([exam_line(payment)])
 
         invoice = None
         try:

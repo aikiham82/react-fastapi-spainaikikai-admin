@@ -35,12 +35,17 @@ export const examPriceSchema = z.object({
 
 export type ExamPrice = z.infer<typeof examPriceSchema>;
 
-export const manualExamPaymentSchema = z.object({
+export const examPaymentSchema = z.object({
   member_id: z.string().min(1, 'Elige un miembro'),
   exam: z.enum(EXAM_KEYS, { message: 'Elige el grado al que se presenta' }),
   exam_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Indica la fecha del examen'),
   venue: z.string().trim().min(1, 'Indica el lugar del examen').max(200, 'Máximo 200 caracteres'),
   payer_name: z.string().trim().min(1, 'Indica quién paga').max(200, 'Máximo 200 caracteres'),
+});
+
+export type ExamPaymentFormData = z.infer<typeof examPaymentSchema>;
+
+export const manualExamPaymentSchema = examPaymentSchema.extend({
   payment_method: z.enum(['cash', 'transfer', 'other']),
 });
 

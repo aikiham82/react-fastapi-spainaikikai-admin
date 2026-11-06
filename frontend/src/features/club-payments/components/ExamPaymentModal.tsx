@@ -12,13 +12,13 @@ import {
   EXAM_GRADE_NOTES,
   EXAM_KEYS,
   examGradeNumber,
-  manualExamPaymentSchema,
+  examPaymentSchema,
   nextExamOf,
   type ExamKey,
 } from '../data/schemas/exam-payment.schema'
 import { PAYMENT_METHOD_LABELS, type OfflinePaymentMethod } from '../data/schemas/payment-admin.schema'
 import { useExamPricesQuery } from '../hooks/queries/useExamPricesQuery'
-import { useRegisterManualExamPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
+import { useInitiateExamPaymentMutation, useRegisterManualExamPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
 
 interface ExamMember {
   id: string
@@ -52,7 +52,9 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { data: prices = [] } = useExamPricesQuery(isOpen)
-  const { registerExamPayment, isLoading, isSuccess } = useRegisterManualExamPaymentMutation()
+  const { registerExamPayment, isLoading: isRegistering, isSuccess } = useRegisterManualExamPaymentMutation()
+  const { payExamByCard, isLoading: isGoingToBank } = useInitiateExamPaymentMutation()
+  const isLoading = isRegistering || isGoingToBank
 
   const priceOf = useMemo(() => new Map(prices.map((p) => [p.key, p.price])), [prices])
   const price = exam ? priceOf.get(exam) : undefined
@@ -81,22 +83,31 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
     setExam(nextExamOf(chosen.grade))
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault()
-    const result = manualExamPaymentSchema.safeParse({
+  const validExam = () => {
+    const result = examPaymentSchema.safeParse({
       member_id: member?.id ?? '',
       exam: exam ?? undefined,
       exam_date: examDate,
       venue,
       payer_name: clubName,
-      payment_method: method,
     })
     if (!result.success) {
       setErrors(Object.fromEntries(result.error.issues.map((issue) => [String(issue.path[0]), issue.message])))
-      return
+      return null
     }
     setErrors({})
-    registerExamPayment(result.data)
+    return result.data
+  }
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    const data = validExam()
+    if (data) registerExamPayment({ ...data, payment_method: method })
+  }
+
+  const handlePayByCard = () => {
+    const data = validExam()
+    if (data) payExamByCard(data)
   }
 
   return (
@@ -197,7 +208,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
               </div>
 
               <fieldset className="grid gap-1.5">
-                <legend className="mb-1.5 text-sm font-medium">Método de pago</legend>
+                <legend className="mb-1.5 text-sm font-medium">Si ya está pagado, ¿cómo?</legend>
                 <div role="radiogroup" aria-label="Método de pago" className="flex gap-1 rounded-xl bg-muted p-1">
                   {OFFLINE_METHODS.map((option) => (
                     <button
@@ -220,11 +231,11 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
           )}
 
           <DialogFooter className="pt-2 sm:items-center">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-              Cancelar
+            <Button type="submit" variant="outline" disabled={isLoading || !member || priceMissing}>
+              {isRegistering ? 'Registrando...' : 'Registrar pago'}
             </Button>
-            <Button type="submit" disabled={isLoading || !member || priceMissing}>
-              {isLoading ? 'Registrando...' : 'Registrar pago'}
+            <Button type="button" onClick={handlePayByCard} disabled={isLoading || !member || priceMissing}>
+              {isGoingToBank ? 'Abriendo el banco...' : 'Pagar con tarjeta'}
             </Button>
             <p className="text-[15px] text-foreground sm:order-first sm:mr-auto">
               Total: <span className="text-lg font-semibold tabular-nums">{formatCurrency(price ?? 0)}</span>

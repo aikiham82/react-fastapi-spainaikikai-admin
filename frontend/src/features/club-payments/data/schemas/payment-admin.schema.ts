@@ -15,7 +15,7 @@ export const OFFLINE_PAYMENT_METHODS = ['transfer', 'cash', 'other'] as const;
 export type OfflinePaymentMethod = (typeof OFFLINE_PAYMENT_METHODS)[number];
 
 export const UNFINISHED_PAYMENT_STATUSES: readonly string[] = ['pending', 'processing'];
-export const CONFIRMABLE_PAYMENT_TYPES: readonly string[] = ['annual_quota', 'seminar_oficialidad'];
+export const CONFIRMABLE_PAYMENT_TYPES: readonly string[] = ['annual_quota', 'seminar_oficialidad', 'exam_fee'];
 
 // ─── Payment (transaction header) ─────────────────────────────────
 export const paymentSchema = z.object({

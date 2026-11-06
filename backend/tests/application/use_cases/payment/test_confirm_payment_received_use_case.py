@@ -110,6 +110,27 @@ async def test_a_confirmed_oficialidad_makes_the_seminar_official(use_case, repo
 
 @pytest.mark.unit
 @pytest.mark.asyncio
+async def test_a_confirmed_card_exam_gets_its_exam_line(use_case, repos):
+    repos["payment"].find_by_id = AsyncMock(return_value=Payment(
+        id="pay3", member_id="m1", club_id="club1", payment_type=PaymentType.EXAM_FEE,
+        amount=175.0, status=PaymentStatus.PROCESSING, payment_year=2026,
+        line_items_data=json.dumps([{
+            "item_type": "examen_dan_2", "description": "Examen 2.º Dan · 14/11/2026 · Madrid",
+            "quantity": 1, "unit_price": 175.0, "total": 175.0,
+        }]),
+        member_assignments=json.dumps([{"member_id": "m1", "member_name": "Ana Example", "payment_types": ["examen_dan_2"]}]),
+    ))
+
+    completed = await use_case.execute(payment_id="pay3", payment_method="transfer")
+
+    assert completed.payment.status == PaymentStatus.COMPLETED
+    [line] = repos["member_payment"].create_bulk.call_args[0][0]
+    assert (line.member_id, line.payment_type.value, line.amount) == ("m1", "examen_dan_2", 175.0)
+    repos["license"].create.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
 async def test_a_completed_payment_cannot_be_confirmed_again(use_case, repos):
     repos["payment"].find_by_id = AsyncMock(return_value=unfinished_annual_payment(PaymentStatus.COMPLETED))
 

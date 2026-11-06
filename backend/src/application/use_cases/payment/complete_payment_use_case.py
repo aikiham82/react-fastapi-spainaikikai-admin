@@ -29,6 +29,7 @@ from src.application.ports.seminar_repository import SeminarRepositoryPort
 from src.application.ports.club_repository import ClubRepositoryPort
 from src.application.use_cases.invoice.invoice_customer import InvoiceCustomer, build_invoice_customer
 from src.application.use_cases.payment.initiate_annual_payment_use_case import PAYMENT_TYPE_TO_PRICE_KEY
+from src.application.use_cases.payment.register_manual_exam_payment_use_case import exam_line
 from src.application.use_cases.payment.generate_licenses_and_insurance_from_payment_use_case import (
     GenerateLicensesAndInsuranceFromPaymentUseCase,
 )
@@ -99,8 +100,10 @@ class CompletePaymentUseCase:
                     payment.id,
                 )
 
-        # Create member payment records if assignments exist
-        if self.member_payment_repository and payment.member_assignments:
+        if payment.payment_type == PaymentType.EXAM_FEE:
+            if self.member_payment_repository:
+                await self.member_payment_repository.create_bulk([exam_line(payment)])
+        elif self.member_payment_repository and payment.member_assignments:
             paid_at = datetime.utcnow()
             member_payments = await self._create_member_payments(payment, paid_at)
 

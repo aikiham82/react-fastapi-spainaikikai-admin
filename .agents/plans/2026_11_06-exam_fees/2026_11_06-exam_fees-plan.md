@@ -17,7 +17,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-11-06T20:30:00Z"
+last_implementation_at: "2026-11-06T21:30:00Z"
 has_completed_all_phases: false
 ---
 
@@ -71,13 +71,13 @@ Super admin sets the seven exam prices; a super admin or club admin registers a 
 
 The same dialog offers «Pagar con tarjeta», which redirects to Redsys; the bank's confirmation completes the payment through the single fulfilment path.
 
-- [ ] `InitiateExamPaymentUseCase.execute(member_id, exam, exam_date, venue, payer_name)`: PENDING `EXAM_FEE` payment with one line, refused while another exam payment for the same member and exam is in flight (`IN_FLIGHT_MINUTES`), returns the Redsys form data.
-- [ ] `POST /payments/exam/initiate` with the same access rules as phase 1.
-- [ ] `CompletePaymentUseCase` fulfils `EXAM_FEE`: the `MemberPayment` line, the invoice and the confirmation email; nothing else.
-- [ ] Test suites: `test_initiate_exam_payment_use_case.py` (happy path, in-flight refusal, another exam for the same member allowed, missing price refused), completion of an exam payment in `test_complete_payment_invoice.py`, endpoint access cases.
-- [ ] Frontend: «Pagar con tarjeta» in `ExamPaymentModal` using the hidden Redsys form pattern of the seminar oficialidad. Tests.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `InitiateExamPaymentUseCase.execute(member_id, exam, exam_date, venue, payer_name)`: PENDING `EXAM_FEE` payment with one line, refused while another exam payment for the same member and exam is in flight (`IN_FLIGHT_MINUTES`), returns the Redsys form data.
+- [x] `POST /payments/exam/initiate` with the same access rules as phase 1.
+- [x] `CompletePaymentUseCase` fulfils `EXAM_FEE`: the `MemberPayment` line, the invoice and the confirmation email; nothing else.
+- [x] Test suites: `test_initiate_exam_payment_use_case.py` (happy path, in-flight refusal, another exam for the same member allowed, missing price refused), completion of an exam payment in `test_complete_payment_invoice.py`, endpoint access cases.
+- [x] Frontend: «Pagar con tarjeta» in `ExamPaymentModal` using the hidden Redsys form pattern of the seminar oficialidad. Tests.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: a member pays their own exam from the card app
 
@@ -93,6 +93,6 @@ The card app gets a «Pagar examen» button: the member picks grade, date and ve
 
 ## Next step
 
-Implement Phase 2: card exam payment for admins. Mockups: Claude Design project "Spain Aikikai · Tasas de examen", file `Pagar examen.dc.html` (option 1b chosen).
+Implement Phase 3: a member pays their own exam from the card app. Mockups: Claude Design project "Spain Aikikai · Tasas de examen", file `Pagar examen.dc.html` (option 1b chosen).
 
-Exams graded, fees collected, belts untouched, the first receipt printed: 🧾 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Exams graded, fees collected, belts untouched, the first receipt printed, the card swiped: 🧾 💳 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).

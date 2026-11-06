@@ -1,6 +1,7 @@
 import { apiClient } from '@/core/data/apiClient';
 import type { OfflinePaymentMethod, Payment } from '../schemas/payment-admin.schema';
-import type { ExamPrice, ManualExamPaymentFormData } from '../schemas/exam-payment.schema';
+import type { ExamPaymentFormData, ExamPrice, ManualExamPaymentFormData } from '../schemas/exam-payment.schema';
+import type { RedsysForm } from '@/core/utils/redsys';
 import type { MemberPayment } from '@/features/member-payments/data/schemas/member-payment.schema';
 
 const PAYMENTS_URL = '/api/v1/payments';
@@ -23,6 +24,11 @@ export const registerManualPayment = async (
 // POST /api/v1/payments/exam
 export const registerManualExamPayment = async (data: ManualExamPaymentFormData): Promise<{ payment: Payment }> => {
   return await apiClient.post<{ payment: Payment }>(`${PAYMENTS_URL}/exam`, data);
+};
+
+// POST /api/v1/payments/exam/initiate
+export const initiateExamPayment = async (data: ExamPaymentFormData): Promise<RedsysForm> => {
+  return await apiClient.post<RedsysForm>(`${PAYMENTS_URL}/exam/initiate`, data);
 };
 
 // GET /api/v1/price-configurations/exam-prices
@@ -79,6 +85,7 @@ export const deleteMemberPayment = async (id: string): Promise<void> => {
 export const paymentAdminService = {
   registerManualPayment,
   registerManualExamPayment,
+  initiateExamPayment,
   getExamPrices,
   deletePayment,
   getClubPayments,

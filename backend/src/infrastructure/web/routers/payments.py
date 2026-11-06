@@ -54,6 +54,7 @@ from src.application.use_cases.payment.refuse_licences_that_do_not_fit import re
 from src.domain.exceptions.payment import (
     DuplicatePaymentForYearError,
     PaymentAlreadyCompletedError,
+    PaymentAlreadyExistsError,
     PaymentNotFoundError,
     InvalidPaymentStatusError,
     InvalidPaymentDataError,
@@ -64,8 +65,9 @@ from src.infrastructure.web.dto.manual_payment_dto import (
     ManualPaymentResponse,
     ConfirmPaymentRequest,
 )
-from src.infrastructure.web.dto.exam_payment_dto import ManualExamPaymentRequest, ManualExamPaymentResponse
+from src.infrastructure.web.dto.exam_payment_dto import ExamPaymentRequest, ManualExamPaymentRequest, ManualExamPaymentResponse
 from src.infrastructure.web.dependencies import (
+    get_initiate_exam_payment_use_case,
     get_register_manual_exam_payment_use_case,
     get_register_manual_payment_use_case,
     get_confirm_payment_received_use_case,
@@ -438,6 +440,41 @@ async def register_manual_payment(
         payment=PaymentMapper.to_response_dto(result.payment),
         member_payment_count=len(result.member_payments),
         invoice_number=result.invoice.invoice_number if result.invoice else None,
+    )
+
+
+@router.post("/exam/initiate", response_model=InitiatePaymentResponse)
+async def initiate_exam_payment(
+    request: ExamPaymentRequest,
+    use_case=Depends(get_initiate_exam_payment_use_case),
+    member_repository=Depends(get_member_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """Start a card payment for an exam. Super admin, or the admin of the member's club."""
+    await require_member_access(ctx, request.member_id, member_repository)
+    app_settings = get_app_settings()
+    try:
+        result = await use_case.execute(
+            member_id=request.member_id,
+            exam=request.exam,
+            exam_date=request.exam_date,
+            venue=request.venue,
+            payer_name=request.payer_name,
+            success_url=f"{app_settings.frontend_base_url}/payment/success",
+            failure_url=f"{app_settings.frontend_base_url}/payment/failure",
+            webhook_url=f"{app_settings.backend_base_url}/api/v1/payments/webhook",
+        )
+    except PaymentAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except InvalidPaymentDataError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return InitiatePaymentResponse(
+        payment_id=result.payment_id,
+        order_id=result.order_id,
+        payment_url=result.form_data.payment_url,
+        ds_signature_version=result.form_data.ds_signature_version,
+        ds_merchant_parameters=result.form_data.ds_merchant_parameters,
+        ds_signature=result.form_data.ds_signature,
     )
 
 

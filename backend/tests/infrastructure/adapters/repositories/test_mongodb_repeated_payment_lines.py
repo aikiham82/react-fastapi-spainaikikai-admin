@@ -98,3 +98,28 @@ async def test_unfinished_annual_payments_are_looked_up_by_club_type_status_and_
         "status": {"$in": ["pending", "processing"]},
         "created_at": {"$gte": since},
     }
+
+
+async def test_unfinished_exam_payments_are_looked_up_by_member_type_status_and_date():
+    captured = {}
+
+    def find(query):
+        captured.update(query)
+        cursor = MagicMock()
+        cursor.__aiter__.return_value = iter(())
+        return cursor
+
+    collection = MagicMock()
+    collection.find.side_effect = find
+    with patch.object(payments_module, "get_database", return_value={"transactions": collection}):
+        repository = payments_module.MongoDBPaymentRepository()
+    since = datetime(2026, 11, 6, 11, 40)
+
+    assert await repository.find_unfinished_exams("member-1", since) == []
+
+    assert captured == {
+        "member_id": "member-1",
+        "payment_type": "exam_fee",
+        "status": {"$in": ["pending", "processing"]},
+        "created_at": {"$gte": since},
+    }

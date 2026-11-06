@@ -10,11 +10,13 @@ from fastapi.testclient import TestClient
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
 from src.domain.entities.price_configuration import PriceConfiguration
-from src.domain.exceptions.payment import InvalidPaymentDataError
+from src.application.ports.redsys_service import RedsysPaymentFormData
+from src.domain.exceptions.payment import InvalidPaymentDataError, PaymentAlreadyExistsError
 from src.infrastructure.web.dependencies import (
     get_auth_context,
     get_member_repository,
     get_price_configuration_repository,
+    get_initiate_exam_payment_use_case,
     get_register_manual_exam_payment_use_case,
 )
 from src.infrastructure.web.routers.payments import router as payments_router
@@ -44,7 +46,16 @@ def exam_use_case():
 
 
 @pytest.fixture
-def client_as(exam_use_case):
+def card_use_case():
+    form = RedsysPaymentFormData(
+        payment_url="https://bank.example.com/pay", ds_signature_version="HMAC_SHA256_V1",
+        ds_merchant_parameters="params", ds_signature="sig",
+    )
+    return AsyncMock(**{"execute.return_value": SimpleNamespace(payment_id="pay-card", order_id="000123", form_data=form)})
+
+
+@pytest.fixture
+def client_as(exam_use_case, card_use_case):
     def build(ctx) -> TestClient:
         app = FastAPI()
         app.include_router(payments_router, prefix="/api/v1")
@@ -53,6 +64,7 @@ def client_as(exam_use_case):
             get_auth_context: lambda: ctx,
             get_member_repository: lambda: MembersByClub(),
             get_register_manual_exam_payment_use_case: lambda: exam_use_case,
+            get_initiate_exam_payment_use_case: lambda: card_use_case,
             get_price_configuration_repository: lambda: SimpleNamespace(find_by_key=AsyncMock(side_effect=PRICES.get)),
         }
         return TestClient(app)
@@ -127,3 +139,33 @@ def test_exam_prices_lists_only_the_active_configured_exams(client_as):
 
     assert response.status_code == 200
     assert [(p["key"], p["price"]) for p in response.json()] == [("examen_dan_2", 175)]
+
+
+def card_body(member_id: str = OWN_MEMBER) -> dict:
+    return {k: v for k, v in body(member_id).items() if k != "payment_method"}
+
+
+def test_club_admin_starts_a_card_payment_for_a_member_of_their_club(client_as, card_use_case):
+    response = client_as(club_admin()).post("/api/v1/payments/exam/initiate", json=card_body())
+
+    assert response.status_code == 200
+    assert response.json()["ds_signature"] == "sig"
+    assert response.json()["payment_url"] == "https://bank.example.com/pay"
+    kwargs = card_use_case.execute.await_args.kwargs
+    assert kwargs["member_id"] == OWN_MEMBER
+    assert kwargs["webhook_url"].endswith("/api/v1/payments/webhook")
+
+
+def test_club_admin_cannot_start_a_card_payment_for_another_clubs_member(client_as, card_use_case):
+    response = client_as(club_admin()).post("/api/v1/payments/exam/initiate", json=card_body(FOREIGN_MEMBER))
+
+    assert response.status_code == 403
+    card_use_case.execute.assert_not_awaited()
+
+
+def test_a_card_exam_already_in_flight_answers_409(client_as, card_use_case):
+    card_use_case.execute.side_effect = PaymentAlreadyExistsError("Ya hay un pago con tarjeta en curso para este examen.")
+
+    response = client_as(super_admin()).post("/api/v1/payments/exam/initiate", json=card_body())
+
+    assert response.status_code == 409
