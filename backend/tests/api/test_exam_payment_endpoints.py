@@ -301,7 +301,7 @@ def test_a_manager_comes_back_from_the_bank_to_the_panel_exam_page(client_as, ca
     assert kwargs["success_url"].endswith("/payment/success?concept=exam")
 
 
-@pytest.mark.parametrize("result,text", [("ok", "Ya puedes volver a la app"), ("ko", "No se ha cobrado nada")])
+@pytest.mark.parametrize("result,text", [("ok", "Ya puedes volver a tu carné"), ("ko", "No se ha cobrado nada")])
 def test_the_return_page_tells_the_member_what_happened(client_as, result, text):
     response = TestClient(client_as(super_admin()).app).get(f"/api/v1/payments/exam/return?result={result}")
 

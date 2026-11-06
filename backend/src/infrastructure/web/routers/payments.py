@@ -343,7 +343,7 @@ async def initiate_annual_payment(
 async def return_from_exam_payment(result: str = ""):
     """Public page the bank sends a member back to after paying an exam from the card app."""
     if result == "ok":
-        return HTMLResponse(message_page("Pago completado. Ya puedes volver a la app."), headers=PAGE_HEADERS)
+        return HTMLResponse(message_page("Pago completado. Ya puedes volver a tu carné."), headers=PAGE_HEADERS)
     return HTMLResponse(message_page("El pago no se ha completado. No se ha cobrado nada."), headers=PAGE_HEADERS)
 
 

@@ -1,10 +1,13 @@
-import { Loader2, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { GraduationCap, Loader2, LogOut } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { InstallAppButton } from '@/features/auth/components/InstallAppButton';
 import { useAuthContext } from '@/features/auth/hooks/useAuthContext';
 import { CardMessage, MemberCard } from '@/features/licenses/components/MemberCard';
 import { useMemberLicensesQuery } from '@/features/licenses/hooks/queries/useLicenseQueries';
+import { cardGrade } from '@/features/licenses/utils/cardLicence';
+import { ExamPaymentModal } from '@/features/club-payments/components/ExamPaymentModal';
 
 const Loading = () => (
   <div className="flex justify-center py-16">
@@ -18,7 +21,33 @@ const LoadFailed = ({ onRetry }: { onRetry: () => void }) => (
   </CardMessage>
 );
 
-const CardContent = ({ memberId }: { memberId: string | undefined }) => {
+interface OwnExamProps {
+  memberId: string;
+  name: string;
+  grade: string | null;
+}
+
+const OwnExamPayment = ({ memberId, name, grade }: OwnExamProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <>
+      <Button variant="outline" size="lg" className="w-full gap-2" onClick={() => setIsOpen(true)}>
+        <GraduationCap className="size-4" aria-hidden="true" />
+        Pagar examen
+      </Button>
+      <ExamPaymentModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        clubName={name}
+        members={[]}
+        isLoadingMembers={false}
+        forMember={{ id: memberId, name, grade }}
+      />
+    </>
+  );
+};
+
+const CardContent = ({ memberId, name }: { memberId: string | undefined; name: string }) => {
   const { data, isLoading, refetch } = useMemberLicensesQuery(memberId);
 
   if (!memberId) {
@@ -30,7 +59,12 @@ const CardContent = ({ memberId }: { memberId: string | undefined }) => {
   }
   if (isLoading) return <Loading />;
   if (!data) return <LoadFailed onRetry={() => refetch()} />;
-  return <MemberCard licenses={data} />;
+  return (
+    <>
+      <MemberCard licenses={data} />
+      <OwnExamPayment memberId={memberId} name={data.find((licence) => licence.member_name)?.member_name ?? name} grade={cardGrade(data)} />
+    </>
+  );
 };
 
 export default function CardPage() {
@@ -52,7 +86,11 @@ export default function CardPage() {
           </Button>
         </header>
 
-        {currentUser ? <CardContent memberId={currentUser.member_id} /> : userContent}
+        {currentUser ? (
+          <CardContent memberId={currentUser.member_id} name={currentUser.email} />
+        ) : (
+          userContent
+        )}
 
         {userRole && (
           <Button variant="outline" size="lg" className="w-full" asChild>
