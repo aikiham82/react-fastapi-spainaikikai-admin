@@ -21,6 +21,7 @@ from src.infrastructure.web.routers.licenses import self_service_router as licen
 from src.infrastructure.web.routers.seminars import router as seminars_router
 from src.infrastructure.web.routers.payments import router as payments_router
 from src.infrastructure.web.routers.payments import public_router as payments_public_router
+from src.infrastructure.web.routers.payments import self_service_router as payments_self_service_router
 from src.infrastructure.web.dependencies import require_admin_access
 from src.infrastructure.web.routers.insurances import router as insurances_router
 from src.infrastructure.web.routers.dashboard import router as dashboard_router
@@ -136,6 +137,7 @@ def create_app() -> FastAPI:
     app.include_router(password_reset_router, prefix="/api/v1")
     app.include_router(payments_public_router, prefix="/api/v1")
     app.include_router(licenses_self_service_router, prefix="/api/v1")
+    app.include_router(payments_self_service_router, prefix="/api/v1")
 
     admin_only = [Depends(require_admin_access)]
     app.include_router(clubs_router, prefix="/api/v1", dependencies=admin_only)

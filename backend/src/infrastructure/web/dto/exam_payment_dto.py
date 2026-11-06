@@ -5,7 +5,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.infrastructure.web.dto.payment_dto import PaymentResponse
+from src.infrastructure.web.dto.payment_dto import InitiatePaymentResponse, PaymentResponse
 from src.infrastructure.web.dto.payment_lines import PersonName
 
 Exam = Literal[
@@ -42,3 +42,7 @@ class ManualExamPaymentRequest(ExamPaymentRequest):
 class ManualExamPaymentResponse(BaseModel):
     payment: PaymentResponse
     invoice_number: Optional[str] = None
+
+
+class InitiateExamPaymentResponse(InitiatePaymentResponse):
+    redirect_url: str

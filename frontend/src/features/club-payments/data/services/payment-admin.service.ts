@@ -31,9 +31,9 @@ export const initiateExamPayment = async (data: ExamPaymentFormData): Promise<Re
   return await apiClient.post<RedsysForm>(`${PAYMENTS_URL}/exam/initiate`, data);
 };
 
-// GET /api/v1/price-configurations/exam-prices
+// GET /api/v1/payments/exam-prices
 export const getExamPrices = async (): Promise<ExamPrice[]> => {
-  return await apiClient.get<ExamPrice[]>('/api/v1/price-configurations/exam-prices');
+  return await apiClient.get<ExamPrice[]>(`${PAYMENTS_URL}/exam-prices`);
 };
 
 // GET /api/v1/payments?club_id={club_id}&payment_year={year}

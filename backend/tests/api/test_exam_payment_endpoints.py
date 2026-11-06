@@ -17,10 +17,13 @@ from src.infrastructure.web.dependencies import (
     get_member_repository,
     get_price_configuration_repository,
     get_initiate_exam_payment_use_case,
+    get_payment_repository,
     get_register_manual_exam_payment_use_case,
 )
+from src.infrastructure.web.redsys_redirect import make_redirect_token
+from src.infrastructure.web.routers.payments import public_router as payments_public_router
 from src.infrastructure.web.routers.payments import router as payments_router
-from src.infrastructure.web.routers.price_configurations import router as prices_router
+from src.infrastructure.web.routers.payments import self_service_router as payments_self_service_router
 from tests.api.callers import FOREIGN_MEMBER, OWN_CLUB, OWN_MEMBER, MembersByClub, club_admin, plain_member, super_admin
 
 pytestmark = [pytest.mark.api, pytest.mark.auth]
@@ -37,6 +40,23 @@ LINE = MemberPayment(
 PRICES = {
     "examen_dan_2": PriceConfiguration(id="p2", key="examen_dan_2", price=175, description="Examen 2.º Dan", category="exam"),
     "examen_dan_3": PriceConfiguration(id="p3", key="examen_dan_3", price=250, description="Examen 3.er Dan", category="exam", is_active=False),
+}
+
+
+def card_payment(payment_id: str, payment_status: PaymentStatus) -> Payment:
+    return Payment(
+        id=payment_id, club_id=OWN_CLUB, member_id=OWN_MEMBER, payment_type=PaymentType.EXAM_FEE,
+        payment_method=PaymentMethod.REDSYS, amount=175, status=payment_status, payment_year=2026,
+    )
+
+
+PAYMENTS = {
+    "pay-card": card_payment("pay-card", PaymentStatus.PROCESSING),
+    "pay-done": card_payment("pay-done", PaymentStatus.COMPLETED),
+}
+FORM_FIELDS = {
+    "payment_url": "https://bank.example.com/pay", "ds_signature_version": "HMAC_SHA256_V1",
+    "ds_merchant_parameters": "params\"><script>", "ds_signature": "sig",
 }
 
 
@@ -58,13 +78,15 @@ def card_use_case():
 def client_as(exam_use_case, card_use_case):
     def build(ctx) -> TestClient:
         app = FastAPI()
+        app.include_router(payments_public_router, prefix="/api/v1")
+        app.include_router(payments_self_service_router, prefix="/api/v1")
         app.include_router(payments_router, prefix="/api/v1")
-        app.include_router(prices_router, prefix="/api/v1")
         app.dependency_overrides = {
             get_auth_context: lambda: ctx,
             get_member_repository: lambda: MembersByClub(),
             get_register_manual_exam_payment_use_case: lambda: exam_use_case,
             get_initiate_exam_payment_use_case: lambda: card_use_case,
+            get_payment_repository: lambda: SimpleNamespace(find_by_id=AsyncMock(side_effect=PAYMENTS.get)),
             get_price_configuration_repository: lambda: SimpleNamespace(find_by_key=AsyncMock(side_effect=PRICES.get)),
         }
         return TestClient(app)
@@ -135,7 +157,7 @@ def test_a_missing_price_answers_400(client_as, exam_use_case):
 
 
 def test_exam_prices_lists_only_the_active_configured_exams(client_as):
-    response = client_as(club_admin()).get("/api/v1/price-configurations/exam-prices")
+    response = client_as(club_admin()).get("/api/v1/payments/exam-prices")
 
     assert response.status_code == 200
     assert [(p["key"], p["price"]) for p in response.json()] == [("examen_dan_2", 175)]
@@ -169,3 +191,76 @@ def test_a_card_exam_already_in_flight_answers_409(client_as, card_use_case):
     response = client_as(super_admin()).post("/api/v1/payments/exam/initiate", json=card_body())
 
     assert response.status_code == 409
+
+
+def test_a_member_starts_a_card_payment_for_their_own_exam(client_as, card_use_case):
+    response = client_as(plain_member(OWN_MEMBER)).post("/api/v1/payments/exam/initiate", json=card_body())
+
+    assert response.status_code == 200
+    assert "/api/v1/payments/pay-card/redsys-redirect?token=" in response.json()["redirect_url"]
+    card_use_case.execute.assert_awaited_once()
+
+
+def test_a_member_cannot_start_a_card_payment_for_someone_else(client_as, card_use_case):
+    response = client_as(plain_member(OWN_MEMBER)).post("/api/v1/payments/exam/initiate", json=card_body(FOREIGN_MEMBER))
+
+    assert response.status_code == 403
+    card_use_case.execute.assert_not_awaited()
+
+
+def test_the_redirect_page_posts_the_signed_form_to_the_bank(client_as):
+    token = make_redirect_token("pay-card", FORM_FIELDS)
+
+    response = client_as(super_admin()).get(f"/api/v1/payments/pay-card/redsys-redirect?token={token}")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    html = response.text
+    assert 'action="https://bank.example.com/pay"' in html
+    assert 'name="Ds_Signature" value="sig"' in html
+    assert "<script>" not in html.split("</form>")[0].split("Ds_MerchantParameters")[1]
+    assert ".submit()" in html
+
+
+@pytest.mark.parametrize("payment_id,token", [
+    ("pay-card", "not-a-token"),
+    ("pay-card", make_redirect_token("pay-other", FORM_FIELDS)),
+    ("pay-card", make_redirect_token("pay-card", FORM_FIELDS, minutes=-1)),
+])
+def test_the_redirect_page_refuses_a_bad_token(client_as, payment_id, token):
+    response = client_as(super_admin()).get(f"/api/v1/payments/{payment_id}/redsys-redirect?token={token}")
+
+    assert response.status_code == 403
+    assert "bank.example.com" not in response.text
+
+
+def test_the_redirect_page_refuses_a_payment_that_is_no_longer_pending(client_as):
+    token = make_redirect_token("pay-done", FORM_FIELDS)
+
+    response = client_as(super_admin()).get(f"/api/v1/payments/pay-done/redsys-redirect?token={token}")
+
+    assert response.status_code == 409
+    assert "bank.example.com" not in response.text
+
+
+def test_a_redirect_token_is_not_an_access_token():
+    from src.infrastructure.web.security import decode_access_token
+
+    assert decode_access_token(make_redirect_token("pay-card", FORM_FIELDS)) is None
+
+
+def test_the_admin_guard_lets_a_member_reach_their_own_card_exam(card_use_case):
+    from src.app import create_app
+
+    app = create_app()
+    app.dependency_overrides = {
+        get_auth_context: lambda: plain_member(OWN_MEMBER),
+        get_member_repository: lambda: MembersByClub(),
+        get_initiate_exam_payment_use_case: lambda: card_use_case,
+        get_price_configuration_repository: lambda: SimpleNamespace(find_by_key=AsyncMock(side_effect=PRICES.get)),
+    }
+    client = TestClient(app)
+
+    assert client.post("/api/v1/payments/exam/initiate", json=card_body()).status_code == 200
+    assert client.get("/api/v1/payments/exam-prices").status_code == 200
+    assert client.post("/api/v1/payments/exam", json=body()).status_code == 403

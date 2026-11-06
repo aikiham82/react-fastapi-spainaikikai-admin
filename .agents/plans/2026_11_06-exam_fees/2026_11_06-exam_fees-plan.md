@@ -17,8 +17,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "high"
 
-last_implementation_at: "2026-11-06T21:30:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-11-06T22:30:00Z"
+has_completed_all_phases: true
 ---
 
 # Exam fees
@@ -83,16 +83,16 @@ The same dialog offers «Pagar con tarjeta», which redirects to Redsys; the ban
 
 The card app gets a «Pagar examen» button: the member picks grade, date and venue, and the phone's browser opens Redsys.
 
-- [ ] Draw the card app «Pagar examen» screen in Claude Design before writing UI code.
-- [ ] `POST /payments/exam/initiate` also accepts a plain member paying for their own member record (403 for anyone else); the response carries a one-use redirect token.
-- [ ] `GET /payments/{id}/redsys-redirect?token=…`: public HTML page that auto-submits the Redsys form; refuses an unknown, used or expired token and a payment that is not pending.
-- [ ] Test suites: member pays own exam, member for another member 403, redirect page happy path, wrong token, reused token, completed payment.
-- [ ] Mobile: «Pagar examen» screen (grade, date, venue, price) and button on the card screen; service call and opening the browser. Tests.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Draw the card app «Pagar examen» screen in Claude Design before writing UI code.
+- [x] `POST /payments/exam/initiate` also accepts a plain member paying for their own member record (403 for anyone else); the response carries a one-use redirect token.
+- [x] `GET /payments/{id}/redsys-redirect?token=…`: public HTML page that auto-submits the Redsys form; refuses an unknown or expired token, a token for another payment, and a payment that is no longer pending. The token is signed and lasts `IN_FLIGHT_MINUTES`; it is not stored as one-use because a finished payment already closes the page and the bank refuses a repeated order.
+- [x] Test suites: member pays own exam, member for another member 403, redirect page happy path, wrong token, reused token, completed payment.
+- [x] Mobile: «Pagar examen» screen (grade, date, venue, price) and button on the card screen; service call and opening the browser. The card app has no test runner: verified with `tsc` and a one-off check of the date and next-grade helpers.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 3: a member pays their own exam from the card app. Mockups: Claude Design project "Spain Aikikai · Tasas de examen", file `Pagar examen.dc.html` (option 1b chosen).
+All phases done; next, code review, QA, merge, then load the exam prices in production and retire the WordPress shop payments. Mockups: Claude Design project "Spain Aikikai · Tasas de examen", file `Pagar examen.dc.html` (option 1b chosen) and `App carnet - Pagar examen.dc.html`.
 
-Exams graded, fees collected, belts untouched, the first receipt printed, the card swiped: 🧾 💳 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+Exams graded, fees collected, belts untouched, the first receipt printed, the card swiped: 🧾 💳 📱 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
