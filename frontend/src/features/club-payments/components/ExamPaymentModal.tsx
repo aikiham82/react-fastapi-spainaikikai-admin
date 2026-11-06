@@ -114,16 +114,15 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
 
         <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-4">
           {member ? (
-            <div className="flex items-center gap-3 rounded-xl p-2.5 ring-1 ring-inset ring-border">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl p-2.5 ring-1 ring-inset ring-border">
               <Avatar name={member.name} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{member.name}</p>
-                <p className="text-xs text-muted-foreground">Grado actual</p>
+              <p className="min-w-0 flex-1 basis-40 text-sm font-medium text-foreground">{member.name}</p>
+              <div className="ml-auto flex items-center gap-2">
+                <BeltBadge grade={member.grade} />
+                <Button type="button" variant="ghost" size="sm" onClick={() => setMember(null)}>
+                  Cambiar
+                </Button>
               </div>
-              <BeltBadge grade={member.grade} />
-              <Button type="button" variant="ghost" size="sm" onClick={() => setMember(null)}>
-                Cambiar
-              </Button>
             </div>
           ) : (
             <div className="grid gap-1.5">
@@ -166,7 +165,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
                     </Button>
                   </div>
                 ) : (
-                <div role="radiogroup" aria-label="Grado al que se presenta" className="grid grid-cols-2 gap-2">
+                <div role="radiogroup" aria-label="Grado al que se presenta" className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
                   {EXAM_KEYS.map((key) => {
                     const keyPrice = priceOf.get(key)
                     const note = EXAM_GRADE_NOTES[key] ?? (key === nextExamOf(member.grade) ? 'siguiente grado' : '')
@@ -180,7 +179,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
                         className={radioTile(exam === key)}
                       >
                         <span>
-                          {formatGradeNumber(examGradeNumber(key), 'dan')}
+                          <span className="whitespace-nowrap">{formatGradeNumber(examGradeNumber(key), 'dan')}</span>
                           {note && <span className="block text-xs text-muted-foreground">{note}</span>}
                         </span>
                         <span className="font-bold tabular-nums">
@@ -255,9 +254,11 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
             <Button type="button" onClick={handlePayByCard} disabled={isLoading || !member || priceMissing || pricesFailed}>
               {isGoingToBank ? 'Abriendo el banco...' : 'Pagar con tarjeta'}
             </Button>
-            <p className="text-[15px] text-foreground sm:order-first sm:mr-auto">
-              Total: <span className="text-lg font-semibold tabular-nums">{formatCurrency(price ?? 0)}</span>
-            </p>
+            {price !== undefined && (
+              <p className="text-[15px] text-foreground sm:order-first sm:mr-auto">
+                Total: <span className="text-lg font-semibold tabular-nums">{formatCurrency(price)}</span>
+              </p>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
