@@ -1,5 +1,4 @@
 """Register an exam fee paid outside the platform (transfer, cash, other)."""
-import json
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -13,102 +12,15 @@ from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.pdf_service import PDFServicePort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.use_cases.invoice.create_payment_invoice import create_payment_invoice
+from src.application.use_cases.payment.exam_fee import exam_charge, exam_line, exam_payment
 from src.domain.entities.invoice import Invoice
-from src.domain.entities.member import Member
-from src.domain.entities.member_payment import (
-    EXAM_PAYMENT_TYPES,
-    PAYMENT_TYPE_LABELS,
-    MemberPayment,
-    MemberPaymentStatus,
-    MemberPaymentType,
-)
-from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
-from src.application.use_cases.payment.refuse_lines_already_paid import refuse_lines_already_paid
-from src.domain.exceptions.payment import DuplicatePaymentForYearError, InvalidPaymentDataError, PaymentAlreadyExistsError
+from src.domain.entities.member_payment import MemberPayment
+from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus
+from src.domain.exceptions.payment import InvalidPaymentDataError
 
 logger = logging.getLogger(__name__)
 
-EXAMS = frozenset(line_type.value for line_type in EXAM_PAYMENT_TYPES)
 MANUAL_METHODS = frozenset({PaymentMethod.CASH.value, PaymentMethod.TRANSFER.value, PaymentMethod.OTHER.value})
-
-
-def exam_line_description(exam: str, exam_date: date, venue: str) -> str:
-    return f"{PAYMENT_TYPE_LABELS[exam]} · {exam_date:%d/%m/%Y} · {venue}"
-
-
-@dataclass(frozen=True)
-class ExamCharge:
-    member: Member
-    exam: MemberPaymentType
-    price: float
-    description: str
-
-
-async def exam_charge(
-    member_repository: MemberRepositoryPort,
-    member_payment_repository: MemberPaymentRepositoryPort,
-    price_configuration_repository: PriceConfigurationRepositoryPort,
-    member_id: str,
-    exam: str,
-    exam_date: date,
-    venue: str,
-) -> ExamCharge:
-    if exam not in EXAMS:
-        raise InvalidPaymentDataError(f"Examen desconocido: {exam}")
-    member = await member_repository.find_by_id(member_id)
-    if member is None:
-        raise InvalidPaymentDataError("Miembro no encontrado")
-    try:
-        await refuse_lines_already_paid(member_payment_repository, [(member_id, exam)], exam_date.year, datetime.utcnow())
-    except DuplicatePaymentForYearError:
-        raise PaymentAlreadyExistsError(f"{PAYMENT_TYPE_LABELS[exam]} ya está pagado en {exam_date.year}")
-    price = await price_configuration_repository.find_by_key(exam)
-    if price is None or not price.is_active:
-        raise InvalidPaymentDataError(f"Falta el precio de {PAYMENT_TYPE_LABELS[exam]}")
-    return ExamCharge(
-        member=member,
-        exam=MemberPaymentType(exam),
-        price=price.price,
-        description=exam_line_description(exam, exam_date, venue),
-    )
-
-
-def exam_payment(charge: ExamCharge, exam_date: date, payer_name: str, payment_method: PaymentMethod, status: PaymentStatus) -> Payment:
-    return Payment(
-        member_id=charge.member.id,
-        club_id=charge.member.club_id,
-        payment_type=PaymentType.EXAM_FEE,
-        payment_method=payment_method,
-        amount=charge.price,
-        status=status,
-        payment_year=exam_date.year,
-        payer_name=payer_name,
-        line_items_data=json.dumps([{
-            "item_type": charge.exam.value,
-            "description": charge.description,
-            "quantity": 1,
-            "unit_price": charge.price,
-            "total": charge.price,
-        }]),
-        member_assignments=json.dumps([{
-            "member_id": charge.member.id,
-            "member_name": charge.member.get_full_name(),
-            "payment_types": [charge.exam.value],
-        }]),
-    )
-
-
-def exam_line(payment: Payment) -> MemberPayment:
-    [item] = json.loads(payment.line_items_data)
-    return MemberPayment(
-        payment_id=payment.id,
-        member_id=payment.member_id,
-        payment_year=payment.payment_year,
-        payment_type=MemberPaymentType(item["item_type"]),
-        concept=item["description"],
-        amount=item["unit_price"],
-        status=MemberPaymentStatus.COMPLETED,
-    )
 
 
 @dataclass

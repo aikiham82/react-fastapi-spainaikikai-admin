@@ -2,6 +2,7 @@
 
 import logging
 
+from dataclasses import asdict
 from datetime import datetime
 from typing import List, Optional
 
@@ -493,10 +494,7 @@ async def initiate_exam_payment(
     member_repository=Depends(get_member_repository),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    """Start a card payment for an exam: a manager for a member of their club, or a member for themselves.
-
-    Mounted without the admin guard because the card app calls it; it checks access itself.
-    """
+    """Start a card payment for an exam: a manager for a member of their club, or a member for themselves."""
     app_settings = get_app_settings()
     if ctx.is_super_admin or ctx.is_club_admin:
         await require_member_access(ctx, request.member_id, member_repository)
@@ -522,12 +520,7 @@ async def initiate_exam_payment(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except InvalidPaymentDataError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    form = {
-        "payment_url": result.form_data.payment_url,
-        "ds_signature_version": result.form_data.ds_signature_version,
-        "ds_merchant_parameters": result.form_data.ds_merchant_parameters,
-        "ds_signature": result.form_data.ds_signature,
-    }
+    form = asdict(result.form_data)
     token = make_redirect_token(result.payment_id, form)
     return InitiateExamPaymentResponse(
         payment_id=result.payment_id,

@@ -1,3 +1,4 @@
+import { OFFLINE_PAYMENT_METHODS } from './payment-admin.schema';
 import { z } from 'zod';
 
 export const EXAM_KEYS = [
@@ -28,12 +29,10 @@ export const nextExamOf = (grade: string | null | undefined): ExamKey | null => 
   return next >= 2 && next <= 6 ? (`examen_dan_${next}` as ExamKey) : null;
 };
 
-export const examPriceSchema = z.object({
-  key: z.string(),
-  price: z.number(),
-});
-
-export type ExamPrice = z.infer<typeof examPriceSchema>;
+export interface ExamPrice {
+  key: string;
+  price: number;
+}
 
 export const examPaymentSchema = z.object({
   member_id: z.string().min(1, 'Elige un miembro'),
@@ -46,7 +45,7 @@ export const examPaymentSchema = z.object({
 export type ExamPaymentFormData = z.infer<typeof examPaymentSchema>;
 
 export const manualExamPaymentSchema = examPaymentSchema.extend({
-  payment_method: z.enum(['cash', 'transfer', 'other']),
+  payment_method: z.enum(OFFLINE_PAYMENT_METHODS),
 });
 
 export type ManualExamPaymentFormData = z.infer<typeof manualExamPaymentSchema>;

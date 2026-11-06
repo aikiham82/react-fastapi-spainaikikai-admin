@@ -16,7 +16,7 @@ import {
   nextExamOf,
   type ExamKey,
 } from '../data/schemas/exam-payment.schema'
-import { PAYMENT_METHOD_LABELS, type OfflinePaymentMethod } from '../data/schemas/payment-admin.schema'
+import { OFFLINE_PAYMENT_METHODS, PAYMENT_METHOD_LABELS, type OfflinePaymentMethod } from '../data/schemas/payment-admin.schema'
 import { useExamPricesQuery } from '../hooks/queries/useExamPricesQuery'
 import { useInitiateExamPaymentMutation, useRegisterManualExamPaymentMutation } from '../hooks/mutations/usePaymentAdminMutations'
 
@@ -33,8 +33,6 @@ interface ExamPaymentModalProps {
   members: ExamMember[]
   isLoadingMembers: boolean
 }
-
-const OFFLINE_METHODS: OfflinePaymentMethod[] = ['transfer', 'cash', 'other']
 
 const radioTile = (checked: boolean) =>
   cn(
@@ -206,7 +204,7 @@ export function ExamPaymentModal({ isOpen, onClose, clubName, members, isLoading
               <fieldset className="grid gap-1.5">
                 <legend className="mb-1.5 text-sm font-medium">Si ya está pagado, ¿cómo?</legend>
                 <div role="radiogroup" aria-label="Método de pago" className="flex gap-1 rounded-xl bg-muted p-1">
-                  {OFFLINE_METHODS.map((option) => (
+                  {OFFLINE_PAYMENT_METHODS.map((option) => (
                     <button
                       key={option}
                       type="button"

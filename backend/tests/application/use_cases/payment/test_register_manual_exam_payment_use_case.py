@@ -5,10 +5,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.application.use_cases.payment.register_manual_exam_payment_use_case import (
-    RegisterManualExamPaymentUseCase,
-    exam_line_description,
-)
+from src.application.use_cases.payment.exam_fee import exam_line_description
+from src.application.use_cases.payment.register_manual_exam_payment_use_case import RegisterManualExamPaymentUseCase
 from src.domain.entities.invoice import Invoice
 from src.domain.entities.member import Member
 from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymentType

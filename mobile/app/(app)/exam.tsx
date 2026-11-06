@@ -30,7 +30,7 @@ export default function ExamPaymentScreen() {
   const { user } = useAuth();
   const memberId = user?.member_id ?? "";
   const { data: license } = useMemberLicenseQuery(memberId);
-  const prices = useQuery({ queryKey: ["exam-prices"], queryFn: getExamPrices });
+  const prices = useQuery({ queryKey: ["exam-prices"], queryFn: getExamPrices, staleTime: 5 * 60 * 1000 });
 
   const [exam, setExam] = useState<ExamKey | null>(null);
   const [dateText, setDateText] = useState("");

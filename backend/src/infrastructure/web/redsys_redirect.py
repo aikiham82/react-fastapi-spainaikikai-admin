@@ -9,12 +9,10 @@ from src.application.use_cases.payment.initiate_annual_payment_use_case import I
 from src.infrastructure.web.security import ALGORITHM, SECRET_KEY
 
 REDIRECT_KEY = f"{SECRET_KEY}:redsys-redirect"
-FORM_FIELDS = ("payment_url", "ds_signature_version", "ds_merchant_parameters", "ds_signature")
 
 
 def make_redirect_token(payment_id: str, form: dict, minutes: int = IN_FLIGHT_MINUTES) -> str:
-    claims = {field: form[field] for field in FORM_FIELDS}
-    claims.update({"payment_id": payment_id, "exp": datetime.utcnow() + timedelta(minutes=minutes)})
+    claims = {**form, "payment_id": payment_id, "exp": datetime.utcnow() + timedelta(minutes=minutes)}
     return jwt.encode(claims, REDIRECT_KEY, algorithm=ALGORITHM)
 
 

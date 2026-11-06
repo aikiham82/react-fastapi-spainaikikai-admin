@@ -65,9 +65,18 @@ PAYMENT_TYPE_LABELS = {
 
 INSURANCE_PAYMENT_TYPES = frozenset({MemberPaymentType.SEGURO_ACCIDENTES, MemberPaymentType.SEGURO_RC})
 TITLE_PAYMENT_TYPES = frozenset({MemberPaymentType.TITULO_FUKUSHIDOIN, MemberPaymentType.TITULO_SHIDOIN})
-EXAM_ORDER = tuple(line_type for line_type in MemberPaymentType if line_type.value.startswith("examen_"))
+EXAM_ORDER = (
+    MemberPaymentType.EXAMEN_DAN_1_HOMBU,
+    MemberPaymentType.EXAMEN_DAN_1,
+    MemberPaymentType.EXAMEN_DAN_2,
+    MemberPaymentType.EXAMEN_DAN_3,
+    MemberPaymentType.EXAMEN_DAN_4,
+    MemberPaymentType.EXAMEN_DAN_5,
+    MemberPaymentType.EXAMEN_DAN_6,
+)
 EXAM_PAYMENT_TYPES = frozenset(EXAM_ORDER)
 ANNUAL_PAYMENT_TYPES = tuple(line_type for line_type in MemberPaymentType if line_type not in EXAM_PAYMENT_TYPES)
+LINE_TYPE_OF_ITEM = {**ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE, **{exam.value: exam for exam in EXAM_ORDER}}
 
 
 @dataclass

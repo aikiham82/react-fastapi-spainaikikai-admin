@@ -10,7 +10,7 @@ from src.application.ports.payment_repository import PaymentRepositoryPort
 from src.application.ports.price_configuration_repository import PriceConfigurationRepositoryPort
 from src.application.ports.redsys_service import RedsysPaymentFormData, RedsysPaymentRequest, RedsysServicePort
 from src.application.use_cases.payment.initiate_annual_payment_use_case import IN_FLIGHT_MINUTES, IN_FLIGHT_WINDOW
-from src.application.use_cases.payment.register_manual_exam_payment_use_case import exam_charge, exam_payment
+from src.application.use_cases.payment.exam_fee import exam_charge, exam_payment
 from src.domain.entities.payment import Payment, PaymentMethod, PaymentStatus
 from src.domain.exceptions.payment import PaymentAlreadyExistsError
 

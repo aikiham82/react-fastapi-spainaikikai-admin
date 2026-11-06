@@ -5,9 +5,7 @@ from typing import Iterable, Tuple
 
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.domain.entities.insurance import insurance_season_year
-from src.domain.entities.member_payment import EXAM_ORDER, INSURANCE_PAYMENT_TYPES, ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE
-
-LINE_TYPE_OF_ITEM = {**ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE, **{exam.value: exam for exam in EXAM_ORDER}}
+from src.domain.entities.member_payment import INSURANCE_PAYMENT_TYPES, LINE_TYPE_OF_ITEM
 from src.domain.exceptions.payment import DuplicatePaymentForYearError
 
 

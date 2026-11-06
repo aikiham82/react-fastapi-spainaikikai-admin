@@ -98,12 +98,11 @@ class GetMemberPaymentStatusUseCase:
         ]
 
         # Check all payment types
-        all_types = ANNUAL_PAYMENT_TYPES
         has_license = False
         has_insurance_accidentes = False
         has_insurance_rc = False
 
-        for ptype in all_types:
+        for ptype in ANNUAL_PAYMENT_TYPES:
             payment = paid_types.get(ptype.value)
             is_paid = ptype in covered_types
 

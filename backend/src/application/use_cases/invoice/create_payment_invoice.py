@@ -32,31 +32,20 @@ async def create_payment_invoice(
     invoice_number = await invoice_repository.get_next_invoice_number(invoice_year)
     invoice_settings = get_invoice_settings()
 
-    line_items: List[InvoiceLineItem] = []
-    if payment.line_items_data:
-        try:
-            items_data = json.loads(payment.line_items_data)
-            for item in items_data:
-                line_items.append(InvoiceLineItem(
-                    description=item.get("description", ""),
-                    quantity=item.get("quantity", 1),
-                    unit_price=item.get("unit_price", 0),
-                    tax_rate=invoice_settings.tax_rate * 100,
-                ))
-        except (json.JSONDecodeError, KeyError):
-            line_items = [InvoiceLineItem(
-                description=f"Pago manual - {payment.payment_year}",
-                quantity=1,
-                unit_price=payment.amount,
-                tax_rate=invoice_settings.tax_rate * 100,
-            )]
-    else:
-        line_items = [InvoiceLineItem(
-            description=f"Pago manual - {payment.payment_year}",
-            quantity=1,
-            unit_price=payment.amount,
-            tax_rate=invoice_settings.tax_rate * 100,
-        )]
+    tax_rate = invoice_settings.tax_rate * 100
+    try:
+        items_data = json.loads(payment.line_items_data) if payment.line_items_data else []
+    except json.JSONDecodeError:
+        items_data = []
+    line_items = [
+        InvoiceLineItem(
+            description=item.get("description", ""),
+            quantity=item.get("quantity", 1),
+            unit_price=item.get("unit_price", 0),
+            tax_rate=tax_rate,
+        )
+        for item in items_data
+    ] or [InvoiceLineItem(description=f"Pago manual - {payment.payment_year}", quantity=1, unit_price=payment.amount, tax_rate=tax_rate)]
 
     invoice_member_id = payment.member_id or payment.club_id
 
