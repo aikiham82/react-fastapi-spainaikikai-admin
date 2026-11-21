@@ -42,4 +42,4 @@ def test_payable_licence_items_for_year(instructor, year, expected):
     ],
 )
 def test_a_member_without_licence_gets_a_title_only_from_this_year_on(year, expected):
-    assert payable_licence_items_for_year([], ADULT, TODAY, year) == expected
+    assert payable_licence_items_for_year([], ADULT, TODAY, year, identified=True) == expected

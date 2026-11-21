@@ -33,10 +33,12 @@ pytestmark = [pytest.mark.api, pytest.mark.auth]
 INSTRUCTOR = "member-instructor"
 KYU = "member-kyu"
 NEWCOMER = "member-newcomer"
+UNIDENTIFIED = "member-unidentified"
 MEMBERS = [
     Member(id=INSTRUCTOR, club_id=OWN_CLUB, first_name="Ana", last_name="Example", birth_date=datetime(1980, 1, 1)),
     Member(id=KYU, club_id=OWN_CLUB, first_name="Beto", last_name="Example", birth_date=datetime(1990, 1, 1)),
-    Member(id=NEWCOMER, club_id=OWN_CLUB, first_name="Carla", last_name="Example", birth_date=datetime(1974, 1, 1)),
+    Member(id=NEWCOMER, club_id=OWN_CLUB, first_name="Carla", last_name="Example", birth_date=datetime(1974, 1, 1), dni="00000000T"),
+    Member(id=UNIDENTIFIED, club_id=OWN_CLUB, first_name="Dani", last_name="Example", birth_date=datetime(1974, 1, 1)),
 ]
 LICENCES = [
     License(license_number="QA-1", member_id=INSTRUCTOR, grade="3 dan", technical_grade=TechnicalGrade.DAN,
@@ -120,7 +122,7 @@ PAYING = pytest.mark.parametrize(("pay", "use_case", "ok"), [(initiate, "initiat
 
 
 @PAYING
-@pytest.mark.parametrize(("member_id", "item"), [(INSTRUCTOR, "kyu"), (KYU, "shidoin")])
+@pytest.mark.parametrize(("member_id", "item"), [(INSTRUCTOR, "kyu"), (KYU, "shidoin"), (UNIDENTIFIED, "shidoin")])
 def test_a_club_admin_is_refused_a_licence_that_does_not_fit(client_as, use_cases, pay, use_case, ok, member_id, item):
     response = pay(client_as(club_admin()), member_id, item)
 

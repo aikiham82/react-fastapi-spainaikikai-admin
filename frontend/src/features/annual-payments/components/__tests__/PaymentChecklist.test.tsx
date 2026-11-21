@@ -206,7 +206,7 @@ describe('PaymentChecklist', () => {
   })
 
   it('lets a member without licence choose the licence type', async () => {
-    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined } as Member]
+    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined, dni: '00000000T' } as Member]
     renderChecklist()
 
     const row = within(rowOf('Nuevo'))
@@ -220,7 +220,7 @@ describe('PaymentChecklist', () => {
     ['shidoin', 'Licencia Shidoin', 'shidoin_count'],
     ['fukushidoin', 'Licencia Fukushidoin', 'fukushidoin_count'],
   ])('lets a member without licence be paid as %s, without charging the RC the title includes', async (item, label, count) => {
-    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined } as Member]
+    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined, dni: '00000000T' } as Member]
     renderChecklist()
 
     const row = within(rowOf('Nuevo'))
@@ -234,7 +234,7 @@ describe('PaymentChecklist', () => {
   })
 
   it('tells a member without licence who paid the RC apart that choosing a title finds the RC already paid', async () => {
-    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined } as Member]
+    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined, dni: '00000000T' } as Member]
     prefill = makePrefill({ paid_assignments: [assignment('m-new', 'Nuevo Ejemplo', ['seguro_rc'])] })
     renderChecklist()
 

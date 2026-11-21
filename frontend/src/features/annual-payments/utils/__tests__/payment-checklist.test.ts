@@ -132,9 +132,14 @@ describe('buildChecklistRows licence', () => {
     expect(rowOf(holder('5º Kyu', 'kyu', '1990-01-01')).licenceChoices).toEqual(['kyu', 'dan'])
   })
 
-  it('a member without licence can choose any licence, Fukushidoin and Shidoin included', () => {
-    const newcomer = { ...holder('', 'kyu', '1974-11-13'), license_summary: undefined } as Member
+  it('a member without licence identified by DNI can choose any licence, Fukushidoin and Shidoin included', () => {
+    const newcomer = { ...holder('', 'kyu', '1974-11-13'), license_summary: undefined, dni: '00000000T' } as Member
     expect(rowOf(newcomer).licenceChoices).toEqual(['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'])
+  })
+
+  it('a member without licence nor DNI is never offered a title', () => {
+    const newcomer = { ...holder('', 'kyu', '1974-11-13'), license_summary: undefined, dni: '' } as Member
+    expect(rowOf(newcomer).licenceChoices).toEqual(['kyu', 'kyu_infantil', 'dan'])
   })
 
   it('a Dan holder keeps no choice', () => {

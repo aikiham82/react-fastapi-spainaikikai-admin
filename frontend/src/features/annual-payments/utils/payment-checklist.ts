@@ -12,6 +12,7 @@ export type MemberItem = LicenceItem | InsuranceItem;
 
 const LICENCE_ITEMS: readonly LicenceItem[] = ['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'];
 const INSTRUCTOR_ITEMS: readonly LicenceItem[] = ['fukushidoin', 'shidoin'];
+const GRADE_ITEMS: readonly LicenceItem[] = ['kyu', 'kyu_infantil', 'dan'];
 const MEMBER_ITEMS: readonly MemberItem[] = [...LICENCE_ITEMS, 'seguro_accidentes', 'seguro_rc'];
 const CHILD_MAX_AGE = 14;
 
@@ -78,7 +79,7 @@ const licenceItemOf = (member: Member, today: Date = new Date()): LicenceItem =>
 };
 
 const licenceChoicesOf = (member: Member, licence: LicenceItem): readonly LicenceItem[] => {
-  if (!member.license_summary) return LICENCE_ITEMS;
+  if (!member.license_summary) return member.dni?.trim() ? LICENCE_ITEMS : GRADE_ITEMS;
   if (licence === 'kyu' || licence === 'kyu_infantil') return [licence, 'dan'];
   return [];
 };

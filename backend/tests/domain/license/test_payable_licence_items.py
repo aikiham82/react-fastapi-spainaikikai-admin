@@ -42,7 +42,7 @@ FUKUSHIDOIN = InstructorCategory.FUKUSHIDOIN
 @pytest.mark.parametrize(
     ("licences", "birth_date", "expected"),
     [
-        pytest.param([], ADULT, {"kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin"}, id="no licence"),
+        pytest.param([], ADULT, {"kyu", "kyu_infantil", "dan"}, id="no licence, no DNI"),
         pytest.param([licence(KYU)], ADULT, {"kyu", "dan"}, id="adult kyu"),
         pytest.param([licence(KYU, age=AgeCategory.INFANTIL)], CHILD, {"kyu_infantil", "dan"}, id="child kyu"),
         pytest.param([licence(KYU, age=AgeCategory.INFANTIL)], ADULT, {"kyu", "dan"}, id="child licence, adult by birth date"),
@@ -64,6 +64,10 @@ FUKUSHIDOIN = InstructorCategory.FUKUSHIDOIN
 )
 def test_payable_licence_items(licences, birth_date, expected):
     assert payable_licence_items(licences, birth_date, TODAY) == expected
+
+
+def test_a_member_without_licence_identified_by_dni_may_also_be_paid_a_title():
+    assert payable_licence_items([], ADULT, TODAY, identified=True) == {"kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin"}
 
 
 def test_a_child_turns_adult_the_day_after_being_fourteen():
