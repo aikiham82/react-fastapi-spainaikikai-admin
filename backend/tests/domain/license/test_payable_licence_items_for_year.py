@@ -32,3 +32,14 @@ def licence(instructor: InstructorCategory = InstructorCategory.NONE) -> License
 )
 def test_payable_licence_items_for_year(instructor, year, expected):
     assert payable_licence_items_for_year([licence(instructor)], ADULT, TODAY, year) == expected
+
+
+@pytest.mark.parametrize(
+    ("year", "expected"),
+    [
+        pytest.param(2025, GRADES, id="no licence, last year: never a title"),
+        pytest.param(2026, GRADES | {"fukushidoin", "shidoin"}, id="no licence, this year"),
+    ],
+)
+def test_a_member_without_licence_gets_a_title_only_from_this_year_on(year, expected):
+    assert payable_licence_items_for_year([], ADULT, TODAY, year) == expected

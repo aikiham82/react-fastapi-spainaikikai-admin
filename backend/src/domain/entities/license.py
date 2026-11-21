@@ -241,4 +241,6 @@ def payable_licence_items_for_year(
 ) -> frozenset:
     """A past year may record the grade the member had then, which today's licences no longer show; never a title."""
     payable = payable_licence_items(licences, birth_date, today)
-    return payable | GRADE_ITEMS if payment_year < today.year else payable
+    if payment_year >= today.year:
+        return payable
+    return payable | GRADE_ITEMS if licences else GRADE_ITEMS

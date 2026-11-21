@@ -233,6 +233,17 @@ describe('PaymentChecklist', () => {
     expect(counts()).toMatchObject({ [count]: 1, seguro_rc_count: 0 })
   })
 
+  it('tells a member without licence who paid the RC apart that choosing a title finds the RC already paid', async () => {
+    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined } as Member]
+    prefill = makePrefill({ paid_assignments: [assignment('m-new', 'Nuevo Ejemplo', ['seguro_rc'])] })
+    renderChecklist()
+
+    const row = within(rowOf('Nuevo'))
+    await userEvent.selectOptions(row.getByRole('combobox', { name: 'Tipo de licencia de Nuevo Ejemplo' }), 'shidoin')
+
+    expect(row.getByText('El seguro RC de esta temporada ya está pagado')).toBeInTheDocument()
+  })
+
   it('lets a kyu member who passed to dan be paid as Licencia Dan', async () => {
     members = [member('m-kyu', 'Kira', { grade: '1º Kyu', technical_grade: 'kyu' })]
     renderChecklist()

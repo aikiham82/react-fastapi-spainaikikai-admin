@@ -110,7 +110,7 @@ export const buildChecklistRows = (
       licence,
       licenceChoices: licenceChoicesOf(member, licence),
       offersRc,
-      rcPaidApart: !offersRc && !licencePaid && paidTypes.has('seguro_rc'),
+      rcPaidApart: !licencePaid && paidTypes.has('seguro_rc'),
       licencePaid,
       accidentPaid,
       rcPaid,
