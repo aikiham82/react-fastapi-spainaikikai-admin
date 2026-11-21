@@ -61,6 +61,7 @@ def use_cases():
     form_data = SimpleNamespace(payment_url="https://example.com/pay", ds_signature_version="v1", ds_merchant_parameters="p", ds_signature="s")
     return SimpleNamespace(
         payment=payment,
+        line=line_of(MemberPaymentType.LICENCIA_KYU),
         initiate=AsyncMock(**{"execute.return_value": SimpleNamespace(payment_id="pay-1", order_id="o", total_amount=15.0, line_items=[], form_data=form_data)}),
         manual=AsyncMock(**{"execute.return_value": SimpleNamespace(payment=payment, member_payments=[], invoice=None)}),
         update_line=AsyncMock(**{"execute.return_value": line_of(MemberPaymentType.LICENCIA_KYU)}),
@@ -89,7 +90,7 @@ def client_as(use_cases):
                 find_by_club_id=AsyncMock(return_value=MEMBERS),
                 find_by_id=AsyncMock(side_effect={m.id: m for m in MEMBERS}.get),
             ),
-            get_member_payment_repository: lambda: SimpleNamespace(find_by_id=AsyncMock(return_value=line_of(MemberPaymentType.LICENCIA_KYU))),
+            get_member_payment_repository: lambda: SimpleNamespace(find_by_id=AsyncMock(return_value=use_cases.line)),
             get_payment_repository: lambda: SimpleNamespace(find_by_id=AsyncMock(return_value=use_cases.payment)),
         }
         return TestClient(app)
@@ -152,6 +153,21 @@ def test_a_club_admin_cannot_change_a_line_to_a_licence_that_does_not_fit(client
     assert response.status_code == 400
     assert "no corresponde a su licencia" in response.json()["detail"]
     use_cases.update_line.execute.assert_not_awaited()
+
+
+def test_a_club_admin_cannot_move_a_title_into_a_past_year_its_member_did_not_hold_it(client_as, use_cases):
+    use_cases.line = line_of(MemberPaymentType.TITULO_SHIDOIN)
+
+    response = client_as(club_admin()).put("/api/v1/member-payments/line-1", json={"payment_year": THIS_YEAR - 1})
+
+    assert response.status_code == 400
+    use_cases.update_line.execute.assert_not_awaited()
+
+
+def test_a_club_admin_moves_a_grade_line_between_years(client_as, use_cases):
+    response = client_as(club_admin()).put("/api/v1/member-payments/line-1", json={"payment_year": THIS_YEAR - 1})
+
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize(("payment_type", "price"), [("licencia_dan", 20.0), ("seguro_rc", 35.0)])

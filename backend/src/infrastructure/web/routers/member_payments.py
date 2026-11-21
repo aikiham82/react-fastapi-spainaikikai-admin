@@ -361,8 +361,8 @@ async def update_member_payment(
                 )
             target_year = request.payment_year or line.payment_year
             now = datetime.utcnow()
-            enters_a_live_year = target_year != line.payment_year and target_year >= now.year
-            if type_changes or enters_a_live_year:
+            touches_a_live_year = max(target_year, line.payment_year) >= now.year
+            if type_changes or (target_year != line.payment_year and touches_a_live_year):
                 await refuse_licences_that_do_not_fit(
                     license_repository,
                     [await member_repository.find_by_id(line.member_id)],
