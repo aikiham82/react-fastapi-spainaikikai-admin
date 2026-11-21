@@ -8,6 +8,7 @@ import { formatCurrency } from '@/core/utils/format';
 import { useAnnualPaymentContext } from '../hooks/useAnnualPaymentContext';
 import type { AnnualPaymentPrices } from '../data/schemas/annual-payment.schema';
 import {
+  isInstructor,
   LICENCE_LABELS,
   pendingInsuranceOf,
   tickedItemsOf,
@@ -28,9 +29,14 @@ const priceOf = (prices: AnnualPaymentPrices | null, item: keyof AnnualPaymentPr
 
 const CARD = 'rounded-[18px] bg-card p-4 shadow-card lg:rounded-none lg:shadow-none';
 
-const LicenceChip = ({ row, ticked }: { row: ChecklistRow; ticked: Set<string> }) => {
+interface LicenceChipProps {
+  row: ChecklistRow;
+  ticked: Set<string>;
+  licence: LicenceItem;
+}
+
+const LicenceChip = ({ row, ticked, licence }: LicenceChipProps) => {
   const { toggleMemberItems, chooseMemberLicence, isSubmitting, prices } = useAnnualPaymentContext();
-  const licence = tickedLicenceOf(ticked, row);
 
   return (
     <>
@@ -74,7 +80,8 @@ const MemberHeading = ({ row, children }: { row: ChecklistRow; children?: ReactN
 const MemberRow = ({ row }: { row: ChecklistRow }) => {
   const { formData, toggleMemberItems, isSubmitting, prices } = useAnnualPaymentContext();
   const ticked = tickedItemsOf(formData.member_assignments, row.memberId);
-  const insurance = pendingInsuranceOf(row);
+  const licence = tickedLicenceOf(ticked, row);
+  const insurance = pendingInsuranceOf(row, licence);
 
   if (row.isUpToDate) {
     return (
@@ -99,7 +106,7 @@ const MemberRow = ({ row }: { row: ChecklistRow }) => {
         {row.licencePaid ? (
           <StatusBadge tone="ok">Licencia pagada</StatusBadge>
         ) : (
-          <LicenceChip row={row} ticked={ticked} />
+          <LicenceChip row={row} ticked={ticked} licence={licence} />
         )}
         {insurance.length === 0 ? (
           <StatusBadge tone="ok">Seguro pagado</StatusBadge>
@@ -116,10 +123,10 @@ const MemberRow = ({ row }: { row: ChecklistRow }) => {
           ))
         )}
       </div>
-      {!row.offersRc && (
+      {isInstructor(licence) && (
         <p className="flex items-center gap-1.5 text-[13px] text-muted-foreground sm:pl-[52px]">
           <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
-          {row.rcPaidApart ? 'El seguro RC de esta temporada ya está pagado' : `${LICENCE_LABELS[row.licence]} incluye el seguro RC`}
+          {row.rcPaidApart ? 'El seguro RC de esta temporada ya está pagado' : `${LICENCE_LABELS[licence]} incluye el seguro RC`}
         </p>
       )}
     </div>

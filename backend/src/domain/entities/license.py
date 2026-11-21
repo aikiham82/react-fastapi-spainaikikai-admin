@@ -222,10 +222,16 @@ def _is_child(licence: License, birth_date: Optional[datetime], today: datetime)
     return today.year - birth_date.year - birthday_pending <= CHILD_MAX_AGE
 
 
-def payable_licence_items(licences: List[License], birth_date: Optional[datetime], today: datetime) -> frozenset:
-    """Licence and title items a member may pay, the same ones the payment screen offers."""
+def payable_licence_items(
+    licences: List[License], birth_date: Optional[datetime], today: datetime, identified: bool = False
+) -> frozenset:
+    """Licence and title items a member may pay, the same ones the payment screen offers.
+
+    A member without licence gets a title only when identified by DNI, so a club cannot register again someone
+    who already holds a licence and make them an instructor.
+    """
     if not licences:
-        return GRADE_ITEMS
+        return LICENCE_ITEMS if identified else GRADE_ITEMS
     current = current_licences(licences)
     title = title_among(current)
     if title != InstructorCategory.NONE:
@@ -237,8 +243,10 @@ def payable_licence_items(licences: List[License], birth_date: Optional[datetime
 
 
 def payable_licence_items_for_year(
-    licences: List[License], birth_date: Optional[datetime], today: datetime, payment_year: int
+    licences: List[License], birth_date: Optional[datetime], today: datetime, payment_year: int, identified: bool = False
 ) -> frozenset:
     """A past year may record the grade the member had then, which today's licences no longer show; never a title."""
-    payable = payable_licence_items(licences, birth_date, today)
-    return payable | GRADE_ITEMS if payment_year < today.year else payable
+    payable = payable_licence_items(licences, birth_date, today, identified)
+    if payment_year >= today.year:
+        return payable
+    return payable | GRADE_ITEMS if licences else GRADE_ITEMS

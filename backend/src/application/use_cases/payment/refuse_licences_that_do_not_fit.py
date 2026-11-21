@@ -30,7 +30,10 @@ async def refuse_licences_that_do_not_fit(
 
     for member_id, item in licence_lines:
         member = members_by_id[member_id]
-        if item not in payable_licence_items_for_year(held[member_id], member.birth_date, today, payment_year):
+        payable = payable_licence_items_for_year(
+            held[member_id], member.birth_date, today, payment_year, identified=bool((member.dni or "").strip())
+        )
+        if item not in payable:
             concept = PAYMENT_TYPE_LABELS[ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE[item].value]
             raise InvalidPaymentDataError(
                 f"{member.first_name} {member.last_name} no puede pagar {concept}: no corresponde a su licencia"

@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import type { Member } from '@/features/members/data/schemas/member.schema'
-import { buildChecklistRows, renewalAssignments, tickAllPending, type ChecklistRow } from '../payment-checklist'
+import {
+  buildChecklistRows,
+  chooseLicence,
+  renewalAssignments,
+  sanitizeAssignments,
+  tickAllPending,
+  type ChecklistRow,
+} from '../payment-checklist'
 
 const row = (overrides: Partial<ChecklistRow> = {}): ChecklistRow => ({
   memberId: 'm-1',
@@ -30,6 +37,29 @@ describe('tickAllPending', () => {
     const [assignment] = tickAllPending([row()], [])
 
     expect(assignment.payment_types).toEqual(['kyu', 'seguro_accidentes', 'seguro_rc'])
+  })
+
+  it('leaves out the RC when the chosen licence is a title', () => {
+    const current = [{ member_id: 'm-1', member_name: 'Nuevo Ejemplo', payment_types: ['shidoin'] }]
+
+    const [assignment] = tickAllPending([row({ licenceChoices: ['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'] })], current)
+
+    expect(assignment.payment_types).toEqual(['shidoin', 'seguro_accidentes'])
+  })
+})
+
+describe('choosing a title for a member without licence', () => {
+  const newcomer = row({ licenceChoices: ['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'] })
+  const ticked = [{ member_id: 'm-1', member_name: 'Nuevo Ejemplo', payment_types: ['kyu', 'seguro_accidentes', 'seguro_rc'] }]
+
+  it.each(['shidoin', 'fukushidoin'] as const)('choosing %s drops the RC the title already includes', (title) => {
+    expect(chooseLicence(ticked, newcomer, title)[0].payment_types).toEqual([title, 'seguro_accidentes'])
+  })
+
+  it('a prefilled RC next to a title is not sent', () => {
+    const prefilled = [{ ...ticked[0], payment_types: ['shidoin', 'seguro_accidentes', 'seguro_rc'] }]
+
+    expect(sanitizeAssignments(prefilled, [newcomer])[0].payment_types).toEqual(['shidoin', 'seguro_accidentes'])
   })
 })
 
@@ -100,6 +130,16 @@ describe('buildChecklistRows licence', () => {
   it('a child holding a Kyu licence can choose Kyu infantil or Dan, an adult Kyu or Dan', () => {
     expect(rowOf(holder('5º Kyu', 'kyu', '2017-12-20')).licenceChoices).toEqual(['kyu_infantil', 'dan'])
     expect(rowOf(holder('5º Kyu', 'kyu', '1990-01-01')).licenceChoices).toEqual(['kyu', 'dan'])
+  })
+
+  it('a member without licence identified by DNI can choose any licence, Fukushidoin and Shidoin included', () => {
+    const newcomer = { ...holder('', 'kyu', '1974-11-13'), license_summary: undefined, dni: '00000000T' } as Member
+    expect(rowOf(newcomer).licenceChoices).toEqual(['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'])
+  })
+
+  it('a member without licence nor DNI is never offered a title', () => {
+    const newcomer = { ...holder('', 'kyu', '1974-11-13'), license_summary: undefined, dni: '' } as Member
+    expect(rowOf(newcomer).licenceChoices).toEqual(['kyu', 'kyu_infantil', 'dan'])
   })
 
   it('a Dan holder keeps no choice', () => {
