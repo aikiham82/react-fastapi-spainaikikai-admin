@@ -176,9 +176,7 @@ export const chooseLicence = (
   licence: LicenceItem,
 ): MemberPaymentAssignment[] => {
   const ticked = tickedItemsOf(assignments, row.memberId);
-  const insurance = [...ticked].filter(
-    (item) => !LICENCE_ITEMS.includes(item as LicenceItem) && !(isInstructor(licence) && item === 'seguro_rc'),
-  );
+  const insurance = pendingInsuranceOf(row, licence).filter((item) => ticked.has(item));
   const others = assignments.filter((a) => a.member_id !== row.memberId);
   return [...others, { member_id: row.memberId, member_name: row.memberName, payment_types: [licence, ...insurance] }];
 };

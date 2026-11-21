@@ -29,9 +29,14 @@ const priceOf = (prices: AnnualPaymentPrices | null, item: keyof AnnualPaymentPr
 
 const CARD = 'rounded-[18px] bg-card p-4 shadow-card lg:rounded-none lg:shadow-none';
 
-const LicenceChip = ({ row, ticked }: { row: ChecklistRow; ticked: Set<string> }) => {
+interface LicenceChipProps {
+  row: ChecklistRow;
+  ticked: Set<string>;
+  licence: LicenceItem;
+}
+
+const LicenceChip = ({ row, ticked, licence }: LicenceChipProps) => {
   const { toggleMemberItems, chooseMemberLicence, isSubmitting, prices } = useAnnualPaymentContext();
-  const licence = tickedLicenceOf(ticked, row);
 
   return (
     <>
@@ -101,7 +106,7 @@ const MemberRow = ({ row }: { row: ChecklistRow }) => {
         {row.licencePaid ? (
           <StatusBadge tone="ok">Licencia pagada</StatusBadge>
         ) : (
-          <LicenceChip row={row} ticked={ticked} />
+          <LicenceChip row={row} ticked={ticked} licence={licence} />
         )}
         {insurance.length === 0 ? (
           <StatusBadge tone="ok">Seguro pagado</StatusBadge>
