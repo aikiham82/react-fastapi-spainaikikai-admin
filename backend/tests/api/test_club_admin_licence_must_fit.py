@@ -32,9 +32,11 @@ pytestmark = [pytest.mark.api, pytest.mark.auth]
 
 INSTRUCTOR = "member-instructor"
 KYU = "member-kyu"
+NEWCOMER = "member-newcomer"
 MEMBERS = [
     Member(id=INSTRUCTOR, club_id=OWN_CLUB, first_name="Ana", last_name="Example", birth_date=datetime(1980, 1, 1)),
     Member(id=KYU, club_id=OWN_CLUB, first_name="Beto", last_name="Example", birth_date=datetime(1990, 1, 1)),
+    Member(id=NEWCOMER, club_id=OWN_CLUB, first_name="Carla", last_name="Example", birth_date=datetime(1974, 1, 1)),
 ]
 LICENCES = [
     License(license_number="QA-1", member_id=INSTRUCTOR, grade="3 dan", technical_grade=TechnicalGrade.DAN,
@@ -43,7 +45,7 @@ LICENCES = [
             instructor_category=InstructorCategory.NONE, age_category=AgeCategory.ADULTO),
 ]
 THIS_YEAR = datetime.utcnow().year
-COUNT_FIELD = {"kyu": "kyu_count", "dan": "dan_count", "shidoin": "shidoin_count", "seguro_rc": "seguro_rc_count"}
+COUNT_FIELD = {"kyu": "kyu_count", "dan": "dan_count", "shidoin": "shidoin_count", "fukushidoin": "fukushidoin_count", "seguro_rc": "seguro_rc_count"}
 
 
 def line_of(payment_type: MemberPaymentType) -> MemberPayment:
@@ -131,6 +133,12 @@ def test_a_club_admin_is_refused_a_licence_that_does_not_fit(client_as, use_case
 @pytest.mark.parametrize(("member_id", "item"), [(INSTRUCTOR, "shidoin"), (KYU, "kyu"), (KYU, "dan"), (INSTRUCTOR, "seguro_rc")])
 def test_a_club_admin_pays_what_fits(client_as, pay, use_case, ok, member_id, item):
     assert pay(client_as(club_admin()), member_id, item).status_code == ok
+
+
+@PAYING
+@pytest.mark.parametrize("item", ["shidoin", "fukushidoin"])
+def test_a_club_admin_pays_a_first_title_for_a_member_without_licence(client_as, pay, use_case, ok, item):
+    assert pay(client_as(club_admin()), NEWCOMER, item).status_code == ok
 
 
 @PAYING

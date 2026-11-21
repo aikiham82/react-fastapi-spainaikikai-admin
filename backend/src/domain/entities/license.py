@@ -225,7 +225,7 @@ def _is_child(licence: License, birth_date: Optional[datetime], today: datetime)
 def payable_licence_items(licences: List[License], birth_date: Optional[datetime], today: datetime) -> frozenset:
     """Licence and title items a member may pay, the same ones the payment screen offers."""
     if not licences:
-        return GRADE_ITEMS
+        return LICENCE_ITEMS
     current = current_licences(licences)
     title = title_among(current)
     if title != InstructorCategory.NONE:

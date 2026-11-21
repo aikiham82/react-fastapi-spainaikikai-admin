@@ -9,6 +9,16 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-11-21T11:00:00Z"
+has_completed_all_phases: "true"
 ---
 
 # A club admin pays the first title of a member without licence
@@ -41,19 +51,19 @@ Out of scope: a dan holder becoming an instructor from the club.
 
 Server and screen allow the title; the RC follows the chosen licence.
 
-- [ ] `payable_licence_items`: no licences returns `LICENCE_ITEMS`.
-- [ ] `test_payable_licence_items.py`: case "no licence" expects the five items.
-- [ ] `test_club_admin_licence_must_fit.py`: `test_a_club_admin_pays_a_first_title_for_a_member_without_licence`.
-- [ ] `CHOOSABLE_LICENCE_ITEMS` adds `fukushidoin` and `shidoin`.
-- [ ] `pendingInsuranceOf(row, licence)` drops RC when the chosen licence is a title; `MemberRow`, `sanitizeAssignments`, `tickAllPending` and `chooseLicence` use the chosen licence, so choosing a title unticks RC.
-- [ ] RC note uses the chosen licence.
-- [ ] Tests: "lets a member without licence choose Shidoin or Fukushidoin", "choosing a title drops the RC".
-- [ ] Update `docs/domain/payment-cycles.md`.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `payable_licence_items`: no licences returns `LICENCE_ITEMS`.
+- [x] `test_payable_licence_items.py`: case "no licence" expects the five items.
+- [x] `test_club_admin_licence_must_fit.py`: `test_a_club_admin_pays_a_first_title_for_a_member_without_licence`.
+- [x] `CHOOSABLE_LICENCE_ITEMS` adds `fukushidoin` and `shidoin`.
+- [x] `pendingInsuranceOf(row, licence)` drops RC when the chosen licence is a title; `MemberRow`, `sanitizeAssignments`, `tickAllPending` and `chooseLicence` use the chosen licence, so choosing a title unticks RC.
+- [x] RC note uses the chosen licence.
+- [x] Tests: "lets a member without licence choose Shidoin or Fukushidoin", "choosing a title drops the RC".
+- [x] Update `docs/domain/payment-cycles.md`.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases are complete: run code review and QA, then merge.
 
-Plan sharpened by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
+A new shidoin walks onto the mat, paid once, thanks to [Codely](https://codely.com). 🥋 < 🐢 💨

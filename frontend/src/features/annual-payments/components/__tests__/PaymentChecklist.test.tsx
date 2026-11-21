@@ -216,6 +216,23 @@ describe('PaymentChecklist', () => {
     expect(counts()).toMatchObject({ dan_count: 1, kyu_count: 0 })
   })
 
+  it.each([
+    ['shidoin', 'Licencia Shidoin', 'shidoin_count'],
+    ['fukushidoin', 'Licencia Fukushidoin', 'fukushidoin_count'],
+  ])('lets a member without licence be paid as %s, without charging the RC the title includes', async (item, label, count) => {
+    members = [{ ...member('m-new', 'Nuevo', {}), license_summary: undefined } as Member]
+    renderChecklist()
+
+    const row = within(rowOf('Nuevo'))
+    await userEvent.click(row.getByRole('checkbox', { name: chip('RC') }))
+    await userEvent.selectOptions(row.getByRole('combobox', { name: 'Tipo de licencia de Nuevo Ejemplo' }), item)
+
+    expect(row.getByRole('checkbox', { name: chip(label) })).toBeChecked()
+    expect(row.queryByRole('checkbox', { name: chip('RC') })).not.toBeInTheDocument()
+    expect(row.getByText(`${label} incluye el seguro RC`)).toBeInTheDocument()
+    expect(counts()).toMatchObject({ [count]: 1, seguro_rc_count: 0 })
+  })
+
   it('lets a kyu member who passed to dan be paid as Licencia Dan', async () => {
     members = [member('m-kyu', 'Kira', { grade: '1º Kyu', technical_grade: 'kyu' })]
     renderChecklist()

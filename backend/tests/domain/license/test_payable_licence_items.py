@@ -42,7 +42,7 @@ FUKUSHIDOIN = InstructorCategory.FUKUSHIDOIN
 @pytest.mark.parametrize(
     ("licences", "birth_date", "expected"),
     [
-        pytest.param([], ADULT, {"kyu", "kyu_infantil", "dan"}, id="no licence"),
+        pytest.param([], ADULT, {"kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin"}, id="no licence"),
         pytest.param([licence(KYU)], ADULT, {"kyu", "dan"}, id="adult kyu"),
         pytest.param([licence(KYU, age=AgeCategory.INFANTIL)], CHILD, {"kyu_infantil", "dan"}, id="child kyu"),
         pytest.param([licence(KYU, age=AgeCategory.INFANTIL)], ADULT, {"kyu", "dan"}, id="child licence, adult by birth date"),

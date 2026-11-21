@@ -12,7 +12,6 @@ export type MemberItem = LicenceItem | InsuranceItem;
 
 const LICENCE_ITEMS: readonly LicenceItem[] = ['kyu', 'kyu_infantil', 'dan', 'fukushidoin', 'shidoin'];
 const INSTRUCTOR_ITEMS: readonly LicenceItem[] = ['fukushidoin', 'shidoin'];
-export const CHOOSABLE_LICENCE_ITEMS: readonly LicenceItem[] = ['kyu', 'kyu_infantil', 'dan'];
 const MEMBER_ITEMS: readonly MemberItem[] = [...LICENCE_ITEMS, 'seguro_accidentes', 'seguro_rc'];
 const CHILD_MAX_AGE = 14;
 
@@ -54,7 +53,7 @@ export interface ChecklistRow {
   isUpToDate: boolean;
 }
 
-const isInstructor = (item: LicenceItem) => INSTRUCTOR_ITEMS.includes(item);
+export const isInstructor = (item: LicenceItem): boolean => INSTRUCTOR_ITEMS.includes(item);
 
 const ageOn = (birthDate: string | undefined, today: Date): number | null => {
   if (!birthDate) return null;
@@ -79,7 +78,7 @@ const licenceItemOf = (member: Member, today: Date = new Date()): LicenceItem =>
 };
 
 const licenceChoicesOf = (member: Member, licence: LicenceItem): readonly LicenceItem[] => {
-  if (!member.license_summary) return CHOOSABLE_LICENCE_ITEMS;
+  if (!member.license_summary) return LICENCE_ITEMS;
   if (licence === 'kyu' || licence === 'kyu_infantil') return [licence, 'dan'];
   return [];
 };
@@ -124,14 +123,14 @@ export const buildChecklistRows = (
   ];
 };
 
-export const pendingInsuranceOf = (row: ChecklistRow): InsuranceItem[] => [
+export const pendingInsuranceOf = (row: ChecklistRow, licence: LicenceItem = row.licence): InsuranceItem[] => [
   ...(row.accidentPaid ? [] : (['seguro_accidentes'] as const)),
-  ...(row.offersRc && !row.rcPaid ? (['seguro_rc'] as const) : []),
+  ...(row.offersRc && !row.rcPaid && !isInstructor(licence) ? (['seguro_rc'] as const) : []),
 ];
 
-const pendingItemsOf = (row: ChecklistRow): MemberItem[] => [
-  ...(row.licencePaid ? [] : [row.licence]),
-  ...pendingInsuranceOf(row),
+const pendingItemsOf = (row: ChecklistRow, licence: LicenceItem = row.licence): MemberItem[] => [
+  ...(row.licencePaid ? [] : [licence]),
+  ...pendingInsuranceOf(row, licence),
 ];
 
 export const tickedLicenceOf = (ticked: Set<string>, row: ChecklistRow): LicenceItem =>
@@ -149,7 +148,7 @@ export const sanitizeAssignments = (
     const licence = tickedLicenceOf(ticked, row);
     const types: MemberItem[] = [
       ...(!row.licencePaid && ticked.has(licence) ? [licence] : []),
-      ...pendingInsuranceOf(row).filter((item) => ticked.has(item)),
+      ...pendingInsuranceOf(row, licence).filter((item) => ticked.has(item)),
     ];
     return types.length > 0 ? [{ ...assignment, payment_types: types }] : [];
   });
@@ -177,7 +176,9 @@ export const chooseLicence = (
   licence: LicenceItem,
 ): MemberPaymentAssignment[] => {
   const ticked = tickedItemsOf(assignments, row.memberId);
-  const insurance = [...ticked].filter((item) => !LICENCE_ITEMS.includes(item as LicenceItem));
+  const insurance = [...ticked].filter(
+    (item) => !LICENCE_ITEMS.includes(item as LicenceItem) && !(isInstructor(licence) && item === 'seguro_rc'),
+  );
   const others = assignments.filter((a) => a.member_id !== row.memberId);
   return [...others, { member_id: row.memberId, member_name: row.memberName, payment_types: [licence, ...insurance] }];
 };
@@ -188,7 +189,7 @@ export const tickAllPending = (
 ): MemberPaymentAssignment[] =>
   rows.flatMap((row) => {
     const licence = tickedLicenceOf(tickedItemsOf(assignments, row.memberId), row);
-    const items = pendingItemsOf(row).map((item) => (LICENCE_ITEMS.includes(item as LicenceItem) ? licence : item));
+    const items = pendingItemsOf(row, licence);
     return items.length > 0
       ? [{ member_id: row.memberId, member_name: row.memberName, payment_types: items }]
       : [];
