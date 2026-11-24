@@ -27,6 +27,10 @@ export const memberStatusRowSchema = z.object({
   license_paid: z.boolean(),
   license_payment_id: z.string().nullish(),
   licence_item: z.string().nullish(),
+  accident_insurance_id: z.string().nullish(),
+  accident_insurance_annulled: z.boolean().optional(),
+  rc_insurance_id: z.string().nullish(),
+  rc_insurance_annulled: z.boolean().optional(),
 });
 
 export const memberStatusBoardSchema = z.array(memberStatusRowSchema);

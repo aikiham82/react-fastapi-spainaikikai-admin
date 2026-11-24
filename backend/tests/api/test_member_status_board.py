@@ -186,3 +186,47 @@ def test_with_a_licence_and_a_title_the_licence_line_is_the_one_unticked():
 ])
 def test_each_row_names_the_licence_a_tick_would_pay(board, member_id, item):
     assert board[member_id]["licence_item"] == item
+
+
+def accident(insurance_id: str, end_date: datetime, annulled: bool = False) -> Insurance:
+    insurance = Insurance(id=insurance_id, policy_number="P-9", insurance_company="Example Insurer", member_id="kyu",
+                          insurance_type=InsuranceType.ACCIDENT, start_date=datetime(2020, 10, 1), end_date=end_date)
+    if annulled:
+        insurance.cancel()
+    return insurance
+
+
+def kyu_row_with(insurances: list) -> dict:
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1")
+    app.dependency_overrides = {
+        **dependency_overrides(super_admin()),
+        get_insurance_repository: lambda: SimpleNamespace(find_by_member_ids=AsyncMock(return_value=insurances)),
+    }
+    rows = TestClient(app).get("/api/v1/members/status-board", params={"payment_year": YEAR}).json()
+    return next(r for r in rows if r["member_id"] == "kyu")
+
+
+def test_an_insurance_in_force_is_the_one_a_tick_acts_on():
+    row = kyu_row_with([accident("ac-now", IN_FORCE)])
+    assert (row["accident_insurance_id"], row["accident_insurance_annulled"]) == ("ac-now", False)
+    assert (row["rc_insurance_id"], row["rc_insurance_annulled"]) == (None, False)
+
+
+def test_an_insurance_expired_by_date_is_not_offered():
+    assert kyu_row_with([accident("ac-old", datetime(2025, 9, 30))])["accident_insurance_id"] is None
+
+
+def test_an_annulled_insurance_still_in_its_dates_can_be_reactivated():
+    row = kyu_row_with([accident("ac-annulled", IN_FORCE, annulled=True)])
+    assert (row["accident_insurance_id"], row["accident_insurance_annulled"]) == ("ac-annulled", True)
+
+
+def test_among_several_in_their_dates_the_latest_end_date_wins():
+    row = kyu_row_with([accident("ac-later", datetime(2099, 12, 31)), accident("ac-sooner", datetime(2098, 12, 31))])
+    assert row["accident_insurance_id"] == "ac-later"
+
+
+def test_without_insurance_there_is_nothing_to_act_on(board):
+    assert board["unlicensed"]["accident_insurance_id"] is None
+    assert board["title"]["rc_insurance_id"] == "rc-title"

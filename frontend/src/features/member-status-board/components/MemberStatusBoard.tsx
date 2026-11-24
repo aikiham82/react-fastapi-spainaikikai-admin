@@ -16,6 +16,8 @@ import {
 import { ManualPaymentModal } from '@/features/club-payments/components/ManualPaymentModal';
 import { useDeleteMemberPaymentMutation } from '@/features/club-payments/hooks/mutations/usePaymentAdminMutations';
 import { useChangeMemberStatusMutation } from '@/features/members/hooks/mutations/useMemberMutations';
+import { useUpdateInsuranceMutation } from '@/features/insurance/hooks/mutations/useInsuranceMutations';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChipGroup, EmptyState, ListError, ListLoading, ListToolbar } from '@/components/ui/list-controls';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -50,11 +52,12 @@ interface TickProps {
   label: string;
   disabled: boolean;
   lockedBecause?: string | null;
+  showsWhyLocked?: boolean;
   onToggle: () => void;
   children: ReactNode;
 }
 
-function Tick({ checked, label, disabled, lockedBecause = null, onToggle, children }: TickProps) {
+function Tick({ checked, label, disabled, lockedBecause = null, showsWhyLocked = false, onToggle, children }: TickProps) {
   return (
     <label className="inline-flex min-h-11 cursor-pointer items-center gap-2" title={lockedBecause ?? undefined}>
       <Checkbox
@@ -64,7 +67,10 @@ function Tick({ checked, label, disabled, lockedBecause = null, onToggle, childr
         className="size-5"
         onCheckedChange={onToggle}
       />
-      {children}
+      <span className="flex flex-col gap-0.5">
+        {children}
+        {showsWhyLocked && lockedBecause && <span className="text-xs text-muted-foreground">{lockedBecause}</span>}
+      </span>
     </label>
   );
 }
@@ -79,6 +85,43 @@ function MemberBadge({ status }: { status: string }) {
   return status === 'active'
     ? <StatusBadge tone="ok">Activo</StatusBadge>
     : <StatusBadge tone="neutral">De baja</StatusBadge>;
+}
+
+interface InsuranceKind {
+  key: 'accident' | 'rc';
+  header: string;
+  name: string;
+  item: string;
+}
+
+const INSURANCE_KINDS: InsuranceKind[] = [
+  { key: 'accident', header: 'Accidentes', name: 'Seguro de accidentes', item: 'seguro_accidentes' },
+  { key: 'rc', header: 'RC', name: 'Seguro RC', item: 'seguro_rc' },
+];
+
+const INSTRUCTOR_ITEMS = ['shidoin', 'fukushidoin'];
+
+const insuranceOf = (row: MemberStatusRow, kind: InsuranceKind) => {
+  const summary = row.insurance_summary;
+  const [has, status, id, annulled] = kind.key === 'accident'
+    ? [summary?.has_accident, summary?.accident_status, row.accident_insurance_id, row.accident_insurance_annulled]
+    : [summary?.has_rc, summary?.rc_status, row.rc_insurance_id, row.rc_insurance_annulled];
+  return { has, status, id: id ?? null, annulled: Boolean(annulled), inForce: Boolean(id) && !annulled && status === 'active' };
+};
+
+const insuranceLock = (row: MemberStatusRow, kind: InsuranceKind): string | null => {
+  const { inForce, annulled } = insuranceOf(row, kind);
+  if (inForce) return null;
+  if (row.member_status !== 'active') return 'De baja: no paga seguro';
+  if (annulled) return null;
+  if (kind.key === 'rc' && INSTRUCTOR_ITEMS.includes(row.licence_item ?? '')) return 'Va incluido en su título';
+  if (!row.club_id) return 'Sin club: el pago se apunta en un club';
+  return null;
+};
+
+interface Payment {
+  row: MemberStatusRow;
+  items: string[];
 }
 
 interface Confirmation {
@@ -107,16 +150,36 @@ export const MemberStatusBoard = () => {
   const [chip, setChip] = useState<Chip>('all');
   const [offset, setOffset] = useState(0);
   const { data, isLoading, isFetching, error } = useMemberStatusBoardQuery(year);
-  const [paying, setPaying] = useState<MemberStatusRow | null>(null);
+  const [paying, setPaying] = useState<Payment | null>(null);
   const [confirming, setConfirming] = useState<Confirmation | null>(null);
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation();
   const changeMemberStatus = useChangeMemberStatusMutation();
   const exportBoard = useExportMemberStatusBoardMutation();
-  const busy = isDeleting || isFetching || changeMemberStatus.isPending;
+  const updateInsurance = useUpdateInsuranceMutation();
+  const queryClient = useQueryClient();
+  const busy = isDeleting || isFetching || changeMemberStatus.isPending || updateInsurance.isPending;
+
+  const setAnnulled = (insuranceId: string, annulled: boolean) =>
+    updateInsurance.mutate(
+      { id: insuranceId, data: { annulled } },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] }) }
+    );
+
+  const toggleInsurance = (row: MemberStatusRow, kind: InsuranceKind) => {
+    const { id, annulled, inForce } = insuranceOf(row, kind);
+    if (id && annulled) return setAnnulled(id, false);
+    if (!inForce || !id) return setPaying({ row, items: [kind.item] });
+    setConfirming({
+      title: `¿Anular el ${kind.name.replace('Seguro', 'seguro')} de ${fullName(row)}?`,
+      description: 'Deja de contar como vigente. Puedes volver a marcarlo para reactivarlo.',
+      action: 'Anular seguro',
+      onConfirm: () => setAnnulled(id, true),
+    });
+  };
 
   const togglePaid = (row: MemberStatusRow) => {
     const paymentId = row.license_payment_id;
-    if (!row.license_paid || !paymentId) return setPaying(row);
+    if (!row.license_paid || !paymentId) return setPaying({ row, items: row.licence_item ? [row.licence_item] : [] });
     setConfirming({
       title: `¿Quitar el pago de la licencia ${year} de ${fullName(row)}?`,
       description: 'Se borrará este pago. La licencia seguirá en vigor hasta su fecha, pero aparecerá como sin pagar.',
@@ -169,16 +232,25 @@ export const MemberStatusBoard = () => {
       ),
     },
     { key: 'licence', header: () => 'Licencia', cell: (row) => <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} /> },
-    {
-      key: 'accident',
-      header: () => 'Accidentes',
-      cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_accident} status={row.insurance_summary?.accident_status} />,
-    },
-    {
-      key: 'rc',
-      header: () => 'RC',
-      cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_rc} status={row.insurance_summary?.rc_status} />,
-    },
+    ...INSURANCE_KINDS.map((kind): Column => ({
+      key: kind.key,
+      header: () => kind.header,
+      cell: (row) => {
+        const { has, status, inForce } = insuranceOf(row, kind);
+        return (
+          <Tick
+            checked={inForce}
+            label={`${kind.name} de ${fullName(row)}`}
+            disabled={busy}
+            lockedBecause={insuranceLock(row, kind)}
+            showsWhyLocked={row.member_status === 'active'}
+            onToggle={() => toggleInsurance(row, kind)}
+          >
+            <InsuranceBadge has={has} status={status} />
+          </Tick>
+        );
+      },
+    })),
   ];
 
   const sorted = useMemo(
@@ -326,17 +398,17 @@ export const MemberStatusBoard = () => {
 
       <ListPager total={shown.length} limit={PAGE_SIZE} offset={offset} noun="socios" onPage={setOffset} />
 
-      {paying?.club_id && (
+      {paying?.row.club_id && (
         <ManualPaymentModal
           isOpen
           onClose={() => setPaying(null)}
-          clubId={paying.club_id}
-          clubName={paying.club_name ?? ''}
+          clubId={paying.row.club_id}
+          clubName={paying.row.club_name ?? ''}
           paymentYear={year}
-          members={[{ id: paying.member_id, name: fullName(paying) }]}
+          members={[{ id: paying.row.member_id, name: fullName(paying.row) }]}
           isLoadingMembers={false}
-          initialPaymentTypes={paying.licence_item ? [paying.licence_item] : []}
-          initialPayerName={fullName(paying)}
+          initialPaymentTypes={paying.items}
+          initialPayerName={fullName(paying.row)}
         />
       )}
 

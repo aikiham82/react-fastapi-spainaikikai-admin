@@ -10,8 +10,8 @@ implemented_by:
     version: "5.2"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-11-24T16:30:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-11-24T17:00:00Z"
+has_completed_all_phases: "true"
 
 created_by:
   tool: "Claude Code"
@@ -69,16 +69,16 @@ Real data matrix (production, read-only, 2026-11-24). Each row is a test case an
 
 ### Phase 2: accident and RC insurance ticks
 
-- [ ] `MemberStatusRowResponse` gains `accident_insurance_id`, `accident_insurance_annulled`, `rc_insurance_id`, `rc_insurance_annulled`: per type, the insurance whose dates are in force today with the latest end date, annulled or not; null when none.
-- [ ] Backend tests in `tests/api/test_member_status_board.py`: in force gives its id, expired by date gives none, annulled in force gives its id and `annulled`, the latest end date wins, no insurance gives none.
-- [ ] The Accidentes and RC columns get a checkbox, ticked when that insurance is in force. Tick without a season insurance opens `ManualPaymentModal` with `seguro_accidentes` or `seguro_rc` pre-ticked and the member as payer. Tick on an annulled insurance of the season reactivates it (`annulled: false`). Untick asks "¿Anular el seguro de accidentes de {nombre}?" / "¿Anular el seguro RC de {nombre}?" with "Deja de contar como vigente. Puedes volver a marcarlo para reactivarlo." and "Anular seguro", then sends `annulled: true`. The board refetches after either.
-- [ ] Locked with a visible reason: the RC of an instructor without RC in force ("Va incluido en su título"), and any insurance tick of a deregistered member or a member without club.
-- [ ] Component tests: tick opens the payment with the right item, untick confirms and annuls with the insurance id, tick on an annulled one reactivates without opening the payment, instructor RC locked, deregistered member locked, in-force RC of an instructor can still be unticked.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] `MemberStatusRowResponse` gains `accident_insurance_id`, `accident_insurance_annulled`, `rc_insurance_id`, `rc_insurance_annulled`: per type, the insurance whose dates are in force today with the latest end date, annulled or not; null when none.
+- [x] Backend tests in `tests/api/test_member_status_board.py`: in force gives its id, expired by date gives none, annulled in force gives its id and `annulled`, the latest end date wins, no insurance gives none.
+- [x] The Accidentes and RC columns get a checkbox, ticked when that insurance is in force. Tick without a season insurance opens `ManualPaymentModal` with `seguro_accidentes` or `seguro_rc` pre-ticked and the member as payer. Tick on an annulled insurance of the season reactivates it (`annulled: false`). Untick asks "¿Anular el seguro de accidentes de {nombre}?" / "¿Anular el seguro RC de {nombre}?" with "Deja de contar como vigente. Puedes volver a marcarlo para reactivarlo." and "Anular seguro", then sends `annulled: true`. The board refetches after either.
+- [x] Locked with a visible reason: the RC of an instructor without RC in force ("Va incluido en su título"), and any insurance tick of a deregistered member or a member without club.
+- [x] Component tests: tick opens the payment with the right item, untick confirms and annuls with the insurance id, tick on an annulled one reactivates without opening the payment, instructor RC locked, deregistered member locked, in-force RC of an instructor can still be unticked.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 2: the insurance ticks.
+All phases are implemented: review, QA and merge.
 
-More boxes to tick, carried by 🙋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+More boxes to tick, carried by 🛡️ 🙋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

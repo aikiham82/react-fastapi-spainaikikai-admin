@@ -14,7 +14,7 @@ from src.domain.entities.license import (
     payable_licence_items,
     title_among,
 )
-from src.domain.entities.insurance import Insurance
+from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
 from src.domain.entities.member import ClubRole
 from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPaymentStatus
 from src.domain.exceptions.license import LicenseNotFoundError
@@ -249,10 +249,30 @@ def _licence_item(licences: List[License], birth_date, identified: bool) -> Opti
     return next(iter(items - {"dan"}), "dan")
 
 
+def _insurance_within_its_dates(insurances: List[Insurance], insurance_type: InsuranceType, today: datetime):
+    """The insurance of that type whose dates cover today, annulled or not: the one a tick annuls or reactivates."""
+    current = [
+        i for i in insurances
+        if i.insurance_type == insurance_type and i.end_date and i.end_date >= today
+        and (not i.start_date or i.start_date <= today)
+    ]
+    return max(current, key=lambda i: (i.status != InsuranceStatus.CANCELLED, i.end_date), default=None)
+
+
+def _insurance_tick_fields(insurances: List[Insurance], today: datetime) -> dict:
+    fields = {}
+    for prefix, insurance_type in (("accident", InsuranceType.ACCIDENT), ("rc", InsuranceType.CIVIL_LIABILITY)):
+        insurance = _insurance_within_its_dates(insurances, insurance_type, today)
+        fields[f"{prefix}_insurance_id"] = insurance.id if insurance else None
+        fields[f"{prefix}_insurance_annulled"] = bool(insurance and insurance.status == InsuranceStatus.CANCELLED)
+    return fields
+
+
 async def member_status_rows(
     payment_year: int, get_all_use_case, license_repo, insurance_repo, club_repo, member_payment_repo
 ) -> List[MemberStatusRowResponse]:
     members = await get_all_use_case.execute(0, None)
+    today = datetime.utcnow()
     member_ids = [m.id for m in members]
     licences = await license_repo.find_by_member_ids(member_ids, limit=len(member_ids) * 5)
     insurances = await insurance_repo.find_by_member_ids(member_ids, limit=len(member_ids) * 5)
@@ -283,6 +303,7 @@ async def member_status_rows(
             license_paid=m.id in licence_line_by_member,
             license_payment_id=licence_line_by_member.get(m.id),
             licence_item=_licence_item(licences_by_member[m.id], m.birth_date, bool(m.dni)),
+            **_insurance_tick_fields(insurances_by_member[m.id], today),
         )
         for m in members
     ]
