@@ -58,6 +58,8 @@ A year before the current one also accepts any grade licence (`payable_licence_i
 
 A `License` entity can exist with no payment behind it, because licences are bulk-imported from the federation with `last_payment_id = null`. Inferring payment from its existence marks unpaid members as paid.
 
+So a "paid" tick is never a flag. On the super admin's "Estado de socios" board (`GET /members/status-board`, decided with the secretary on 2026-11-24), ticking "Licencia N pagada" opens the manual payment with that member and the licence they hold pre-ticked (`licence_item`, from `payable_licence_items`), and unticking deletes that completed line. The board shows a licence in force without a payment in amber instead of hiding the gap: 226 licences in production were in force with no 2026 payment, because the secretary had moved their dates. A title paid that year counts as the licence paid; when a member has both lines, the licence line is the one unticked.
+
 ## 🏆 Benefits
 
 - Clubs are billed and displayed according to what they actually paid.
