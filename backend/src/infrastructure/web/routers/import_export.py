@@ -40,7 +40,7 @@ from src.infrastructure.web.dependencies import get_auth_context
 from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx, require_club_access, require_super_admin
 from src.infrastructure.web.routers.members import member_status_rows
 from src.domain.entities.license import LicenseStatus, TechnicalGrade, InstructorCategory, AgeCategory
-from src.domain.entities.insurance import InsuranceType, InsuranceStatus
+from src.domain.entities.insurance import Insurance, InsuranceType, InsuranceStatus
 from src.domain.entities.member_payment import (
     PAYMENT_TYPE_LABELS,
     MemberPayment,
@@ -764,6 +764,40 @@ async def import_licenses(
     )
 
 
+INSURANCE_TYPE_ALIASES = {
+    'accidente': 'accident',
+    'rc': 'civil_liability',
+    'responsabilidad_civil': 'civil_liability',
+}
+
+
+def _insurance_type(cell) -> Optional[InsuranceType]:
+    normalized = str(cell).lower().replace(' ', '_')
+    try:
+        return InsuranceType(INSURANCE_TYPE_ALIASES.get(normalized, normalized))
+    except ValueError:
+        return None
+
+
+def _insurances_meant_by_row(
+    sharing_policy_number: list[Insurance],
+    member_id: Optional[str],
+    insurance_type: Optional[InsuranceType],
+    start_date: Optional[datetime],
+) -> list[Insurance]:
+    matches = [
+        insurance for insurance in sharing_policy_number
+        if (not member_id or insurance.member_id == member_id)
+        and (not insurance_type or insurance.insurance_type == insurance_type)
+    ]
+    if len(matches) > 1 and start_date:
+        return [
+            insurance for insurance in matches
+            if insurance.start_date and insurance.start_date.date() == start_date.date()
+        ]
+    return matches
+
+
 @router.post("/insurances/import", response_model=ImportMembersResponse)
 async def import_insurances(
     request: ImportInsurancesRequest,
@@ -801,24 +835,26 @@ async def import_insurances(
                 failed += 1
                 continue
 
-            # In upsert mode, find existing insurance by policy_number and update
-            if is_upsert:
-                existing = await insurance_repo.find_by_policy_number(policy_number)
-                if existing:
+            member = await member_repo.find_by_dni(dni) if dni else None
+            insurance_type = _insurance_type(ins_type)
+
+            if is_upsert and (member or not dni):
+                matches = _insurances_meant_by_row(
+                    await insurance_repo.find_all_by_policy_number(policy_number),
+                    member.id if member else None,
+                    insurance_type,
+                    _parse_date(start_date_str),
+                )
+                if len(matches) > 1:
+                    errors.append(f"Fila {idx + 1}: Varios seguros coinciden con esta fila; indica la fecha de inicio")
+                    failed += 1
+                    continue
+                if matches:
+                    existing = matches[0]
                     update_fields = {}
                     start_date = _parse_date(start_date_str)
                     end_date = _parse_date(end_date_str)
 
-                    if ins_type:
-                        ins_type_normalized = ins_type.lower().replace(' ', '_')
-                        if ins_type_normalized in ('accidente', 'accident'):
-                            ins_type_normalized = 'accident'
-                        elif ins_type_normalized in ('rc', 'responsabilidad_civil', 'civil_liability'):
-                            ins_type_normalized = 'civil_liability'
-                        try:
-                            update_fields['insurance_type'] = InsuranceType(ins_type_normalized)
-                        except ValueError:
-                            pass
                     if company:
                         update_fields['insurance_company'] = company
                     if start_date:
@@ -850,8 +886,6 @@ async def import_insurances(
                 failed += 1
                 continue
 
-            # Lookup member by DNI
-            member = await member_repo.find_by_dni(dni)
             if not member:
                 errors.append(f"Fila {idx + 1}: No se encontró miembro con DNI {dni}")
                 failed += 1
@@ -865,16 +899,7 @@ async def import_insurances(
                 failed += 1
                 continue
 
-            # Validate insurance type
-            ins_type_normalized = ins_type.lower().replace(' ', '_')
-            if ins_type_normalized in ('accidente', 'accident'):
-                ins_type_normalized = 'accident'
-            elif ins_type_normalized in ('rc', 'responsabilidad_civil', 'civil_liability'):
-                ins_type_normalized = 'civil_liability'
-
-            try:
-                InsuranceType(ins_type_normalized)
-            except ValueError:
+            if not insurance_type:
                 errors.append(f"Fila {idx + 1}: Tipo de seguro inválido '{ins_type}'. Use: accident, civil_liability")
                 failed += 1
                 continue
@@ -892,7 +917,7 @@ async def import_insurances(
                 insurance_company=company,
                 start_date=start_date,
                 end_date=end_date,
-                insurance_type=ins_type_normalized,
+                insurance_type=insurance_type.value,
                 coverage_amount=coverage_amount
             )
             imported += 1

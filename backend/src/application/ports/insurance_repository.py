@@ -30,8 +30,8 @@ class InsuranceRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def find_by_policy_number(self, policy_number: str) -> Optional[Insurance]:
-        """Find an insurance by policy number."""
+    async def find_all_by_policy_number(self, policy_number: str) -> List[Insurance]:
+        """Find every insurance carrying a policy number: many members share one."""
         pass
 
     @abstractmethod

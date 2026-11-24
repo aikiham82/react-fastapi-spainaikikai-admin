@@ -94,9 +94,9 @@ class MongoDBInsuranceRepository(InsuranceRepositoryPort):
         documents = await cursor.to_list(length=limit if limit > 0 else None)
         return [self._to_domain(doc) for doc in documents]
 
-    async def find_by_policy_number(self, policy_number: str) -> Optional[Insurance]:
-        doc = await self.collection.find_one({"policy_number": policy_number})
-        return self._to_domain(doc) if doc else None
+    async def find_all_by_policy_number(self, policy_number: str) -> List[Insurance]:
+        documents = await self.collection.find({"policy_number": policy_number}).to_list(length=None)
+        return [self._to_domain(doc) for doc in documents]
 
     async def find_by_status(self, status: InsuranceStatus, limit: int = 0) -> List[Insurance]:
         cursor = self.collection.find({"status": status.value}).limit(limit)
