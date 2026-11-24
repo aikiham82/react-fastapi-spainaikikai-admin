@@ -79,6 +79,7 @@ docs/
 │   ├── a-club-is-switched-off-only-by-deregistration.md
 │   ├── a-deregistered-members-licence-is-history.md
 │   ├── an-exam-fee-is-its-own-payment.md
+│   ├── an-uncharged-payment-selection-comes-back.md
 │   ├── a-payment-is-fulfilled-once.md
 │   ├── a-payment-line-shows-a-date-only-when-paid.md
 │   ├── club-account-placeholders-are-legacy.md
