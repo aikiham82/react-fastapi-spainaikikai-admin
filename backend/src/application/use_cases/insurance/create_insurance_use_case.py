@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Optional
 
 from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
-from src.domain.exceptions.insurance import InsuranceAlreadyExistsError
 from src.application.ports.insurance_repository import InsuranceRepositoryPort
 
 
@@ -30,11 +29,6 @@ class CreateInsuranceUseCase:
         Note: club_id is no longer stored on insurance. The club can be
         derived from the member_id when needed.
         """
-        # Check if insurance with same policy number exists
-        existing = await self.insurance_repository.find_by_policy_number(policy_number)
-        if existing:
-            raise InsuranceAlreadyExistsError("Insurance with this policy number already exists")
-
         insurance = Insurance(
             member_id=member_id,
             insurance_type=InsuranceType(insurance_type),
