@@ -134,7 +134,7 @@ class TestGrantMemberAccessUseCase:
             await use_case.execute("member-1", "family@example.com", make_club_admin=False)
         users.create.assert_not_awaited()
 
-    async def test_hands_over_a_switched_off_account_holding_the_email(self, use_case, users):
+    async def test_hands_over_a_switched_off_account_holding_the_email(self, use_case, users, members):
         users.find_by_email = AsyncMock(return_value=User(
             id="user-9", email="club@example.com", username="club", hashed_password="old",
             member_id="former-manager", is_active=False,
@@ -149,6 +149,7 @@ class TestGrantMemberAccessUseCase:
         assert handed_over.is_active is True
         assert handed_over.hashed_password != "old"
         assert result.email == "club@example.com"
+        assert members.update.await_args.args[0].club_role == ClubRole.ADMIN
         users.create.assert_not_awaited()
 
     async def test_refuses_the_email_of_a_switched_off_super_admin(self, use_case, users):

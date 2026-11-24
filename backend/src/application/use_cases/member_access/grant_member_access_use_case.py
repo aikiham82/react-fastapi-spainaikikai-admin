@@ -64,6 +64,7 @@ class GrantMemberAccessUseCase:
             if linked:
                 linked.unlink_from_member()
                 await self.user_repository.update(linked)
+            logger.info(f"Switched-off account {holder.id} handed over from member {holder.member_id} to member {member_id}")
             holder.link_to_member(member_id)
             linked = holder
 

@@ -12,7 +12,7 @@ A club admin gives, manages and removes the login of members of **their own club
 
 Removing access deactivates the account and kills its reset tokens; it is not deleted. Giving access again reactivates it with the new email.
 
-**A switched-off account does not keep its email for itself.** The email identifies the person: giving access with an email that only a switched-off account holds hands that account over to the member being given access (relinked, reactivated, new random password), in any club. Access derives from the new member's club, so nothing is gained over the old one. An email held by an active account, or by the super admin account in any state, is still refused with 409.
+**A switched-off account does not keep its email for itself.** The email identifies the person: giving access with an email that only a switched-off account holds hands that account over to the member being given access (relinked, reactivated, new random password), in any club. Access derives from the new member's club, so nothing is gained over the old one. An email held by an active account, or by the super admin account in any state, is still refused with 409. On the panel, giving access therefore marks every member's account query stale, not only the one edited: the account may have come from another member.
 
 ## 🏆 Benefits
 

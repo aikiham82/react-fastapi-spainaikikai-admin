@@ -19,7 +19,7 @@ const setup = () => {
   const wrapper = ({ children }: { children: ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
   const invalidatedKeys = () => invalidate.mock.calls.map(([filters]) => filters?.queryKey);
-  return { wrapper, invalidatedKeys };
+  return { wrapper, invalidate, invalidatedKeys };
 };
 
 describe('access mutations refresh the accounts behind the "Acceso" badge', () => {
@@ -33,14 +33,14 @@ describe('access mutations refresh the accounts behind the "Acceso" badge', () =
       email: 'club@example.com',
       expires_at: '2026-11-25T10:00:00',
     });
-    const { wrapper, invalidatedKeys } = setup();
+    const { wrapper, invalidate, invalidatedKeys } = setup();
     const { result } = renderHook(() => useGrantMemberAccessMutation(), { wrapper });
 
     result.current.mutate({ memberId: 'member-1', email: 'club@example.com', clubAdmin: true });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(invalidatedKeys()).toContainEqual(['user-accounts']);
-    expect(invalidatedKeys()).toContainEqual(['user-by-member']);
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['user-by-member'], refetchType: 'none' });
   });
 
   it('refreshes the accounts after removing access', async () => {
