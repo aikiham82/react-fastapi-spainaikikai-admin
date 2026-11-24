@@ -188,6 +188,18 @@ describe('useAnnualPaymentContext club switching', () => {
     )
   })
 
+  it('shows no notice when nothing of the unfinished payment is left to tick', async () => {
+    prefillByClub['club-a'] = {
+      ...prefillFor('gone'),
+      include_club_fee: false,
+      source: 'unfinished_payment',
+    }
+    renderWithProviders(tree())
+    await goTo('go-a')
+    expect(screen.getByTestId('ticked').textContent).toBe('')
+    expect(screen.getByTestId('notice').textContent).toBe('')
+  })
+
   it('shows no notice for a default prefill', async () => {
     renderWithProviders(tree())
     await goTo('go-a')

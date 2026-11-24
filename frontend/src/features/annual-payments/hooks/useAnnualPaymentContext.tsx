@@ -188,9 +188,12 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       setRenewedMemberId(renewal.length > 0 ? renewMemberId : null);
       return;
     }
-    setRenewNotice(prefillData.source === 'unfinished_payment' ? RESUMED_UNFINISHED_NOTICE : null);
-    setField('include_club_fee', prefillData.include_club_fee && !prefillData.club_fee_already_paid);
-    applyAssignments(sanitizeAssignments(prefillData.member_assignments, rows));
+    const includeClubFee = prefillData.include_club_fee && !prefillData.club_fee_already_paid;
+    const assignments = sanitizeAssignments(prefillData.member_assignments, rows);
+    const resumedSomething = prefillData.source === 'unfinished_payment' && (includeClubFee || assignments.length > 0);
+    setRenewNotice(resumedSomething ? RESUMED_UNFINISHED_NOTICE : null);
+    setField('include_club_fee', includeClubFee);
+    applyAssignments(assignments);
   }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, isLoadingClubs, clubsData, currentUser?.username, formData.club_id, rows, setField, applyAssignments, renewMemberId, renewKind]);
 
   const clubs = useMemo(() => {

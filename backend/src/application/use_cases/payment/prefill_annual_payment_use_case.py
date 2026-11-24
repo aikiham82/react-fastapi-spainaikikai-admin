@@ -40,7 +40,7 @@ class PrefillResult:
     seguro_accidentes_count: int
     seguro_rc_count: int
     member_assignments: List[PrefillMemberAssignment]
-    source: str  # "members", "previous_payment" or "unfinished_payment"
+    source: str
     paid_assignments: List[PrefillMemberAssignment] = field(default_factory=list)
 
 
@@ -206,7 +206,7 @@ class PrefillAnnualPaymentUseCase:
         include_club_fee = not club_fee_already_paid
 
         resumed = await self._resume_unfinished_payment(
-            club_id, payment_year, active_members, paid_set, club_fee_already_paid
+            club_id, payment_year, payer_name, active_members, paid_set, assignments, club_fee_already_paid
         )
         if resumed:
             return PrefillResult(
@@ -234,39 +234,48 @@ class PrefillAnnualPaymentUseCase:
         self,
         club_id: str,
         payment_year: int,
+        payer_name: str,
         active_members: list,
         paid_set: set,
+        default_assignments: List[PrefillMemberAssignment],
         club_fee_already_paid: bool,
     ) -> Optional[dict]:
-        """The selection of the club's latest annual payment of the year, when it was never charged, minus what is paid."""
         latest = await self._payment_repo.find_latest_annual(club_id, payment_year)
         if not latest or latest.status not in RESUMABLE_PAYMENT_STATUSES:
             return None
+        try:
+            stored_assignments = json.loads(latest.member_assignments or "[]")
+            stored_lines = json.loads(latest.line_items_data or "[]")
+            resumed_types = {
+                assignment["member_id"]: list(assignment.get("payment_types") or [])
+                for assignment in stored_assignments
+            }
+            has_club_fee = any(line.get("item_type") == "club_fee" for line in stored_lines)
+        except (json.JSONDecodeError, TypeError, KeyError, AttributeError):
+            return None
 
+        joined_since = {
+            m.id for m in active_members
+            if latest.created_at and m.created_at and m.created_at > latest.created_at
+        }
+        defaults = {a.member_id: a.payment_types for a in default_assignments}
         names = {m.id: m.get_full_name() for m in active_members}
         counts = dict.fromkeys(COUNTED_ITEM_TYPES, 0)
         assignments: List[PrefillMemberAssignment] = []
-        for assignment in json.loads(latest.member_assignments or "[]"):
-            member_id = assignment.get("member_id")
-            if member_id not in names:
-                continue
-            types = [
-                item for item in assignment.get("payment_types", [])
-                if item in counts and (member_id, item) not in paid_set
-            ]
+        for member_id, name in names.items():
+            chosen = defaults.get(member_id, []) if member_id in joined_since else resumed_types.get(member_id, [])
+            types = [item for item in chosen if item in counts and (member_id, item) not in paid_set]
             for item in types:
                 counts[item] += 1
             if types:
-                assignments.append(PrefillMemberAssignment(member_id, names[member_id], types))
+                assignments.append(PrefillMemberAssignment(member_id, name, types))
 
-        include_club_fee = not club_fee_already_paid and any(
-            line.get("item_type") == "club_fee" for line in json.loads(latest.line_items_data or "[]")
-        )
+        include_club_fee = has_club_fee and not club_fee_already_paid
         if not assignments and not include_club_fee:
             return None
 
         return {
-            "payer_name": latest.payer_name or "",
+            "payer_name": latest.payer_name or payer_name,
             "include_club_fee": include_club_fee,
             **{f"{item}_count": n for item, n in counts.items()},
             "member_assignments": assignments,

@@ -1007,6 +1007,7 @@ async def test_prefill_paid_assignments_ignore_other_years(mock_repos):
 def _annual_payment(status, assignments, club_fee=False, payer_name="Club Example"):
     line_items = [{"item_type": "club_fee", "quantity": 1}] if club_fee else []
     return Payment(
+        created_at=datetime(2026, 4, 1),
         id=f"payment-{status.value}",
         club_id="club-1",
         payment_type=PaymentType.ANNUAL_QUOTA,
@@ -1028,15 +1029,59 @@ def _kyu_licence(member_id):
                    status=LicenseStatus.ACTIVE)
 
 
-def _use_case_with_latest(mock_repos, latest, member_payments=()):
-    uc, _ = _use_case_with_paid(
-        mock_repos,
-        [_active_member("member-1", "Ana"), _active_member("member-2", "Luis")],
-        list(member_payments),
-    )
-    mock_repos["license_repo"].find_by_member_ids.return_value = [_kyu_licence("member-1"), _kyu_licence("member-2")]
+def _member_created(member_id, first_name, created_at):
+    member = _active_member(member_id, first_name)
+    member.created_at = created_at
+    return member
+
+
+def _use_case_with_latest(mock_repos, latest, member_payments=(), newcomer=None):
+    members = [_member_created("member-1", "Ana", datetime(2025, 1, 1)),
+               _member_created("member-2", "Luis", datetime(2025, 1, 1))]
+    uc, _ = _use_case_with_paid(mock_repos, members + ([newcomer] if newcomer else []), list(member_payments))
+    mock_repos["license_repo"].find_by_member_ids.return_value = [
+        _kyu_licence(m) for m in ("member-1", "member-2", "member-3")
+    ]
     mock_repos["payment_repo"].find_latest_annual.return_value = latest
     return uc
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_resume_ticks_the_pending_items_of_members_who_joined_after_it(mock_repos):
+    uc = _use_case_with_latest(
+        mock_repos,
+        _annual_payment(PaymentStatus.FAILED, {"member-1": ["kyu"]}),
+        newcomer=_member_created("member-3", "Eva", datetime(2026, 5, 1)),
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert result.source == "unfinished_payment"
+    assert [a.member_id for a in result.member_assignments] == ["member-1", "member-3"]
+    assert result.kyu_count == 2
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_falls_back_when_the_unfinished_payment_cannot_be_read(mock_repos):
+    broken = _annual_payment(PaymentStatus.FAILED, {})
+    broken.member_assignments = "not json"
+    uc = _use_case_with_latest(mock_repos, broken)
+
+    result = await uc.execute("club-1", 2026)
+
+    assert result.source == "members"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_resume_keeps_the_given_payer_when_the_payment_has_none(mock_repos):
+    uc = _use_case_with_latest(mock_repos, _annual_payment(PaymentStatus.FAILED, {"member-1": ["kyu"]}, payer_name=""))
+
+    result = await uc.execute("club-1", 2026, payer_name="Dojo Example")
+
+    assert result.payer_name == "Dojo Example"
 
 
 @pytest.mark.unit
