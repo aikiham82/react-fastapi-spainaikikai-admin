@@ -250,7 +250,7 @@ export const MemberStatusBoard = () => {
       header: () => 'Licencia',
       cell: (row) => (
         <span className="inline-flex items-center gap-2">
-          <span className="size-5 lg:hidden" aria-hidden="true" />
+          <span className="size-5 xl:hidden" aria-hidden="true" />
           <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} />
         </span>
       ),
@@ -368,7 +368,7 @@ export const MemberStatusBoard = () => {
         <EmptyState title="No hay socios que coincidan" description="Prueba con otro nombre o quita los filtros." />
       )}
 
-      <div className="space-y-3 lg:hidden">
+      <div className="space-y-3 xl:hidden">
         {page.map((row) => (
           <article key={row.member_id} className="space-y-2 rounded-[18px] bg-card p-3.5 shadow-card">
             <div>
@@ -392,9 +392,9 @@ export const MemberStatusBoard = () => {
           role="region"
           aria-label={`Estado de los socios en ${year}`}
           tabIndex={0}
-          className="hidden overflow-x-auto rounded-[18px] bg-card shadow-card lg:block"
+          className="hidden overflow-x-auto rounded-[18px] bg-card shadow-card xl:block"
         >
-          <table className="w-full min-w-[60rem] table-fixed text-sm">
+          <table className="w-full table-fixed text-sm">
             <caption className="sr-only">Estado de los socios en {year}</caption>
             <thead>
               <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">

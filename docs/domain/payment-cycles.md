@@ -60,6 +60,8 @@ A `License` entity can exist with no payment behind it, because licences are bul
 
 So a "paid" tick is never a flag. On the super admin's "Estado de socios" board (`GET /members/status-board`, decided with the secretary on 2026-11-24), ticking "Licencia N pagada" opens the manual payment with that member and the licence they hold pre-ticked (`licence_item`, from `payable_licence_items`), and unticking deletes that completed line. The board shows a licence in force without a payment in amber instead of hiding the gap: 226 licences in production were in force with no 2026 payment, because the secretary had moved their dates. A title paid that year counts as the licence paid; when a member has both lines, the licence line is the one unticked.
 
+The other ticks of that board follow the same rule (2026-11-24): each runs an action the panel already had. "Miembro" deregisters or reactivates. "Accidentes" and "RC" act on the insurance whose dates cover today (`insurance_within_its_dates`): a tick without one opens the manual payment with that insurance, recorded in the season being paid whatever year the board shows; an untick annuls it; a tick on an annulled one reactivates it, because its payment line still exists and a second line for the season would be refused. A season already paid without an insurance in its dates is locked and sent to Seguros, and an instructor's RC is locked because the title pays it.
+
 ## 🏆 Benefits
 
 - Clubs are billed and displayed according to what they actually paid.
