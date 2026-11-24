@@ -13,11 +13,11 @@ from src.application.use_cases.payment.completed_member_payments import find_com
 from src.application.ports.member_payment_repository import MemberPaymentRepositoryPort
 from src.domain.entities.license import TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType
-from src.domain.entities.payment import PaymentType, PaymentStatus
-from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymentType
+from src.domain.entities.payment import PaymentType, PaymentStatus, UNFINISHED_PAYMENT_STATUSES
+from src.domain.entities.member_payment import ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE, MemberPaymentStatus, MemberPaymentType
 
-RESUMABLE_PAYMENT_STATUSES = (PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.FAILED)
-COUNTED_ITEM_TYPES = ("kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin", "seguro_accidentes", "seguro_rc")
+RESUMABLE_PAYMENT_STATUSES = (*UNFINISHED_PAYMENT_STATUSES, PaymentStatus.FAILED)
+COUNTED_ITEM_TYPES = tuple(item for item in ITEM_TYPE_TO_MEMBER_PAYMENT_TYPE if item != "club_fee")
 
 
 @dataclass
@@ -209,10 +209,7 @@ class PrefillAnnualPaymentUseCase:
             club_id, payment_year, payer_name, active_members, paid_set, assignments, club_fee_already_paid
         )
         if resumed:
-            return PrefillResult(
-                **{**resumed, "club_fee_already_paid": club_fee_already_paid},
-                paid_assignments=paid_assignments,
-            )
+            return PrefillResult(**resumed, paid_assignments=paid_assignments)
 
         return PrefillResult(
             payer_name=payer_name,
@@ -259,16 +256,15 @@ class PrefillAnnualPaymentUseCase:
             if latest.created_at and m.created_at and m.created_at > latest.created_at
         }
         defaults = {a.member_id: a.payment_types for a in default_assignments}
-        names = {m.id: m.get_full_name() for m in active_members}
         counts = dict.fromkeys(COUNTED_ITEM_TYPES, 0)
         assignments: List[PrefillMemberAssignment] = []
-        for member_id, name in names.items():
-            chosen = defaults.get(member_id, []) if member_id in joined_since else resumed_types.get(member_id, [])
-            types = [item for item in chosen if item in counts and (member_id, item) not in paid_set]
+        for member in active_members:
+            chosen = defaults.get(member.id, []) if member.id in joined_since else resumed_types.get(member.id, [])
+            types = [item for item in chosen if item in counts and (member.id, item) not in paid_set]
             for item in types:
                 counts[item] += 1
             if types:
-                assignments.append(PrefillMemberAssignment(member_id, name, types))
+                assignments.append(PrefillMemberAssignment(member.id, member.get_full_name(), types))
 
         include_club_fee = has_club_fee and not club_fee_already_paid
         if not assignments and not include_club_fee:
@@ -277,6 +273,7 @@ class PrefillAnnualPaymentUseCase:
         return {
             "payer_name": latest.payer_name or payer_name,
             "include_club_fee": include_club_fee,
+            "club_fee_already_paid": club_fee_already_paid,
             **{f"{item}_count": n for item, n in counts.items()},
             "member_assignments": assignments,
             "source": "unfinished_payment",
