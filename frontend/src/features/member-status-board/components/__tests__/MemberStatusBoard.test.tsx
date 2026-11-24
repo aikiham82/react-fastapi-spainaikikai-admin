@@ -168,6 +168,12 @@ describe('MemberStatusBoard paid checkbox', () => {
     expect(payment.deleteMemberPayment).toHaveBeenCalledWith('mp-1');
   });
 
+  it('a member without club cannot be ticked, since a payment belongs to a club', () => {
+    state.rows = [row({ member_id: 'clubless', first_name: 'Iker', club_id: null, club_name: null, license_paid: false })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Iker Example')).toBeDisabled();
+  });
+
   it('the checkbox is disabled while a payment line is being removed', () => {
     payment.isLoading = true;
     renderWithProviders(<MemberStatusBoard />);

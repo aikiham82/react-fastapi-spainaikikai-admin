@@ -105,7 +105,7 @@ export const MemberStatusBoard = () => {
   const [clubId, setClubId] = useState('');
   const [chip, setChip] = useState<Chip>('all');
   const [offset, setOffset] = useState(0);
-  const { data, isLoading, error } = useMemberStatusBoardQuery(year);
+  const { data, isLoading, isFetching, error } = useMemberStatusBoardQuery(year);
   const [paying, setPaying] = useState<MemberStatusRow | null>(null);
   const [unpaying, setUnpaying] = useState<MemberStatusRow | null>(null);
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation();
@@ -116,7 +116,9 @@ export const MemberStatusBoard = () => {
     {
       key: 'paid',
       header: (forYear) => `Licencia ${forYear} pagada`,
-      cell: (row) => <PaidToggle row={row} year={year} disabled={isDeleting} onToggle={toggle} />,
+      cell: (row) => (
+        <PaidToggle row={row} year={year} disabled={isDeleting || isFetching || !row.club_id} onToggle={toggle} />
+      ),
     },
     ...STATUS_COLUMNS,
   ];
@@ -256,15 +258,17 @@ export const MemberStatusBoard = () => {
 
       <ListPager total={shown.length} limit={PAGE_SIZE} offset={offset} noun="socios" onPage={setOffset} />
 
-      <ManualPaymentModal
-        isOpen={!!paying}
-        onClose={() => setPaying(null)}
-        clubId={paying?.club_id ?? ''}
-        clubName={paying?.club_name ?? ''}
-        paymentYear={year}
-        members={paying ? [{ id: paying.member_id, name: fullName(paying) }] : []}
-        isLoadingMembers={false}
-      />
+      {paying?.club_id && (
+        <ManualPaymentModal
+          isOpen
+          onClose={() => setPaying(null)}
+          clubId={paying.club_id}
+          clubName={paying.club_name ?? ''}
+          paymentYear={year}
+          members={[{ id: paying.member_id, name: fullName(paying) }]}
+          isLoadingMembers={false}
+        />
+      )}
 
       <AlertDialog open={!!unpaying} onOpenChange={(open) => !open && setUnpaying(null)}>
         <AlertDialogContent>
