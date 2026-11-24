@@ -271,7 +271,7 @@ class PrefillAnnualPaymentUseCase:
             return None
 
         return {
-            "payer_name": latest.payer_name or payer_name,
+            "payer_name": payer_name,
             "include_club_fee": include_club_fee,
             "club_fee_already_paid": club_fee_already_paid,
             **{f"{item}_count": n for item, n in counts.items()},

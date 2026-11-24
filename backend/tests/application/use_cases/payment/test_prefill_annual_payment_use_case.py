@@ -1076,8 +1076,10 @@ async def test_prefill_falls_back_when_the_unfinished_payment_cannot_be_read(moc
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_prefill_resume_keeps_the_given_payer_when_the_payment_has_none(mock_repos):
-    uc = _use_case_with_latest(mock_repos, _annual_payment(PaymentStatus.FAILED, {"member-1": ["kyu"]}, payer_name=""))
+async def test_prefill_resume_never_returns_the_payer_stored_on_the_payment(mock_repos):
+    uc = _use_case_with_latest(
+        mock_repos, _annual_payment(PaymentStatus.FAILED, {"member-1": ["kyu"]}, payer_name="admin@example.com")
+    )
 
     result = await uc.execute("club-1", 2026, payer_name="Dojo Example")
 
@@ -1088,9 +1090,7 @@ async def test_prefill_resume_keeps_the_given_payer_when_the_payment_has_none(mo
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status", [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.FAILED])
 async def test_prefill_resumes_the_latest_unfinished_selection(mock_repos, status):
-    uc = _use_case_with_latest(
-        mock_repos, _annual_payment(status, {"member-2": ["kyu"]}, payer_name="Ana Example")
-    )
+    uc = _use_case_with_latest(mock_repos, _annual_payment(status, {"member-2": ["kyu"]}))
 
     result = await uc.execute("club-1", 2026)
 
@@ -1099,7 +1099,6 @@ async def test_prefill_resumes_the_latest_unfinished_selection(mock_repos, statu
     assert result.member_assignments[0].member_name == "Luis Example"
     assert result.kyu_count == 1
     assert result.include_club_fee is False
-    assert result.payer_name == "Ana Example"
     mock_repos["payment_repo"].find_latest_annual.assert_awaited_once_with("club-1", 2026)
 
 
