@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.infrastructure.web.routers.import_export import router
-from tests.api.callers import club_admin, super_admin
+from tests.api.callers import club_admin, plain_member, super_admin
 from tests.api.test_member_status_board import MEMBERS, YEAR, dependency_overrides
 
 pytestmark = [pytest.mark.api]
@@ -66,5 +66,6 @@ def test_a_deregistered_member(sheet):
     assert rows["Noa"][5] == "De baja"
 
 
-def test_a_club_admin_cannot_download_it():
-    assert export(club_admin()).status_code == 403
+@pytest.mark.parametrize("ctx", [club_admin, plain_member])
+def test_only_a_super_admin_downloads_it(ctx):
+    assert export(ctx()).status_code == 403

@@ -22,7 +22,7 @@ from src.infrastructure.web.dependencies import (
     get_member_payment_repository,
 )
 from src.infrastructure.web.routers.members import router
-from tests.api.callers import club_admin, super_admin
+from tests.api.callers import club_admin, plain_member, super_admin
 
 pytestmark = [pytest.mark.api]
 
@@ -148,8 +148,9 @@ def test_every_member_is_listed(board):
     assert set(board) == {m.id for m in MEMBERS}
 
 
-def test_a_club_admin_cannot_see_the_board():
-    response = build_client(club_admin()).get("/api/v1/members/status-board", params={"payment_year": YEAR})
+@pytest.mark.parametrize("ctx", [club_admin, plain_member])
+def test_only_a_super_admin_sees_the_board(ctx):
+    response = build_client(ctx()).get("/api/v1/members/status-board", params={"payment_year": YEAR})
     assert response.status_code == 403
 
 
