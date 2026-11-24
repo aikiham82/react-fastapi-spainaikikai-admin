@@ -79,6 +79,7 @@ const GROUPS: GroupDefinition[] = [
     roles: ['super_admin'],
     tabs: [
       { title: 'Clubs', path: '/clubs', resource: 'clubs' },
+      { title: 'Estado de socios', path: '/member-status', resource: 'members' },
       { title: 'Importar y exportar', path: '/import-export', resource: 'import_export' },
     ],
   },

@@ -93,8 +93,7 @@ describe('ManualPaymentModal — gap coverage', () => {
         'Test Payer'
       )
 
-      // Select the member
-      await user.click(screen.getByTestId('member-checkbox-mem-1'))
+      // A single member comes ticked
 
       // Wait for the catalog type checkboxes to appear and select one
       await waitFor(() => {
@@ -131,7 +130,6 @@ describe('ManualPaymentModal — gap coverage', () => {
         'Test Payer'
       )
 
-      await user.click(screen.getByTestId('member-checkbox-mem-1'))
 
       await waitFor(() => {
         expect(screen.getByTestId('type-checkbox-mem-1-kyu')).toBeInTheDocument()

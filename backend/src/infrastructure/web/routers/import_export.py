@@ -37,7 +37,8 @@ from src.infrastructure.web.dependencies import (
     get_club_repository
 )
 from src.infrastructure.web.dependencies import get_auth_context
-from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx, require_club_access
+from src.infrastructure.web.authorization import AuthContext, get_club_filter_ctx, require_club_access, require_super_admin
+from src.infrastructure.web.routers.members import member_status_rows
 from src.domain.entities.license import LicenseStatus, TechnicalGrade, InstructorCategory, AgeCategory
 from src.domain.entities.insurance import InsuranceType, InsuranceStatus
 from src.domain.entities.member_payment import (
@@ -352,6 +353,55 @@ def _members_columns(club_names: dict) -> list:
         ("status", "Estado", lambda m: m.status.value if m.status else ''),
         ("created_at", "Fecha Creación", lambda m: m.created_at.strftime('%d/%m/%Y %H:%M') if m.created_at else ''),
     ]
+
+
+LICENCE_LABELS = {"active": "Vigente", "expired": "Caducada", "revoked": "Anulada", "pending": "Pendiente"}
+INSURANCE_LABELS = {"active": "Vigente", "expired": "Caducado", "cancelled": "Anulado", "pending": "Pendiente"}
+
+
+def _insurance_label(summary, kind: str) -> str:
+    if not summary or not getattr(summary, f"has_{kind}"):
+        return "Sin seguro"
+    return INSURANCE_LABELS.get(getattr(summary, f"{kind}_status"), "Sin seguro")
+
+
+def _status_board_columns(payment_year: int) -> list:
+    return [
+        ("first_name", "Nombre", lambda r: r.first_name),
+        ("last_name_1", "1er Apellido", lambda r: _split_last_name(r.last_name)[0]),
+        ("last_name_2", "2do Apellido", lambda r: _split_last_name(r.last_name)[1]),
+        ("club", "Club", lambda r: r.club_name or ''),
+        ("license_paid", f"Licencia {payment_year} pagada", lambda r: "Sí" if r.license_paid else "No"),
+        ("member_status", "Miembro", lambda r: "Activo" if r.member_status == "active" else "De baja"),
+        ("license", "Licencia", lambda r: LICENCE_LABELS.get(r.license_summary.status, "Sin licencia") if r.license_summary else "Sin licencia"),
+        ("accident", "Accidentes", lambda r: _insurance_label(r.insurance_summary, "accident")),
+        ("rc", "RC", lambda r: _insurance_label(r.insurance_summary, "rc")),
+    ]
+
+
+@router.get("/members/status-board/export")
+async def export_member_status_board(
+    payment_year: int = Query(..., ge=1900, le=2100),
+    get_all_use_case=Depends(get_all_members_use_case),
+    license_repo=Depends(get_license_repository),
+    insurance_repo=Depends(get_insurance_repository),
+    club_repo=Depends(get_club_repository),
+    member_payment_repo=Depends(get_member_payment_repository),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    """The member status board as Excel, one row per member. Super admin only."""
+    require_super_admin(ctx)
+    rows = await member_status_rows(
+        payment_year, get_all_use_case, license_repo, insurance_repo, club_repo, member_payment_repo
+    )
+    rows.sort(key=lambda r: (r.first_name.lower(), r.last_name.lower()))
+    output = _build_excel("Estado de socios", _status_board_columns(payment_year), rows)
+    filename = f"estado_socios_{payment_year}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 @router.get("/members/export")

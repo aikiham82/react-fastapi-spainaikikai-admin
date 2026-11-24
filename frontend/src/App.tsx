@@ -35,6 +35,7 @@ const InsurancePage = lazyWithRetry(() => import("./pages/insurance.page").then(
 const ImportExportPage = lazyWithRetry(() => import("./pages/import-export.page").then(m => ({ default: m.ImportExportPage })));
 const SettingsPage = lazyWithRetry(() => import("./pages/settings.page").then(m => ({ default: m.SettingsPage })));
 const NotFoundPage = lazyWithRetry(() => import("./pages/not-found.page").then(m => ({ default: m.NotFoundPage })));
+const MemberStatusPage = lazyWithRetry(() => import("./pages/member-status.page").then(m => ({ default: m.MemberStatusPage })));
 const PriceConfigurationsPage = lazyWithRetry(() => import("./pages/price-configurations.page").then(m => ({ default: m.PriceConfigurationsPage })));
 const InvoicesPage = lazyWithRetry(() => import("./pages/invoices.page").then(m => ({ default: m.InvoicesPage })));
 const PaymentSuccessPage = lazyWithRetry(() => import("./pages/payment-success.page").then(m => ({ default: m.PaymentSuccessPage })));
@@ -77,6 +78,10 @@ function App() {
                   <Route path="/seminars" element={<SeminarsPage />} />
                   <Route path="/insurance" element={<InsurancePage />} />
                   <Route path="/import-export" element={<ImportExportPage />} />
+                  <Route
+                    path="/member-status"
+                    element={<ProtectedRoute allowedRoles={['super_admin']}><MemberStatusPage /></ProtectedRoute>}
+                  />
                   <Route
                     path="/price-configurations"
                     element={<ProtectedRoute allowedRoles={['super_admin']}><PriceConfigurationsPage /></ProtectedRoute>}

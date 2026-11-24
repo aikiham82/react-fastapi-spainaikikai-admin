@@ -251,6 +251,21 @@ describe('ManualPaymentModal', () => {
     })
   })
 
+  it('opened for a single member, that member comes ticked and only the item is left to choose', async () => {
+    renderWithProviders(<ManualPaymentModal {...defaultProps} members={[mockMembers[1]]} />)
+
+    expect(screen.getByTestId('member-checkbox-mem-2')).toBeChecked()
+    await user.type(screen.getByRole('textbox', { name: /nombre del pagador/i }), 'Pagador Test')
+    await user.click(screen.getByTestId('type-checkbox-mem-2-kyu'))
+    await user.click(screen.getByRole('button', { name: /registrar|guardar/i }))
+
+    expect(mockRegisterManualPayment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        member_assignments: [{ member_id: 'mem-2', member_name: 'Juan López', payment_types: ['kyu'] }],
+      })
+    )
+  })
+
   // Test case 6: Cancel button → onClose called
   describe('cancel button', () => {
     it('calls onClose when the cancel button is clicked', async () => {

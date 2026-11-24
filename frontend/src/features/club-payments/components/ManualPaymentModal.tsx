@@ -43,6 +43,8 @@ interface ManualPaymentModalProps {
   paymentYear: number
   members: Member[]
   isLoadingMembers: boolean
+  initialPaymentTypes?: string[]
+  initialPayerName?: string
 }
 
 interface MemberAssignment {
@@ -79,6 +81,8 @@ export function ManualPaymentModal({
   paymentYear,
   members,
   isLoadingMembers,
+  initialPaymentTypes,
+  initialPayerName = '',
 }: ManualPaymentModalProps) {
   const [payerName, setPayerName] = useState('')
   const [selectedYear, setSelectedYear] = useState<number>(paymentYear)
@@ -99,17 +103,24 @@ export function ManualPaymentModal({
     return items + (clubFeeCharged ? priceOf('club_fee') : 0)
   }, [memberAssignments, includeClubFee, prices])
 
-  // Reset form when modal opens
+  const onlyMemberId = members.length === 1 ? members[0].id : undefined
+  const onlyMemberName = members.length === 1 ? members[0].name : undefined
+  const initialTypes = initialPaymentTypes?.join(',') ?? ''
+
   useEffect(() => {
     if (isOpen) {
-      setPayerName('')
+      setPayerName(initialPayerName)
       setSelectedYear(paymentYear)
       setPaymentMethod('cash')
       setIncludeClubFee(false)
-      setMemberAssignments([])
+      setMemberAssignments(
+        onlyMemberId && onlyMemberName
+          ? [{ member_id: onlyMemberId, member_name: onlyMemberName, payment_types: initialTypes ? initialTypes.split(',') : [] }]
+          : []
+      )
       setErrors({})
     }
-  }, [isOpen, paymentYear])
+  }, [isOpen, paymentYear, initialPayerName, onlyMemberId, onlyMemberName, initialTypes])
 
   // Close on success
   useEffect(() => {
