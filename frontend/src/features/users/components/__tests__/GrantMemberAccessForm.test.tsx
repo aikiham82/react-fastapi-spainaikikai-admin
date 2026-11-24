@@ -30,8 +30,19 @@ describe('GrantMemberAccessForm', () => {
     mockMutation()
   })
 
-  it('starts with the member email filled in', () => {
+  it('shows no email field until the manager asks to make the member a manager', () => {
     renderWithProviders(<GrantMemberAccessForm memberId="m1" memberEmail="ana@example.com" />)
+
+    expect(screen.queryByLabelText('Correo con el que entrará')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Hacer responsable del club' })).toBeInTheDocument()
+    expect(mockGrant).not.toHaveBeenCalled()
+  })
+
+  it('starts with the member email filled in', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<GrantMemberAccessForm memberId="m1" memberEmail="ana@example.com" />)
+
+    await user.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
 
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
@@ -40,6 +51,7 @@ describe('GrantMemberAccessForm', () => {
     const user = userEvent.setup()
     renderWithProviders(<GrantMemberAccessForm memberId="m1" />)
 
+    await user.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     await user.type(screen.getByLabelText('Correo con el que entrará'), 'ana@example.com')
     await user.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
@@ -51,6 +63,7 @@ describe('GrantMemberAccessForm', () => {
     const user = userEvent.setup()
     renderWithProviders(<GrantMemberAccessForm memberId="m1" />)
 
+    await user.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
     await user.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
 
     expect(mockGrant).not.toHaveBeenCalled()
