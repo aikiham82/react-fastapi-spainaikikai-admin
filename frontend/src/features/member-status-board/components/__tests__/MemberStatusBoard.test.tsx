@@ -3,6 +3,7 @@ import { screen, within } from '@testing-library/react';
 import { renderWithProviders, userEvent } from '@/test-utils';
 import type { MemberStatusRow } from '../../data/schemas/member-status.schema';
 import { MemberStatusBoard } from '../MemberStatusBoard';
+import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear';
 
 const state = vi.hoisted(() => ({ rows: [] as MemberStatusRow[], year: 0 }));
 
@@ -28,6 +29,18 @@ vi.mock('@/features/club-payments/components/ManualPaymentModal', () => ({
     payment.modal = props.isOpen ? props : null;
     return null;
   },
+}));
+
+const member = vi.hoisted(() => ({ changeStatus: vi.fn(), isPending: false }));
+
+vi.mock('@/features/members/hooks/mutations/useMemberMutations', () => ({
+  useChangeMemberStatusMutation: () => ({ mutate: member.changeStatus, isPending: member.isPending }),
+}));
+
+const insurance = vi.hoisted(() => ({ update: vi.fn(), isPending: false }));
+
+vi.mock('@/features/insurance/hooks/mutations/useInsuranceMutations', () => ({
+  useUpdateInsuranceMutation: () => ({ mutate: insurance.update, isPending: insurance.isPending }),
 }));
 
 const download = vi.hoisted(() => ({ exportBoard: vi.fn() }));
@@ -142,7 +155,7 @@ describe('MemberStatusBoard paid checkbox', () => {
     ];
   });
 
-  const checkbox = (name: string) => within(rowOf(name)).getByRole('checkbox');
+  const checkbox = (name: string) => within(rowOf(name)).getByRole('checkbox', { name: /^Licencia \d+ pagada/ });
 
   it('ticking an unpaid licence opens the manual payment for that member, club and year', async () => {
     const user = userEvent.setup();
@@ -201,5 +214,202 @@ describe('MemberStatusBoard paid checkbox', () => {
     payment.isLoading = true;
     renderWithProviders(<MemberStatusBoard />);
     expect(checkbox('Ana Example')).toBeDisabled();
+  });
+});
+
+describe('MemberStatusBoard member checkbox', () => {
+  beforeEach(() => {
+    member.changeStatus.mockReset();
+    member.isPending = false;
+    payment.isLoading = false;
+    state.rows = [
+      row({ member_id: 'in', first_name: 'Ana' }),
+      row({ member_id: 'out', first_name: 'Noa', member_status: 'inactive' }),
+    ];
+  });
+
+  const checkbox = (name: string) => within(rowOf(name)).getByRole('checkbox', { name: /^Miembro activo/ });
+
+  it('is ticked for an active member and unticked for a deregistered one', () => {
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Ana Example')).toBeChecked();
+    expect(checkbox('Noa Example')).not.toBeChecked();
+  });
+
+  it('unticking asks first and then deregisters the member', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Ana Example'));
+    expect(member.changeStatus).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('alertdialog');
+    expect(within(dialog).getByText('¿Dar de baja a Ana Example?')).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Dar de baja' }));
+    expect(member.changeStatus).toHaveBeenCalledWith({ id: 'in', data: { status: 'inactive' } });
+  });
+
+  it('ticking asks first and then reactivates the member', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Noa Example'));
+    const dialog = screen.getByRole('alertdialog');
+    expect(within(dialog).getByText('¿Reactivar a Noa Example?')).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Reactivar' }));
+    expect(member.changeStatus).toHaveBeenCalledWith({ id: 'out', data: { status: 'active' } });
+  });
+
+  it('cancelling changes nothing', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Ana Example'));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }));
+    expect(member.changeStatus).not.toHaveBeenCalled();
+  });
+
+  it('is disabled while a change is in flight', () => {
+    member.isPending = true;
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Ana Example')).toBeDisabled();
+  });
+});
+
+describe('MemberStatusBoard insurance checkboxes', () => {
+  const insured = { has_accident: true, accident_status: 'active', has_rc: true, rc_status: 'active' };
+  const uninsured = { has_accident: false, accident_status: null, has_rc: false, rc_status: null };
+
+  beforeEach(() => {
+    insurance.update.mockReset();
+    insurance.isPending = false;
+    member.isPending = false;
+    payment.isLoading = false;
+    payment.modal = null;
+    state.rows = [
+      row({ member_id: 'covered', first_name: 'Ana', insurance_summary: insured, accident_insurance_id: 'ac-1', rc_insurance_id: 'rc-1' }),
+      row({ member_id: 'bare', first_name: 'Luis', insurance_summary: uninsured }),
+    ];
+  });
+
+  const accident = (name: string) => within(rowOf(name)).getByRole('checkbox', { name: /^Seguro de accidentes/ });
+  const rc = (name: string) => within(rowOf(name)).getByRole('checkbox', { name: /^Seguro RC/ });
+
+  it('are ticked only when that insurance is in force', () => {
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Ana Example')).toBeChecked();
+    expect(rc('Ana Example')).toBeChecked();
+    expect(accident('Luis Example')).not.toBeChecked();
+    expect(rc('Luis Example')).not.toBeChecked();
+  });
+
+  it('ticking accident insurance opens the payment with that insurance and the member as payer', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(accident('Luis Example'));
+    expect(payment.modal).toMatchObject({
+      members: [{ id: 'bare', name: 'Luis Example' }],
+      initialPaymentTypes: ['seguro_accidentes'],
+      initialPayerName: 'Luis Example',
+    });
+  });
+
+  it('ticking RC opens the payment with the RC insurance', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(rc('Luis Example'));
+    expect(payment.modal).toMatchObject({ initialPaymentTypes: ['seguro_rc'] });
+  });
+
+  it('unticking asks first and then annuls that insurance', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(accident('Ana Example'));
+    expect(insurance.update).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('alertdialog');
+    expect(within(dialog).getByText('¿Anular el seguro de accidentes de Ana Example?')).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Anular seguro' }));
+    expect(insurance.update).toHaveBeenCalledWith({ id: 'ac-1', data: { annulled: true } });
+  });
+
+  it('unticking RC names the RC insurance and annuls it', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(rc('Ana Example'));
+    const dialog = screen.getByRole('alertdialog');
+    expect(within(dialog).getByText('¿Anular el seguro RC de Ana Example?')).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Anular seguro' }));
+    expect(insurance.update).toHaveBeenCalledWith({ id: 'rc-1', data: { annulled: true } });
+  });
+
+  it('ticking an annulled insurance of the season reactivates it instead of paying again', async () => {
+    const user = userEvent.setup();
+    state.rows = [row({
+      member_id: 'annulled', first_name: 'Eva',
+      insurance_summary: { has_accident: true, accident_status: 'cancelled', has_rc: false, rc_status: null },
+      accident_insurance_id: 'ac-2', accident_insurance_annulled: true,
+    })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Eva Example')).not.toBeChecked();
+    await user.click(accident('Eva Example'));
+    expect(payment.modal).toBeNull();
+    expect(insurance.update).toHaveBeenCalledWith({ id: 'ac-2', data: { annulled: false } });
+  });
+
+  it('the RC of an instructor is locked, since the title includes it', () => {
+    state.rows = [row({ member_id: 'sensei', first_name: 'Mario', licence_item: 'shidoin', insurance_summary: uninsured })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(rc('Mario Example')).toBeDisabled();
+    expect(within(rowOf('Mario Example')).getByText('Incluido en su título')).toBeInTheDocument();
+    expect(within(rowOf('Mario Example')).getAllByText('Sin seguro')).toHaveLength(1);
+    expect(accident('Mario Example')).toBeEnabled();
+  });
+
+  it('an RC in force of an instructor can still be unticked', () => {
+    state.rows = [row({
+      member_id: 'sensei', first_name: 'Mario', licence_item: 'shidoin', insurance_summary: insured,
+      accident_insurance_id: 'ac-3', rc_insurance_id: 'rc-3',
+    })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(rc('Mario Example')).toBeEnabled();
+  });
+
+  it('a deregistered member cannot be given an insurance', () => {
+    state.rows = [row({ member_id: 'gone', first_name: 'Noa', member_status: 'inactive', insurance_summary: uninsured })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Noa Example')).toBeDisabled();
+    expect(rc('Noa Example')).toBeDisabled();
+  });
+
+  it('an annulled insurance of a deregistered member can still be reactivated', () => {
+    state.rows = [row({
+      member_id: 'gone', first_name: 'Noa', member_status: 'inactive', insurance_summary: uninsured,
+      accident_insurance_id: 'ac-4', accident_insurance_annulled: true,
+    })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Noa Example')).toBeEnabled();
+  });
+
+  it('an insurance already paid this season is not charged again', () => {
+    state.rows = [row({ member_id: 'paid', first_name: 'Luis', insurance_summary: uninsured, accident_season_paid: true })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Luis Example')).toBeDisabled();
+    expect(within(rowOf('Luis Example')).getByText('Ya está pagado esta temporada: revisa sus fechas en Seguros')).toBeInTheDocument();
+    expect(rc('Luis Example')).toBeEnabled();
+  });
+
+  it('the insurance payment is recorded in the season being paid, whatever year the board shows', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(accident('Luis Example'));
+    expect(payment.modal).toMatchObject({ paymentYear: defaultPaymentYear(new Date()) });
+  });
+
+  it('follows the insurance the tick acts on, not the summary badge', () => {
+    state.rows = [row({ member_id: 'odd', first_name: 'Eva', insurance_summary: insured })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Eva Example')).not.toBeChecked();
+  });
+
+  it('are disabled while an insurance is being changed', () => {
+    insurance.isPending = true;
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Ana Example')).toBeDisabled();
   });
 });

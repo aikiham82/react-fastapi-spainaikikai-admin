@@ -121,6 +121,12 @@ class MemberStatusRowResponse(BaseModel):
     license_paid: bool = False
     license_payment_id: Optional[str] = None
     licence_item: Optional[str] = None
+    accident_insurance_id: Optional[str] = None
+    accident_insurance_annulled: bool = False
+    rc_insurance_id: Optional[str] = None
+    rc_insurance_annulled: bool = False
+    accident_season_paid: bool = False
+    rc_season_paid: bool = False
 
 
 class MemberResponse(MemberBase):

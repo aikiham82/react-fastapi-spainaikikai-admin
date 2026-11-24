@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Clock, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,12 +16,15 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ManualPaymentModal } from '@/features/club-payments/components/ManualPaymentModal';
 import { useDeleteMemberPaymentMutation } from '@/features/club-payments/hooks/mutations/usePaymentAdminMutations';
+import { useChangeMemberStatusMutation } from '@/features/members/hooks/mutations/useMemberMutations';
+import { useUpdateInsuranceMutation } from '@/features/insurance/hooks/mutations/useInsuranceMutations';
+import { isInstructor, type LicenceItem } from '@/features/annual-payments/utils/payment-checklist';
 import { ChipGroup, EmptyState, ListError, ListLoading, ListToolbar } from '@/components/ui/list-controls';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ListPager } from '@/core/components/ListPager';
 import { foldForSearch } from '@/core/utils/search';
-import { seasonLabel } from '@/core/utils/defaultPaymentYear';
+import { defaultPaymentYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
 import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { LicenseStatusBadge } from '@/features/members/components/MemberBadges';
 import { insurancePresentation } from '@/features/members/utils/member-attention';
@@ -44,39 +48,100 @@ function PaidBadge({ row }: { row: MemberStatusRow }) {
   return <StatusBadge tone={licenceInForce(row) ? 'warn' : 'neutral'}>Sin pagar</StatusBadge>;
 }
 
-interface PaidToggleProps {
-  row: MemberStatusRow;
-  year: number;
+interface TickProps {
+  checked: boolean;
+  label: string;
   disabled: boolean;
-  onToggle: (row: MemberStatusRow) => void;
+  lockedBecause?: string | null;
+  showsWhyLocked?: boolean;
+  onToggle: () => void;
+  children: ReactNode;
 }
 
-const lockReason = (row: MemberStatusRow): string | null => {
+function Tick({ checked, label, disabled, lockedBecause = null, showsWhyLocked = false, onToggle, children }: TickProps) {
+  return (
+    <label
+      className={cn('inline-flex min-h-11 items-center gap-2', !disabled && lockedBecause === null && 'cursor-pointer')}
+      title={lockedBecause ?? undefined}
+    >
+      <Checkbox
+        checked={checked}
+        disabled={disabled || lockedBecause !== null}
+        aria-label={label}
+        className="size-5"
+        onCheckedChange={onToggle}
+      />
+      <span className="flex flex-col gap-0.5">
+        {children}
+        {showsWhyLocked && lockedBecause && <span className="text-xs text-muted-foreground">{lockedBecause}</span>}
+      </span>
+    </label>
+  );
+}
+
+const paidLock = (row: MemberStatusRow): string | null => {
   if (!row.club_id) return 'Sin club: el pago se apunta en un club';
   if (row.member_status !== 'active' && !row.license_paid) return 'De baja: no paga licencia';
   return null;
 };
 
-function PaidToggle({ row, year, disabled, onToggle }: PaidToggleProps) {
-  const reason = lockReason(row);
-  return (
-    <label className="inline-flex min-h-11 cursor-pointer items-center gap-2" title={reason ?? undefined}>
-      <Checkbox
-        checked={row.license_paid}
-        disabled={disabled || reason !== null}
-        aria-label={`Licencia ${year} pagada de ${fullName(row)}`}
-        className="size-5"
-        onCheckedChange={() => onToggle(row)}
-      />
-      <PaidBadge row={row} />
-    </label>
-  );
-}
-
 function MemberBadge({ status }: { status: string }) {
   return status === 'active'
     ? <StatusBadge tone="ok">Activo</StatusBadge>
     : <StatusBadge tone="neutral">De baja</StatusBadge>;
+}
+
+interface InsuranceKind {
+  key: 'accident' | 'rc';
+  header: string;
+  name: string;
+  item: string;
+}
+
+const INSURANCE_KINDS: InsuranceKind[] = [
+  { key: 'accident', header: 'Accidentes', name: 'Seguro de accidentes', item: 'seguro_accidentes' },
+  { key: 'rc', header: 'RC', name: 'Seguro RC', item: 'seguro_rc' },
+];
+
+const insuranceOf = (row: MemberStatusRow, kind: InsuranceKind) => {
+  const summary = row.insurance_summary;
+  const [has, status, id, annulled, seasonPaid] = kind.key === 'accident'
+    ? [summary?.has_accident, summary?.accident_status, row.accident_insurance_id, row.accident_insurance_annulled, row.accident_season_paid]
+    : [summary?.has_rc, summary?.rc_status, row.rc_insurance_id, row.rc_insurance_annulled, row.rc_season_paid];
+  return {
+    has,
+    status,
+    id: id ?? null,
+    annulled: Boolean(annulled),
+    seasonPaid: Boolean(seasonPaid),
+    inForce: Boolean(id) && !annulled,
+  };
+};
+
+const rcComesWithTitle = (row: MemberStatusRow, kind: InsuranceKind): boolean =>
+  kind.key === 'rc' && isInstructor(row.licence_item as LicenceItem);
+
+const insuranceLock = (row: MemberStatusRow, kind: InsuranceKind): string | null => {
+  const { inForce, annulled, seasonPaid } = insuranceOf(row, kind);
+  if (inForce || annulled) return null;
+  if (row.member_status !== 'active') return 'De baja: no paga seguro';
+  if (rcComesWithTitle(row, kind)) return 'Va incluido en su título';
+  if (seasonPaid) return 'Ya está pagado esta temporada: revisa sus fechas en Seguros';
+  if (!row.club_id) return 'Sin club: el pago se apunta en un club';
+  return null;
+};
+
+interface Payment {
+  row: MemberStatusRow;
+  items: string[];
+  year: number;
+}
+
+interface Confirmation {
+  title: string;
+  description: string;
+  action: string;
+  onConfirm: () => void;
 }
 
 function InsuranceBadge({ has, status }: { has?: boolean; status?: string | null }) {
@@ -90,21 +155,6 @@ interface Column {
   cell: (row: MemberStatusRow) => ReactNode;
 }
 
-const STATUS_COLUMNS: Column[] = [
-  { key: 'member', header: () => 'Miembro', cell: (row) => <MemberBadge status={row.member_status} /> },
-  { key: 'licence', header: () => 'Licencia', cell: (row) => <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} /> },
-  {
-    key: 'accident',
-    header: () => 'Accidentes',
-    cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_accident} status={row.insurance_summary?.accident_status} />,
-  },
-  {
-    key: 'rc',
-    header: () => 'RC',
-    cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_rc} status={row.insurance_summary?.rc_status} />,
-  },
-];
-
 export const MemberStatusBoard = () => {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
@@ -113,21 +163,119 @@ export const MemberStatusBoard = () => {
   const [chip, setChip] = useState<Chip>('all');
   const [offset, setOffset] = useState(0);
   const { data, isLoading, isFetching, error } = useMemberStatusBoardQuery(year);
-  const [paying, setPaying] = useState<MemberStatusRow | null>(null);
-  const [unpaying, setUnpaying] = useState<MemberStatusRow | null>(null);
+  const [paying, setPaying] = useState<Payment | null>(null);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const setConfirming = (next: Confirmation) => {
+    setConfirmation(next);
+    setIsConfirming(true);
+  };
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation();
+  const changeMemberStatus = useChangeMemberStatusMutation();
   const exportBoard = useExportMemberStatusBoardMutation();
+  const updateInsurance = useUpdateInsuranceMutation();
+  const busy = isDeleting || isFetching || changeMemberStatus.isPending || updateInsurance.isPending;
 
-  const toggle = (row: MemberStatusRow) => (row.license_paid ? setUnpaying(row) : setPaying(row));
+  const setAnnulled = (insuranceId: string, annulled: boolean) =>
+    updateInsurance.mutate({ id: insuranceId, data: { annulled } });
+
+  const toggleInsurance = (row: MemberStatusRow, kind: InsuranceKind) => {
+    const { id, annulled } = insuranceOf(row, kind);
+    if (!id) return setPaying({ row, items: [kind.item], year: defaultPaymentYear(new Date()) });
+    if (annulled) return setAnnulled(id, false);
+    setConfirming({
+      title: `¿Anular el ${kind.name.replace('Seguro', 'seguro')} de ${fullName(row)}?`,
+      description: 'Deja de estar en vigor. El pago apuntado no se borra. Puedes volver a marcarlo para reactivarlo.',
+      action: 'Anular seguro',
+      onConfirm: () => setAnnulled(id, true),
+    });
+  };
+
+  const togglePaid = (row: MemberStatusRow) => {
+    const paymentId = row.license_payment_id;
+    if (!row.license_paid || !paymentId) return setPaying({ row, items: row.licence_item ? [row.licence_item] : [], year });
+    setConfirming({
+      title: `¿Quitar el pago de la licencia ${year} de ${fullName(row)}?`,
+      description: 'Se borrará este pago. La licencia seguirá en vigor hasta su fecha, pero aparecerá como sin pagar.',
+      action: 'Quitar el pago',
+      onConfirm: () => deleteMemberPayment(paymentId),
+    });
+  };
+
+  const toggleMember = (row: MemberStatusRow) => {
+    const active = row.member_status === 'active';
+    setConfirming({
+      title: active ? `¿Dar de baja a ${fullName(row)}?` : `¿Reactivar a ${fullName(row)}?`,
+      description: active
+        ? 'Dejará de contar en los pagos del año. Puedes volver a marcar la casilla para reactivarlo.'
+        : 'Volverá a estar activo y a contar en los pagos del año.',
+      action: active ? 'Dar de baja' : 'Reactivar',
+      onConfirm: () =>
+        changeMemberStatus.mutate({ id: row.member_id, data: { status: active ? 'inactive' : 'active' } }),
+    });
+  };
+
   const columns: Column[] = [
     {
       key: 'paid',
       header: (forYear) => `Licencia ${forYear} pagada`,
       cell: (row) => (
-        <PaidToggle row={row} year={year} disabled={isDeleting || isFetching} onToggle={toggle} />
+        <Tick
+          checked={row.license_paid}
+          label={`Licencia ${year} pagada de ${fullName(row)}`}
+          disabled={busy}
+          lockedBecause={paidLock(row)}
+          onToggle={() => togglePaid(row)}
+        >
+          <PaidBadge row={row} />
+        </Tick>
       ),
     },
-    ...STATUS_COLUMNS,
+    {
+      key: 'member',
+      header: () => 'Miembro',
+      cell: (row) => (
+        <Tick
+          checked={row.member_status === 'active'}
+          label={`Miembro activo: ${fullName(row)}`}
+          disabled={busy}
+          onToggle={() => toggleMember(row)}
+        >
+          <MemberBadge status={row.member_status} />
+        </Tick>
+      ),
+    },
+    {
+      key: 'licence',
+      header: () => 'Licencia',
+      cell: (row) => (
+        <span className="inline-flex items-center gap-2">
+          <span className="size-5 xl:hidden" aria-hidden="true" />
+          <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} />
+        </span>
+      ),
+    },
+    ...INSURANCE_KINDS.map((kind): Column => ({
+      key: kind.key,
+      header: () => kind.header,
+      cell: (row) => {
+        const { has, status, inForce } = insuranceOf(row, kind);
+        return (
+          <Tick
+            checked={inForce}
+            label={`${kind.name} de ${fullName(row)}`}
+            disabled={busy}
+            lockedBecause={insuranceLock(row, kind)}
+            showsWhyLocked={row.member_status === 'active' && !rcComesWithTitle(row, kind)}
+            onToggle={() => toggleInsurance(row, kind)}
+          >
+            {!inForce && rcComesWithTitle(row, kind)
+              ? <StatusBadge tone="neutral">Incluido en su título</StatusBadge>
+              : <InsuranceBadge has={has} status={status} />}
+          </Tick>
+        );
+      },
+    })),
   ];
 
   const sorted = useMemo(
@@ -220,7 +368,7 @@ export const MemberStatusBoard = () => {
         <EmptyState title="No hay socios que coincidan" description="Prueba con otro nombre o quita los filtros." />
       )}
 
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 xl:hidden">
         {page.map((row) => (
           <article key={row.member_id} className="space-y-2 rounded-[18px] bg-card p-3.5 shadow-card">
             <div>
@@ -244,7 +392,7 @@ export const MemberStatusBoard = () => {
           role="region"
           aria-label={`Estado de los socios en ${year}`}
           tabIndex={0}
-          className="hidden overflow-x-auto rounded-[18px] bg-card shadow-card md:block"
+          className="hidden overflow-x-auto rounded-[18px] bg-card shadow-card xl:block"
         >
           <table className="w-full table-fixed text-sm">
             <caption className="sr-only">Estado de los socios en {year}</caption>
@@ -275,39 +423,32 @@ export const MemberStatusBoard = () => {
 
       <ListPager total={shown.length} limit={PAGE_SIZE} offset={offset} noun="socios" onPage={setOffset} />
 
-      {paying?.club_id && (
+      {paying?.row.club_id && (
         <ManualPaymentModal
           isOpen
           onClose={() => setPaying(null)}
-          clubId={paying.club_id}
-          clubName={paying.club_name ?? ''}
-          paymentYear={year}
-          members={[{ id: paying.member_id, name: fullName(paying) }]}
+          clubId={paying.row.club_id}
+          clubName={paying.row.club_name ?? ''}
+          paymentYear={paying.year}
+          members={[{ id: paying.row.member_id, name: fullName(paying.row) }]}
           isLoadingMembers={false}
-          initialPaymentTypes={paying.licence_item ? [paying.licence_item] : []}
-          initialPayerName={fullName(paying)}
+          initialPaymentTypes={paying.items}
+          initialPayerName={fullName(paying.row)}
         />
       )}
 
-      <AlertDialog open={!!unpaying} onOpenChange={(open) => !open && setUnpaying(null)}>
+      <AlertDialog open={isConfirming} onOpenChange={setIsConfirming}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {unpaying && `¿Quitar el pago de la licencia ${year} de ${fullName(unpaying)}?`}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Se borrará este pago. La licencia seguirá en vigor hasta su fecha, pero aparecerá como sin pagar.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{confirmation?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmation?.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (unpaying?.license_payment_id) deleteMemberPayment(unpaying.license_payment_id);
-                setUnpaying(null);
-              }}
+              onClick={() => confirmation?.onConfirm()}
             >
-              Quitar el pago
+              {confirmation?.action}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

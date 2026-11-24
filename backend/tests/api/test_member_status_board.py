@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.domain.entities.club import Club
-from src.domain.entities.insurance import Insurance, InsuranceType
+from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType, insurance_season_year
 from src.domain.entities.license import InstructorCategory, License, TechnicalGrade
 from src.domain.entities.member import Member, MemberStatus
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
@@ -186,3 +186,95 @@ def test_with_a_licence_and_a_title_the_licence_line_is_the_one_unticked():
 ])
 def test_each_row_names_the_licence_a_tick_would_pay(board, member_id, item):
     assert board[member_id]["licence_item"] == item
+
+
+def accident(insurance_id: str, end_date, annulled: bool = False, status=InsuranceStatus.ACTIVE) -> Insurance:
+    insurance = Insurance(id=insurance_id, policy_number="P-9", insurance_company="Example Insurer", member_id="kyu",
+                          insurance_type=InsuranceType.ACCIDENT, status=status,
+                          start_date=datetime(2020, 10, 1) if end_date else None, end_date=end_date)
+    if annulled:
+        insurance.cancel()
+    return insurance
+
+
+def kyu_row_with(insurances: list) -> dict:
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1")
+    app.dependency_overrides = {
+        **dependency_overrides(super_admin()),
+        get_insurance_repository: lambda: SimpleNamespace(find_by_member_ids=AsyncMock(return_value=insurances)),
+    }
+    rows = TestClient(app).get("/api/v1/members/status-board", params={"payment_year": YEAR}).json()
+    return next(r for r in rows if r["member_id"] == "kyu")
+
+
+def test_an_insurance_in_force_is_the_one_a_tick_acts_on():
+    row = kyu_row_with([accident("ac-now", IN_FORCE)])
+    assert (row["accident_insurance_id"], row["accident_insurance_annulled"]) == ("ac-now", False)
+    assert (row["rc_insurance_id"], row["rc_insurance_annulled"]) == (None, False)
+
+
+def test_an_insurance_expired_by_date_is_not_offered():
+    assert kyu_row_with([accident("ac-old", datetime(2025, 9, 30))])["accident_insurance_id"] is None
+
+
+def test_an_annulled_insurance_still_in_its_dates_can_be_reactivated():
+    row = kyu_row_with([accident("ac-annulled", IN_FORCE, annulled=True)])
+    assert (row["accident_insurance_id"], row["accident_insurance_annulled"]) == ("ac-annulled", True)
+
+
+def test_among_several_in_their_dates_the_latest_end_date_wins():
+    row = kyu_row_with([accident("ac-later", datetime(2099, 12, 31)), accident("ac-sooner", datetime(2098, 12, 31))])
+    assert row["accident_insurance_id"] == "ac-later"
+
+
+def test_without_insurance_there_is_nothing_to_act_on(board):
+    assert board["unlicensed"]["accident_insurance_id"] is None
+    assert board["title"]["rc_insurance_id"] == "rc-title"
+
+
+def test_an_active_insurance_without_dates_is_in_force():
+    assert kyu_row_with([accident("ac-undated", None)])["accident_insurance_id"] == "ac-undated"
+
+
+def test_an_active_insurance_wins_over_a_pending_one_that_ends_later():
+    row = kyu_row_with([
+        accident("ac-pending", datetime(2099, 12, 31), status=InsuranceStatus.PENDING),
+        accident("ac-active", datetime(2098, 12, 31)),
+    ])
+    assert row["accident_insurance_id"] == "ac-active"
+
+
+def test_a_pending_insurance_alone_is_not_in_force():
+    row = kyu_row_with([accident("ac-pending", IN_FORCE, status=InsuranceStatus.PENDING)])
+    assert row["accident_insurance_id"] is None
+
+
+def season_paid_row(member_id: str, payment_type: MemberPaymentType) -> dict:
+    season = insurance_season_year(datetime.utcnow())
+
+    async def lines(member_ids, payment_year, status=None):
+        return [line(member_id, payment_type, season)] if payment_year == season else []
+
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1")
+    app.dependency_overrides = {
+        **dependency_overrides(super_admin()),
+        get_member_payment_repository: lambda: SimpleNamespace(find_by_member_ids_year=lines),
+    }
+    rows = TestClient(app).get("/api/v1/members/status-board", params={"payment_year": YEAR}).json()
+    return next(r for r in rows if r["member_id"] == member_id)
+
+
+def test_an_insurance_already_paid_this_season_says_so():
+    row = season_paid_row("unpaid", MemberPaymentType.SEGURO_ACCIDENTES)
+    assert (row["accident_season_paid"], row["rc_season_paid"]) == (True, False)
+
+
+def test_a_title_paid_this_season_pays_the_rc():
+    row = season_paid_row("title", MemberPaymentType.TITULO_SHIDOIN)
+    assert (row["accident_season_paid"], row["rc_season_paid"]) == (False, True)
+
+
+def test_nothing_paid_this_season(board):
+    assert (board["unlicensed"]["accident_season_paid"], board["unlicensed"]["rc_season_paid"]) == (False, False)
