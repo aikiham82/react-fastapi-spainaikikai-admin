@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -23,6 +24,7 @@ import { LicenseStatusBadge } from '@/features/members/components/MemberBadges';
 import { insurancePresentation } from '@/features/members/utils/member-attention';
 import type { MemberStatusRow } from '../data/schemas/member-status.schema';
 import { useMemberStatusBoardQuery } from '../hooks/queries/useMemberStatusBoardQuery';
+import { useExportMemberStatusBoardMutation } from '../hooks/mutations/useExportMemberStatusBoardMutation';
 
 const PAGE_SIZE = 50;
 const NAME_COLLATOR = new Intl.Collator('es');
@@ -107,6 +109,7 @@ export const MemberStatusBoard = () => {
   const [paying, setPaying] = useState<MemberStatusRow | null>(null);
   const [unpaying, setUnpaying] = useState<MemberStatusRow | null>(null);
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation();
+  const exportBoard = useExportMemberStatusBoardMutation();
 
   const toggle = (row: MemberStatusRow) => (row.license_paid ? setUnpaying(row) : setPaying(row));
   const columns: Column[] = [
@@ -176,6 +179,12 @@ export const MemberStatusBoard = () => {
           setClubId('');
           setOffset(0);
         }}
+        action={
+          <Button size="lg" variant="outline" disabled={exportBoard.isPending} onClick={() => exportBoard.mutate(year)}>
+            <Download className="size-5" />
+            {exportBoard.isPending ? 'Descargando...' : 'Descargar Excel'}
+          </Button>
+        }
       />
 
       <ChipGroup

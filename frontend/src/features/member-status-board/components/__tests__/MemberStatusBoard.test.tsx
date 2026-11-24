@@ -30,6 +30,12 @@ vi.mock('@/features/club-payments/components/ManualPaymentModal', () => ({
   },
 }));
 
+const download = vi.hoisted(() => ({ exportBoard: vi.fn() }));
+
+vi.mock('../../hooks/mutations/useExportMemberStatusBoardMutation', () => ({
+  useExportMemberStatusBoardMutation: () => ({ mutate: download.exportBoard, isPending: false }),
+}));
+
 vi.mock('@/features/clubs/components/ClubFilterSelect', () => ({
   ClubFilterSelect: () => null,
 }));
@@ -114,6 +120,13 @@ describe('MemberStatusBoard', () => {
   it('opens on the current licence year', () => {
     renderWithProviders(<MemberStatusBoard />);
     expect(state.year).toBe(new Date().getFullYear());
+  });
+
+  it('downloads the board of the selected year as Excel', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(screen.getByRole('button', { name: 'Descargar Excel' }));
+    expect(download.exportBoard).toHaveBeenCalledWith(new Date().getFullYear());
   });
 });
 

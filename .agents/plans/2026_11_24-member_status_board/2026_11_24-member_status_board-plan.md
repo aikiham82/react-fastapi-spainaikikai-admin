@@ -10,8 +10,8 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-11-24T11:00:00Z"
-has_completed_all_phases: "false"
+last_implementation_at: "2026-11-24T11:15:00Z"
+has_completed_all_phases: "true"
 
 created_by:
   tool: "Claude Code"
@@ -88,15 +88,15 @@ A super admin opens Admin › "Estado de socios" and sees every member with thei
 
 ### Phase 3: Excel download
 
-- [ ] Endpoint `GET /api/v1/import-export/members/status-board/export?payment_year=N`, super admin only, built with `_build_excel` from the same use case. Columns: Nombre, 1er Apellido, 2do Apellido, Club, Licencia {año} pagada (Sí/No), Miembro (Activo/De baja), Licencia (Vigente/Caducada/Sin licencia), Accidentes, RC (Vigente/Caducado/Sin seguro).
-- [ ] Router test: super admin gets an xlsx with those headers and one row per member, club admin 403.
-- [ ] "Descargar Excel" button on the board, downloading `estado_socios_{año}_{fecha}.xlsx`.
-- [ ] Component test: the button calls the export service with the selected year.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Endpoint `GET /api/v1/import-export/members/status-board/export?payment_year=N`, super admin only, built with `_build_excel` from the same use case. Columns: Nombre, 1er Apellido, 2do Apellido, Club, Licencia {año} pagada (Sí/No), Miembro (Activo/De baja), Licencia (Vigente/Caducada/Sin licencia), Accidentes, RC (Vigente/Caducado/Sin seguro).
+- [x] Router test: super admin gets an xlsx with those headers and one row per member, club admin 403.
+- [x] "Descargar Excel" button on the board, downloading `estado_socios_{año}_{fecha}.xlsx`.
+- [x] Component test: the button calls the export service with the selected year.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## ⏭️ Next step
 
-Implement Phase 3: the Excel download.
+All phases are implemented: review, QA and merge.
 
-Every member in one glance, brought by ✅ 👀 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Every member in one glance, brought by 📊 ✅ 👀 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

@@ -81,7 +81,12 @@ async def lines_of_year(member_ids, payment_year, status=None):
 def build_client(ctx) -> TestClient:
     app = FastAPI()
     app.include_router(router, prefix="/api/v1")
-    app.dependency_overrides = {
+    app.dependency_overrides = dependency_overrides(ctx)
+    return TestClient(app)
+
+
+def dependency_overrides(ctx) -> dict:
+    return {
         get_auth_context: lambda: ctx,
         get_all_members_use_case: lambda: SimpleNamespace(execute=AsyncMock(return_value=list(MEMBERS))),
         get_license_repository: lambda: SimpleNamespace(find_by_member_ids=AsyncMock(return_value=LICENCES)),
@@ -91,7 +96,6 @@ def build_client(ctx) -> TestClient:
         ])),
         get_member_payment_repository: lambda: SimpleNamespace(find_by_member_ids_year=lines_of_year),
     }
-    return TestClient(app)
 
 
 @pytest.fixture
