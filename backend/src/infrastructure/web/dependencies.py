@@ -1,5 +1,6 @@
 """FastAPI dependency injection."""
 
+import hmac
 import os
 from functools import lru_cache
 from typing import Optional
@@ -20,7 +21,7 @@ from src.infrastructure.adapters.services.redsys_service import RedsysService
 from src.infrastructure.adapters.services.email_service import EmailService
 from src.infrastructure.adapters.services.pdf_service import PDFService
 from src.infrastructure.adapters.services.license_image_service import LicenseImageService
-from src.infrastructure.web.security import decode_access_token, get_password_hash
+from src.infrastructure.web.security import decode_access_token, get_password_hash, password_fingerprint
 from src.infrastructure.web.dto.user_dto import TokenData
 from src.domain.entities.user import User
 from src.domain.exceptions.user import UserNotFoundError
@@ -733,6 +734,14 @@ async def get_current_user(
     # alone no longer identifies an account for the whole life of a token.
     token_user_id = payload.get("user_id")
     if token_user_id is not None and token_user_id != user.id:
+        raise credentials_exception
+
+    # A new password (reset, access given again, account handed over to another
+    # member) must end the sessions opened with the old one.
+    token_password = payload.get("pwd")
+    if token_password is not None and not hmac.compare_digest(
+        token_password, password_fingerprint(user.hashed_password)
+    ):
         raise credentials_exception
 
     return user

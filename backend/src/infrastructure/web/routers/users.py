@@ -53,6 +53,7 @@ from src.infrastructure.web.rate_limit import SlidingWindowLimiter, client_ip
 from src.infrastructure.web.security import (
     verify_password,
     create_access_token,
+    password_fingerprint,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from src.application.use_cases.user_use_cases import (
@@ -157,7 +158,7 @@ async def _issue_token(user, member_repository) -> Token:
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email, "user_id": user.id},
+        data={"sub": user.email, "user_id": user.id, "pwd": password_fingerprint(user.hashed_password)},
         expires_delta=access_token_expires,
     )
     
@@ -349,7 +350,7 @@ async def update_own_email(
         )
 
     access_token = create_access_token(
-        data={"sub": user.email, "user_id": user.id},
+        data={"sub": user.email, "user_id": user.id, "pwd": password_fingerprint(user.hashed_password)},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
 
