@@ -100,6 +100,20 @@ async def test_unfinished_annual_payments_are_looked_up_by_club_type_status_and_
     }
 
 
+async def test_the_latest_annual_payment_is_the_newest_of_the_club_and_year():
+    collection = MagicMock()
+    collection.find_one = AsyncMock(return_value=None)
+    with patch.object(payments_module, "get_database", return_value={"transactions": collection}):
+        repository = payments_module.MongoDBPaymentRepository()
+
+    assert await repository.find_latest_annual("club-1", 2027) is None
+
+    collection.find_one.assert_awaited_once_with(
+        {"club_id": "club-1", "payment_type": "annual_quota", "payment_year": 2027},
+        sort=[("created_at", -1)],
+    )
+
+
 async def test_unfinished_exam_payments_are_looked_up_by_member_type_status_and_date():
     captured = {}
 
