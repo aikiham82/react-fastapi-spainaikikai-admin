@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from src.domain.entities.user import User
 from src.domain.exceptions.user import UserNotFoundError
 from src.infrastructure.web.dependencies import get_current_user
-from src.infrastructure.web.security import create_access_token
+from src.infrastructure.web.security import create_access_token, password_fingerprint
 
 
 @pytest.fixture
@@ -70,6 +70,40 @@ class TestGetCurrentUser:
         """Test that tokens minted before the claim existed keep working."""
         # Arrange
         token = create_access_token(data={"sub": account.email})
+
+        # Act
+        result = await get_current_user(token=token, user_by_email_use_case=user_by_email_use_case)
+
+        # Assert
+        assert result == account
+
+    async def test_rejects_a_token_minted_before_the_password_changed(
+        self, user_by_email_use_case, account
+    ):
+        """Test that a session does not outlive the password it was opened with.
+
+        Giving access again, or handing a switched-off account over to another
+        member, sets a new password: a token from before must stop working.
+        """
+        # Arrange
+        token = create_access_token(
+            data={"sub": account.email, "user_id": account.id, "pwd": password_fingerprint("an-older-hash")}
+        )
+
+        # Act & Assert
+        with pytest.raises(HTTPException) as exc_info:
+            await get_current_user(token=token, user_by_email_use_case=user_by_email_use_case)
+
+        assert exc_info.value.status_code == 401
+
+    async def test_accepts_a_token_minted_with_the_current_password(
+        self, user_by_email_use_case, account
+    ):
+        """Test that the fingerprint of the current password lets the session through."""
+        # Arrange
+        token = create_access_token(
+            data={"sub": account.email, "user_id": account.id, "pwd": password_fingerprint(account.hashed_password)}
+        )
 
         # Act
         result = await get_current_user(token=token, user_by_email_use_case=user_by_email_use_case)

@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from src.domain.entities.member import Member, ClubRole
-from src.domain.entities.user import User
+from src.domain.entities.user import GlobalRole, User
 from src.domain.exceptions.member import MemberNotFoundError
 from src.domain.exceptions.user import EmailAlreadyInUseError, UserAlreadyExistsError
 from src.application.use_cases.member_access import GrantMemberAccessUseCase
@@ -125,7 +125,7 @@ class TestGrantMemberAccessUseCase:
             await use_case.execute("member-1", "ana@example.com", make_club_admin=False)
         users.create.assert_not_awaited()
 
-    async def test_refuses_an_email_another_account_uses(self, use_case, users):
+    async def test_refuses_an_email_an_active_account_uses(self, use_case, users):
         users.find_by_email = AsyncMock(return_value=User(
             id="user-9", email="family@example.com", username="family", hashed_password="h"
         ))
@@ -133,6 +133,54 @@ class TestGrantMemberAccessUseCase:
         with pytest.raises(EmailAlreadyInUseError):
             await use_case.execute("member-1", "family@example.com", make_club_admin=False)
         users.create.assert_not_awaited()
+
+    async def test_hands_over_a_switched_off_account_holding_the_email(self, use_case, users, members):
+        users.find_by_email = AsyncMock(return_value=User(
+            id="user-9", email="club@example.com", username="club", hashed_password="old",
+            member_id="former-manager", is_active=False,
+        ))
+        users.update = AsyncMock(side_effect=lambda u: u)
+
+        result = await use_case.execute("member-1", "club@example.com", make_club_admin=True)
+
+        handed_over = users.update.await_args.args[0]
+        assert handed_over.id == "user-9"
+        assert handed_over.member_id == "member-1"
+        assert handed_over.is_active is True
+        assert handed_over.hashed_password != "old"
+        assert result.email == "club@example.com"
+        assert members.update.await_args.args[0].club_role == ClubRole.ADMIN
+        users.create.assert_not_awaited()
+
+    async def test_refuses_the_email_of_a_switched_off_super_admin(self, use_case, users):
+        users.find_by_email = AsyncMock(return_value=User(
+            id="user-9", email="root@example.com", username="root", hashed_password="h",
+            is_active=False, global_role=GlobalRole.SUPER_ADMIN,
+        ))
+        users.update = AsyncMock(side_effect=lambda u: u)
+
+        with pytest.raises(EmailAlreadyInUseError):
+            await use_case.execute("member-1", "root@example.com", make_club_admin=False)
+        users.update.assert_not_awaited()
+
+    async def test_unlinks_the_members_own_switched_off_account_when_another_holds_the_email(self, use_case, users):
+        users.find_by_member_id = AsyncMock(return_value=User(
+            id="user-own", email="old@example.com", username="old", hashed_password="h",
+            member_id="member-1", is_active=False,
+        ))
+        users.find_by_email = AsyncMock(return_value=User(
+            id="user-9", email="club@example.com", username="club", hashed_password="h",
+            member_id="former-manager", is_active=False,
+        ))
+        users.update = AsyncMock(side_effect=lambda u: u)
+
+        await use_case.execute("member-1", "club@example.com", make_club_admin=False)
+
+        saved = {call.args[0].id: call.args[0] for call in users.update.await_args_list}
+        assert saved["user-own"].member_id is None
+        assert saved["user-own"].is_active is False
+        assert saved["user-9"].member_id == "member-1"
+        assert saved["user-9"].is_active is True
 
     async def test_refuses_an_unknown_member(self, use_case, members):
         members.find_by_id = AsyncMock(return_value=None)

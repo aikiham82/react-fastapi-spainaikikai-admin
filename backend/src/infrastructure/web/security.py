@@ -1,5 +1,7 @@
 """Security utilities for authentication."""
 
+import hashlib
+import hmac
 import os
 from datetime import datetime, timedelta
 from typing import Optional
@@ -23,6 +25,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """Hash a password."""
     return pwd_context.hash(password)
+
+
+def password_fingerprint(hashed_password: str) -> str:
+    """Tie a session to the password it was opened with, without exposing the hash."""
+    return hmac.new(SECRET_KEY.encode(), hashed_password.encode(), hashlib.sha256).hexdigest()[:32]
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None, user_id: Optional[str] = None) -> str:

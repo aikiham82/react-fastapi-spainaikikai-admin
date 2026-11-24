@@ -11,6 +11,7 @@ export const useRevokeMemberAccessMutation = () => {
     onSuccess: (_, memberId) => {
       queryClient.invalidateQueries({ queryKey: ['user-by-member', memberId] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['user-accounts'] });
       toast.success('Acceso quitado');
     },
     onError: (error: Error & { detail?: unknown; status?: number }) => {
