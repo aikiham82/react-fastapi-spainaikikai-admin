@@ -166,7 +166,7 @@ export const MemberStatusBoard = () => {
   const filters = (
     <>
       <div className="space-y-1.5">
-        <Label htmlFor="status-board-year">Año de la licencia</Label>
+        <Label htmlFor="status-board-year">Temporada</Label>
         <Select value={String(year)} onValueChange={(value) => resetPage(setYear)(Number(value))}>
           <SelectTrigger id="status-board-year" className="w-full">
             <SelectValue />
