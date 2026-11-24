@@ -12,9 +12,12 @@ A club admin gives, manages and removes the login of members of **their own club
 
 Removing access deactivates the account and kills its reset tokens; it is not deleted. Giving access again reactivates it with the new email.
 
+**A switched-off account does not keep its email for itself.** The email identifies the person: giving access with an email that only a switched-off account holds hands that account over to the member being given access (relinked, reactivated, new random password), in any club. Access derives from the new member's club, so nothing is gained over the old one. An email held by an active account, or by the super admin account in any state, is still refused with 409.
+
 ## 🏆 Benefits
 
 - 2026-10-25: a club needed a second manager and the only way was a manual database change. The project exists to stop that.
+- 2026-11-24: a club changed manager and kept the club email. The former manager's switched-off account still held it, so the new manager could not be given access without a database change.
 - Code review found the takeover paths (peer email change, super admin reactivation, admins without login counting as "another admin") before release; security QA found `/club-role` missing the super admin guard every sibling route had.
 
 ## 👀 Examples

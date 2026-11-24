@@ -59,7 +59,13 @@ class GrantMemberAccessUseCase:
         email = email.lower().strip()
         holder = await self.user_repository.find_by_email(email)
         if holder and (not linked or holder.id != linked.id):
-            raise EmailAlreadyInUseError(email)
+            if holder.is_active or holder.is_super_admin:
+                raise EmailAlreadyInUseError(email)
+            if linked:
+                linked.unlink_from_member()
+                await self.user_repository.update(linked)
+            holder.link_to_member(member_id)
+            linked = holder
 
         if linked:
             linked.update_email(email)
