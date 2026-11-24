@@ -359,8 +359,10 @@ LICENCE_LABELS = {"active": "Vigente", "expired": "Caducada", "revoked": "Anulad
 INSURANCE_LABELS = {"active": "Vigente", "expired": "Caducado", "cancelled": "Anulado", "pending": "Pendiente"}
 
 
-def _insurance_label(has: bool, status: Optional[str]) -> str:
-    return INSURANCE_LABELS.get(status, "Sin seguro") if has else "Sin seguro"
+def _insurance_label(summary, kind: str) -> str:
+    if not summary or not getattr(summary, f"has_{kind}"):
+        return "Sin seguro"
+    return INSURANCE_LABELS.get(getattr(summary, f"{kind}_status"), "Sin seguro")
 
 
 def _status_board_columns(payment_year: int) -> list:
@@ -372,8 +374,8 @@ def _status_board_columns(payment_year: int) -> list:
         ("license_paid", f"Licencia {payment_year} pagada", lambda r: "Sí" if r.license_paid else "No"),
         ("member_status", "Miembro", lambda r: "Activo" if r.member_status == "active" else "De baja"),
         ("license", "Licencia", lambda r: LICENCE_LABELS.get(r.license_summary.status, "Sin licencia") if r.license_summary else "Sin licencia"),
-        ("accident", "Accidentes", lambda r: _insurance_label(bool(r.insurance_summary and r.insurance_summary.has_accident), r.insurance_summary and r.insurance_summary.accident_status)),
-        ("rc", "RC", lambda r: _insurance_label(bool(r.insurance_summary and r.insurance_summary.has_rc), r.insurance_summary and r.insurance_summary.rc_status)),
+        ("accident", "Accidentes", lambda r: _insurance_label(r.insurance_summary, "accident")),
+        ("rc", "RC", lambda r: _insurance_label(r.insurance_summary, "rc")),
     ]
 
 

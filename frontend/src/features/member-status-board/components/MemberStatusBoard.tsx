@@ -19,6 +19,7 @@ import { ChipGroup, EmptyState, ListError, ListLoading, ListToolbar } from '@/co
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ListPager } from '@/core/components/ListPager';
+import { foldForSearch } from '@/core/utils/search';
 import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { LicenseStatusBadge } from '@/features/members/components/MemberBadges';
 import { insurancePresentation } from '@/features/members/utils/member-attention';
@@ -32,8 +33,6 @@ const NAME_COLLATOR = new Intl.Collator('es');
 type Chip = 'all' | 'unpaid_in_force';
 
 const fullName = (row: MemberStatusRow) => `${row.first_name} ${row.last_name}`.trim();
-
-const normalized = (text: string) => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 const licenceInForce = (row: MemberStatusRow) => row.license_summary?.status === 'active';
 
@@ -123,15 +122,23 @@ export const MemberStatusBoard = () => {
     ...STATUS_COLUMNS,
   ];
 
-  const rows = useMemo(() => {
-    const term = normalized(search.trim());
-    return [...(data ?? [])]
-      .filter((row) => !clubId || row.club_id === clubId)
-      .filter((row) => !term || normalized(`${fullName(row)} ${row.club_name ?? ''}`).includes(term))
-      .sort((a, b) => NAME_COLLATOR.compare(fullName(a), fullName(b)));
-  }, [data, search, clubId]);
+  const sorted = useMemo(
+    () =>
+      (data ?? [])
+        .map((row) => ({ row, key: foldForSearch(`${fullName(row)} ${row.club_name ?? ''}`) }))
+        .sort((a, b) => NAME_COLLATOR.compare(fullName(a.row), fullName(b.row))),
+    [data]
+  );
 
-  const shown = chip === 'all' ? rows : rows.filter(unpaidInForce);
+  const { rows, unpaid } = useMemo(() => {
+    const term = foldForSearch(search.trim());
+    const matching = sorted
+      .filter(({ row, key }) => (!clubId || row.club_id === clubId) && (!term || key.includes(term)))
+      .map(({ row }) => row);
+    return { rows: matching, unpaid: matching.filter(unpaidInForce) };
+  }, [sorted, search, clubId]);
+
+  const shown = chip === 'all' ? rows : unpaid;
   const page = shown.slice(offset, offset + PAGE_SIZE);
   const resetPage = <T,>(setter: (value: T) => void) => (value: T) => {
     setter(value);
@@ -195,7 +202,7 @@ export const MemberStatusBoard = () => {
         onChange={resetPage(setChip)}
         options={[
           { value: 'all', label: 'Todos', count: rows.length },
-          { value: 'unpaid_in_force', label: 'En vigor sin pagar', count: rows.filter(unpaidInForce).length, icon: Clock },
+          { value: 'unpaid_in_force', label: 'En vigor sin pagar', count: unpaid.length, icon: Clock },
         ]}
       />
 
