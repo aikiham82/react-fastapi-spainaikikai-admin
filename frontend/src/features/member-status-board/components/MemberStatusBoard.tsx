@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ManualPaymentModal } from '@/features/club-payments/components/ManualPaymentModal';
 import { useDeleteMemberPaymentMutation } from '@/features/club-payments/hooks/mutations/usePaymentAdminMutations';
+import { useChangeMemberStatusMutation } from '@/features/members/hooks/mutations/useMemberMutations';
 import { ChipGroup, EmptyState, ListError, ListLoading, ListToolbar } from '@/components/ui/list-controls';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -44,39 +45,47 @@ function PaidBadge({ row }: { row: MemberStatusRow }) {
   return <StatusBadge tone={licenceInForce(row) ? 'warn' : 'neutral'}>Sin pagar</StatusBadge>;
 }
 
-interface PaidToggleProps {
-  row: MemberStatusRow;
-  year: number;
+interface TickProps {
+  checked: boolean;
+  label: string;
   disabled: boolean;
-  onToggle: (row: MemberStatusRow) => void;
+  lockedBecause?: string | null;
+  onToggle: () => void;
+  children: ReactNode;
 }
 
-const lockReason = (row: MemberStatusRow): string | null => {
+function Tick({ checked, label, disabled, lockedBecause = null, onToggle, children }: TickProps) {
+  return (
+    <label className="inline-flex min-h-11 cursor-pointer items-center gap-2" title={lockedBecause ?? undefined}>
+      <Checkbox
+        checked={checked}
+        disabled={disabled || lockedBecause !== null}
+        aria-label={label}
+        className="size-5"
+        onCheckedChange={onToggle}
+      />
+      {children}
+    </label>
+  );
+}
+
+const paidLock = (row: MemberStatusRow): string | null => {
   if (!row.club_id) return 'Sin club: el pago se apunta en un club';
   if (row.member_status !== 'active' && !row.license_paid) return 'De baja: no paga licencia';
   return null;
 };
 
-function PaidToggle({ row, year, disabled, onToggle }: PaidToggleProps) {
-  const reason = lockReason(row);
-  return (
-    <label className="inline-flex min-h-11 cursor-pointer items-center gap-2" title={reason ?? undefined}>
-      <Checkbox
-        checked={row.license_paid}
-        disabled={disabled || reason !== null}
-        aria-label={`Licencia ${year} pagada de ${fullName(row)}`}
-        className="size-5"
-        onCheckedChange={() => onToggle(row)}
-      />
-      <PaidBadge row={row} />
-    </label>
-  );
-}
-
 function MemberBadge({ status }: { status: string }) {
   return status === 'active'
     ? <StatusBadge tone="ok">Activo</StatusBadge>
     : <StatusBadge tone="neutral">De baja</StatusBadge>;
+}
+
+interface Confirmation {
+  title: string;
+  description: string;
+  action: string;
+  onConfirm: () => void;
 }
 
 function InsuranceBadge({ has, status }: { has?: boolean; status?: string | null }) {
@@ -90,21 +99,6 @@ interface Column {
   cell: (row: MemberStatusRow) => ReactNode;
 }
 
-const STATUS_COLUMNS: Column[] = [
-  { key: 'member', header: () => 'Miembro', cell: (row) => <MemberBadge status={row.member_status} /> },
-  { key: 'licence', header: () => 'Licencia', cell: (row) => <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} /> },
-  {
-    key: 'accident',
-    header: () => 'Accidentes',
-    cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_accident} status={row.insurance_summary?.accident_status} />,
-  },
-  {
-    key: 'rc',
-    header: () => 'RC',
-    cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_rc} status={row.insurance_summary?.rc_status} />,
-  },
-];
-
 export const MemberStatusBoard = () => {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
@@ -114,20 +108,77 @@ export const MemberStatusBoard = () => {
   const [offset, setOffset] = useState(0);
   const { data, isLoading, isFetching, error } = useMemberStatusBoardQuery(year);
   const [paying, setPaying] = useState<MemberStatusRow | null>(null);
-  const [unpaying, setUnpaying] = useState<MemberStatusRow | null>(null);
+  const [confirming, setConfirming] = useState<Confirmation | null>(null);
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation();
+  const changeMemberStatus = useChangeMemberStatusMutation();
   const exportBoard = useExportMemberStatusBoardMutation();
+  const busy = isDeleting || isFetching || changeMemberStatus.isPending;
 
-  const toggle = (row: MemberStatusRow) => (row.license_paid ? setUnpaying(row) : setPaying(row));
+  const togglePaid = (row: MemberStatusRow) => {
+    const paymentId = row.license_payment_id;
+    if (!row.license_paid || !paymentId) return setPaying(row);
+    setConfirming({
+      title: `¿Quitar el pago de la licencia ${year} de ${fullName(row)}?`,
+      description: 'Se borrará este pago. La licencia seguirá en vigor hasta su fecha, pero aparecerá como sin pagar.',
+      action: 'Quitar el pago',
+      onConfirm: () => deleteMemberPayment(paymentId),
+    });
+  };
+
+  const toggleMember = (row: MemberStatusRow) => {
+    const active = row.member_status === 'active';
+    setConfirming({
+      title: active ? 'Dar de baja' : 'Reactivar miembro',
+      description: active
+        ? `Se dará de baja a "${fullName(row)}". El miembro quedará inactivo y será excluido de los pagos anuales. Esta acción es reversible.`
+        : `Se reactivará a "${fullName(row)}". El miembro volverá a estar activo y será incluido en los pagos anuales.`,
+      action: active ? 'Dar de baja' : 'Reactivar',
+      onConfirm: () =>
+        changeMemberStatus.mutate({ id: row.member_id, data: { status: active ? 'inactive' : 'active' } }),
+    });
+  };
+
   const columns: Column[] = [
     {
       key: 'paid',
       header: (forYear) => `Licencia ${forYear} pagada`,
       cell: (row) => (
-        <PaidToggle row={row} year={year} disabled={isDeleting || isFetching} onToggle={toggle} />
+        <Tick
+          checked={row.license_paid}
+          label={`Licencia ${year} pagada de ${fullName(row)}`}
+          disabled={busy}
+          lockedBecause={paidLock(row)}
+          onToggle={() => togglePaid(row)}
+        >
+          <PaidBadge row={row} />
+        </Tick>
       ),
     },
-    ...STATUS_COLUMNS,
+    {
+      key: 'member',
+      header: () => 'Miembro',
+      cell: (row) => (
+        <Tick
+          checked={row.member_status === 'active'}
+          label={`Miembro activo: ${fullName(row)}`}
+          disabled={busy}
+          onToggle={() => toggleMember(row)}
+        >
+          <MemberBadge status={row.member_status} />
+        </Tick>
+      ),
+    },
+    { key: 'licence', header: () => 'Licencia', cell: (row) => <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} /> },
+    {
+      key: 'accident',
+      header: () => 'Accidentes',
+      cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_accident} status={row.insurance_summary?.accident_status} />,
+    },
+    {
+      key: 'rc',
+      header: () => 'RC',
+      cell: (row) => <InsuranceBadge has={row.insurance_summary?.has_rc} status={row.insurance_summary?.rc_status} />,
+    },
   ];
 
   const sorted = useMemo(
@@ -289,25 +340,21 @@ export const MemberStatusBoard = () => {
         />
       )}
 
-      <AlertDialog open={!!unpaying} onOpenChange={(open) => !open && setUnpaying(null)}>
+      <AlertDialog open={!!confirming} onOpenChange={(open) => !open && setConfirming(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {unpaying && `¿Quitar el pago de la licencia ${year} de ${fullName(unpaying)}?`}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Se borrará este pago. La licencia seguirá en vigor hasta su fecha, pero aparecerá como sin pagar.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{confirming?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirming?.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (unpaying?.license_payment_id) deleteMemberPayment(unpaying.license_payment_id);
-                setUnpaying(null);
+                confirming?.onConfirm();
+                setConfirming(null);
               }}
             >
-              Quitar el pago
+              {confirming?.action}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

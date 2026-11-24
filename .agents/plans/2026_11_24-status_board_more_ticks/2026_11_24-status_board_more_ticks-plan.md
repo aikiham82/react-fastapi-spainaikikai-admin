@@ -3,6 +3,16 @@ name: "Status board: member and insurance ticks"
 description: "The member status board also ticks member active/deregistered and accident and RC insurance, each through the action that already exists"
 created_at: "2026-11-24T16:00:00Z"
 
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Fable"
+    version: "5.2"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-11-24T16:30:00Z"
+has_completed_all_phases: "false"
+
 created_by:
   tool: "Claude Code"
   model:
@@ -52,10 +62,10 @@ Real data matrix (production, read-only, 2026-11-24). Each row is a test case an
 
 ### Phase 1: member tick
 
-- [ ] The "Miembro" column gets a checkbox, ticked when the member is active. Unticking asks with the copy Miembros uses ("Dar de baja", "Se dará de baja a "{nombre}". El miembro quedará inactivo y será excluido de los pagos anuales. Esta acción es reversible.") and ticking with "Reactivar miembro" / "Se reactivará a "{nombre}". El miembro volverá a estar activo y será incluido en los pagos anuales."; both call `useChangeMemberStatusMutation`.
-- [ ] Component tests: untick confirms and deregisters, tick confirms and reactivates, cancel changes nothing, disabled while the request is in flight.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] The "Miembro" column gets a checkbox, ticked when the member is active. Unticking asks with the copy Miembros uses ("Dar de baja", "Se dará de baja a "{nombre}". El miembro quedará inactivo y será excluido de los pagos anuales. Esta acción es reversible.") and ticking with "Reactivar miembro" / "Se reactivará a "{nombre}". El miembro volverá a estar activo y será incluido en los pagos anuales."; both call `useChangeMemberStatusMutation`.
+- [x] Component tests: untick confirms and deregisters, tick confirms and reactivates, cancel changes nothing, disabled while the request is in flight.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: accident and RC insurance ticks
 
@@ -69,6 +79,6 @@ Real data matrix (production, read-only, 2026-11-24). Each row is a test case an
 
 ## ⏭️ Next step
 
-Implement Phase 1: the member tick.
+Implement Phase 2: the insurance ticks.
 
-More boxes to tick, carried by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+More boxes to tick, carried by 🙋 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

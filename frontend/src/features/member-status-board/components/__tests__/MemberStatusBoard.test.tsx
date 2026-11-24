@@ -30,6 +30,12 @@ vi.mock('@/features/club-payments/components/ManualPaymentModal', () => ({
   },
 }));
 
+const member = vi.hoisted(() => ({ changeStatus: vi.fn(), isPending: false }));
+
+vi.mock('@/features/members/hooks/mutations/useMemberMutations', () => ({
+  useChangeMemberStatusMutation: () => ({ mutate: member.changeStatus, isPending: member.isPending }),
+}));
+
 const download = vi.hoisted(() => ({ exportBoard: vi.fn() }));
 
 vi.mock('../../hooks/mutations/useExportMemberStatusBoardMutation', () => ({
@@ -142,7 +148,7 @@ describe('MemberStatusBoard paid checkbox', () => {
     ];
   });
 
-  const checkbox = (name: string) => within(rowOf(name)).getByRole('checkbox');
+  const checkbox = (name: string) => within(rowOf(name)).getByRole('checkbox', { name: /^Licencia \d+ pagada/ });
 
   it('ticking an unpaid licence opens the manual payment for that member, club and year', async () => {
     const user = userEvent.setup();
@@ -199,6 +205,61 @@ describe('MemberStatusBoard paid checkbox', () => {
 
   it('the checkbox is disabled while a payment line is being removed', () => {
     payment.isLoading = true;
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Ana Example')).toBeDisabled();
+  });
+});
+
+describe('MemberStatusBoard member checkbox', () => {
+  beforeEach(() => {
+    member.changeStatus.mockReset();
+    member.isPending = false;
+    payment.isLoading = false;
+    state.rows = [
+      row({ member_id: 'in', first_name: 'Ana' }),
+      row({ member_id: 'out', first_name: 'Noa', member_status: 'inactive' }),
+    ];
+  });
+
+  const checkbox = (name: string) => within(rowOf(name)).getByRole('checkbox', { name: /^Miembro activo/ });
+
+  it('is ticked for an active member and unticked for a deregistered one', () => {
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Ana Example')).toBeChecked();
+    expect(checkbox('Noa Example')).not.toBeChecked();
+  });
+
+  it('unticking asks first and then deregisters the member', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Ana Example'));
+    expect(member.changeStatus).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('alertdialog');
+    expect(within(dialog).getByText(/Se dará de baja a "Ana Example"/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Dar de baja' }));
+    expect(member.changeStatus).toHaveBeenCalledWith({ id: 'in', data: { status: 'inactive' } });
+  });
+
+  it('ticking asks first and then reactivates the member', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Noa Example'));
+    const dialog = screen.getByRole('alertdialog');
+    expect(within(dialog).getByText(/Se reactivará a "Noa Example"/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Reactivar' }));
+    expect(member.changeStatus).toHaveBeenCalledWith({ id: 'out', data: { status: 'active' } });
+  });
+
+  it('cancelling changes nothing', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Ana Example'));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancelar' }));
+    expect(member.changeStatus).not.toHaveBeenCalled();
+  });
+
+  it('is disabled while a change is in flight', () => {
+    member.isPending = true;
     renderWithProviders(<MemberStatusBoard />);
     expect(checkbox('Ana Example')).toBeDisabled();
   });
