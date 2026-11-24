@@ -3,6 +3,7 @@ import { screen, within } from '@testing-library/react';
 import { renderWithProviders, userEvent } from '@/test-utils';
 import type { MemberStatusRow } from '../../data/schemas/member-status.schema';
 import { MemberStatusBoard } from '../MemberStatusBoard';
+import { defaultPaymentYear } from '@/core/utils/defaultPaymentYear';
 
 const state = vi.hoisted(() => ({ rows: [] as MemberStatusRow[], year: 0 }));
 
@@ -373,6 +374,36 @@ describe('MemberStatusBoard insurance checkboxes', () => {
     renderWithProviders(<MemberStatusBoard />);
     expect(accident('Noa Example')).toBeDisabled();
     expect(rc('Noa Example')).toBeDisabled();
+  });
+
+  it('an annulled insurance of a deregistered member can still be reactivated', () => {
+    state.rows = [row({
+      member_id: 'gone', first_name: 'Noa', member_status: 'inactive', insurance_summary: uninsured,
+      accident_insurance_id: 'ac-4', accident_insurance_annulled: true,
+    })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Noa Example')).toBeEnabled();
+  });
+
+  it('an insurance already paid this season is not charged again', () => {
+    state.rows = [row({ member_id: 'paid', first_name: 'Luis', insurance_summary: uninsured, accident_season_paid: true })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Luis Example')).toBeDisabled();
+    expect(within(rowOf('Luis Example')).getByText('Ya está pagado esta temporada: revisa sus fechas en Seguros')).toBeInTheDocument();
+    expect(rc('Luis Example')).toBeEnabled();
+  });
+
+  it('the insurance payment is recorded in the season being paid, whatever year the board shows', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(accident('Luis Example'));
+    expect(payment.modal).toMatchObject({ paymentYear: defaultPaymentYear(new Date()) });
+  });
+
+  it('follows the insurance the tick acts on, not the summary badge', () => {
+    state.rows = [row({ member_id: 'odd', first_name: 'Eva', insurance_summary: insured })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(accident('Eva Example')).not.toBeChecked();
   });
 
   it('are disabled while an insurance is being changed', () => {

@@ -14,9 +14,9 @@ from src.domain.entities.license import (
     payable_licence_items,
     title_among,
 )
-from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType
+from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType, insurance_season_year
 from src.domain.entities.member import ClubRole
-from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPaymentStatus
+from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPaymentStatus, MemberPaymentType
 from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import LastClubAdminError, InactiveMemberError
 from src.domain.exceptions.user import (
@@ -249,14 +249,19 @@ def _licence_item(licences: List[License], birth_date, identified: bool) -> Opti
     return next(iter(items - {"dan"}), "dan")
 
 
+TICKABLE_INSURANCE_STATUSES = (InsuranceStatus.ACTIVE, InsuranceStatus.CANCELLED)
+
+
 def _insurance_within_its_dates(insurances: List[Insurance], insurance_type: InsuranceType, today: datetime):
-    """The insurance of that type whose dates cover today, annulled or not: the one a tick annuls or reactivates."""
+    """The insurance of that type whose dates cover today, in force first: the one a tick annuls or reactivates."""
     current = [
         i for i in insurances
-        if i.insurance_type == insurance_type and i.end_date and i.end_date >= today
-        and (not i.start_date or i.start_date <= today)
+        if i.insurance_type == insurance_type and i.status in TICKABLE_INSURANCE_STATUSES
+        and (not i.end_date or i.end_date >= today) and (not i.start_date or i.start_date <= today)
     ]
-    return max(current, key=lambda i: (i.status != InsuranceStatus.CANCELLED, i.end_date), default=None)
+    return max(
+        current, key=lambda i: (i.status == InsuranceStatus.ACTIVE, i.end_date or datetime.max), default=None
+    )
 
 
 def _insurance_tick_fields(insurances: List[Insurance], today: datetime) -> dict:
@@ -275,11 +280,18 @@ async def member_status_rows(
     today = datetime.utcnow()
     member_ids = [m.id for m in members]
     licences = await license_repo.find_by_member_ids(member_ids, limit=len(member_ids) * 5)
-    insurances = await insurance_repo.find_by_member_ids(member_ids, limit=len(member_ids) * 5)
+    insurances = await insurance_repo.find_by_member_ids(member_ids)
     clubs = {c.id: c.name for c in await club_repo.find_by_ids(list({m.club_id for m in members if m.club_id}))}
     lines = await member_payment_repo.find_by_member_ids_year(
         member_ids, payment_year, status=MemberPaymentStatus.COMPLETED
     )
+    season_year = insurance_season_year(today)
+    season_lines = lines if season_year == payment_year else await member_payment_repo.find_by_member_ids_year(
+        member_ids, season_year, status=MemberPaymentStatus.COMPLETED
+    )
+    season_paid_by_member = defaultdict(set)
+    for mp in season_lines:
+        season_paid_by_member[mp.member_id] |= mp.covered_types
     licences_by_member = defaultdict(list)
     for lic in licences:
         licences_by_member[lic.member_id].append(lic)
@@ -304,6 +316,8 @@ async def member_status_rows(
             license_payment_id=licence_line_by_member.get(m.id),
             licence_item=_licence_item(licences_by_member[m.id], m.birth_date, bool(m.dni)),
             **_insurance_tick_fields(insurances_by_member[m.id], today),
+            accident_season_paid=MemberPaymentType.SEGURO_ACCIDENTES in season_paid_by_member[m.id],
+            rc_season_paid=MemberPaymentType.SEGURO_RC in season_paid_by_member[m.id],
         )
         for m in members
     ]

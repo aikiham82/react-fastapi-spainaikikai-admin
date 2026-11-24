@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Clock, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ListPager } from '@/core/components/ListPager';
 import { foldForSearch } from '@/core/utils/search';
-import { seasonLabel } from '@/core/utils/defaultPaymentYear';
+import { defaultPaymentYear, seasonLabel } from '@/core/utils/defaultPaymentYear';
 import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { LicenseStatusBadge } from '@/features/members/components/MemberBadges';
 import { insurancePresentation } from '@/features/members/utils/member-attention';
@@ -59,7 +60,10 @@ interface TickProps {
 
 function Tick({ checked, label, disabled, lockedBecause = null, showsWhyLocked = false, onToggle, children }: TickProps) {
   return (
-    <label className="inline-flex min-h-11 cursor-pointer items-center gap-2" title={lockedBecause ?? undefined}>
+    <label
+      className={cn('inline-flex min-h-11 items-center gap-2', !disabled && lockedBecause === null && 'cursor-pointer')}
+      title={lockedBecause ?? undefined}
+    >
       <Checkbox
         checked={checked}
         disabled={disabled || lockedBecause !== null}
@@ -103,18 +107,25 @@ const INSTRUCTOR_ITEMS = ['shidoin', 'fukushidoin'];
 
 const insuranceOf = (row: MemberStatusRow, kind: InsuranceKind) => {
   const summary = row.insurance_summary;
-  const [has, status, id, annulled] = kind.key === 'accident'
-    ? [summary?.has_accident, summary?.accident_status, row.accident_insurance_id, row.accident_insurance_annulled]
-    : [summary?.has_rc, summary?.rc_status, row.rc_insurance_id, row.rc_insurance_annulled];
-  return { has, status, id: id ?? null, annulled: Boolean(annulled), inForce: Boolean(id) && !annulled && status === 'active' };
+  const [has, status, id, annulled, seasonPaid] = kind.key === 'accident'
+    ? [summary?.has_accident, summary?.accident_status, row.accident_insurance_id, row.accident_insurance_annulled, row.accident_season_paid]
+    : [summary?.has_rc, summary?.rc_status, row.rc_insurance_id, row.rc_insurance_annulled, row.rc_season_paid];
+  return {
+    has,
+    status,
+    id: id ?? null,
+    annulled: Boolean(annulled),
+    seasonPaid: Boolean(seasonPaid),
+    inForce: Boolean(id) && !annulled,
+  };
 };
 
 const insuranceLock = (row: MemberStatusRow, kind: InsuranceKind): string | null => {
-  const { inForce, annulled } = insuranceOf(row, kind);
-  if (inForce) return null;
+  const { inForce, annulled, seasonPaid } = insuranceOf(row, kind);
+  if (inForce || annulled) return null;
   if (row.member_status !== 'active') return 'De baja: no paga seguro';
-  if (annulled) return null;
   if (kind.key === 'rc' && INSTRUCTOR_ITEMS.includes(row.licence_item ?? '')) return 'Va incluido en su título';
+  if (seasonPaid) return 'Ya está pagado esta temporada: revisa sus fechas en Seguros';
   if (!row.club_id) return 'Sin club: el pago se apunta en un club';
   return null;
 };
@@ -122,6 +133,7 @@ const insuranceLock = (row: MemberStatusRow, kind: InsuranceKind): string | null
 interface Payment {
   row: MemberStatusRow;
   items: string[];
+  year: number;
 }
 
 interface Confirmation {
@@ -151,7 +163,12 @@ export const MemberStatusBoard = () => {
   const [offset, setOffset] = useState(0);
   const { data, isLoading, isFetching, error } = useMemberStatusBoardQuery(year);
   const [paying, setPaying] = useState<Payment | null>(null);
-  const [confirming, setConfirming] = useState<Confirmation | null>(null);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const setConfirming = (next: Confirmation) => {
+    setConfirmation(next);
+    setIsConfirming(true);
+  };
   const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation();
   const changeMemberStatus = useChangeMemberStatusMutation();
   const exportBoard = useExportMemberStatusBoardMutation();
@@ -168,7 +185,7 @@ export const MemberStatusBoard = () => {
   const toggleInsurance = (row: MemberStatusRow, kind: InsuranceKind) => {
     const { id, annulled, inForce } = insuranceOf(row, kind);
     if (id && annulled) return setAnnulled(id, false);
-    if (!inForce || !id) return setPaying({ row, items: [kind.item] });
+    if (!inForce || !id) return setPaying({ row, items: [kind.item], year: defaultPaymentYear(new Date()) });
     setConfirming({
       title: `¿Anular el ${kind.name.replace('Seguro', 'seguro')} de ${fullName(row)}?`,
       description: 'Deja de contar como vigente. Puedes volver a marcarlo para reactivarlo.',
@@ -179,7 +196,7 @@ export const MemberStatusBoard = () => {
 
   const togglePaid = (row: MemberStatusRow) => {
     const paymentId = row.license_payment_id;
-    if (!row.license_paid || !paymentId) return setPaying({ row, items: row.licence_item ? [row.licence_item] : [] });
+    if (!row.license_paid || !paymentId) return setPaying({ row, items: row.licence_item ? [row.licence_item] : [], year });
     setConfirming({
       title: `¿Quitar el pago de la licencia ${year} de ${fullName(row)}?`,
       description: 'Se borrará este pago. La licencia seguirá en vigor hasta su fecha, pero aparecerá como sin pagar.',
@@ -404,7 +421,7 @@ export const MemberStatusBoard = () => {
           onClose={() => setPaying(null)}
           clubId={paying.row.club_id}
           clubName={paying.row.club_name ?? ''}
-          paymentYear={year}
+          paymentYear={paying.year}
           members={[{ id: paying.row.member_id, name: fullName(paying.row) }]}
           isLoadingMembers={false}
           initialPaymentTypes={paying.items}
@@ -412,21 +429,18 @@ export const MemberStatusBoard = () => {
         />
       )}
 
-      <AlertDialog open={!!confirming} onOpenChange={(open) => !open && setConfirming(null)}>
+      <AlertDialog open={isConfirming} onOpenChange={setIsConfirming}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{confirming?.title}</AlertDialogTitle>
-            <AlertDialogDescription>{confirming?.description}</AlertDialogDescription>
+            <AlertDialogTitle>{confirmation?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmation?.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                confirming?.onConfirm();
-                setConfirming(null);
-              }}
+              onClick={() => confirmation?.onConfirm()}
             >
-              {confirming?.action}
+              {confirmation?.action}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

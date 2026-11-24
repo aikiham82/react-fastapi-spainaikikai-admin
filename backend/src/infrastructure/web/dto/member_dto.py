@@ -125,6 +125,8 @@ class MemberStatusRowResponse(BaseModel):
     accident_insurance_annulled: bool = False
     rc_insurance_id: Optional[str] = None
     rc_insurance_annulled: bool = False
+    accident_season_paid: bool = False
+    rc_season_paid: bool = False
 
 
 class MemberResponse(MemberBase):
