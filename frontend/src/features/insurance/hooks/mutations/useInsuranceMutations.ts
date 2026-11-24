@@ -12,6 +12,7 @@ export const useCreateInsuranceMutation = () => {
     onSuccess: () => {
       toast.success('Seguro creado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['insurance'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
     },
     onError: () => {
       toast.error('Error al crear el seguro');
@@ -32,6 +33,7 @@ export const useUpdateInsuranceMutation = () => {
         reactivated: 'Seguro reactivado',
       }));
       queryClient.invalidateQueries({ queryKey: ['insurance'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
     },
     onError: () => {
       toast.error('Error al actualizar el seguro');
@@ -47,6 +49,7 @@ export const useDeleteInsuranceMutation = () => {
     onSuccess: () => {
       toast.success('Seguro eliminado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['insurance'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
     },
     onError: () => {
       toast.error('Error al eliminar el seguro');

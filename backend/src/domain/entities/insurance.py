@@ -28,6 +28,24 @@ def insurance_season_year(on: datetime) -> int:
     return on.year + 1 if on.month >= 10 else on.year
 
 
+def insurance_within_its_dates(
+    insurances: Iterable["Insurance"], insurance_type: "InsuranceType", on: datetime
+) -> Optional["Insurance"]:
+    """The active or annulled insurance of that type whose dates cover the day, in force first, then latest end."""
+    current = [
+        insurance for insurance in insurances
+        if insurance.insurance_type == insurance_type
+        and insurance.status in (InsuranceStatus.ACTIVE, InsuranceStatus.CANCELLED)
+        and (not insurance.end_date or insurance.end_date >= on)
+        and (not insurance.start_date or insurance.start_date <= on)
+    ]
+    return max(
+        current,
+        key=lambda insurance: (insurance.status == InsuranceStatus.ACTIVE, insurance.end_date or datetime.max),
+        default=None,
+    )
+
+
 def renewed_insurance_ids(insurances: Iterable["Insurance"]) -> set[str]:
     """Insurances whose member holds a later one of the same type: renewing them would pay nothing new."""
     held = [

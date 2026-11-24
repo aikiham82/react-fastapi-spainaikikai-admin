@@ -242,7 +242,7 @@ describe('MemberStatusBoard member checkbox', () => {
     await user.click(checkbox('Ana Example'));
     expect(member.changeStatus).not.toHaveBeenCalled();
     const dialog = screen.getByRole('alertdialog');
-    expect(within(dialog).getByText(/Se dará de baja a "Ana Example"/)).toBeInTheDocument();
+    expect(within(dialog).getByText('¿Dar de baja a Ana Example?')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Dar de baja' }));
     expect(member.changeStatus).toHaveBeenCalledWith({ id: 'in', data: { status: 'inactive' } });
   });
@@ -252,7 +252,7 @@ describe('MemberStatusBoard member checkbox', () => {
     renderWithProviders(<MemberStatusBoard />);
     await user.click(checkbox('Noa Example'));
     const dialog = screen.getByRole('alertdialog');
-    expect(within(dialog).getByText(/Se reactivará a "Noa Example"/)).toBeInTheDocument();
+    expect(within(dialog).getByText('¿Reactivar a Noa Example?')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Reactivar' }));
     expect(member.changeStatus).toHaveBeenCalledWith({ id: 'out', data: { status: 'active' } });
   });
@@ -325,7 +325,7 @@ describe('MemberStatusBoard insurance checkboxes', () => {
     const dialog = screen.getByRole('alertdialog');
     expect(within(dialog).getByText('¿Anular el seguro de accidentes de Ana Example?')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Anular seguro' }));
-    expect(insurance.update).toHaveBeenCalledWith({ id: 'ac-1', data: { annulled: true } }, expect.anything());
+    expect(insurance.update).toHaveBeenCalledWith({ id: 'ac-1', data: { annulled: true } });
   });
 
   it('unticking RC names the RC insurance and annuls it', async () => {
@@ -335,7 +335,7 @@ describe('MemberStatusBoard insurance checkboxes', () => {
     const dialog = screen.getByRole('alertdialog');
     expect(within(dialog).getByText('¿Anular el seguro RC de Ana Example?')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Anular seguro' }));
-    expect(insurance.update).toHaveBeenCalledWith({ id: 'rc-1', data: { annulled: true } }, expect.anything());
+    expect(insurance.update).toHaveBeenCalledWith({ id: 'rc-1', data: { annulled: true } });
   });
 
   it('ticking an annulled insurance of the season reactivates it instead of paying again', async () => {
@@ -349,14 +349,15 @@ describe('MemberStatusBoard insurance checkboxes', () => {
     expect(accident('Eva Example')).not.toBeChecked();
     await user.click(accident('Eva Example'));
     expect(payment.modal).toBeNull();
-    expect(insurance.update).toHaveBeenCalledWith({ id: 'ac-2', data: { annulled: false } }, expect.anything());
+    expect(insurance.update).toHaveBeenCalledWith({ id: 'ac-2', data: { annulled: false } });
   });
 
   it('the RC of an instructor is locked, since the title includes it', () => {
     state.rows = [row({ member_id: 'sensei', first_name: 'Mario', licence_item: 'shidoin', insurance_summary: uninsured })];
     renderWithProviders(<MemberStatusBoard />);
     expect(rc('Mario Example')).toBeDisabled();
-    expect(within(rowOf('Mario Example')).getByText('Va incluido en su título')).toBeInTheDocument();
+    expect(within(rowOf('Mario Example')).getByText('Incluido en su título')).toBeInTheDocument();
+    expect(within(rowOf('Mario Example')).getAllByText('Sin seguro')).toHaveLength(1);
     expect(accident('Mario Example')).toBeEnabled();
   });
 

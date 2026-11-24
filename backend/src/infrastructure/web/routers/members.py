@@ -14,7 +14,13 @@ from src.domain.entities.license import (
     payable_licence_items,
     title_among,
 )
-from src.domain.entities.insurance import Insurance, InsuranceStatus, InsuranceType, insurance_season_year
+from src.domain.entities.insurance import (
+    Insurance,
+    InsuranceStatus,
+    InsuranceType,
+    insurance_season_year,
+    insurance_within_its_dates,
+)
 from src.domain.entities.member import ClubRole
 from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPaymentStatus, MemberPaymentType
 from src.domain.exceptions.license import LicenseNotFoundError
@@ -249,25 +255,10 @@ def _licence_item(licences: List[License], birth_date, identified: bool) -> Opti
     return next(iter(items - {"dan"}), "dan")
 
 
-TICKABLE_INSURANCE_STATUSES = (InsuranceStatus.ACTIVE, InsuranceStatus.CANCELLED)
-
-
-def _insurance_within_its_dates(insurances: List[Insurance], insurance_type: InsuranceType, today: datetime):
-    """The insurance of that type whose dates cover today, in force first: the one a tick annuls or reactivates."""
-    current = [
-        i for i in insurances
-        if i.insurance_type == insurance_type and i.status in TICKABLE_INSURANCE_STATUSES
-        and (not i.end_date or i.end_date >= today) and (not i.start_date or i.start_date <= today)
-    ]
-    return max(
-        current, key=lambda i: (i.status == InsuranceStatus.ACTIVE, i.end_date or datetime.max), default=None
-    )
-
-
 def _insurance_tick_fields(insurances: List[Insurance], today: datetime) -> dict:
     fields = {}
     for prefix, insurance_type in (("accident", InsuranceType.ACCIDENT), ("rc", InsuranceType.CIVIL_LIABILITY)):
-        insurance = _insurance_within_its_dates(insurances, insurance_type, today)
+        insurance = insurance_within_its_dates(insurances, insurance_type, today)
         fields[f"{prefix}_insurance_id"] = insurance.id if insurance else None
         fields[f"{prefix}_insurance_annulled"] = bool(insurance and insurance.status == InsuranceStatus.CANCELLED)
     return fields

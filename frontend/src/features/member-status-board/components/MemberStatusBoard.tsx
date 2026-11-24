@@ -18,7 +18,7 @@ import { ManualPaymentModal } from '@/features/club-payments/components/ManualPa
 import { useDeleteMemberPaymentMutation } from '@/features/club-payments/hooks/mutations/usePaymentAdminMutations';
 import { useChangeMemberStatusMutation } from '@/features/members/hooks/mutations/useMemberMutations';
 import { useUpdateInsuranceMutation } from '@/features/insurance/hooks/mutations/useInsuranceMutations';
-import { useQueryClient } from '@tanstack/react-query';
+import { isInstructor, type LicenceItem } from '@/features/annual-payments/utils/payment-checklist';
 import { ChipGroup, EmptyState, ListError, ListLoading, ListToolbar } from '@/components/ui/list-controls';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -103,8 +103,6 @@ const INSURANCE_KINDS: InsuranceKind[] = [
   { key: 'rc', header: 'RC', name: 'Seguro RC', item: 'seguro_rc' },
 ];
 
-const INSTRUCTOR_ITEMS = ['shidoin', 'fukushidoin'];
-
 const insuranceOf = (row: MemberStatusRow, kind: InsuranceKind) => {
   const summary = row.insurance_summary;
   const [has, status, id, annulled, seasonPaid] = kind.key === 'accident'
@@ -120,11 +118,14 @@ const insuranceOf = (row: MemberStatusRow, kind: InsuranceKind) => {
   };
 };
 
+const rcComesWithTitle = (row: MemberStatusRow, kind: InsuranceKind): boolean =>
+  kind.key === 'rc' && isInstructor(row.licence_item as LicenceItem);
+
 const insuranceLock = (row: MemberStatusRow, kind: InsuranceKind): string | null => {
   const { inForce, annulled, seasonPaid } = insuranceOf(row, kind);
   if (inForce || annulled) return null;
   if (row.member_status !== 'active') return 'De baja: no paga seguro';
-  if (kind.key === 'rc' && INSTRUCTOR_ITEMS.includes(row.licence_item ?? '')) return 'Va incluido en su título';
+  if (rcComesWithTitle(row, kind)) return 'Va incluido en su título';
   if (seasonPaid) return 'Ya está pagado esta temporada: revisa sus fechas en Seguros';
   if (!row.club_id) return 'Sin club: el pago se apunta en un club';
   return null;
@@ -173,22 +174,18 @@ export const MemberStatusBoard = () => {
   const changeMemberStatus = useChangeMemberStatusMutation();
   const exportBoard = useExportMemberStatusBoardMutation();
   const updateInsurance = useUpdateInsuranceMutation();
-  const queryClient = useQueryClient();
   const busy = isDeleting || isFetching || changeMemberStatus.isPending || updateInsurance.isPending;
 
   const setAnnulled = (insuranceId: string, annulled: boolean) =>
-    updateInsurance.mutate(
-      { id: insuranceId, data: { annulled } },
-      { onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members'] }) }
-    );
+    updateInsurance.mutate({ id: insuranceId, data: { annulled } });
 
   const toggleInsurance = (row: MemberStatusRow, kind: InsuranceKind) => {
-    const { id, annulled, inForce } = insuranceOf(row, kind);
-    if (id && annulled) return setAnnulled(id, false);
-    if (!inForce || !id) return setPaying({ row, items: [kind.item], year: defaultPaymentYear(new Date()) });
+    const { id, annulled } = insuranceOf(row, kind);
+    if (!id) return setPaying({ row, items: [kind.item], year: defaultPaymentYear(new Date()) });
+    if (annulled) return setAnnulled(id, false);
     setConfirming({
       title: `¿Anular el ${kind.name.replace('Seguro', 'seguro')} de ${fullName(row)}?`,
-      description: 'Deja de contar como vigente. Puedes volver a marcarlo para reactivarlo.',
+      description: 'Deja de estar en vigor. El pago apuntado no se borra. Puedes volver a marcarlo para reactivarlo.',
       action: 'Anular seguro',
       onConfirm: () => setAnnulled(id, true),
     });
@@ -208,10 +205,10 @@ export const MemberStatusBoard = () => {
   const toggleMember = (row: MemberStatusRow) => {
     const active = row.member_status === 'active';
     setConfirming({
-      title: active ? 'Dar de baja' : 'Reactivar miembro',
+      title: active ? `¿Dar de baja a ${fullName(row)}?` : `¿Reactivar a ${fullName(row)}?`,
       description: active
-        ? `Se dará de baja a "${fullName(row)}". El miembro quedará inactivo y será excluido de los pagos anuales. Esta acción es reversible.`
-        : `Se reactivará a "${fullName(row)}". El miembro volverá a estar activo y será incluido en los pagos anuales.`,
+        ? 'Dejará de contar en los pagos del año. Puedes volver a marcar la casilla para reactivarlo.'
+        : 'Volverá a estar activo y a contar en los pagos del año.',
       action: active ? 'Dar de baja' : 'Reactivar',
       onConfirm: () =>
         changeMemberStatus.mutate({ id: row.member_id, data: { status: active ? 'inactive' : 'active' } }),
@@ -248,7 +245,16 @@ export const MemberStatusBoard = () => {
         </Tick>
       ),
     },
-    { key: 'licence', header: () => 'Licencia', cell: (row) => <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} /> },
+    {
+      key: 'licence',
+      header: () => 'Licencia',
+      cell: (row) => (
+        <span className="inline-flex items-center gap-2">
+          <span className="size-5 lg:hidden" aria-hidden="true" />
+          <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} />
+        </span>
+      ),
+    },
     ...INSURANCE_KINDS.map((kind): Column => ({
       key: kind.key,
       header: () => kind.header,
@@ -260,10 +266,12 @@ export const MemberStatusBoard = () => {
             label={`${kind.name} de ${fullName(row)}`}
             disabled={busy}
             lockedBecause={insuranceLock(row, kind)}
-            showsWhyLocked={row.member_status === 'active'}
+            showsWhyLocked={row.member_status === 'active' && !rcComesWithTitle(row, kind)}
             onToggle={() => toggleInsurance(row, kind)}
           >
-            <InsuranceBadge has={has} status={status} />
+            {!inForce && rcComesWithTitle(row, kind)
+              ? <StatusBadge tone="neutral">Incluido en su título</StatusBadge>
+              : <InsuranceBadge has={has} status={status} />}
           </Tick>
         );
       },
@@ -360,7 +368,7 @@ export const MemberStatusBoard = () => {
         <EmptyState title="No hay socios que coincidan" description="Prueba con otro nombre o quita los filtros." />
       )}
 
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 lg:hidden">
         {page.map((row) => (
           <article key={row.member_id} className="space-y-2 rounded-[18px] bg-card p-3.5 shadow-card">
             <div>
@@ -384,9 +392,9 @@ export const MemberStatusBoard = () => {
           role="region"
           aria-label={`Estado de los socios en ${year}`}
           tabIndex={0}
-          className="hidden overflow-x-auto rounded-[18px] bg-card shadow-card md:block"
+          className="hidden overflow-x-auto rounded-[18px] bg-card shadow-card lg:block"
         >
-          <table className="w-full table-fixed text-sm">
+          <table className="w-full min-w-[60rem] table-fixed text-sm">
             <caption className="sr-only">Estado de los socios en {year}</caption>
             <thead>
               <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
