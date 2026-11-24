@@ -151,3 +151,27 @@ def test_every_member_is_listed(board):
 def test_a_club_admin_cannot_see_the_board():
     response = build_client(club_admin()).get("/api/v1/members/status-board", params={"payment_year": YEAR})
     assert response.status_code == 403
+
+
+def test_with_a_licence_and_a_title_the_licence_line_is_the_one_unticked():
+    def title(line_id: str, payment_type: MemberPaymentType) -> MemberPayment:
+        return MemberPayment(id=line_id, payment_id="pay-2", member_id="dan", payment_year=YEAR,
+                             payment_type=payment_type, amount=10.0, status=MemberPaymentStatus.COMPLETED)
+
+    both = [
+        title("mp-title", MemberPaymentType.TITULO_SHIDOIN),
+        line("dan", MemberPaymentType.LICENCIA_DAN),
+        title("mp-title-late", MemberPaymentType.TITULO_FUKUSHIDOIN),
+    ]
+
+    async def lines(member_ids, payment_year, status=None):
+        return both
+
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1")
+    app.dependency_overrides = {
+        **dependency_overrides(super_admin()),
+        get_member_payment_repository: lambda: SimpleNamespace(find_by_member_ids_year=lines),
+    }
+    rows = TestClient(app).get("/api/v1/members/status-board", params={"payment_year": YEAR}).json()
+    assert next(r for r in rows if r["member_id"] == "dan")["license_payment_id"] == "mp-dan"

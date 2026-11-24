@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from src.domain.entities.license import License, LicenseStatus, current_licences, grade_licence_among, title_among
 from src.domain.entities.insurance import Insurance
 from src.domain.entities.member import ClubRole
-from src.domain.entities.member_payment import MemberPaymentStatus
+from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPaymentStatus
 from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import LastClubAdminError, InactiveMemberError
 from src.domain.exceptions.user import (
@@ -242,7 +242,10 @@ async def member_status_rows(
     lines = await member_payment_repo.find_by_member_ids_year(
         [r.id for r in responses], payment_year, status=MemberPaymentStatus.COMPLETED
     )
-    licence_line_by_member = {mp.member_id: mp.id for mp in lines if mp.is_license_payment}
+    licence_lines = sorted(
+        (mp for mp in lines if mp.is_license_payment), key=lambda mp: mp.payment_type not in TITLE_PAYMENT_TYPES
+    )
+    licence_line_by_member = {mp.member_id: mp.id for mp in licence_lines}
     return [
         MemberStatusRowResponse(
             member_id=r.id,
