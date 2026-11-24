@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ListPager } from '@/core/components/ListPager';
 import { foldForSearch } from '@/core/utils/search';
+import { seasonLabel } from '@/core/utils/defaultPaymentYear';
 import { ClubFilterSelect } from '@/features/clubs/components/ClubFilterSelect';
 import { LicenseStatusBadge } from '@/features/members/components/MemberBadges';
 import { insurancePresentation } from '@/features/members/utils/member-attention';
@@ -50,18 +51,25 @@ interface PaidToggleProps {
   onToggle: (row: MemberStatusRow) => void;
 }
 
+const lockReason = (row: MemberStatusRow): string | null => {
+  if (!row.club_id) return 'Sin club: el pago se apunta en un club';
+  if (row.member_status !== 'active' && !row.license_paid) return 'De baja: no paga licencia';
+  return null;
+};
+
 function PaidToggle({ row, year, disabled, onToggle }: PaidToggleProps) {
+  const reason = lockReason(row);
   return (
-    <span className="inline-flex items-center gap-2">
+    <label className="inline-flex min-h-11 cursor-pointer items-center gap-2" title={reason ?? undefined}>
       <Checkbox
         checked={row.license_paid}
-        disabled={disabled}
+        disabled={disabled || reason !== null}
         aria-label={`Licencia ${year} pagada de ${fullName(row)}`}
         className="size-5"
         onCheckedChange={() => onToggle(row)}
       />
       <PaidBadge row={row} />
-    </span>
+    </label>
   );
 }
 
@@ -116,7 +124,7 @@ export const MemberStatusBoard = () => {
       key: 'paid',
       header: (forYear) => `Licencia ${forYear} pagada`,
       cell: (row) => (
-        <PaidToggle row={row} year={year} disabled={isDeleting || isFetching || !row.club_id} onToggle={toggle} />
+        <PaidToggle row={row} year={year} disabled={isDeleting || isFetching} onToggle={toggle} />
       ),
     },
     ...STATUS_COLUMNS,
@@ -165,7 +173,9 @@ export const MemberStatusBoard = () => {
           </SelectTrigger>
           <SelectContent>
             {[currentYear - 1, currentYear, currentYear + 1].map((option) => (
-              <SelectItem key={option} value={String(option)}>{option}</SelectItem>
+              <SelectItem key={option} value={String(option)}>
+                Temporada {seasonLabel(option)} · licencias {option}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -236,11 +246,11 @@ export const MemberStatusBoard = () => {
           tabIndex={0}
           className="hidden overflow-x-auto rounded-[18px] bg-card shadow-card md:block"
         >
-          <table className="w-full text-sm">
+          <table className="w-full table-fixed text-sm">
             <caption className="sr-only">Estado de los socios en {year}</caption>
             <thead>
               <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th scope="col" className="px-4 py-3.5 font-semibold">Socio</th>
+                <th scope="col" className="w-[26%] px-4 py-3.5 font-semibold">Nombre y club</th>
                 {columns.map((column) => (
                   <th key={column.key} scope="col" className="px-3 py-3.5 font-semibold">{column.header(year)}</th>
                 ))}
@@ -274,6 +284,8 @@ export const MemberStatusBoard = () => {
           paymentYear={year}
           members={[{ id: paying.member_id, name: fullName(paying) }]}
           isLoadingMembers={false}
+          initialPaymentTypes={paying.licence_item ? [paying.licence_item] : []}
+          initialPayerName={fullName(paying)}
         />
       )}
 
@@ -284,7 +296,7 @@ export const MemberStatusBoard = () => {
               {unpaying && `¿Quitar el pago de la licencia ${year} de ${fullName(unpaying)}?`}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Se borra la línea de pago. La licencia sigue en vigor hasta su fecha y saldrá como sin pagar.
+              Se borrará este pago. La licencia seguirá en vigor hasta su fecha, pero aparecerá como sin pagar.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

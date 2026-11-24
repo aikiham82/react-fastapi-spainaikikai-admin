@@ -26,6 +26,7 @@ export const memberStatusRowSchema = z.object({
   insurance_summary: insuranceSummarySchema.nullish(),
   license_paid: z.boolean(),
   license_payment_id: z.string().nullish(),
+  licence_item: z.string().nullish(),
 });
 
 export const memberStatusBoardSchema = z.array(memberStatusRowSchema);

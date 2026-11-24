@@ -53,6 +53,7 @@ const row = (overrides: Partial<MemberStatusRow>): MemberStatusRow => ({
   insurance_summary: { has_accident: true, accident_status: 'active', has_rc: false, rc_status: null },
   license_paid: true,
   license_payment_id: 'mp-1',
+  licence_item: 'kyu',
   ...overrides,
 });
 
@@ -152,6 +153,8 @@ describe('MemberStatusBoard paid checkbox', () => {
       clubName: 'Dojo Example A',
       paymentYear: new Date().getFullYear(),
       members: [{ id: 'unpaid', name: 'Luis Example' }],
+      initialPaymentTypes: ['kyu'],
+      initialPayerName: 'Luis Example',
     });
   });
 
@@ -172,6 +175,26 @@ describe('MemberStatusBoard paid checkbox', () => {
     state.rows = [row({ member_id: 'clubless', first_name: 'Iker', club_id: null, club_name: null, license_paid: false })];
     renderWithProviders(<MemberStatusBoard />);
     expect(checkbox('Iker Example')).toBeDisabled();
+  });
+
+  it('a deregistered member cannot be ticked as paid', () => {
+    state.rows = [row({ member_id: 'gone', first_name: 'Noa', member_status: 'inactive', license_paid: false })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Noa Example')).toBeDisabled();
+  });
+
+  it('a deregistered member whose payment is recorded can still be unticked', () => {
+    state.rows = [row({ member_id: 'gone', first_name: 'Noa', member_status: 'inactive' })];
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Noa Example')).toBeEnabled();
+  });
+
+  it('a member without licence opens the payment with nothing ticked yet', async () => {
+    const user = userEvent.setup();
+    state.rows = [row({ member_id: 'new', first_name: 'Eva', license_summary: null, license_paid: false, licence_item: null })];
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Eva Example'));
+    expect(payment.modal).toMatchObject({ initialPaymentTypes: [] });
   });
 
   it('the checkbox is disabled while a payment line is being removed', () => {
