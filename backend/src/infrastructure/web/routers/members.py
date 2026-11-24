@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from src.domain.entities.license import License, LicenseStatus, current_licences, grade_licence_among, title_among
 from src.domain.entities.insurance import Insurance
 from src.domain.entities.member import ClubRole
+from src.domain.entities.member_payment import MemberPaymentStatus
 from src.domain.exceptions.license import LicenseNotFoundError
 from src.domain.exceptions.member import LastClubAdminError, InactiveMemberError
 from src.domain.exceptions.user import (
@@ -26,6 +27,7 @@ from src.infrastructure.web.dto.member_dto import (
     ChangeGradeDTO,
     LicenseSummary,
     InsuranceSummary,
+    MemberStatusRowResponse,
 )
 from src.infrastructure.web.dto.password_reset_dto import AdminPasswordResetLinkResponseDTO
 from src.infrastructure.web.audit import audit
@@ -47,11 +49,13 @@ from src.infrastructure.web.dependencies import (
     get_insurance_repository,
     get_club_repository,
     get_member_repository,
+    get_member_payment_repository,
 )
 from src.infrastructure.web.authorization import (
     AuthContext,
     require_club_access,
     require_club_admin_ctx,
+    require_super_admin,
 )
 
 router = APIRouter(prefix="/members", tags=["members"])
@@ -210,6 +214,50 @@ async def get_members(
         responses = responses[:limit]
     responses = await _enrich_members_with_own_email(responses, member_repo)
     return await _enrich_members_with_club_names(responses, club_repo)
+
+
+@router.get("/status-board", response_model=List[MemberStatusRowResponse])
+async def get_member_status_board(
+    payment_year: int = Query(..., ge=1900, le=2100),
+    get_all_use_case = Depends(get_all_members_use_case),
+    ctx: AuthContext = Depends(get_auth_context),
+    license_repo = Depends(get_license_repository),
+    insurance_repo = Depends(get_insurance_repository),
+    club_repo = Depends(get_club_repository),
+    member_payment_repo = Depends(get_member_payment_repository),
+):
+    """Every member of every club with the licence of the year paid, member status and what is in force."""
+    require_super_admin(ctx)
+    return await member_status_rows(
+        payment_year, get_all_use_case, license_repo, insurance_repo, club_repo, member_payment_repo
+    )
+
+
+async def member_status_rows(
+    payment_year: int, get_all_use_case, license_repo, insurance_repo, club_repo, member_payment_repo
+) -> List[MemberStatusRowResponse]:
+    responses = MemberMapper.to_response_list(await get_all_use_case.execute(0, None))
+    responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
+    responses = await _enrich_members_with_club_names(responses, club_repo)
+    lines = await member_payment_repo.find_by_member_ids_year(
+        [r.id for r in responses], payment_year, status=MemberPaymentStatus.COMPLETED
+    )
+    licence_line_by_member = {mp.member_id: mp.id for mp in lines if mp.is_license_payment}
+    return [
+        MemberStatusRowResponse(
+            member_id=r.id,
+            first_name=r.first_name,
+            last_name=r.last_name,
+            club_id=r.club_id,
+            club_name=r.club_name,
+            member_status=r.status,
+            license_summary=r.license_summary,
+            insurance_summary=r.insurance_summary,
+            license_paid=r.id in licence_line_by_member,
+            license_payment_id=licence_line_by_member.get(r.id),
+        )
+        for r in responses
+    ]
 
 
 @router.get("/search", response_model=List[MemberResponse])

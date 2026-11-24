@@ -108,6 +108,20 @@ class InsuranceSummary(BaseModel):
     rc_status: Optional[str] = None
 
 
+class MemberStatusRowResponse(BaseModel):
+    """One member on the status board: the licence of the year paid next to what is in force."""
+    member_id: str
+    first_name: str
+    last_name: str
+    club_id: Optional[str] = None
+    club_name: Optional[str] = None
+    member_status: str
+    license_summary: Optional[LicenseSummary] = None
+    insurance_summary: Optional[InsuranceSummary] = None
+    license_paid: bool = False
+    license_payment_id: Optional[str] = None
+
+
 class MemberResponse(MemberBase):
     """DTO for member response."""
     id: str

@@ -3,6 +3,16 @@ name: "Member status board"
 description: "Super-admin screen listing every member with licence paid, member status, licence and insurance validity, a paid checkbox and an Excel download"
 created_at: "2026-11-24T09:35:46Z"
 
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+
+last_implementation_at: "2026-11-24T10:45:00Z"
+has_completed_all_phases: "false"
+
 created_by:
   tool: "Claude Code"
   model:
@@ -56,17 +66,17 @@ Real data matrix (production, read-only, 2026-11-24). Each row is a test case an
 
 A super admin opens Admin › "Estado de socios" and sees every member with their state for a chosen year.
 
-- [ ] Use case `GetMemberStatusBoardUseCase.execute(payment_year: int, today: datetime) -> List[MemberStatusRow]` in `application/use_cases/member/`, using bulk queries only (members, clubs, licences, insurances, `find_completed_member_payments`).
-- [ ] `MemberStatusRow`: `member_id`, `first_name`, `last_name`, `club_id`, `club_name`, `member_status`, `license_summary`, `insurance_summary`, `license_paid: bool`, `license_payment_id: Optional[str]` (the completed licence or title line of that year).
-- [ ] Endpoint `GET /api/v1/members/status-board?payment_year=N`, super admin only (403 otherwise), response `List[MemberStatusRowResponse]`.
-- [ ] Test suite `test_get_member_status_board_use_case.py`: paid kyu / kyu infantil / dan, paid title, licence in force without payment, no licence, deregistered member, insurance accident only, RC covered by title, a 2027 payment does not mark 2026 paid.
-- [ ] Router test: super admin 200, club admin 403.
-- [ ] Frontend feature `member-status-board`: types, service, `useMemberStatusBoardQuery(year)`, `MemberStatusBoard` page with year selector, search, club filter, table (Miembro, Club, Licencia {año} pagada, Miembro, Licencia, Accidentes, RC) and mobile cards.
-- [ ] Copy: tab "Estado de socios"; paid "Pagada" / "Sin pagar"; amber "Sin pagar" next to a licence in force without payment; member "Activo" / "De baja".
-- [ ] Route `/member-status` gated `super_admin`, tab in the `admin` nav group.
-- [ ] Component tests for `MemberStatusBoard`: renders rows, amber when in force without payment, filters by search.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Rows built by `member_status_rows(...)` in the members router, reusing the router's bulk summary helpers (members, clubs, licences, insurances, completed lines of the year) instead of a new use case: the summaries already live there.
+- [x] `MemberStatusRow`: `member_id`, `first_name`, `last_name`, `club_id`, `club_name`, `member_status`, `license_summary`, `insurance_summary`, `license_paid: bool`, `license_payment_id: Optional[str]` (the completed licence or title line of that year).
+- [x] Endpoint `GET /api/v1/members/status-board?payment_year=N`, super admin only (403 otherwise), response `List[MemberStatusRowResponse]`.
+- [x] Test suite `tests/api/test_member_status_board.py`: paid kyu / kyu infantil / dan, paid title, licence in force without payment, no licence, deregistered member, insurance accident only, RC covered by title, a 2027 payment does not mark 2026 paid.
+- [x] Router test: super admin 200, club admin 403.
+- [x] Frontend feature `member-status-board`: types, service, `useMemberStatusBoardQuery(year)`, `MemberStatusBoard` page with year selector, search, club filter, table (Miembro, Club, Licencia {año} pagada, Miembro, Licencia, Accidentes, RC) and mobile cards.
+- [x] Copy: tab "Estado de socios"; paid "Pagada" / "Sin pagar"; amber "Sin pagar" next to a licence in force without payment; member "Activo" / "De baja".
+- [x] Route `/member-status` gated `super_admin`, tab in the `admin` nav group.
+- [x] Component tests for `MemberStatusBoard`: renders rows, amber when in force without payment, filters by search.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 2: paid checkbox
 
@@ -87,6 +97,6 @@ A super admin opens Admin › "Estado de socios" and sees every member with thei
 
 ## ⏭️ Next step
 
-Implement Phase 1: the read-only board.
+Implement Phase 2: the paid checkbox.
 
-Every member in one glance, brought by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Every member in one glance, brought by 👀 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
