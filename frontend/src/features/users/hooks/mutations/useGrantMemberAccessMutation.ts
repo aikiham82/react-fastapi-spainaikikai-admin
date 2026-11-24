@@ -15,11 +15,13 @@ export const useGrantMemberAccessMutation = () => {
   return useMutation({
     mutationFn: ({ memberId, email, clubAdmin }: GrantMemberAccessInput) =>
       grantMemberAccess(memberId, email, clubAdmin),
-    onSuccess: (_, { memberId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['user-accounts'] });
       // Marked stale without refetching: a refetch now would swap the success
-      // message and its copyable link for the account view.
-      queryClient.invalidateQueries({ queryKey: ['user-by-member', memberId], refetchType: 'none' });
+      // message and its copyable link for the account view. Every member is
+      // marked because the account may have been handed over from another one.
+      queryClient.invalidateQueries({ queryKey: ['user-by-member'], refetchType: 'none' });
     },
     onError: (error: Error & { detail?: unknown; status?: number }) => {
       toast.error(errorMessage(error, 'No se pudo dar acceso a la web'));

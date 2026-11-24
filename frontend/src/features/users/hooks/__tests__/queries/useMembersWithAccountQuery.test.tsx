@@ -57,6 +57,18 @@ describe('useMembersWithAccountQuery', () => {
     await waitFor(() => expect(result.current.memberIdsWithAccount.size).toBe(1));
   });
 
+  it('ignores switched-off accounts', async () => {
+    mockGetUserAccounts.mockResolvedValue([
+      ...accounts,
+      { ...accounts[0], id: 'user-3', email: 'former@example.com', is_active: false, member_id: 'member-3' },
+    ]);
+
+    const { result } = renderHook(() => useMembersWithAccountQuery(true), { wrapper });
+
+    await waitFor(() => expect(result.current.memberIdsWithAccount.has('member-1')).toBe(true));
+    expect(result.current.memberIdsWithAccount.has('member-3')).toBe(false);
+  });
+
   it('does not request the accounts when the caller is not a super admin', async () => {
     const { result } = renderHook(() => useMembersWithAccountQuery(false), { wrapper });
 

@@ -19,6 +19,7 @@ export const useMembersWithAccountQuery = (enabled: boolean) => {
 
     return new Set(
       data
+        .filter((account) => account.is_active)
         .map((account) => account.member_id)
         .filter((memberId): memberId is string => Boolean(memberId))
     );

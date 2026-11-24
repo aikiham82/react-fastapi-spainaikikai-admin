@@ -16,8 +16,8 @@ implemented_by:
       name: "Claude Fable"
       version: "5.2"
       reasoning_effort: "low"
-last_implementation_at: "2026-11-24T11:45:00Z"
-has_completed_all_phases: false
+last_implementation_at: "2026-11-24T12:15:00Z"
+has_completed_all_phases: true
 ---
 
 # Switched-off account frees its email
@@ -79,14 +79,14 @@ Test cases:
 - `useMembersWithAccountQuery.test.tsx`: `ignores switched-off accounts`
 - `useAccessMutationsRefreshAccounts.test.tsx` (new): `refreshes the accounts after giving access`, `refreshes the accounts after removing access`
 
-- [ ] Write the failing tests
-- [ ] Count only active accounts in `useMembersWithAccountQuery`
-- [ ] Invalidate `['user-accounts']` after grant and revoke, and every `['user-by-member']` after grant
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Write the failing tests
+- [x] Count only active accounts in `useMembersWithAccountQuery`
+- [x] Invalidate `['user-accounts']` after grant and revoke, and every `['user-by-member']` after grant
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 2.
+All phases are implemented: review, QA and merge.
 
 Plan paddled into shape by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot).
