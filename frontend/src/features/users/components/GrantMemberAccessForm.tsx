@@ -12,6 +12,7 @@ interface GrantMemberAccessFormProps {
 
 export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMemberAccessFormProps) => {
   const [email, setEmail] = useState(memberEmail);
+  const [isAsking, setIsAsking] = useState(false);
   const { mutate: grant, isPending, data: link } = useGrantMemberAccessMutation();
 
   const giveAccess = () => {
@@ -45,6 +46,17 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
     );
   }
 
+  if (!isAsking) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">Este socio no gestiona el club.</p>
+        <Button type="button" variant="outline" className="min-h-11" onClick={() => setIsAsking(true)}>
+          Hacer responsable del club
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">Este socio no gestiona el club.</p>
@@ -53,6 +65,7 @@ export const GrantMemberAccessForm = ({ memberId, memberEmail = '' }: GrantMembe
         <Input
           id="grant_email"
           type="email"
+          autoFocus
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => {

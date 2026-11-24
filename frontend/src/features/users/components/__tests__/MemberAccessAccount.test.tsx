@@ -118,12 +118,13 @@ describe('MemberAccessAccount', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('offers to give access when the member has no account', () => {
+  it('offers to give access when the member has no account', async () => {
     mockQuery({ data: undefined, isError: true, error: { status: 404 } })
 
     renderWithProviders(<MemberAccessAccount memberId="member123" memberEmail="ana@example.com" />)
 
     expect(screen.getByText('Este socio no gestiona el club.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('ana@example.com')
   })
 
@@ -156,11 +157,12 @@ describe('MemberAccessAccount', () => {
     expect(screen.getByRole('button', { name: 'Quitar acceso' })).toBeInTheDocument()
   })
 
-  it('offers to give access again when the account was switched off', () => {
+  it('offers to give access again when the account was switched off', async () => {
     mockQuery({ data: { ...account, is_active: false } })
 
     renderWithProviders(<MemberAccessAccount memberId="member123" />)
 
+    await userEvent.click(screen.getByRole('button', { name: 'Hacer responsable del club' }))
     expect(screen.getByLabelText('Correo con el que entrará')).toHaveValue('jcarlosarevalo2@gmail.com')
     expect(screen.queryByRole('button', { name: 'Quitar acceso' })).not.toBeInTheDocument()
   })

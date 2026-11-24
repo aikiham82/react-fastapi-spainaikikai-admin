@@ -18,6 +18,7 @@ Removing access deactivates the account and kills its reset tokens; it is not de
 
 - 2026-10-25: a club needed a second manager and the only way was a manual database change. The project exists to stop that.
 - 2026-11-24: a club changed manager and kept the club email. The former manager's switched-off account still held it, so the new manager could not be given access without a database change.
+- 2026-11-21: a club admin typed members' emails into the access field of the member dialog and pressed «Guardar cambios», which saved the member and dropped the email without a word. The access email field now appears only after pressing «Hacer responsable del club», so the dialog shows one email field.
 - Code review found the takeover paths (peer email change, super admin reactivation, admins without login counting as "another admin") before release; security QA found `/club-role` missing the super admin guard every sibling route had.
 
 ## 👀 Examples
