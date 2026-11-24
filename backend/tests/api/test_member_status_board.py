@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from src.domain.entities.club import Club
 from src.domain.entities.insurance import Insurance, InsuranceType
-from src.domain.entities.license import License
+from src.domain.entities.license import InstructorCategory, License, TechnicalGrade
 from src.domain.entities.member import Member, MemberStatus
 from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatus, MemberPaymentType
 from src.infrastructure.web.dependencies import (
@@ -41,9 +41,10 @@ MEMBERS = [
 ]
 
 
-def licence(member_id: str, grade: str = "6º Kyu") -> License:
-    loaded = License(id=f"lic-{member_id}", license_number=f"SA-{member_id}", member_id=member_id,
-                     grade=grade, expiration_date=IN_FORCE)
+def licence(member_id: str, grade: str = "6º Kyu", title: InstructorCategory = InstructorCategory.NONE) -> License:
+    technical = TechnicalGrade.DAN if "Dan" in grade else TechnicalGrade.KYU
+    loaded = License(id=f"lic-{member_id}", license_number=f"SA-{member_id}", member_id=member_id, grade=grade,
+                     technical_grade=technical, instructor_category=title, expiration_date=IN_FORCE)
     loaded.check_and_update_status()
     return loaded
 
@@ -53,8 +54,10 @@ def line(member_id: str, payment_type: MemberPaymentType, year: int = YEAR) -> M
                          payment_type=payment_type, amount=10.0, status=MemberPaymentStatus.COMPLETED)
 
 
-LICENCES = [licence(m) for m in ("kyu", "infantil", "title", "unpaid", "next-year", "deregistered")] + [
-    licence("dan", "1º Dan")
+LICENCES = [licence(m) for m in ("kyu", "unpaid", "next-year", "deregistered")] + [
+    licence("infantil", "6º Kyu infantil"),
+    licence("dan", "1º Dan"),
+    licence("title", "2º Dan", InstructorCategory.SHIDOIN),
 ]
 INSURANCES = [
     Insurance(id="ac-kyu", policy_number="P-1", insurance_company="Example Insurer", member_id="kyu", insurance_type=InsuranceType.ACCIDENT,
@@ -176,3 +179,10 @@ def test_with_a_licence_and_a_title_the_licence_line_is_the_one_unticked():
     }
     rows = TestClient(app).get("/api/v1/members/status-board", params={"payment_year": YEAR}).json()
     assert next(r for r in rows if r["member_id"] == "dan")["license_payment_id"] == "mp-dan"
+
+
+@pytest.mark.parametrize("member_id, item", [
+    ("kyu", "kyu"), ("infantil", "kyu_infantil"), ("dan", "dan"), ("title", "shidoin"), ("unlicensed", None),
+])
+def test_each_row_names_the_licence_a_tick_would_pay(board, member_id, item):
+    assert board[member_id]["licence_item"] == item

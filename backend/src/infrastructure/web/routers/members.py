@@ -1,11 +1,19 @@
 """Member routes."""
 
 from collections import defaultdict
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
-from src.domain.entities.license import License, LicenseStatus, current_licences, grade_licence_among, title_among
+from src.domain.entities.license import (
+    License,
+    LicenseStatus,
+    current_licences,
+    grade_licence_among,
+    payable_licence_items,
+    title_among,
+)
 from src.domain.entities.insurance import Insurance
 from src.domain.entities.member import ClubRole
 from src.domain.entities.member_payment import TITLE_PAYMENT_TYPES, MemberPaymentStatus
@@ -233,33 +241,50 @@ async def get_member_status_board(
     )
 
 
+def _licence_item(licences: List[License], birth_date, identified: bool) -> Optional[str]:
+    """The licence a tick on the status board pays: the title or grade the member holds; none without a licence."""
+    if not licences:
+        return None
+    items = payable_licence_items(licences, birth_date, datetime.utcnow(), identified)
+    return next(iter(items - {"dan"}), "dan")
+
+
 async def member_status_rows(
     payment_year: int, get_all_use_case, license_repo, insurance_repo, club_repo, member_payment_repo
 ) -> List[MemberStatusRowResponse]:
-    responses = MemberMapper.to_response_list(await get_all_use_case.execute(0, None))
-    responses = await _enrich_members_with_summaries(responses, license_repo, insurance_repo)
-    responses = await _enrich_members_with_club_names(responses, club_repo)
+    members = await get_all_use_case.execute(0, None)
+    member_ids = [m.id for m in members]
+    licences = await license_repo.find_by_member_ids(member_ids, limit=len(member_ids) * 5)
+    insurances = await insurance_repo.find_by_member_ids(member_ids, limit=len(member_ids) * 5)
+    clubs = {c.id: c.name for c in await club_repo.find_by_ids(list({m.club_id for m in members if m.club_id}))}
     lines = await member_payment_repo.find_by_member_ids_year(
-        [r.id for r in responses], payment_year, status=MemberPaymentStatus.COMPLETED
+        member_ids, payment_year, status=MemberPaymentStatus.COMPLETED
     )
+    licences_by_member = defaultdict(list)
+    for lic in licences:
+        licences_by_member[lic.member_id].append(lic)
+    insurances_by_member = defaultdict(list)
+    for ins in insurances:
+        insurances_by_member[ins.member_id].append(ins)
     licence_lines = sorted(
         (mp for mp in lines if mp.is_license_payment), key=lambda mp: mp.payment_type not in TITLE_PAYMENT_TYPES
     )
     licence_line_by_member = {mp.member_id: mp.id for mp in licence_lines}
     return [
         MemberStatusRowResponse(
-            member_id=r.id,
-            first_name=r.first_name,
-            last_name=r.last_name,
-            club_id=r.club_id,
-            club_name=r.club_name,
-            member_status=r.status,
-            license_summary=r.license_summary,
-            insurance_summary=r.insurance_summary,
-            license_paid=r.id in licence_line_by_member,
-            license_payment_id=licence_line_by_member.get(r.id),
+            member_id=m.id,
+            first_name=m.first_name,
+            last_name=m.last_name,
+            club_id=m.club_id,
+            club_name=clubs.get(m.club_id),
+            member_status=m.status.value,
+            license_summary=_build_license_summary(licences_by_member[m.id]),
+            insurance_summary=_build_insurance_summary(insurances_by_member[m.id]),
+            license_paid=m.id in licence_line_by_member,
+            license_payment_id=licence_line_by_member.get(m.id),
+            licence_item=_licence_item(licences_by_member[m.id], m.birth_date, bool(m.dni)),
         )
-        for r in responses
+        for m in members
     ]
 
 

@@ -120,6 +120,7 @@ class MemberStatusRowResponse(BaseModel):
     insurance_summary: Optional[InsuranceSummary] = None
     license_paid: bool = False
     license_payment_id: Optional[str] = None
+    licence_item: Optional[str] = None
 
 
 class MemberResponse(MemberBase):
