@@ -229,6 +229,6 @@ export interface PrefillAnnualPaymentResponse {
   seguro_accidentes_count: number;
   seguro_rc_count: number;
   member_assignments: MemberPaymentAssignment[];
-  source: 'members' | 'previous_payment';
+  source: 'members' | 'previous_payment' | 'unfinished_payment';
   paid_assignments: MemberPaymentAssignment[];
 }

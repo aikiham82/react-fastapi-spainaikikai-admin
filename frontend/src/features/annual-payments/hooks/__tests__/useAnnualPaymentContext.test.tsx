@@ -84,9 +84,10 @@ const prefillFor = (memberId: string): PrefillAnnualPaymentResponse =>
   }) as PrefillAnnualPaymentResponse
 
 const Probe = () => {
-  const { formData, setField, rows } = useAnnualPaymentContext()
+  const { formData, setField, rows, renewNotice } = useAnnualPaymentContext()
   return (
     <>
+      <output data-testid="notice">{renewNotice}</output>
       <button onClick={() => setField('club_id', 'club-a')}>go-a</button>
       <button onClick={() => setField('club_id', 'club-b')}>go-b</button>
       <output data-testid="rows">{rows.map((row) => row.memberId).join(',')}</output>
@@ -175,5 +176,21 @@ describe('useAnnualPaymentContext club switching', () => {
     renderWithProviders(tree())
     await goTo('go-b')
     expect(screen.getByTestId('payer').textContent).toBe('Dojo Beta')
+  })
+
+  it('says the selection comes from the last unfinished payment', async () => {
+    prefillByClub['club-a'] = { ...prefillFor('a-1'), source: 'unfinished_payment' }
+    renderWithProviders(tree())
+    await goTo('go-a')
+    expect(screen.getByTestId('ticked').textContent).toBe('a-1')
+    expect(screen.getByTestId('notice').textContent).toBe(
+      'Hemos dejado marcado lo que elegiste en tu último pago, que no llegó a completarse.',
+    )
+  })
+
+  it('shows no notice for a default prefill', async () => {
+    renderWithProviders(tree())
+    await goTo('go-a')
+    expect(screen.getByTestId('notice').textContent).toBe('')
   })
 })

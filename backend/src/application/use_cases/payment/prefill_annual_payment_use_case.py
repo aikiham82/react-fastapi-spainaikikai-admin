@@ -3,7 +3,7 @@
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from src.application.ports.member_repository import MemberRepositoryPort
 from src.application.ports.license_repository import LicenseRepositoryPort
@@ -15,6 +15,9 @@ from src.domain.entities.license import TechnicalGrade, InstructorCategory, AgeC
 from src.domain.entities.insurance import InsuranceType
 from src.domain.entities.payment import PaymentType, PaymentStatus
 from src.domain.entities.member_payment import MemberPaymentStatus, MemberPaymentType
+
+RESUMABLE_PAYMENT_STATUSES = (PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.FAILED)
+COUNTED_ITEM_TYPES = ("kyu", "kyu_infantil", "dan", "fukushidoin", "shidoin", "seguro_accidentes", "seguro_rc")
 
 
 @dataclass
@@ -37,7 +40,7 @@ class PrefillResult:
     seguro_accidentes_count: int
     seguro_rc_count: int
     member_assignments: List[PrefillMemberAssignment]
-    source: str  # "members" or "previous_payment"
+    source: str  # "members", "previous_payment" or "unfinished_payment"
     paid_assignments: List[PrefillMemberAssignment] = field(default_factory=list)
 
 
@@ -202,6 +205,15 @@ class PrefillAnnualPaymentUseCase:
         )
         include_club_fee = not club_fee_already_paid
 
+        resumed = await self._resume_unfinished_payment(
+            club_id, payment_year, active_members, paid_set, club_fee_already_paid
+        )
+        if resumed:
+            return PrefillResult(
+                **{**resumed, "club_fee_already_paid": club_fee_already_paid},
+                paid_assignments=paid_assignments,
+            )
+
         return PrefillResult(
             payer_name=payer_name,
             include_club_fee=include_club_fee,
@@ -217,6 +229,49 @@ class PrefillAnnualPaymentUseCase:
             source="members",
             paid_assignments=paid_assignments,
         )
+
+    async def _resume_unfinished_payment(
+        self,
+        club_id: str,
+        payment_year: int,
+        active_members: list,
+        paid_set: set,
+        club_fee_already_paid: bool,
+    ) -> Optional[dict]:
+        """The selection of the club's latest annual payment of the year, when it was never charged, minus what is paid."""
+        latest = await self._payment_repo.find_latest_annual(club_id, payment_year)
+        if not latest or latest.status not in RESUMABLE_PAYMENT_STATUSES:
+            return None
+
+        names = {m.id: m.get_full_name() for m in active_members}
+        counts = dict.fromkeys(COUNTED_ITEM_TYPES, 0)
+        assignments: List[PrefillMemberAssignment] = []
+        for assignment in json.loads(latest.member_assignments or "[]"):
+            member_id = assignment.get("member_id")
+            if member_id not in names:
+                continue
+            types = [
+                item for item in assignment.get("payment_types", [])
+                if item in counts and (member_id, item) not in paid_set
+            ]
+            for item in types:
+                counts[item] += 1
+            if types:
+                assignments.append(PrefillMemberAssignment(member_id, names[member_id], types))
+
+        include_club_fee = not club_fee_already_paid and any(
+            line.get("item_type") == "club_fee" for line in json.loads(latest.line_items_data or "[]")
+        )
+        if not assignments and not include_club_fee:
+            return None
+
+        return {
+            "payer_name": latest.payer_name or "",
+            "include_club_fee": include_club_fee,
+            **{f"{item}_count": n for item, n in counts.items()},
+            "member_assignments": assignments,
+            "source": "unfinished_payment",
+        }
 
     async def _prefill_from_previous_payment(
         self,

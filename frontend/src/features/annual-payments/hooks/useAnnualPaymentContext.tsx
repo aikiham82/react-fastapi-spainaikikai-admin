@@ -54,6 +54,8 @@ interface AnnualPaymentContextType extends UseAnnualPaymentFormReturn {
   renewedMemberId: string | null;
 }
 
+const RESUMED_UNFINISHED_NOTICE = 'Hemos dejado marcado lo que elegiste en tu último pago, que no llegó a completarse.';
+
 const AnnualPaymentContext = createContext<AnnualPaymentContextType | undefined>(undefined);
 
 interface AnnualPaymentProviderProps {
@@ -186,7 +188,7 @@ export const AnnualPaymentProvider: React.FC<AnnualPaymentProviderProps> = ({ ch
       setRenewedMemberId(renewal.length > 0 ? renewMemberId : null);
       return;
     }
-    setRenewNotice(null);
+    setRenewNotice(prefillData.source === 'unfinished_payment' ? RESUMED_UNFINISHED_NOTICE : null);
     setField('include_club_fee', prefillData.include_club_fee && !prefillData.club_fee_already_paid);
     applyAssignments(sanitizeAssignments(prefillData.member_assignments, rows));
   }, [scopeKey, prefillData, membersBelongToClub, isLoadingMembers, isLoadingClubs, clubsData, currentUser?.username, formData.club_id, rows, setField, applyAssignments, renewMemberId, renewKind]);

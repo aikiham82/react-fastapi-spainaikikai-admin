@@ -51,6 +51,11 @@ class PaymentRepositoryPort(ABC):
         pass
 
     @abstractmethod
+    async def find_latest_annual(self, club_id: str, payment_year: int) -> Optional[Payment]:
+        """Find a club's most recently started annual payment of a year, whatever its status."""
+        pass
+
+    @abstractmethod
     async def find_unfinished_exams(self, member_id: str, since: datetime) -> List[Payment]:
         """Find a member's exam payments started since a moment and not finished yet."""
         pass

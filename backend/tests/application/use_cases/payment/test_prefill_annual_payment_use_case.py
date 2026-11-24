@@ -26,11 +26,13 @@ from src.domain.entities.member_payment import MemberPayment, MemberPaymentStatu
 @pytest.fixture
 def mock_repos():
     """Create mock repositories for testing."""
+    payment_repo = AsyncMock()
+    payment_repo.find_latest_annual.return_value = None
     return {
         "member_repo": AsyncMock(),
         "license_repo": AsyncMock(),
         "insurance_repo": AsyncMock(),
-        "payment_repo": AsyncMock(),
+        "payment_repo": payment_repo,
     }
 
 
@@ -1000,3 +1002,116 @@ async def test_prefill_paid_assignments_ignore_other_years(mock_repos):
         member_payment_repo.find_by_member_ids_year.call_args.kwargs["status"]
         == MemberPaymentStatus.COMPLETED
     )
+
+
+def _annual_payment(status, assignments, club_fee=False, payer_name="Club Example"):
+    line_items = [{"item_type": "club_fee", "quantity": 1}] if club_fee else []
+    return Payment(
+        id=f"payment-{status.value}",
+        club_id="club-1",
+        payment_type=PaymentType.ANNUAL_QUOTA,
+        amount=100.0,
+        status=status,
+        payment_year=2026,
+        payer_name=payer_name,
+        line_items_data=json.dumps(line_items),
+        member_assignments=json.dumps([
+            {"member_id": member_id, "member_name": member_id, "payment_types": types}
+            for member_id, types in assignments.items()
+        ]),
+    )
+
+
+def _kyu_licence(member_id):
+    return License(member_id=member_id, license_number=f"L-{member_id}", grade="5º Kyu",
+                   technical_grade=TechnicalGrade.KYU, age_category=AgeCategory.ADULTO,
+                   status=LicenseStatus.ACTIVE)
+
+
+def _use_case_with_latest(mock_repos, latest, member_payments=()):
+    uc, _ = _use_case_with_paid(
+        mock_repos,
+        [_active_member("member-1", "Ana"), _active_member("member-2", "Luis")],
+        list(member_payments),
+    )
+    mock_repos["license_repo"].find_by_member_ids.return_value = [_kyu_licence("member-1"), _kyu_licence("member-2")]
+    mock_repos["payment_repo"].find_latest_annual.return_value = latest
+    return uc
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.FAILED])
+async def test_prefill_resumes_the_latest_unfinished_selection(mock_repos, status):
+    uc = _use_case_with_latest(
+        mock_repos, _annual_payment(status, {"member-2": ["kyu"]}, payer_name="Ana Example")
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert result.source == "unfinished_payment"
+    assert [(a.member_id, a.payment_types) for a in result.member_assignments] == [("member-2", ["kyu"])]
+    assert result.member_assignments[0].member_name == "Luis Example"
+    assert result.kyu_count == 1
+    assert result.include_club_fee is False
+    assert result.payer_name == "Ana Example"
+    mock_repos["payment_repo"].find_latest_annual.assert_awaited_once_with("club-1", 2026)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [PaymentStatus.COMPLETED, PaymentStatus.CANCELLED, PaymentStatus.REFUNDED])
+async def test_prefill_ignores_a_latest_payment_that_is_not_unfinished(mock_repos, status):
+    uc = _use_case_with_latest(mock_repos, _annual_payment(status, {"member-2": ["kyu"]}))
+
+    result = await uc.execute("club-1", 2026)
+
+    assert result.source == "members"
+    assert sorted(a.member_id for a in result.member_assignments) == ["member-1", "member-2"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_resumes_without_what_was_paid_since(mock_repos):
+    uc = _use_case_with_latest(
+        mock_repos,
+        _annual_payment(PaymentStatus.FAILED, {"member-1": ["kyu"], "member-2": ["kyu", "seguro_accidentes"]}, club_fee=True),
+        [_completed_member_payment("member-1", MemberPaymentType.LICENCIA_KYU),
+         _completed_member_payment("member-2", MemberPaymentType.LICENCIA_KYU)],
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert result.source == "unfinished_payment"
+    assert [(a.member_id, a.payment_types) for a in result.member_assignments] == [("member-2", ["seguro_accidentes"])]
+    assert result.kyu_count == 0
+    assert result.seguro_accidentes_count == 1
+    assert result.include_club_fee is True
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_resumes_only_members_still_active(mock_repos):
+    uc = _use_case_with_latest(
+        mock_repos, _annual_payment(PaymentStatus.FAILED, {"member-gone": ["kyu"], "member-1": ["kyu"]})
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert [a.member_id for a in result.member_assignments] == ["member-1"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_prefill_falls_back_when_the_unfinished_selection_is_all_paid(mock_repos):
+    uc = _use_case_with_latest(
+        mock_repos,
+        _annual_payment(PaymentStatus.FAILED, {"member-1": ["kyu"]}, club_fee=True),
+        [_completed_member_payment("member-1", MemberPaymentType.LICENCIA_KYU),
+         _completed_member_payment("member-1", MemberPaymentType.CUOTA_CLUB)],
+    )
+
+    result = await uc.execute("club-1", 2026)
+
+    assert result.source == "members"
+    assert [a.member_id for a in result.member_assignments] == ["member-2"]

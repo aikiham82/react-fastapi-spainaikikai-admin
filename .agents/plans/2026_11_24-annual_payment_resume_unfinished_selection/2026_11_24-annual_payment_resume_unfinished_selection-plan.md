@@ -9,6 +9,15 @@ created_by:
     name: "Claude Opus"
     version: "5.5"
     reasoning_effort: "low"
+
+implemented_by:
+  tool: "Claude Code"
+  model:
+    name: "Claude Opus"
+    version: "5.5"
+    reasoning_effort: "low"
+last_implementation_at: "2026-11-24T10:30:00Z"
+has_completed_all_phases: true
 ---
 
 # Annual payment resumes the unfinished selection
@@ -46,16 +55,16 @@ When a club opens the annual payment screen for a year and its latest annual pay
 
 Description: port method, adapter, prefill branch, frontend source value and notice, with tests.
 
-- [ ] Add `PaymentRepositoryPort.find_latest_annual(club_id: str, payment_year: int) -> Optional[Payment]` and its Mongo implementation (`find_one`, sorted by `created_at` desc).
-- [ ] In `PrefillAnnualPaymentUseCase.execute`, when the latest annual payment is `pending`, `processing` or `failed`, return its `member_assignments` filtered to active members and unpaid items, its club fee if still unpaid, its payer name, and `source="unfinished_payment"`. Fall back to the default prefill when nothing is left.
-- [ ] Tests in `test_prefill_annual_payment_use_case.py`, one per row A to F.
-- [ ] Frontend: `source` accepts `'unfinished_payment'`; context exposes `resumedUnfinished`; `PendingPayments` shows "Hemos dejado marcado lo que elegiste en tu último pago, que no llegó a completarse."
-- [ ] Tests: `useAnnualPaymentContext.test.tsx` (applies restored selection, exposes the flag) and `PendingPayments.test.tsx` (shows the notice).
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Add `PaymentRepositoryPort.find_latest_annual(club_id: str, payment_year: int) -> Optional[Payment]` and its Mongo implementation (`find_one`, sorted by `created_at` desc).
+- [x] In `PrefillAnnualPaymentUseCase.execute`, when the latest annual payment is `pending`, `processing` or `failed`, return its `member_assignments` filtered to active members and unpaid items, its club fee if still unpaid, its payer name, and `source="unfinished_payment"`. Fall back to the default prefill when nothing is left.
+- [x] Tests in `test_prefill_annual_payment_use_case.py`, one per row A to F.
+- [x] Frontend: `source` accepts `'unfinished_payment'`; the context reuses its existing notice (`renewNotice`, already rendered by `PendingPayments`) to show "Hemos dejado marcado lo que elegiste en tu último pago, que no llegó a completarse."
+- [x] Tests: `useAnnualPaymentContext.test.tsx` (applies the restored selection and shows the notice; no notice for a default prefill).
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ## Next step
 
-Implement Phase 1.
+All phases implemented: review, QA and merge.
 
 Plan that never forgets your basket, by 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)

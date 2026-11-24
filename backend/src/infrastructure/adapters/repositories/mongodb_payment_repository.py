@@ -164,6 +164,13 @@ class MongoDBPaymentRepository(PaymentRepositoryPort):
         })
         return [self._to_domain(doc) async for doc in cursor]
 
+    async def find_latest_annual(self, club_id: str, payment_year: int) -> Optional[Payment]:
+        doc = await self.collection.find_one(
+            {"club_id": club_id, "payment_type": PaymentType.ANNUAL_QUOTA.value, "payment_year": payment_year},
+            sort=[("created_at", -1)],
+        )
+        return self._to_domain(doc) if doc else None
+
     async def find_unfinished_exams(self, member_id: str, since: datetime) -> List[Payment]:
         cursor = self.collection.find({
             "member_id": member_id,
