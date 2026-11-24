@@ -1,6 +1,19 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Clock } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ManualPaymentModal } from '@/features/club-payments/components/ManualPaymentModal';
+import { useDeleteMemberPaymentMutation } from '@/features/club-payments/hooks/mutations/usePaymentAdminMutations';
 import { ChipGroup, EmptyState, ListError, ListLoading, ListToolbar } from '@/components/ui/list-controls';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,6 +42,28 @@ function PaidBadge({ row }: { row: MemberStatusRow }) {
   return <StatusBadge tone={licenceInForce(row) ? 'warn' : 'neutral'}>Sin pagar</StatusBadge>;
 }
 
+interface PaidToggleProps {
+  row: MemberStatusRow;
+  year: number;
+  disabled: boolean;
+  onToggle: (row: MemberStatusRow) => void;
+}
+
+function PaidToggle({ row, year, disabled, onToggle }: PaidToggleProps) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <Checkbox
+        checked={row.license_paid}
+        disabled={disabled}
+        aria-label={`Licencia ${year} pagada de ${fullName(row)}`}
+        className="size-5"
+        onCheckedChange={() => onToggle(row)}
+      />
+      <PaidBadge row={row} />
+    </span>
+  );
+}
+
 function MemberBadge({ status }: { status: string }) {
   return status === 'active'
     ? <StatusBadge tone="ok">Activo</StatusBadge>
@@ -46,8 +81,7 @@ interface Column {
   cell: (row: MemberStatusRow) => ReactNode;
 }
 
-const COLUMNS: Column[] = [
-  { key: 'paid', header: (year) => `Licencia ${year} pagada`, cell: (row) => <PaidBadge row={row} /> },
+const STATUS_COLUMNS: Column[] = [
   { key: 'member', header: () => 'Miembro', cell: (row) => <MemberBadge status={row.member_status} /> },
   { key: 'licence', header: () => 'Licencia', cell: (row) => <LicenseStatusBadge licenseSummary={row.license_summary ?? undefined} /> },
   {
@@ -70,6 +104,19 @@ export const MemberStatusBoard = () => {
   const [chip, setChip] = useState<Chip>('all');
   const [offset, setOffset] = useState(0);
   const { data, isLoading, error } = useMemberStatusBoardQuery(year);
+  const [paying, setPaying] = useState<MemberStatusRow | null>(null);
+  const [unpaying, setUnpaying] = useState<MemberStatusRow | null>(null);
+  const { deleteMemberPayment, isLoading: isDeleting } = useDeleteMemberPaymentMutation();
+
+  const toggle = (row: MemberStatusRow) => (row.license_paid ? setUnpaying(row) : setPaying(row));
+  const columns: Column[] = [
+    {
+      key: 'paid',
+      header: (forYear) => `Licencia ${forYear} pagada`,
+      cell: (row) => <PaidToggle row={row} year={year} disabled={isDeleting} onToggle={toggle} />,
+    },
+    ...STATUS_COLUMNS,
+  ];
 
   const rows = useMemo(() => {
     const term = normalized(search.trim());
@@ -153,7 +200,7 @@ export const MemberStatusBoard = () => {
               <p className="truncate text-sm text-muted-foreground">{row.club_name ?? '-'}</p>
             </div>
             <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 text-sm">
-              {COLUMNS.map((column) => (
+              {columns.map((column) => (
                 <div key={column.key} className="contents">
                   <dt className="text-muted-foreground">{column.header(year)}</dt>
                   <dd>{column.cell(row)}</dd>
@@ -176,7 +223,7 @@ export const MemberStatusBoard = () => {
             <thead>
               <tr className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <th scope="col" className="px-4 py-3.5 font-semibold">Socio</th>
-                {COLUMNS.map((column) => (
+                {columns.map((column) => (
                   <th key={column.key} scope="col" className="px-3 py-3.5 font-semibold">{column.header(year)}</th>
                 ))}
               </tr>
@@ -188,7 +235,7 @@ export const MemberStatusBoard = () => {
                     <span className="block font-bold text-foreground">{fullName(row)}</span>
                     <span className="block max-w-[16rem] truncate text-muted-foreground">{row.club_name ?? '-'}</span>
                   </th>
-                  {COLUMNS.map((column) => (
+                  {columns.map((column) => (
                     <td key={column.key} data-column={column.key} className="px-3 py-3">{column.cell(row)}</td>
                   ))}
                 </tr>
@@ -199,6 +246,40 @@ export const MemberStatusBoard = () => {
       )}
 
       <ListPager total={shown.length} limit={PAGE_SIZE} offset={offset} noun="socios" onPage={setOffset} />
+
+      <ManualPaymentModal
+        isOpen={!!paying}
+        onClose={() => setPaying(null)}
+        clubId={paying?.club_id ?? ''}
+        clubName={paying?.club_name ?? ''}
+        paymentYear={year}
+        members={paying ? [{ id: paying.member_id, name: fullName(paying) }] : []}
+        isLoadingMembers={false}
+      />
+
+      <AlertDialog open={!!unpaying} onOpenChange={(open) => !open && setUnpaying(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {unpaying && `¿Quitar el pago de la licencia ${year} de ${fullName(unpaying)}?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Se borra la línea de pago. La licencia sigue en vigor hasta su fecha y saldrá como sin pagar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (unpaying?.license_payment_id) deleteMemberPayment(unpaying.license_payment_id);
+                setUnpaying(null);
+              }}
+            >
+              Quitar el pago
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

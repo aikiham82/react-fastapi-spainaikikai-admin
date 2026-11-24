@@ -13,6 +13,23 @@ vi.mock('../../hooks/queries/useMemberStatusBoardQuery', () => ({
   },
 }));
 
+const payment = vi.hoisted(() => ({
+  deleteMemberPayment: vi.fn(),
+  isLoading: false,
+  modal: null as null | Record<string, unknown>,
+}));
+
+vi.mock('@/features/club-payments/hooks/mutations/usePaymentAdminMutations', () => ({
+  useDeleteMemberPaymentMutation: () => ({ deleteMemberPayment: payment.deleteMemberPayment, isLoading: payment.isLoading }),
+}));
+
+vi.mock('@/features/club-payments/components/ManualPaymentModal', () => ({
+  ManualPaymentModal: (props: Record<string, unknown>) => {
+    payment.modal = props.isOpen ? props : null;
+    return null;
+  },
+}));
+
 vi.mock('@/features/clubs/components/ClubFilterSelect', () => ({
   ClubFilterSelect: () => null,
 }));
@@ -97,5 +114,50 @@ describe('MemberStatusBoard', () => {
   it('opens on the current licence year', () => {
     renderWithProviders(<MemberStatusBoard />);
     expect(state.year).toBe(new Date().getFullYear());
+  });
+});
+
+describe('MemberStatusBoard paid checkbox', () => {
+  beforeEach(() => {
+    payment.deleteMemberPayment.mockReset();
+    payment.isLoading = false;
+    payment.modal = null;
+    state.rows = [
+      row({ member_id: 'paid', first_name: 'Ana' }),
+      row({ member_id: 'unpaid', first_name: 'Luis', license_paid: false, license_payment_id: null }),
+    ];
+  });
+
+  const checkbox = (name: string) => within(rowOf(name)).getByRole('checkbox');
+
+  it('ticking an unpaid licence opens the manual payment for that member, club and year', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Luis Example'));
+    expect(payment.modal).toMatchObject({
+      clubId: 'club-a',
+      clubName: 'Dojo Example A',
+      paymentYear: new Date().getFullYear(),
+      members: [{ id: 'unpaid', name: 'Luis Example' }],
+    });
+  });
+
+  it('unticking a paid licence asks first and then removes that payment line', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MemberStatusBoard />);
+    await user.click(checkbox('Ana Example'));
+    expect(payment.deleteMemberPayment).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('alertdialog');
+    expect(
+      within(dialog).getByText(`¿Quitar el pago de la licencia ${new Date().getFullYear()} de Ana Example?`)
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Quitar el pago' }));
+    expect(payment.deleteMemberPayment).toHaveBeenCalledWith('mp-1');
+  });
+
+  it('the checkbox is disabled while a payment line is being removed', () => {
+    payment.isLoading = true;
+    renderWithProviders(<MemberStatusBoard />);
+    expect(checkbox('Ana Example')).toBeDisabled();
   });
 });

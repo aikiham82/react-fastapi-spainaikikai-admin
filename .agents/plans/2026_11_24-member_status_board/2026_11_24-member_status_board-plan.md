@@ -10,7 +10,7 @@ implemented_by:
     version: "5.5"
     reasoning_effort: "low"
 
-last_implementation_at: "2026-11-24T10:45:00Z"
+last_implementation_at: "2026-11-24T11:00:00Z"
 has_completed_all_phases: "false"
 
 created_by:
@@ -80,11 +80,11 @@ A super admin opens Admin › "Estado de socios" and sees every member with thei
 
 ### Phase 2: paid checkbox
 
-- [ ] Ticking "Licencia {año} pagada" opens `ManualPaymentModal` for that single member, club and year; on success the board refetches.
-- [ ] Unticking asks "¿Quitar el pago de la licencia {año} de {nombre}?" and calls `DELETE /member-payments/{license_payment_id}`; on success the board refetches.
-- [ ] Component tests: tick opens the modal with the member, untick confirms and calls the delete mutation, the checkbox is disabled while a request is in flight.
-- [ ] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
-- [ ] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
+- [x] Ticking "Licencia {año} pagada" opens `ManualPaymentModal` for that single member, club and year; on success the board refetches.
+- [x] Unticking asks "¿Quitar el pago de la licencia {año} de {nombre}?" and calls `DELETE /member-payments/{license_payment_id}`; on success the board refetches.
+- [x] Component tests: tick opens the modal with the member, untick confirms and calls the delete mutation, the checkbox is disabled while a request is in flight.
+- [x] Verify the changes in terms of typechecking, linting and tests using the project's verification command (look it up in the AGENTS.md file or the project configuration). Fix issues if any.
+- [x] STOP. Present the changes to the user for review and suggest commit messages (or pull request titles, when the phases are implemented through pull requests). Do NOT proceed to the next phase until the user explicitly asks.
 
 ### Phase 3: Excel download
 
@@ -97,6 +97,6 @@ A super admin opens Admin › "Estado de socios" and sees every member with thei
 
 ## ⏭️ Next step
 
-Implement Phase 2: the paid checkbox.
+Implement Phase 3: the Excel download.
 
-Every member in one glance, brought by 👀 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
+Every member in one glance, brought by ✅ 👀 🐢 💨 (Turbotuga™, [Codely](https://codely.com)'s mascot)
